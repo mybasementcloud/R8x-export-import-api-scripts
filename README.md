@@ -5,6 +5,9 @@ CLI API Example for exporting, importing, and deleting different objects using C
 
 For a complete overview, review the PDF - "CLI API Example for exporting, importing, and deleting objects v00.17.25 - Exchange Point (2017-01-05-2240CST).pdf" 
 
+This content is also available on Check Point Software Technologies Exchange Point website under:
+https://community.checkpoint.com/servlet/JiveServlet/download/1991-2-6823/VCO%20VRO%20installation%20process.docx
+
 
 # Overview
 
