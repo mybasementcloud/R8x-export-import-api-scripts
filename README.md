@@ -1,16 +1,16 @@
 # R8x-export-import-api-scripts
 Check Point R8x Export, Import, [and more] API scripts for bash and powershell
 
-CLI API Example for exporting, importing, and deleting different objects using CSV files (v00.17.25)
+CLI API Example for exporting, importing, and deleting different objects using CSV files (v00.18.03)
 
-For a complete overview, review the PDF - "CLI API Example for exporting, importing, and deleting objects v00.17.25 - Exchange Point (2017-01-05-2240CST).pdf" 
+For a complete overview, review the PDF - TBD 
 
 This content is also available on Check Point Software Technologies Exchange Point website under:
-https://community.checkpoint.com/docs/DOC-1911
+TBD
 
 # Overview
 
-The export, import, delete using CSV files scripts in this post, currently version 00.17.25, dated 2017-01-04, are intended to allow operations on an existing R80 or R80.10 Check Point management server (SMS or MDM) from bash on the management server or a management server able authenticate and reach the target management server.
+The export, import, delete using CSV files scripts in this post, currently version 00.18.03, dated 2017-03-23, are intended to allow operations on an existing R80 or R80.10 Check Point management server (SMS or MDM) from bash on the management server or a management server able authenticate and reach the target management server.
 
 
 These scripts show examples of:
@@ -30,10 +30,11 @@ This post includes a set of four (4) script packages, which can be used independ
 
 The packages are:
 
-- Export Objects :  cli_api_export_objects_ericb_v00x17x25.7z
-- Export Specific Objects :  cli_api_export_specific_objects_ericb_v00x17x25.7z
-- Import Objects :  cli_api_import_objects_ericb_v00x17x25.7z
-- Delete Objects :  cli_api_delete_objects_ericb_v00x17x25.7z
+- Export Objects :  
+- Export Specific Objects :  
+- Import Objects :  
+- Import Specific Objects :  
+- Delete Objects :  
 
  
 
