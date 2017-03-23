@@ -30,11 +30,12 @@ This post includes a set of four (4) script packages, which can be used independ
 
 The packages are:
 
-- Export Objects :  
-- Export Specific Objects :  
-- Import Objects :  
-- Import Specific Objects :  
-- Delete Objects :  
+- Export Objects :  cli_api_export_objects_ericb_v00x18x03.7z
+- Export Specific Objects :  cli_api_export_specific_objects_ericb_v00x18x03.7z
+- Import Objects :  cli_api_import_objects_ericb_v00x18x03.7z
+- Import Specific Objects :  cli_api_import_specific_objects_ericb_v00x18x03.7z
+- Delete Objects :  cli_api_delete_objects_ericb_v00x18x03.7z
+- template :  template\api_mgmt_cli_shell_template_with_cmd_line_parameters.template.v00.18.00.sh
 
  
 
