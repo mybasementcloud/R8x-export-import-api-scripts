@@ -2,12 +2,34 @@
 #
 # SCRIPT Object dump action operations for API CLI Operations
 #
-ScriptVersion=00.21.00
-ScriptDate=2017-05-25
+ScriptVersion=00.22.00
+ScriptDate=2017-07-20
 
 #
 
+export APIActionsScriptVersion=v00x22x00
 ScriptName=cli_api_export_objects_actions_$APIScriptVersion
+
+# =================================================================================================
+# Validate Actions Script version is correct for caller
+# =================================================================================================
+
+
+if [ x"$APIScriptVersion" = x"$APIActionsScriptVersion" ] ; then
+    # Script and Actions Script versions match, go ahead
+    echo
+    echo 'Verify Actions Scripts Version - OK'
+    echo
+else
+    # Script and Actions Script versions don't match, ALL STOP!
+    echo
+    echo 'Verify Actions Scripts Version - Missmatch'
+    echo 'Calling Script version : '$APIScriptVersion
+    echo 'Actions Script version : '$APIActionsScriptVersion
+    echo
+    exit 255
+fi
+
 
 # =================================================================================================
 # =================================================================================================

@@ -2,12 +2,12 @@
 #
 # SCRIPT Object export to JSON (standard and full details), and CSV file for API CLI Operations
 #
-ScriptVersion=00.21.00
-ScriptDate=2017-05-25
+ScriptVersion=00.22.00
+ScriptDate=2017-07-20
 
 #
 
-export APIScriptVersion=v00x21x00
+export APIScriptVersion=v00x22x00
 ScriptName=cli_api_export_objects_$APIScriptVersion
 
 if [ x"$APISCRIPTVERBOSE" = x"" ] ; then
@@ -28,8 +28,10 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 export APIScriptSubFilePrefix=cli_api_export_objects
-export APIScriptSubFile=$APIScriptSubFilePrefix'_actions_'$APIScriptVersion.sh
-export APIScriptCSVSubFile=$APIScriptSubFilePrefix'_actions_to_csv_'$APIScriptVersion.sh
+#export APIScriptSubFile=$APIScriptSubFilePrefix'_actions_'$APIScriptVersion.sh
+#export APIScriptCSVSubFile=$APIScriptSubFilePrefix'_actions_to_csv_'$APIScriptVersion.sh
+export APIScriptSubFile=$APIScriptSubFilePrefix'_actions'.sh
+export APIScriptCSVSubFile=$APIScriptSubFilePrefix'_actions_to_csv'.sh
 
 
 # =================================================================================================
