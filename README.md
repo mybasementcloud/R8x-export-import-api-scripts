@@ -1,14 +1,14 @@
 # R8x-export-import-api-scripts
 Check Point R8x Export, Import, [and more] API scripts for bash and powershell
 
-CLI API Example for exporting, importing, and deleting different objects using CSV files (v00.21.00)
+CLI API Example for exporting, importing, and deleting different objects using CSV files (v00.22.00)
 
 For a complete overview, review the PDF - TBD 
 
 
 # Overview
 
-The export, import, delete using CSV files scripts in this post, currently version 00.21.00, dated 2017-05-25, are intended to allow operations on an existing R80 or R80.10 Check Point management server (SMS or MDM) from bash on the management server or a management server able authenticate and reach the target management server.
+The export, import, delete using CSV files scripts in this post, currently version 00.22.00, dated 2017-07-20, are intended to allow operations on an existing R80 or R80.10 Check Point management server (SMS or MDM) from bash on the management server or a management server able authenticate and reach the target management server.
 
 
 These scripts show examples of:
@@ -28,11 +28,11 @@ This post includes a set of four (4) script packages, which can be used independ
 
 The packages are:
 
-- Export Objects :  cli_api_Export Objects_v00x21x00_2017-05-25-1906CDT.7z
-- Export Specific Objects :  cli_api_Export Specific Objects_v00x21x00_2017-05-25-1906CDT.7z
-- Import Objects :  cli_api_Import Objects_v00x21x00_2017-05-25-1906CDT.7z
-- Import Specific Objects :  cli_api_import_specific_objects_ericb_v00x18x03.7z
-- Delete Objects :  cli_api_Import_Specific_Objects_v00x21x00_2017-05-25-1906CDT.7z
+- Export Objects :  cli_api_Export Objects_v00x22x00_2017-07-20-0947CDT.7z
+- Export Specific Objects :  cli_api_Export Specific Objects_v00x22x00_2017-07-20-0947CDT.7z
+- Import Objects :  cli_api_Import Objects_v00x22x00_2017-07-20-0947CDT.7z
+- Import Specific Objects :  cli_api_import_specific_objects_v00x22x00_2017-07-20-0947CDT.7z
+- Delete Objects :  cli_api_Import_Specific_Objects_v00x22x00_2017-07-20-0947CDT.7z
 - template :  template\api_mgmt_cli_shell_template_with_cmd_line_parameters.template.sh
 
  
