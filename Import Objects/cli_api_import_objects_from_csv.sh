@@ -2,12 +2,12 @@
 #
 # SCRIPT Object import using CSV file for API CLI Operations
 #
-ScriptVersion=00.21.00
-ScriptDate=2017-05-25
+ScriptVersion=00.22.00
+ScriptDate=2017-07-20
 
 #
 
-export APIScriptVersion=v00x21x00
+export APIScriptVersion=v00x22x00
 ScriptName=cli_api_import_objects_from_csv_$APIScriptVersion
 
 if [ x"$APISCRIPTVERBOSE" = x"" ] ; then

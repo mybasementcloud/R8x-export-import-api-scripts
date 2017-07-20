@@ -1,2 +1,2 @@
-"name","color","comments","broadcast","subnet4","mask-length4","subnet6","mask-length6","nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.method"
-"CP_default_Office_Mode_addresses_pool","cyan","Used as a default for Office Mode. If deleted, it must be specified for each gateway individually (in the VPN Clients page Advanced section)","allow","10.133.184.0",24,,,true,"gateway","All","hide"
+"name","color","comments","broadcast","subnet4","mask-length4","subnet6","mask-length6","nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.method","tags"
+"CP_default_Office_Mode_addresses_pool","cyan","Used as a default for Office Mode. If deleted, it must be specified for each gateway individually (in the VPN Clients page Advanced section)","allow","10.133.184.0",24,,,true,"gateway","All","hide","test_data_please_remove"
