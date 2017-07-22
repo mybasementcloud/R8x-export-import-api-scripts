@@ -2,13 +2,13 @@
 #
 # SCRIPT Object dump to CSV action operations for API CLI Operations
 #
-ScriptVersion=00.22.00
-ScriptDate=2017-07-20
+ScriptVersion=00.23.00
+ScriptDate=2017-07-22
 
 #
 
-export APIActionsScriptVersion=v00x22x00
-ScriptName=cli_api_export_objects_actions_to_csv_$APIScriptVersion
+export APIActionsScriptVersion=v00x23x00
+ScriptName=cli_api_export_objects_actions_to_csv
 
 # =================================================================================================
 # Validate Actions Script version is correct for caller
@@ -46,20 +46,20 @@ echo
 echo $APICLIdetaillvl' - Dump to CSV Starting!'
 echo
 
-#export APICLIpathoutput=$APICLIpathbase/$APICLIdetaillvl
-export APICLIpathoutput=$APICLIpathbase/csv
-#export APICLIpathoutput=$APICLIpathbase/import
-#export APICLIpathoutput=$APICLIpathbase/delete
-export APICLIfileoutputpost='_'$APICLIdetaillvl'_'$APICLIfileoutputsufix
+#export APICLIpathexport=$APICLIpathbase/$APICLIdetaillvl
+export APICLIpathexport=$APICLIpathbase/csv
+#export APICLIpathexport=$APICLIpathbase/import
+#export APICLIpathexport=$APICLIpathbase/delete
+export APICLIfileexportpost='_'$APICLIdetaillvl'_'$APICLIfileexportsufix
 export APICLICSVheaderfilesuffix=header
-export APICLIpathoutputwip=$APICLIpathoutput/wip
-if [ ! -r $APICLIpathoutputwip ] 
+export APICLIpathexportwip=$APICLIpathexport/wip
+if [ ! -r $APICLIpathexportwip ] 
 then
-    mkdir $APICLIpathoutputwip
+    mkdir $APICLIpathexportwip
 fi
 
 echo
-echo 'Dump "'$APICLIdetaillvl'" details to path:  '$APICLIpathoutput
+echo 'Dump "'$APICLIdetaillvl'" details to path:  '$APICLIpathexport
 echo
 
 
@@ -83,17 +83,17 @@ SetupExportObjectsToCSVviaJQ () {
     
     echo
     
-    export APICLICSVfilename=$APICLIobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileoutputsufix
-    export APICLICSVfile=$APICLIpathoutput/$APICLICSVfilename
-    export APICLICSVfilewip=$APICLIpathoutputwip/$APICLICSVfilename
+    export APICLICSVfilename=$APICLIobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLICSVfile=$APICLIpathexport/$APICLICSVfilename
+    export APICLICSVfilewip=$APICLIpathexportwip/$APICLICSVfilename
     export APICLICSVfileheader=$APICLICSVfilewip.$APICLICSVheaderfilesuffix
     export APICLICSVfiledata=$APICLICSVfilewip.data
     export APICLICSVfilesort=$APICLICSVfilewip.sort
     export APICLICSVfileoriginal=$APICLICSVfilewip.original
 
     
-    if [ ! -r $APICLIpathoutputwip ] ; then
-        mkdir $APICLIpathoutputwip
+    if [ ! -r $APICLIpathexportwip ] ; then
+        mkdir $APICLIpathexportwip
     fi
 
     if [ -r $APICLICSVfile ] ; then
@@ -167,7 +167,7 @@ FinalizeExportObjectsToCSVviaJQ () {
     fi
 
     echo
-    echo "Sort data and build CSV output file"
+    echo "Sort data and build CSV export file"
     echo
     
     cat $APICLICSVfileheader > $APICLICSVfileoriginal
@@ -219,8 +219,41 @@ ExportObjectsToCSVviaJQ () {
         echo
     fi
     
-    mgmt_cli show $APICLIobjecttype limit $APICLIObjectLimit offset 0 details-level "$APICLIdetaillvl" --format json -s $APICLIsessionfile | $JQ '.objects[] | [ '"$CSVJQparms"' ] | @csv' -r >> $APICLICSVfiledata
+    export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
+    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
     
+    export MgmtCLI_Show_OpParms="details-level \"$APICLIdetaillvl\" $MgmtCLI_Base_OpParms"
+    
+    objectstotal=$(mgmt_cli show $APICLIobjecttype limit 1 offset 0 details-level "$APICLIdetaillvl" $MgmtCLI_Base_OpParms | $JQ ".total")
+
+    objectstoshow=$objectstotal
+
+    echo "Processing $objectstoshow $APICLIobjecttype objects in $APICLIObjectLimit object chunks:"
+
+    objectslefttoshow=$objectstoshow
+    currentoffset=0
+
+    echo
+    echo "Exportport $APICLIobjecttype to CSV File"
+    echo "  mgmt_cli parameters : $MgmtCLI_Show_OpParms"
+    echo "  and dump to $APICLICSVfile"
+    echo
+    
+    while [ $objectslefttoshow -ge 1 ] ; do
+        # we have objects to process
+        echo "  Now processing up to next $APICLIObjectLimit objects starting with object $currentoffset of $objectslefttoshow remainging!"
+
+        mgmt_cli show $APICLIobjecttype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | [ '"$CSVJQparms"' ] | @csv' -r >> $APICLICSVfiledata
+        errorreturn=$?
+        if [ $errorreturn != 0 ] ; then
+            # Something went wrong, terminate
+            exit $errorreturn
+        fi
+
+        objectslefttoshow=`expr $objectslefttoshow - $APICLIObjectLimit`
+        currentoffset=`expr $currentoffset + $APICLIObjectLimit`
+    done
+
     echo
     
     FinalizeExportObjectsToCSVviaJQ
@@ -228,6 +261,14 @@ ExportObjectsToCSVviaJQ () {
     if [ $errorreturn != 0 ] ; then
         # Something went wrong, terminate
         exit $errorreturn
+    fi
+    
+    if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+        echo
+        echo "Done with Exporting $APICLIobjecttype to CSV File : $APICLICSVfile"
+    
+        read -t 600 -n 1 -p "Any key to continue : " anykey
+    
     fi
     
     echo
@@ -408,91 +449,207 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=group-members
 
-#
-# APICLICSVsortparms can change due to the nature of the object
-#
-export APICLICSVsortparms='-f -t , -k 1,2'
-
-export CSVFileHeader='"name","members.add"'
-
-SetupExportObjectsToCSVviaJQ
-
-#
-# APICLICSVsortparms can change due to the nature of the object
-#
-export APICLIobjecttype=groups
-
-echo
-echo 'Generate array of groups'
-echo
-
-# MGMT_CLI_OUTPUT is a string with multiple lines. Each line contains a name of a group members.
-# in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
-
-MGMT_CLI_OUTPUT="`mgmt_cli show groups details-level full limit $APICLIObjectLimit -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
-
-# break the string into an array - each element of the array is a line in the original string
-# there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
-
-ARR=()
-while read -r line; do
-    ARR+=("$line")
-    echo -n '.'
-done <<< "$MGMT_CLI_OUTPUT"
-echo
-
-# print the elements in the array
-echo
-echo Groups
-echo
-
-for i in "${ARR[@]}"
-do
-    echo "$i, ${i//\'/}"
-done
-
- 
-
-#
-# using bash variables in a jq expression
+# MODIFIED 2017-07-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-echo
-echo 'Use array of groups to generate group members CSV'
-echo
+# -------------------------------------------------------------------------------------------------
+# SetupGetGroupMembers proceedure
+# -------------------------------------------------------------------------------------------------
 
-for i in "${ARR[@]}"
-do
-    echo
-    echo Group "${i//\'/}"
+#
+# SetupGetGroupMembers
 
-    MEMBERS_COUNT=$(mgmt_cli show group name "${i//\'/}" -s $APICLIsessionfile --format json | $JQ ".members | length")
+SetupGetGroupMembers () {
 
-    echo "number of members in the group ${i//\'/} : $MEMBERS_COUNT"
-
-    COUNTER=0
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    export APICLICSVsortparms='-f -t , -k 1,2'
     
-    while [ $COUNTER -lt $MEMBERS_COUNT ]; do
+    export CSVFileHeader='"name","members.add"'
+    
+    SetupExportObjectsToCSVviaJQ
+    
+    return 0
+}
+    
+# -------------------------------------------------------------------------------------------------
+# FinalizeGetGroupMembers proceedure
+# -------------------------------------------------------------------------------------------------
 
-        MEMBER_NAME=$(mgmt_cli show group name ${i//\'/} -s $APICLIsessionfile --format json | $JQ ".members[$COUNTER].name")
-        
+#
+# FinalizeGetGroupMembers
 
+FinalizeGetGroupMembers () {
+
+    FinalizeExportObjectsToCSVviaJQ
+    errorreturn=$?
+    if [ $errorreturn != 0 ] ; then
+        # Something went wrong, terminate
+        exit $errorreturn
+    fi
+    
+    return 0
+}
+    
+# -------------------------------------------------------------------------------------------------
+# GetArrayOfGroupObjects proceedure
+# -------------------------------------------------------------------------------------------------
+
+#
+# GetArrayOfGroupObjects generates an array of group objects for further processing.
+
+GetArrayOfGroupObjects () {
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    export APICLIobjecttype=groups
+    
+    echo
+    echo 'Generate array of groups'
+    echo
+    
+    currentoffset=0
+
+    # MGMT_CLI_GROUPS_STRING is a string with multiple lines. Each line contains a name of a group members.
+    # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
+    
+    MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentoffset details-level full -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+    
+    # break the string into an array - each element of the array is a line in the original string
+    # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
+    
+    ARR=()
+    while read -r line; do
+        ARR+=("$line")
         echo -n '.'
-        echo ${i//\'/},$MEMBER_NAME >> $APICLICSVfiledata
+    done <<< "$MGMT_CLI_GROUPS_STRING"
+    echo
+    
+    return 0
+}
 
-        let COUNTER=COUNTER+1
 
+# -------------------------------------------------------------------------------------------------
+# DumpArrayOfGroupObjects proceedure
+# -------------------------------------------------------------------------------------------------
+
+#
+# DumpArrayOfGroupObjects outputs the array of group objects.
+
+DumpArrayOfGroupObjects () {
+    
+    # print the elements in the array
+    echo
+    echo Groups
+    echo
+#    echo >> $APICLIlogfilepath
+#    echo Groups >> $APICLIlogfilepath
+#    echo >> $APICLIlogfilepath
+    
+    for i in "${ARR[@]}"
+    do
+        echo "$i, ${i//\'/}"
+#        echo "$i, ${i//\'/}" >> $APICLIlogfilepath
     done
+    
+    return 0
+}
 
-done
+
+# -------------------------------------------------------------------------------------------------
+# CollectMembersInGroupObjects proceedure
+# -------------------------------------------------------------------------------------------------
+
+#
+# CollectMembersInGroupObjects outputs the number of group members in a group in the array of group objects and collects them into the csv file.
+
+CollectMembersInGroupObjects () {
+    
+    #
+    # using bash variables in a jq expression
+    #
+    
+    echo
+    echo 'Use array of groups to generate group members CSV'
+    echo
+#    echo >> $APICLIlogfilepath
+#    echo 'Use array of groups to count group members in each group' >> $APICLIlogfilepath
+#    echo >> $APICLIlogfilepath
+    
+    for i in "${ARR[@]}"
+    do
+        echo
+        echo Group "${i//\'/}"
+    
+        MEMBERS_COUNT=$(mgmt_cli show group name "${i//\'/}" -s $APICLIsessionfile --format json | $JQ ".members | length")
+    
+        echo Group "${i//\'/}"' number of members = '"$MEMBERS_COUNT"
+#        echo Group "${i//\'/}"' number of members = '"$MEMBERS_COUNT" >> $APICLIlogfilepath
+   
+        COUNTER=0
+        
+        while [ $COUNTER -lt $MEMBERS_COUNT ]; do
+    
+            MEMBER_NAME=$(mgmt_cli show group name ${i//\'/} -s $APICLIsessionfile --format json | $JQ ".members[$COUNTER].name")
+            
+            echo -n '.'
+            echo ${i//\'/},$MEMBER_NAME >> $APICLICSVfiledata
+#            echo ${i//\'/},$MEMBER_NAME >> $APICLIlogfilepath
+    
+            let COUNTER=COUNTER+1
+    
+        done
+    
+    done
+    
+    
+    return 0
+}
 
 
-FinalizeExportObjectsToCSVviaJQ
-errorreturn=$?
-if [ $errorreturn != 0 ] ; then
-    # Something went wrong, terminate
-    exit $errorreturn
+# -------------------------------------------------------------------------------------------------
+# GetGroupMembers proceedure
+# -------------------------------------------------------------------------------------------------
+
+#
+# GetGroupMembers generate output of group members from existing group objects
+
+GetGroupMembers () {
+
+    SetupGetGroupMembers
+
+    GetArrayOfGroupObjects
+
+    DumpArrayOfGroupObjects
+
+    CollectMembersInGroupObjects
+
+    FinalizeGetGroupMembers
+
+}
+    
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+objectstotal_groups=$(mgmt_cli show groups limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_groups="$objectstotal_groups"
+
+if [ $number_groups -le 0 ] ; then
+    # No groups found
+    echo
+    echo 'No groups to generate members from!'
+    echo
+    echo >> $APICLIlogfilepath
+    echo 'No groups to generate members from!' >> $APICLIlogfilepath
+    echo >> $APICLIlogfilepath
+else
+    GetGroupMembers
 fi
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-07-21
 
 
 # -------------------------------------------------------------------------------------------------
