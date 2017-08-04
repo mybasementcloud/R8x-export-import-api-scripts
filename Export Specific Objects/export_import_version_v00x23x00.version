@@ -1,9 +1,0 @@
-#
-# SCRIPTS Export, Import, and Delete operations
-#
-ScriptVersion=00.23.00
-ScriptDate=2017-07-22
-
-#
-
-export APIScriptVersion=v00x23x00

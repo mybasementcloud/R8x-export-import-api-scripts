@@ -2,12 +2,12 @@
 #
 # SCRIPT Object export to JSON (standard and full details), and CSV file for API CLI Operations
 #
-ScriptVersion=00.23.00
-ScriptDate=2017-07-22
+ScriptVersion=00.24.00
+ScriptDate=2017-08-03
 
 #
 
-export APIScriptVersion=v00x23x00
+export APIScriptVersion=v00x24x00
 ScriptName=cli_api_export_objects
 
 # ADDED 2017-07-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -89,7 +89,14 @@ export script_use_csvfile="FALSE"
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-07-21
+# ADDED 2017-08-03 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
+# Wait time in seconds
+export WAITTIME=15
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-08-03
 
 export APIScriptSubFilePrefix=cli_api_export_objects
 #export APIScriptSubFile=$APIScriptSubFilePrefix'_actions_'$APIScriptVersion.sh

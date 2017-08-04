@@ -2,12 +2,12 @@
 #
 # SCRIPT Object import using CSV file for API CLI Operations for setting address-range
 #
-ScriptVersion=00.23.00
-ScriptDate=2017-07-22
+ScriptVersion=00.24.00
+ScriptDate=2017-08-03
 
 #
 
-export APIScriptVersion=v00x23x00
+export APIScriptVersion=v00x24x00
 ScriptName=cli_api_import_object_address-range_from_csv
 
 # ADDED 2017-07-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -89,7 +89,14 @@ export script_use_csvfile="FALSE"
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-07-21
+# ADDED 2017-08-03 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
+# Wait time in seconds
+export WAITTIME=15
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-08-03
 
 #export APIScriptSubFilePrefix=cli_api_export_objects
 #export APIScriptSubFile=$APIScriptSubFilePrefix'_actions_'$APIScriptVersion.sh
@@ -918,7 +925,7 @@ ImportSimpleObjects () {
     echo
     echo "Done with Importing $APICLIobjecttype using CSV File : $APICLIImportCSVfile"
 
-    read -t 600 -n 1 -p "Any key to continue : " anykey
+    read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
 
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT Object count totals
+# SCRIPT Object import using CSV file for API CLI Operations
 #
 ScriptVersion=00.24.00
 ScriptDate=2017-08-03
@@ -8,7 +8,7 @@ ScriptDate=2017-08-03
 #
 
 export APIScriptVersion=v00x24x00
-ScriptName=cli_api_get_object_totals
+ScriptName=cli_api_set-update_objects_from_csv
 
 # ADDED 2017-07-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
@@ -75,10 +75,10 @@ fi
 # ADDED 2017-07-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-export script_use_publish="FALSE"
+export script_use_publish="TRUE"
 
 export script_use_export="TRUE"
-export script_use_import="FALSE"
+export script_use_import="TRUE"
 export script_use_delete="FALSE"
 
 export script_dump_standard="FALSE"
@@ -97,6 +97,10 @@ export WAITTIME=15
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-08-03
+
+#export APIScriptSubFilePrefix=cli_api_export_objects
+#export APIScriptSubFile=$APIScriptSubFilePrefix'_actions_'$APIScriptVersion.sh
+#export APIScriptCSVSubFile=$APIScriptSubFilePrefix'_actions_to_csv_'$APIScriptVersion.sh
 
 # MODIFIED 2017-07-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
@@ -827,80 +831,99 @@ export APICLICSVfileexportsufix='.'$APICLICSVfileexportext
 export APICLIObjectLimit=500
 
 # =================================================================================================
-# START:  Get objects Totals
+# START:  Export objects to csv
 # =================================================================================================
 
 
-export APICLIdetaillvl=standard
+#export APICLIdetaillvl=standard
 
-#export APICLIdetaillvl=full
+export APICLIdetaillvl=full
 
 
 # -------------------------------------------------------------------------------------------------
 # Start executing Main operations
 # -------------------------------------------------------------------------------------------------
 
+echo
+echo $APICLIdetaillvl' - Import from CSV Starting!'
+echo
 
 #export APICLIpathexport=$APICLIpathbase/$APICLIdetaillvl
 #export APICLIpathexport=$APICLIpathbase/csv
-#export APICLIpathexport=$APICLIpathbase/import
+export APICLIpathexport=$APICLIpathbase/import
 #export APICLIpathexport=$APICLIpathbase/delete
 export APICLIfileexportpost='_'$APICLIdetaillvl'_'$APICLIfileexportsufix
-export APICLICSVheaderfilesuffix=header
-#export APICLIpathexportwip=$APICLIpathexport/wip
-#if [ ! -r $APICLIpathexportwip ] 
-#then
-#    mkdir $APICLIpathexportwip
-#fi
 
-echo
-echo 'Get Object totals : '
-echo
+#echo
+#echo 'Dump "'$APICLIdetaillvl'" details to path:  '$APICLIpathexport
+#echo
 
 
 # -------------------------------------------------------------------------------------------------
-# Main Operational repeated proceedure - ExportObjectsToCSVviaJQ
+# Main Operational repeated proceedure - SetUpdateSimpleObjects
 # -------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------
-# GetNumberOfObjectsviaJQ
+# Operational repeated proceedure - Import Simple Objects
 # -------------------------------------------------------------------------------------------------
 
-# The GetNumberOfObjectsviaJQ is the obtains the number of objects for that type indicated.
+# The Operational repeated proceedure - Import Simple Objects is the meat of the script's simple
+# objects releated repeated actions.
 #
+# For this script the $APICLIobjecttype items are deleted.
 
-GetNumberOfObjectsviaJQ () {
-
-    export objectstotal=
-    export objectsfrom=
-    export objectsto=
-    
+SetUpdateSimpleObjects () {
     #
-    # Troubleshooting output
+    # Screen width template for sizing, default width of 80 characters assumed
     #
-    if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
-        # Verbose mode ON
-        echo
-        echo '$CSVJQparms' - $CSVJQparms
-        echo
-    fi
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     
-    objectstotal=$(mgmt_cli show $APICLIobjecttype limit 1 offset 0 details-level "$APICLIdetaillvl" --format json -s $APICLIsessionfile | $JQ ".total")
-    errorreturn=$?
+    export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLICSVobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export OutputPath=$APICLIpathexport/$APICLIfileexportpre'add_'$APICLIobjecttype'_'$APICLIfileexportext
+    
+    if [ ! -r $APICLIImportCSVfile ] ; then
+        # no CSV file for this type of object
+        echo
+        echo 'CSV file for object '$APICLIobjecttype' missing : '$APICLIImportCSVfile
+        echo 'Skipping!'
+        echo
+        return 0
+    fi
 
-    if [ $errorreturn != 0 ] ; then
-        # Something went wrong, terminate
-        exit $errorreturn
-    fi
+    export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
+    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
     
+    export MgmtCLI_Set_OpParms="$MgmtCLI_IgnoreErr_OpParms $MgmtCLI_Base_OpParms"
+
+    echo "Update and set $APICLIobjecttype $APICLICSVobjecttype from CSV File : $APICLIImportCSVfile"
+    echo "  mgmt_cli parameters : $MgmtCLI_Set_OpParms"
+    echo "  and dump to $OutputPath"
+    echo
+    
+    mgmt_cli set $APICLIobjecttype --batch $APICLIImportCSVfile $MgmtCLI_Set_OpParms > $OutputPath
+
+    echo
+    tail $OutputPath
+    echo
+    echo
+
+    echo
+    echo 'Publish $APICLIobjecttype object changes!  This could take a while...'
+    echo
+    mgmt_cli publish -s $APICLIsessionfile
+        
+    echo
+    echo "Done with Setting $APICLIobjecttype using CSV File : $APICLIImportCSVfile"
+
+    read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+
     echo
     return 0
-    
-    #
 }
-
-# -------------------------------------------------------------------------------------------------
-
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -912,424 +935,93 @@ GetNumberOfObjectsviaJQ () {
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
 echo
-echo 'Objects'
+echo $APICLIdetaillvl' CSV import - simple objects - Import from CSV starting!'
 echo
-echo >> $APICLIlogfilepath
-echo 'Objects' >> $APICLIlogfilepath
-echo >> $APICLIlogfilepath
 
 # -------------------------------------------------------------------------------------------------
-# hosts
+# host objects
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=host
-export APICLIobjectstype=hosts
-objectstotal_hosts=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_hosts="$objectstotal_hosts"
-export number_of_objects=$number_hosts
+export APICLICSVobjecttype=hosts
 
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
+SetUpdateSimpleObjects
+
 
 # -------------------------------------------------------------------------------------------------
-# networks
+# network objects
 # -------------------------------------------------------------------------------------------------
 
+echo
 export APICLIobjecttype=network
-export APICLIobjectstype=networks
-objectstotal_networks=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_networks="$objectstotal_networks"
-export number_of_objects=$number_networks
+export APICLICSVobjecttype=networks
 
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
+SetUpdateSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
-# groups
+# group objects
 # -------------------------------------------------------------------------------------------------
 
+echo
 export APICLIobjecttype=group
-export APICLIobjectstype=groups
-objectstotal_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_groups="$objectstotal_groups"
-export number_of_objects=$number_groups
+export APICLICSVobjecttype=groups
 
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
+SetUpdateSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
-# groups-with-exclusion
+# group-with-exclusion objects
 # -------------------------------------------------------------------------------------------------
 
+echo
 export APICLIobjecttype=group-with-exclusion
-export APICLIobjectstype=groups-with-exclusion
-objectstotal_groupswithexclusion=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_groupswithexclusion="$objectstotal_groupswithexclusion"
-export number_of_objects=$number_groupswithexclusion
+export APICLICSVobjecttype=groups-with-exclusion
 
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
+SetUpdateSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
-# address-ranges
+# address-range objects
 # -------------------------------------------------------------------------------------------------
 
+echo
 export APICLIobjecttype=address-range
-export APICLIobjectstype=address-ranges
-objectstotal_addressranges=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_addressranges="$objectstotal_addressranges"
-export number_of_objects=$number_addressranges
+export APICLICSVobjecttype=address-ranges
 
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
+SetUpdateSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
-# multicast-address-ranges
+# dns-domain objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=multicast-address-range
-export APICLIobjectstype=multicast-address-ranges
-objectstotal_multicastaddressranges=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_multicastaddressranges="$objectstotal_multicastaddressranges"
-export number_of_objects=$number_multicastaddressranges
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# dns-domains
-# -------------------------------------------------------------------------------------------------
-
+echo
 export APICLIobjecttype=dns-domain
-export APICLIobjectstype=dns-domains
-objectstotal_dnsdomains=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_dnsdomains="$objectstotal_dnsdomains"
-export number_of_objects=$number_dnsdomains
+export APICLICSVobjecttype=dns-domains
 
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
+SetUpdateSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
-# security-zones
+# security-zone objects
 # -------------------------------------------------------------------------------------------------
 
+echo
 export APICLIobjecttype=security-zone
-export APICLIobjectstype=security-zones
-objectstotal_securityzones=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_securityzones="$objectstotal_securityzones"
-export number_of_objects=$number_securityzones
+export APICLICSVobjecttype=security-zones
 
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
+SetUpdateSimpleObjects
 
 
-# -------------------------------------------------------------------------------------------------
-# dynamic-objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=dynamic-object
-export APICLIobjectstype=dynamic-objects
-objectstotal_dynamicobjects=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_dynamicobjects="$objectstotal_dynamicobjects"
-export number_of_objects=$number_dynamicobjects
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# simple-gateways
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=simple-gateway
-export APICLIobjectstype=simple-gateways
-objectstotal_simplegateways=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_simplegateways="$objectstotal_simplegateways"
-export number_of_objects=$number_simplegateways
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# times
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=time
-export APICLIobjectstype=times
-objectstotal_times=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_times="$objectstotal_times"
-export number_of_objects=$number_times
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# time_groups
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=time-group
-export APICLIobjectstype=time-groups
-objectstotal_time_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_time_groups="$objectstotal_time_groups"
-export number_of_objects=$number_time_groups
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# access-roles
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=access-role
-export APICLIobjectstype=access-roles
-objectstotal_access_roles=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_access_roles="$objectstotal_access_roles"
-export number_of_objects=$number_access_roles
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# opsec-applications
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=opsec-application
-export APICLIobjectstype=opsec-applications
-objectstotal_opsec_applications=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_opsec_applications="$objectstotal_opsec_applications"
-export number_of_objects=$number_opsec_applications
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Services and Applications
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-echo
-echo 'Services and Applications'
-echo
-echo >> $APICLIlogfilepath
-echo 'Services and Applications' >> $APICLIlogfilepath
-echo >> $APICLIlogfilepath
-
-# -------------------------------------------------------------------------------------------------
-# services-tcp objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-tcp
-export APICLIobjectstype=services-tcp
-objectstotal_services_tcp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_services_tcp="$objectstotal_services_tcp"
-export number_of_objects=$number_services_tcp
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# services-udp objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-udp
-export APICLIobjectstype=services-udp
-objectstotal_services_udp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_services_udp="$objectstotal_services_udp"
-export number_of_objects=$number_services_udp
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# services-icmp objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-icmp
-export APICLIobjectstype=services-icmp
-objectstotal_services_icmp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_services_icmp="$objectstotal_services_icmp"
-export number_of_objects=$number_services_icmp
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# services-icmp6 objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-icmp6
-export APICLIobjectstype=services-icmp6
-objectstotal_services_icmp6=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_services_icmp6="$objectstotal_services_icmp6"
-export number_of_objects=$number_services_icmp6
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# services-sctp objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-sctp
-export APICLIobjectstype=services-sctp
-objectstotal_services_sctp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_services_sctp="$objectstotal_services_sctp"
-export number_of_objects=$number_services_sctp
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# services-other objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-other
-export APICLIobjectstype=services-other
-objectstotal_services_other=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_services_other="$objectstotal_services_other"
-export number_of_objects=$number_services_other
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# services-dce-rpc objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-dce-rpc
-export APICLIobjectstype=services-dce-rpc
-objectstotal_services_dce_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_services_dce_rpc="$objectstotal_services_dce_rpc"
-export number_of_objects=$number_services_dce_rpc
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# services-rpc objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-rpc
-export APICLIobjectstype=services-rpc
-objectstotal_services_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_services_rpc="$objectstotal_services_rpc"
-export number_of_objects=$number_services_rpc
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# service-groups objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-group
-export APICLIobjectstype=service-groups
-objectstotal_service_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_service_groups="$objectstotal_service_groups"
-export number_of_objects=$number_service_groups
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# application-sites objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=application-sites
-export APICLIobjectstype=application-sites
-objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_application_sites="$objectstotal_application_sites"
-export number_of_objects=$number_application_sites
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# application-site-categories objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=application-site-category
-export APICLIobjectstype=application-site-categories
-objectstotal_application_site_categories=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_application_site_categories="$objectstotal_application_site_categories"
-export number_of_objects=$number_application_site_categories
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# application-site-groups objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=application-site-groups
-export APICLIobjectstype=application-site-groups
-objectstotal_application_site_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_application_site_groups="$objectstotal_application_site_groups"
-export number_of_objects=$number_application_site_groups
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Identifying Data
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-echo
-echo 'Identifying Data'
-echo
-
-# -------------------------------------------------------------------------------------------------
-# tags
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=tags
-export APICLIobjectstype=tags
-objectstotal_tags=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_tags="$objectstotal_tags"
-export number_of_objects=$number_tags
-
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype
-echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIobjectstype >> $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # no more simple objects
 # -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+
+echo
+echo $APICLIdetaillvl' CSV import - simple objects - Complete!'
+echo
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -1337,190 +1029,114 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------------------------------
-# group members
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=group-member
-export APICLIobjectstype=group-members
+echo
+echo $APICLIdetaillvl' - Import from complex elements from CSV Starting!'
+echo
 
 # -------------------------------------------------------------------------------------------------
-# PopulateArrayOfGroupObjects proceedure
+# Operational repeated proceedure - Configure Complex Objects
 # -------------------------------------------------------------------------------------------------
 
+# The Operational repeated proceedure - Configure Complex Objects is the meat of the script's
+# complex objects releated repeated actions.
 #
-# PopulateArrayOfGroupObjects generates an array of group objects for further processing.
+# For this script the $APICLIobjecttype items are deleted.
 
-PopulateArrayOfGroupObjects () {
-    
-    # MGMT_CLI_GROUPS_STRING is a string with multiple lines. Each line contains a name of a group members.
-    # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
-    
-    MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups details-level "standard" limit $APICLIObjectLimit details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
-    
-    # break the string into an array - each element of the array is a line in the original string
-    # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
-    
-    while read -r line; do
-        ALLGROUPARR+=("$line")
-        echo -n '.'
-    done <<< "$MGMT_CLI_GROUPS_STRING"
-    echo
-    
-    return 0
-}
-
-
-# -------------------------------------------------------------------------------------------------
-# GetArrayOfGroupObjects proceedure
-# -------------------------------------------------------------------------------------------------
-
-#
-# GetArrayOfGroupObjects generates an array of group objects for further processing.
-
-GetArrayOfGroupObjects () {
-    
+ConfigureComplexObjects () {
     #
-    # APICLICSVsortparms can change due to the nature of the object
+    # Screen width template for sizing, default width of 80 characters assumed
     #
-
-    #export APICLIobjecttype=group
-    #export APICLIobjectstype=groups
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     
-    echo
-    echo 'Generate array of groups'
-    echo
+        
+    export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLICSVobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export OutputPath=$APICLIpathexport/$APICLIfileexportpre'set_'$APICLICSVobjecttype'_'$APICLIfileexportext
     
-    ALLGROUPARR=()
+    if [ ! -r $APICLIImportCSVfile ] ; then
+        # no CSV file for this type of object
+        echo
+        echo 'CSV file for object '$APICLIobjecttype' missing : '$APICLIImportCSVfile
+        echo 'Skipping!'
+        echo
+        return 0
+    fi
 
     export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
     export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
     
-    export MgmtCLI_Show_OpParms="details-level \"$APICLIdetaillvl\" $MgmtCLI_Base_OpParms"
+    export MgmtCLI_Set_OpParms="$MgmtCLI_IgnoreErr_OpParms $MgmtCLI_Base_OpParms"
+
+    echo "Update and set $APICLIobjecttype $APICLICSVobjecttype from CSV File : $APICLIImportCSVfile"
+    echo "  mgmt_cli parameters : $MgmtCLI_Set_OpParms"
+    echo "  and dump to $OutputPath"
+    echo
     
-    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" $MgmtCLI_Base_OpParms | $JQ ".total")
+    mgmt_cli set $APICLIobjecttype --batch $APICLIImportCSVfile $MgmtCLI_Set_OpParms > $OutputPath
 
-    objectstoshow=$objectstotal
-
-    echo "Processing $objectstoshow $APICLIobjectstype objects in $APICLIObjectLimit object chunks:"
-
-    objectslefttoshow=$objectstoshow
-
-    currentgroupoffset=0
+    echo
+    tail $OutputPath
+    echo
     
-    while [ $objectslefttoshow -ge 1 ] ; do
-        # we have objects to process
-        echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currenthostoffset of $objectslefttoshow remainging!"
-
-        PopulateArrayOfGroupObjects
-        errorreturn=$?
-        if [ $errorreturn != 0 ] ; then
-            # Something went wrong, terminate
-            exit $errorreturn
-        fi
-
-        objectslefttoshow=`expr $objectslefttoshow - $APICLIObjectLimit`
-        currenthostoffset=`expr $currenthostoffset + $APICLIObjectLimit`
-    done
-
-    return 0
-}
-
-
-# -------------------------------------------------------------------------------------------------
-# DumpArrayOfGroupObjects proceedure
-# -------------------------------------------------------------------------------------------------
-
-#
-# DumpArrayOfGroupObjects outputs the array of group objects.
-
-DumpArrayOfGroupObjects () {
-    
-    # print the elements in the array
-    echo >> $APICLIlogfilepath
-    echo Groups >> $APICLIlogfilepath
-    echo >> $APICLIlogfilepath
-    
-    for i in "${ALLGROUPARR[@]}"
-    do
-        echo "$i, ${i//\'/}" >> $APICLIlogfilepath
-    done
-    
-    return 0
-}
-
-
-# -------------------------------------------------------------------------------------------------
-# CountMembersInGroupObjects proceedure
-# -------------------------------------------------------------------------------------------------
-
-#
-# CountMembersInGroupObjects outputs the number of group members in a group in the array of group objects.
-
-CountMembersInGroupObjects () {
+    echo
+    echo 'Publish $APICLIobjecttype object changes!  This could take a while...'
+    echo
+    mgmt_cli publish -s $APICLIsessionfile
         
-        
-    #
-    # using bash variables in a jq expression
-    #
-    
     echo
-    echo 'Use array of groups to count group members in each group'ls 
-    echo
-    echo >> $APICLIlogfilepath
-    echo 'Use array of groups to count group members in each group' >> $APICLIlogfilepath
-    echo >> $APICLIlogfilepath
-    
-    for i in "${ALLGROUPARR[@]}"
-    do
-    
-        MEMBERS_COUNT=$(mgmt_cli show group name "${i//\'/}" -s $APICLIsessionfile --format json | $JQ ".members | length")
-    
-        echo Group "${i//\'/}"' number of members = '"$MEMBERS_COUNT"
-        echo Group "${i//\'/}"' number of members = '"$MEMBERS_COUNT" >> $APICLIlogfilepath
+    echo "Done with Setting $APICLIobjecttype using CSV File : $APICLIImportCSVfile"
 
-    done
-    
+    read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+
+    echo
     return 0
 }
 
-
-# -------------------------------------------------------------------------------------------------
-
-if [ $number_groups -le 0 ] ; then
-    # No groups found
-    echo
-    echo 'No groups to generate members from!'
-    echo
-    echo >> $APICLIlogfilepath
-    echo 'No groups to generate members from!' >> $APICLIlogfilepath
-    echo >> $APICLIlogfilepath
-else
-    GetArrayOfGroupObjects
-    DumpArrayOfGroupObjects
-    CountMembersInGroupObjects
-fi
-
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
+# group members
+# -------------------------------------------------------------------------------------------------
+
+echo
+export APICLIobjecttype=group
+export APICLICSVobjecttype=group-members
+
+ConfigureComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# host interfaces
+# -------------------------------------------------------------------------------------------------
+
+echo
+export APICLIobjecttype=host
+export APICLICSVobjecttype=host-interfaces
+
+ConfigureComplexObjects
+
+
 # -------------------------------------------------------------------------------------------------
 # no more complex objects
 # -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+
+echo
+echo $APICLIdetaillvl' CSV import - Completed!'
+echo
+
 
 # -------------------------------------------------------------------------------------------------
-# no more objects
+# no objects
 # -------------------------------------------------------------------------------------------------
 
 echo
-echo 'Dumps Completed!'
+echo 'Import Completed!'
 echo
-echo >> $APICLIlogfilepath
-echo 'Dumps Completed!' >> $APICLIlogfilepath
-echo >> $APICLIlogfilepath
 
 
 # =================================================================================================

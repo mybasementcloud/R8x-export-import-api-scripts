@@ -2,12 +2,12 @@
 #
 # SCRIPT Object count totals with group member count
 #
-ScriptVersion=00.23.00
-ScriptDate=2017-07-22
+ScriptVersion=00.24.00
+ScriptDate=2017-08-03
 
 #
 
-export APIScriptVersion=v00x23x00
+export APIScriptVersion=v00x24x00
 ScriptName=cli_api_get_object_totals_w_group_member_count
 
 # ADDED 2017-07-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -88,7 +88,14 @@ export script_use_csvfile="FALSE"
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-07-21
+# ADDED 2017-08-03 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
+# Wait time in seconds
+export WAITTIME=15
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-08-03
 
 # MODIFIED 2017-07-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
@@ -877,7 +884,7 @@ GetNumberOfObjectsviaJQ () {
         echo
     fi
     
-    objectstotal=$(mgmt_cli show $APICLIobjecttype limit 1 offset 0 details-level "$APICLIdetaillvl" --format json -s $APICLIsessionfile | $JQ ".total")
+    objectstotal=$(mgmt_cli show $APICLIobjecttype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
     errorreturn=$?
 
     if [ $errorreturn != 0 ] ; then
@@ -1337,6 +1344,33 @@ export APICLIobjecttype=group-member
 export APICLIobjectstype=group-members
 
 # -------------------------------------------------------------------------------------------------
+# PopulateArrayOfGroupObjects proceedure
+# -------------------------------------------------------------------------------------------------
+
+#
+# PopulateArrayOfGroupObjects generates an array of group objects for further processing.
+
+PopulateArrayOfGroupObjects () {
+    
+    # MGMT_CLI_GROUPS_STRING is a string with multiple lines. Each line contains a name of a group members.
+    # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
+    
+    MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups details-level "standard" limit $APICLIObjectLimit details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+    
+    # break the string into an array - each element of the array is a line in the original string
+    # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
+    
+    while read -r line; do
+        ALLGROUPARR+=("$line")
+        echo -n '.'
+    done <<< "$MGMT_CLI_GROUPS_STRING"
+    echo
+    
+    return 0
+}
+
+
+# -------------------------------------------------------------------------------------------------
 # GetArrayOfGroupObjects proceedure
 # -------------------------------------------------------------------------------------------------
 
@@ -1356,20 +1390,38 @@ GetArrayOfGroupObjects () {
     echo 'Generate array of groups'
     echo
     
-    # MGMT_CLI_GROUPS_STRING is a string with multiple lines. Each line contains a name of a group members.
-    # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
+    ALLGROUPARR=()
+
+    export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
+    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
     
-    MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups details-level full limit $APICLIObjectLimit -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+    export MgmtCLI_Show_OpParms="details-level \"$APICLIdetaillvl\" $MgmtCLI_Base_OpParms"
     
-    # break the string into an array - each element of the array is a line in the original string
-    # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
+    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" $MgmtCLI_Base_OpParms | $JQ ".total")
+
+    objectstoshow=$objectstotal
+
+    echo "Processing $objectstoshow $APICLIobjectstype objects in $APICLIObjectLimit object chunks:"
+
+    objectslefttoshow=$objectstoshow
+
+    currentgroupoffset=0
     
-    ARR=()
-    while read -r line; do
-        ARR+=("$line")
-    done <<< "$MGMT_CLI_GROUPS_STRING"
-    echo
-    
+    while [ $objectslefttoshow -ge 1 ] ; do
+        # we have objects to process
+        echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currenthostoffset of $objectslefttoshow remainging!"
+
+        PopulateArrayOfGroupObjects
+        errorreturn=$?
+        if [ $errorreturn != 0 ] ; then
+            # Something went wrong, terminate
+            exit $errorreturn
+        fi
+
+        objectslefttoshow=`expr $objectslefttoshow - $APICLIObjectLimit`
+        currenthostoffset=`expr $currenthostoffset + $APICLIObjectLimit`
+    done
+
     return 0
 }
 
@@ -1388,7 +1440,7 @@ DumpArrayOfGroupObjects () {
     echo Groups >> $APICLIlogfilepath
     echo >> $APICLIlogfilepath
     
-    for i in "${ARR[@]}"
+    for i in "${ALLGROUPARR[@]}"
     do
         echo "$i, ${i//\'/}" >> $APICLIlogfilepath
     done
@@ -1418,7 +1470,7 @@ CountMembersInGroupObjects () {
     echo 'Use array of groups to count group members in each group' >> $APICLIlogfilepath
     echo >> $APICLIlogfilepath
     
-    for i in "${ARR[@]}"
+    for i in "${ALLGROUPARR[@]}"
     do
     
         MEMBERS_COUNT=$(mgmt_cli show group name "${i//\'/}" -s $APICLIsessionfile --format json | $JQ ".members | length")
@@ -1432,7 +1484,6 @@ CountMembersInGroupObjects () {
 }
 
 
-# -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 if [ $number_groups -le 0 ] ; then
@@ -1448,6 +1499,10 @@ else
     DumpArrayOfGroupObjects
     CountMembersInGroupObjects
 fi
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------

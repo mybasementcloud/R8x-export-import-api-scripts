@@ -2,12 +2,12 @@
 #
 # SCRIPT Object export hosts to CSV file for API CLI Operations
 #
-ScriptVersion=00.23.00
-ScriptDate=2017-07-22
+ScriptVersion=00.24.00
+ScriptDate=2017-08-03
 
 #
 
-export APIScriptVersion=v00x23x00
+export APIScriptVersion=v00x24x00
 ScriptName=cli_api_export_object_hosts_to_csv
 
 # ADDED 2017-07-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -89,7 +89,14 @@ export script_use_csvfile="FALSE"
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-07-21
+# ADDED 2017-08-03 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
+# Wait time in seconds
+export WAITTIME=15
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-08-03
 
 #export APIScriptSubFilePrefix=cli_api_export_objects
 #export APIScriptSubFile=$APIScriptSubFilePrefix'_actions_'$APIScriptVersion.sh
@@ -1063,7 +1070,7 @@ ExportObjectsToCSVviaJQ () {
         echo
         echo "Done with Exporting $APICLIobjecttype to CSV File : $APICLICSVfile"
     
-        read -t 600 -n 1 -p "Any key to continue : " anykey
+        read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
     
     fi
     
@@ -1078,13 +1085,33 @@ ExportObjectsToCSVviaJQ () {
 
 
 # -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# handle simple objects
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# no more simple objects
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# handle complex objects
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2017-08-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
 # group members
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=group-members
-
-# MODIFIED 2017-07-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+export APICLIobjectstype=groups
 
 # -------------------------------------------------------------------------------------------------
 # SetupGetGroupMembers proceedure
@@ -1127,6 +1154,33 @@ FinalizeGetGroupMembers () {
 }
     
 # -------------------------------------------------------------------------------------------------
+# PopulateArrayOfGroupObjects proceedure
+# -------------------------------------------------------------------------------------------------
+
+#
+# PopulateArrayOfGroupObjects generates an array of group objects for further processing.
+
+PopulateArrayOfGroupObjects () {
+    
+    # MGMT_CLI_GROUPS_STRING is a string with multiple lines. Each line contains a name of a group members.
+    # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
+    
+    MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+    
+    # break the string into an array - each element of the array is a line in the original string
+    # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
+    
+    while read -r line; do
+        ALLGROUPARR+=("$line")
+        echo -n '.'
+    done <<< "$MGMT_CLI_GROUPS_STRING"
+    echo
+    
+    return 0
+}
+
+
+# -------------------------------------------------------------------------------------------------
 # GetArrayOfGroupObjects proceedure
 # -------------------------------------------------------------------------------------------------
 
@@ -1138,28 +1192,43 @@ GetArrayOfGroupObjects () {
     #
     # APICLICSVsortparms can change due to the nature of the object
     #
-    export APICLIobjecttype=groups
     
     echo
     echo 'Generate array of groups'
     echo
     
-    currentoffset=0
+    ALLGROUPARR=()
 
-    # MGMT_CLI_GROUPS_STRING is a string with multiple lines. Each line contains a name of a group members.
-    # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
+    export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
+    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
     
-    MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentoffset details-level full -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+    export MgmtCLI_Show_OpParms="details-level \"$APICLIdetaillvl\" $MgmtCLI_Base_OpParms"
     
-    # break the string into an array - each element of the array is a line in the original string
-    # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
+    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" $MgmtCLI_Base_OpParms | $JQ ".total")
+
+    objectstoshow=$objectstotal
+
+    echo "Processing $objectstoshow $APICLIobjectstype objects in $APICLIObjectLimit object chunks:"
+
+    objectslefttoshow=$objectstoshow
+
+    currentgroupoffset=0
     
-    ARR=()
-    while read -r line; do
-        ARR+=("$line")
-        echo -n '.'
-    done <<< "$MGMT_CLI_GROUPS_STRING"
-    echo
+    while [ $objectslefttoshow -ge 1 ] ; do
+        # we have objects to process
+        echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currenthostoffset of $objectslefttoshow remainging!"
+
+        PopulateArrayOfGroupObjects
+        errorreturn=$?
+        if [ $errorreturn != 0 ] ; then
+            # Something went wrong, terminate
+            exit $errorreturn
+        fi
+
+        objectslefttoshow=`expr $objectslefttoshow - $APICLIObjectLimit`
+        currenthostoffset=`expr $currenthostoffset + $APICLIObjectLimit`
+    done
+
     
     return 0
 }
@@ -1176,17 +1245,28 @@ DumpArrayOfGroupObjects () {
     
     # print the elements in the array
     echo
-    echo Groups
+    echo groups
     echo
-#    echo >> $APICLIlogfilepath
-#    echo Groups >> $APICLIlogfilepath
-#    echo >> $APICLIlogfilepath
+    #echo >> $APICLIlogfilepath
+    #echo groups >> $APICLIlogfilepath
+    #echo >> $APICLIlogfilepath
     
-    for i in "${ARR[@]}"
+    for i in "${ALLGROUPARR[@]}"
     do
-        echo "$i, ${i//\'/}"
-#        echo "$i, ${i//\'/}" >> $APICLIlogfilepath
+        if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+            # Verbose mode ON
+            # Output list of all groups found
+            echo "$i, ${i//\'/}"
+        fi
+        #echo "$i, ${i//\'/}" >> $APICLIlogfilepath
     done
+    
+    echo
+    echo Done dumping groups
+    echo
+    #echo >> $APICLIlogfilepath
+    #echo Done dumping groups >> $APICLIlogfilepath
+    #echo >> $APICLIlogfilepath
     
     return 0
 }
@@ -1208,34 +1288,43 @@ CollectMembersInGroupObjects () {
     echo
     echo 'Use array of groups to generate group members CSV'
     echo
-#    echo >> $APICLIlogfilepath
-#    echo 'Use array of groups to count group members in each group' >> $APICLIlogfilepath
-#    echo >> $APICLIlogfilepath
+    #echo >> $APICLIlogfilepath
+    #echo 'Use array of groups to export group members in each group' >> $APICLIlogfilepath
+    #echo >> $APICLIlogfilepath
     
-    for i in "${ARR[@]}"
+    for i in "${ALLGROUPARR[@]}"
     do
         echo
-        echo Group "${i//\'/}"
+        echo group "${i//\'/}"
     
         MEMBERS_COUNT=$(mgmt_cli show group name "${i//\'/}" -s $APICLIsessionfile --format json | $JQ ".members | length")
     
-        echo Group "${i//\'/}"' number of members = '"$MEMBERS_COUNT"
-#        echo Group "${i//\'/}"' number of members = '"$MEMBERS_COUNT" >> $APICLIlogfilepath
-   
-        COUNTER=0
-        
-        while [ $COUNTER -lt $MEMBERS_COUNT ]; do
-    
-            MEMBER_NAME=$(mgmt_cli show group name ${i//\'/} -s $APICLIsessionfile --format json | $JQ ".members[$COUNTER].name")
+        NUM_GROUP_MEMBERS=$MEMBERS_COUNT
+
+        if [ $NUM_GROUP_MEMBERS -gt 0 ]; then
+            # More than zero (0) interfaces, something to process
+            echo Group "${i//\'/}"' number of members = '"$NUM_GROUP_MEMBERS"
+            #echo Group "${i//\'/}"' number of members = '"$NUM_GROUP_MEMBERS" >> $APICLIlogfilepath
             
-            echo -n '.'
-            echo ${i//\'/},$MEMBER_NAME >> $APICLICSVfiledata
-#            echo ${i//\'/},$MEMBER_NAME >> $APICLIlogfilepath
-    
-            let COUNTER=COUNTER+1
-    
-        done
-    
+            COUNTER=0
+            
+            while [ $COUNTER -lt $NUM_GROUP_MEMBERS ]; do
+                
+                MEMBER_NAME=$(mgmt_cli show group name ${i//\'/} -s $APICLIsessionfile --format json | $JQ ".members[$COUNTER].name")
+                
+                #echo -n '.'
+                
+                echo ${i//\'/},$MEMBER_NAME >> $APICLICSVfiledata
+                #echo ${i//\'/},$MEMBER_NAME >> $APICLIlogfilepath
+                
+                let COUNTER=COUNTER+1
+                
+            done
+            
+        else
+            echo
+        fi
+
     done
     
     
@@ -1283,7 +1372,7 @@ else
 fi
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-07-21
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-08-03
 
 
 # -------------------------------------------------------------------------------------------------
