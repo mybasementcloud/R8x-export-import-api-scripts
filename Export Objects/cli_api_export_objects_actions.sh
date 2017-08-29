@@ -2,13 +2,13 @@
 #
 # SCRIPT Object dump action operations for API CLI Operations
 #
-ScriptVersion=00.24.00
-ScriptDate=2017-08-03
+ScriptVersion=00.25.00
+ScriptDate=2017-08-28
 
 #
 
-export APIActionsScriptVersion=v00x24x00
-ScriptName=cli_api_export_objects_actions
+export APIActionsScriptVersion=v00x25x00
+ActionScriptName=cli_api_export_objects_actions
 
 # =================================================================================================
 # Validate Actions Script version is correct for caller
@@ -35,6 +35,14 @@ fi
 # =================================================================================================
 # START:  Export objects to json in set detail level from root script
 # =================================================================================================
+
+
+echo
+echo 'ActionScriptName:  '$ActionScriptName'  Script Version: '$APIActionsScriptVersion
+
+# -------------------------------------------------------------------------------------------------
+# Start executing Main operations
+# -------------------------------------------------------------------------------------------------
 
 
 echo
@@ -67,9 +75,6 @@ MainOperationalProcedure () {
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
 
     export APICLIfileexport=$APICLIpathexport/$APICLIfileexportpre$APICLIobjecttype$APICLIfileexportpost
-    echo
-
-    echo 'Dump '$APICLIobjecttype' to '$APICLIfileexport
 
     export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
     export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
@@ -81,12 +86,13 @@ MainOperationalProcedure () {
     objectstoshow=$objectstotal
 
     if [ $objectstoshow -le 0 ] ; then
-        echo "$objectstoshow $APICLIobjecttype objects found!"
-        echo "Skipping!"
+        echo "Found $objectstoshow $APICLIobjecttype objects.  No objects found!  Skipping!..."
     else
     
+        echo
         echo "Processing $objectstoshow $APICLIobjecttype objects in $APICLIObjectLimit object historychunks:"
-    
+        echo 'Dump '$APICLIobjecttype' to '$APICLIfileexport
+
         objectslefttoshow=$objectstoshow
         currentoffset=0
     
@@ -128,7 +134,6 @@ MainOperationalProcedure () {
 # host objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=hosts
 
 MainOperationalProcedure
@@ -138,7 +143,6 @@ MainOperationalProcedure
 # network objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=networks
 
 MainOperationalProcedure
@@ -148,7 +152,6 @@ MainOperationalProcedure
 # group objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=groups
 
 MainOperationalProcedure
@@ -158,7 +161,6 @@ MainOperationalProcedure
 # groups-with-exclusion objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=groups-with-exclusion
 
 MainOperationalProcedure
@@ -168,7 +170,6 @@ MainOperationalProcedure
 # address-range objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=address-ranges
 
 MainOperationalProcedure
@@ -178,7 +179,6 @@ MainOperationalProcedure
 # multicast-address-ranges objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=multicast-address-ranges
 
 MainOperationalProcedure
@@ -188,7 +188,6 @@ MainOperationalProcedure
 # dns-domain objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=dns-domains
 
 MainOperationalProcedure
@@ -198,7 +197,6 @@ MainOperationalProcedure
 # security-zones objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=security-zones
 
 MainOperationalProcedure
@@ -208,7 +206,6 @@ MainOperationalProcedure
 # dynamic-object objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=dynamic-objects
 MainOperationalProcedure
 
@@ -217,7 +214,6 @@ MainOperationalProcedure
 # simple-gateway objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=simple-gateways
 
 MainOperationalProcedure
@@ -227,7 +223,6 @@ MainOperationalProcedure
 # time objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=times
 
 MainOperationalProcedure
@@ -237,7 +232,6 @@ MainOperationalProcedure
 # time-group objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=time-groups
 
 MainOperationalProcedure
@@ -247,7 +241,6 @@ MainOperationalProcedure
 # access-role objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=access-roles
 
 MainOperationalProcedure
@@ -257,7 +250,6 @@ MainOperationalProcedure
 # opsec-application objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=opsec-applications
 
 MainOperationalProcedure
@@ -273,7 +265,6 @@ MainOperationalProcedure
 # tag objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=tags
 
 MainOperationalProcedure
@@ -289,7 +280,6 @@ MainOperationalProcedure
 # services-tcp objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=services-tcp
 
 MainOperationalProcedure
@@ -299,7 +289,6 @@ MainOperationalProcedure
 # services-udp objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=services-udp
 
 MainOperationalProcedure
@@ -309,7 +298,6 @@ MainOperationalProcedure
 # services-icmp objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=services-icmp
 
 MainOperationalProcedure
@@ -319,7 +307,6 @@ MainOperationalProcedure
 # services-icmp6 objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=services-icmp6
 
 MainOperationalProcedure
@@ -329,7 +316,6 @@ MainOperationalProcedure
 # services-sctp objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=services-sctp
 
 MainOperationalProcedure
@@ -339,7 +325,6 @@ MainOperationalProcedure
 # services-other objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=services-other
 
 MainOperationalProcedure
@@ -349,7 +334,6 @@ MainOperationalProcedure
 # services-dce-rpc objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=services-dce-rpc
 
 MainOperationalProcedure
@@ -359,7 +343,6 @@ MainOperationalProcedure
 # services-rpc objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=services-rpc
 
 MainOperationalProcedure
@@ -369,7 +352,6 @@ MainOperationalProcedure
 # service-groups objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=service-groups
 
 MainOperationalProcedure
@@ -379,7 +361,6 @@ MainOperationalProcedure
 # application-sites objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=application-sites
 
 MainOperationalProcedure
@@ -389,7 +370,6 @@ MainOperationalProcedure
 # application-site-categories objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=application-site-categories
 
 MainOperationalProcedure
@@ -399,7 +379,6 @@ MainOperationalProcedure
 # application-site-groups objects
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=application-site-groups
 
 MainOperationalProcedure

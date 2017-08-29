@@ -2,12 +2,12 @@
 #
 # SCRIPT Object dump to CSV action operations for API CLI Operations
 #
-ScriptVersion=00.24.00
-ScriptDate=2017-08-03
+ScriptVersion=00.25.00
+ScriptDate=2017-08-28
 
 #
 
-export APIActionsScriptVersion=v00x24x00
+export APIActionsScriptVersion=v00x25x00
 ScriptName=cli_api_export_objects_actions_to_csv
 
 # =================================================================================================
@@ -36,6 +36,9 @@ fi
 # START:  Export objects to csv
 # =================================================================================================
 
+
+echo
+echo 'ActionScriptName:  '$ActionScriptName'  Script Version: '$APIActionsScriptVersion
 
 # -------------------------------------------------------------------------------------------------
 # Start executing Main operations
@@ -198,6 +201,9 @@ FinalizeExportObjectsToCSVviaJQ () {
 
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2017-08-28  \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 # The ExportObjectsToCSVviaJQ is the meat of the script's repeated actions.
 #
 # For this script the $APICLIobjecttype item's name is exported to a CSV file and sorted.
@@ -207,6 +213,20 @@ FinalizeExportObjectsToCSVviaJQ () {
 ExportObjectsToCSVviaJQ () {
     #
     
+    if [ $number_of_objects -le 1 ] ; then
+        # no objects of this type
+ 
+        echo "No objects of type $APICLIobjecttype to process, skipping..."
+
+        return 0
+       
+    else
+        # we have objects to handle
+        echo
+        echo "Process $number_of_objects $APICLIobjecttype objects..."
+        echo
+   fi
+
     SetupExportObjectsToCSVviaJQ
     
     #
@@ -277,6 +297,55 @@ ExportObjectsToCSVviaJQ () {
     #
 }
 
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\  MODIFIED 2017-08-28
+# ADDED 2017-08-28 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+
+# -------------------------------------------------------------------------------------------------
+# GetNumberOfObjectsviaJQ
+# -------------------------------------------------------------------------------------------------
+
+# The GetNumberOfObjectsviaJQ is the obtains the number of objects for that type indicated.
+#
+
+GetNumberOfObjectsviaJQ () {
+
+    export objectstotal=
+    export objectsfrom=
+    export objectsto=
+    
+    #
+    # Troubleshooting output
+    #
+    if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+        # Verbose mode ON
+        echo
+        echo '$CSVJQparms' - $CSVJQparms
+        echo
+    fi
+    
+    objectstotal=$(mgmt_cli show $APICLIobjecttype limit 1 offset 0 details-level "$APICLIdetaillvl" --format json -s $APICLIsessionfile | $JQ ".total")
+    errorreturn=$?
+
+    if [ $errorreturn != 0 ] ; then
+        # Something went wrong, terminate
+        exit $errorreturn
+    fi
+    
+    echo
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ ADDED 2017-08-28
+
+# -------------------------------------------------------------------------------------------------
+
+
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
@@ -292,6 +361,7 @@ ExportObjectsToCSVviaJQ () {
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=hosts
+export APICLIobjectstype=hosts
 #
 # APICLICSVsortparms can change due to the nature of the object
 #
@@ -306,6 +376,10 @@ export CSVJQparms=$CSVJQparms', .["ipv4-address"], .["ipv6-address"]'
 export CSVJQparms=$CSVJQparms', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"]'
 export CSVJQparms=$CSVJQparms', .["nat-settings"]["ipv4-address"], .["nat-settings"]["ipv6-address"], .["nat-settings"]["method"]'
 
+objectstotal_hosts=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_hosts="$objectstotal_hosts"
+export number_of_objects=$number_hosts
+
 ExportObjectsToCSVviaJQ
 
 
@@ -313,8 +387,8 @@ ExportObjectsToCSVviaJQ
 # networks
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=networks
+export APICLIobjectstype=networks
 #
 # APICLICSVsortparms can change due to the nature of the object
 #
@@ -328,6 +402,10 @@ export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["broadcast"], .["subnet4"], .["mask-length4"], .["subnet6"], .["mask-length6"]'
 export CSVJQparms=$CSVJQparms', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"], .["nat-settings"]["method"]'
 
+objectstotal_networks=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_networks="$objectstotal_networks"
+export number_of_objects=$number_networks
+
 ExportObjectsToCSVviaJQ
 
 
@@ -335,8 +413,8 @@ ExportObjectsToCSVviaJQ
 # groups
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=groups
+export APICLIobjectstype=groups
 #
 # APICLICSVsortparms can change due to the nature of the object
 #
@@ -346,6 +424,10 @@ export CSVFileHeader='"name","color","comments"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 
+objectstotal_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_groups="$objectstotal_groups"
+export number_of_objects=$number_groups
+
 ExportObjectsToCSVviaJQ
 
 
@@ -353,8 +435,8 @@ ExportObjectsToCSVviaJQ
 # groups-with-exclusion
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=groups-with-exclusion
+export APICLIobjectstype=groups-with-exclusion
 #
 # APICLICSVsortparms can change due to the nature of the object
 #
@@ -366,6 +448,10 @@ export CSVFileHeader=$CSVFileHeader',"include","except"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["include"]["name"], .["except"]["name"]'
 
+objectstotal_groupswithexclusion=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_groupswithexclusion="$objectstotal_groupswithexclusion"
+export number_of_objects=$number_groupswithexclusion
+
 ExportObjectsToCSVviaJQ
 
 
@@ -373,8 +459,8 @@ ExportObjectsToCSVviaJQ
 # address-ranges
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=address-ranges
+export APICLIobjectstype=address-ranges
 #
 # APICLICSVsortparms can change due to the nature of the object
 #
@@ -388,15 +474,31 @@ export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["ipv4-address-first"], .["ipv4-address-last"]'
 export CSVJQparms=$CSVJQparms', .["ipv6-address-first"], .["ipv6-address-last"]'
 
+objectstotal_addressranges=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_addressranges="$objectstotal_addressranges"
+export number_of_objects=$number_addressranges
+
 ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# multicast-address-ranges
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=multicast-address-range
+export APICLIobjectstype=multicast-address-ranges
+
+objectstotal_multicastaddressranges=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_multicastaddressranges="$objectstotal_multicastaddressranges"
+export number_of_objects=$number_multicastaddressranges
 
 
 # -------------------------------------------------------------------------------------------------
 # dns-domains
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=dns-domains
+export APICLIobjectstype=dns-domains
 #
 # APICLICSVsortparms can change due to the nature of the object
 #
@@ -408,6 +510,10 @@ export CSVFileHeader=$CSVFileHeader',"is-sub-domain"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["is-sub-domain"]'
 
+objectstotal_dnsdomains=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_dnsdomains="$objectstotal_dnsdomains"
+export number_of_objects=$number_dnsdomains
+
 ExportObjectsToCSVviaJQ
 
 
@@ -415,8 +521,8 @@ ExportObjectsToCSVviaJQ
 # security-zones
 # -------------------------------------------------------------------------------------------------
 
-echo
 export APICLIobjecttype=security-zones
+export APICLIobjectstype=security-zones
 #
 # APICLICSVsortparms can change due to the nature of the object
 #
@@ -428,7 +534,521 @@ export CSVFileHeader=$CSVFileHeader',"icon"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["icon"]'
 
+objectstotal_securityzones=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_securityzones="$objectstotal_securityzones"
+export number_of_objects=$number_securityzones
+
 ExportObjectsToCSVviaJQ
+
+
+# ADDED 2017-07-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Future objects to export to CSV
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
+# dynamic-objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=dynamic-object
+export APICLIobjectstype=dynamic-objects
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_dynamicobjects=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_dynamicobjects="$objectstotal_dynamicobjects"
+export number_of_objects=$number_dynamicobjects
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# simple-gateways
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=simple-gateway
+export APICLIobjectstype=simple-gateways
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_simplegateways=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_simplegateways="$objectstotal_simplegateways"
+export number_of_objects=$number_simplegateways
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# times
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=time
+export APICLIobjectstype=times
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_times=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_times="$objectstotal_times"
+export number_of_objects=$number_times
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# time_groups
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=time-group
+export APICLIobjectstype=time-groups
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_time_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_time_groups="$objectstotal_time_groups"
+export number_of_objects=$number_time_groups
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# access-roles
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=access-role
+export APICLIobjectstype=access-roles
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_access_roles=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_access_roles="$objectstotal_access_roles"
+export number_of_objects=$number_access_roles
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# opsec-applications
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=opsec-application
+export APICLIobjectstype=opsec-applications
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_opsec_applications=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_opsec_applications="$objectstotal_opsec_applications"
+export number_of_objects=$number_opsec_applications
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Services and Applications
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#echo
+#echo 'Services and Applications'
+#echo
+#echo >> $APICLIlogfilepath
+#echo 'Services and Applications' >> $APICLIlogfilepath
+#echo >> $APICLIlogfilepath
+
+# -------------------------------------------------------------------------------------------------
+# services-tcp objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=service-tcp
+export APICLIobjectstype=services-tcp
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_services_tcp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_services_tcp="$objectstotal_services_tcp"
+export number_of_objects=$number_services_tcp
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# services-udp objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=service-udp
+export APICLIobjectstype=services-udp
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_services_udp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_services_udp="$objectstotal_services_udp"
+export number_of_objects=$number_services_udp
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# services-icmp objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=service-icmp
+export APICLIobjectstype=services-icmp
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_services_icmp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_services_icmp="$objectstotal_services_icmp"
+export number_of_objects=$number_services_icmp
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# services-icmp6 objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=service-icmp6
+export APICLIobjectstype=services-icmp6
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_services_icmp6=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_services_icmp6="$objectstotal_services_icmp6"
+export number_of_objects=$number_services_icmp6
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# services-sctp objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=service-sctp
+export APICLIobjectstype=services-sctp
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_services_sctp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_services_sctp="$objectstotal_services_sctp"
+export number_of_objects=$number_services_sctp
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# services-other objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=service-other
+export APICLIobjectstype=services-other
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_services_other=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_services_other="$objectstotal_services_other"
+export number_of_objects=$number_services_other
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# services-dce-rpc objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=service-dce-rpc
+export APICLIobjectstype=services-dce-rpc
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_services_dce_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_services_dce_rpc="$objectstotal_services_dce_rpc"
+export number_of_objects=$number_services_dce_rpc
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# services-rpc objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=service-rpc
+export APICLIobjectstype=services-rpc
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_services_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_services_rpc="$objectstotal_services_rpc"
+export number_of_objects=$number_services_rpc
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# service-groups objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=service-group
+export APICLIobjectstype=service-groups
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_service_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_service_groups="$objectstotal_service_groups"
+export number_of_objects=$number_service_groups
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# application-sites objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=application-sites
+export APICLIobjectstype=application-sites
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_application_sites="$objectstotal_application_sites"
+export number_of_objects=$number_application_sites
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# application-site-categories objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=application-site-category
+export APICLIobjectstype=application-site-categories
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_application_site_categories=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_application_site_categories="$objectstotal_application_site_categories"
+export number_of_objects=$number_application_site_categories
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# application-site-groups objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=application-site-groups
+export APICLIobjectstype=application-site-groups
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_application_site_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_application_site_groups="$objectstotal_application_site_groups"
+export number_of_objects=$number_application_site_groups
+
+#ExportObjectsToCSVviaJQ
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Identifying Data
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#echo
+#echo 'Identifying Data'
+#echo
+
+# -------------------------------------------------------------------------------------------------
+# tags
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=tags
+export APICLIobjectstype=tags
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_tags=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_tags="$objectstotal_tags"
+export number_of_objects=$number_tags
+
+#ExportObjectsToCSVviaJQ
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-08-28
 
 
 # -------------------------------------------------------------------------------------------------
