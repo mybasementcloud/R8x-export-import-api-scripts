@@ -2,12 +2,12 @@
 #
 # SCRIPT Object export dns-domains to CSV file for API CLI Operations
 #
-ScriptVersion=00.25.00
-ScriptDate=2017-08-28
+ScriptVersion=00.25.01
+ScriptDate=2017-08-31
 
 #
 
-export APIScriptVersion=v00x25x00
+export APIScriptVersion=v00x25x01
 ScriptName=cli_api_export_object_hosts_to_csv
 
 # =================================================================================================
@@ -838,7 +838,7 @@ ExportObjectsToCSVviaJQ () {
     
     while [ $objectslefttoshow -ge 1 ] ; do
         # we have objects to process
-        echo "  Now processing up to next $APICLIObjectLimit objects starting with object $currentoffset of $objectslefttoshow remainging!"
+        echo "  Now processing up to next $APICLIObjectLimit objects starting with object $currentoffset of $objectslefttoshow remaining!"
 
         mgmt_cli show $APICLIobjecttype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | [ '"$CSVJQparms"' ] | @csv' -r >> $APICLICSVfiledata
         errorreturn=$?

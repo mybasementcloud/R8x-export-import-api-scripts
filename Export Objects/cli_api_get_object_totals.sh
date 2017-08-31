@@ -2,12 +2,12 @@
 #
 # SCRIPT Object count totals
 #
-ScriptVersion=00.25.00
-ScriptDate=2017-08-28
+ScriptVersion=00.25.01
+ScriptDate=2017-08-31
 
 #
 
-export APIScriptVersion=v00x25x00
+export APIScriptVersion=v00x25x01
 ScriptName=cli_api_get_object_totals
 
 # =================================================================================================
@@ -1213,7 +1213,7 @@ GetArrayOfGroupObjects () {
     
     while [ $objectslefttoshow -ge 1 ] ; do
         # we have objects to process
-        echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currenthostoffset of $objectslefttoshow remainging!"
+        echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currenthostoffset of $objectslefttoshow remaining!"
 
         PopulateArrayOfGroupObjects
         errorreturn=$?

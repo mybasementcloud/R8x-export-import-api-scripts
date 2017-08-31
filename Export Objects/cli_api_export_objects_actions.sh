@@ -2,12 +2,12 @@
 #
 # SCRIPT Object dump action operations for API CLI Operations
 #
-ScriptVersion=00.25.00
-ScriptDate=2017-08-28
+ScriptVersion=00.25.01
+ScriptDate=2017-08-31
 
 #
 
-export APIActionsScriptVersion=v00x25x00
+export APIActionsScriptVersion=v00x25x01
 ActionScriptName=cli_api_export_objects_actions
 
 # =================================================================================================
@@ -104,7 +104,7 @@ MainOperationalProcedure () {
                 export APICLIfileexport=$APICLIpathexport/$APICLIfileexportpre$APICLIobjecttype'_'$currentoffset'_'$APICLIfileexportpost
             fi
     
-            echo "  Now processing up to next $APICLIObjectLimit objects starting with object $currentoffset of $objectslefttoshow remainging!"
+            echo "  Now processing up to next $APICLIObjectLimit objects starting with object $currentoffset of $objectslefttoshow remaining!"
     
             mgmt_cli show $APICLIobjecttype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms > $APICLIfileexport
     

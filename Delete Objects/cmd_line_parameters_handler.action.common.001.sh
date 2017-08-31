@@ -2,13 +2,13 @@
 #
 # SCRIPT Template for CLI Operations for command line parameters handling
 #
-ScriptVersion=00.25.00
-ScriptDate=2017-08-28
+ScriptVersion=00.25.01
+ScriptDate=2017-08-31
 
 #
 
-export APIActionsScriptVersion=v00x25x00
-ActionScriptName=cmd_line_parameters_handler.action.template
+export APIActionsScriptVersion=v00x25x01
+ActionScriptName=cmd_line_parameters_handler.action.common.001
 
 # =================================================================================================
 # Validate Actions Script version is correct for caller

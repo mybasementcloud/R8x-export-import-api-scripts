@@ -2,12 +2,12 @@
 #
 # SCRIPT Object import using CSV file for API CLI Operations
 #
-ScriptVersion=00.25.00
-ScriptDate=2017-08-28
+ScriptVersion=00.25.01
+ScriptDate=2017-08-31
 
 #
 
-export APIScriptVersion=v00x25x00
+export APIScriptVersion=v00x25x01
 ScriptName=cli_api_set-update_objects_from_csv
 
 # =================================================================================================
