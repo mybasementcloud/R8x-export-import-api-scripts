@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT Object export hosts to CSV file for API CLI Operations
+# SCRIPT Object export application-sites to CSV file for API CLI Operations
 #
 ScriptVersion=00.26.01
 ScriptDate=2017-10-27
@@ -8,7 +8,7 @@ ScriptDate=2017-10-27
 #
 
 export APIScriptVersion=v00x26x01
-ScriptName=cli_api_export_object_hosts_to_csv
+ScriptName=cli_api_export_object_application-sites_to_csv
 
 # =================================================================================================
 # =================================================================================================
@@ -948,12 +948,15 @@ GetNumberOfObjectsviaJQ () {
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 # -------------------------------------------------------------------------------------------------
-# hosts
+# application-sites objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=host
-export APICLIobjectstype=hosts
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -961,15 +964,23 @@ export APICLIobjectstype=hosts
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
-export CSVFileHeader=$CSVFileHeader',"ipv4-address","ipv6-address"'
-export CSVFileHeader=$CSVFileHeader',"nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.ipv4-address","nat-settings.ipv6-address","nat-settings.method"'
+#export CSVFileHeader=$CSVFileHeader',"icon"'
+export CSVFileHeader=$CSVFileHeader',"primary-category","risk"'
+export CSVFileHeader=$CSVFileHeader',"user-defined","read-only", "meta-info.creator"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
-export CSVJQparms=$CSVJQparms', .["ipv4-address"], .["ipv6-address"]'
-export CSVJQparms=$CSVJQparms', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"]'
-export CSVJQparms=$CSVJQparms', .["nat-settings"]["ipv4-address"], .["nat-settings"]["ipv6-address"], .["nat-settings"]["method"]'
+#export CSVJQparms=$CSVJQparms', .["icon"]'
+export CSVJQparms=$CSVJQparms', .["primary-category"], .["risk"]'
+export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
+
+objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_application_sites="$objectstotal_application_sites"
+export number_of_objects=$number_application_sites
 
 ExportObjectsToCSVviaJQ
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
 
 
 # -------------------------------------------------------------------------------------------------

@@ -2,12 +2,12 @@
 #
 # SCRIPT Object count totals
 #
-ScriptVersion=00.25.01
-ScriptDate=2017-08-31
+ScriptVersion=00.26.01
+ScriptDate=2017-10-27
 
 #
 
-export APIScriptVersion=v00x25x01
+export APIScriptVersion=v00x26x01
 ScriptName=cli_api_get_object_totals
 
 # =================================================================================================

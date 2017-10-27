@@ -2,12 +2,12 @@
 #
 # SCRIPT Object dump action operations for API CLI Operations
 #
-ScriptVersion=00.25.01
-ScriptDate=2017-08-31
+ScriptVersion=00.26.01
+ScriptDate=2017-10-27
 
 #
 
-export APIActionsScriptVersion=v00x25x01
+export APIActionsScriptVersion=v00x26x01
 ActionScriptName=cli_api_export_objects_actions
 
 # =================================================================================================
@@ -81,7 +81,7 @@ MainOperationalProcedure () {
     
     export MgmtCLI_Show_OpParms="details-level \"$APICLIdetaillvl\" $MgmtCLI_Base_OpParms"
     
-    objectstotal=$(mgmt_cli show $APICLIobjecttype limit 1 offset 0 details-level "$APICLIdetaillvl" $MgmtCLI_Base_OpParms | $JQ ".total")
+    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" $MgmtCLI_Base_OpParms | $JQ ".total")
 
     objectstoshow=$objectstotal
 
@@ -91,7 +91,7 @@ MainOperationalProcedure () {
     
         echo
         echo "Processing $objectstoshow $APICLIobjecttype objects in $APICLIObjectLimit object historychunks:"
-        echo 'Dump '$APICLIobjecttype' to '$APICLIfileexport
+        echo 'Dump '$APICLIobjectstype' to '$APICLIfileexport
 
         objectslefttoshow=$objectstoshow
         currentoffset=0
@@ -106,7 +106,7 @@ MainOperationalProcedure () {
     
             echo "  Now processing up to next $APICLIObjectLimit objects starting with object $currentoffset of $objectslefttoshow remaining!"
     
-            mgmt_cli show $APICLIobjecttype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms > $APICLIfileexport
+            mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms > $APICLIfileexport
     
             objectslefttoshow=`expr $objectslefttoshow - $APICLIObjectLimit`
             currentoffset=`expr $currentoffset + $APICLIObjectLimit`
@@ -134,7 +134,8 @@ MainOperationalProcedure () {
 # host objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=hosts
+export APICLIobjecttype=host
+export APICLIobjectstype=hosts
 
 MainOperationalProcedure
 
@@ -143,7 +144,8 @@ MainOperationalProcedure
 # network objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=networks
+export APICLIobjecttype=network
+export APICLIobjectstype=networks
 
 MainOperationalProcedure
 
@@ -152,7 +154,8 @@ MainOperationalProcedure
 # group objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=groups
+export APICLIobjecttype=group
+export APICLIobjectstype=groups
 
 MainOperationalProcedure
 
@@ -161,7 +164,8 @@ MainOperationalProcedure
 # groups-with-exclusion objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=groups-with-exclusion
+export APICLIobjecttype=group-with-exclusion
+export APICLIobjectstype=groups-with-exclusion
 
 MainOperationalProcedure
 
@@ -170,7 +174,8 @@ MainOperationalProcedure
 # address-range objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=address-ranges
+export APICLIobjecttype=address-range
+export APICLIobjectstype=address-ranges
 
 MainOperationalProcedure
 
@@ -179,7 +184,8 @@ MainOperationalProcedure
 # multicast-address-ranges objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=multicast-address-ranges
+export APICLIobjecttype=multicast-address-range
+export APICLIobjectstype=multicast-address-ranges
 
 MainOperationalProcedure
 
@@ -188,7 +194,8 @@ MainOperationalProcedure
 # dns-domain objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=dns-domains
+export APICLIobjecttype=dns-domain
+export APICLIobjectstype=dns-domains
 
 MainOperationalProcedure
 
@@ -197,7 +204,8 @@ MainOperationalProcedure
 # security-zones objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=security-zones
+export APICLIobjecttype=security-zone
+export APICLIobjectstype=security-zones
 
 MainOperationalProcedure
 
@@ -206,7 +214,9 @@ MainOperationalProcedure
 # dynamic-object objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=dynamic-objects
+export APICLIobjecttype=dynamic-object
+export APICLIobjectstype=dynamic-objects
+
 MainOperationalProcedure
 
 
@@ -214,7 +224,8 @@ MainOperationalProcedure
 # simple-gateway objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=simple-gateways
+export APICLIobjecttype=simple-gateway
+export APICLIobjectstype=simple-gateways
 
 MainOperationalProcedure
 
@@ -223,7 +234,8 @@ MainOperationalProcedure
 # time objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=times
+export APICLIobjecttype=time
+export APICLIobjectstype=times
 
 MainOperationalProcedure
 
@@ -232,7 +244,8 @@ MainOperationalProcedure
 # time-group objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=time-groups
+export APICLIobjecttype=time-group
+export APICLIobjectstype=time-groups
 
 MainOperationalProcedure
 
@@ -241,7 +254,8 @@ MainOperationalProcedure
 # access-role objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=access-roles
+export APICLIobjecttype=access-role
+export APICLIobjectstype=access-roles
 
 MainOperationalProcedure
 
@@ -250,7 +264,8 @@ MainOperationalProcedure
 # opsec-application objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=opsec-applications
+export APICLIobjecttype=opsec-application
+export APICLIobjectstype=opsec-applications
 
 MainOperationalProcedure
 
@@ -265,7 +280,8 @@ MainOperationalProcedure
 # tag objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=tags
+export APICLIobjecttype=tag
+export APICLIobjectstype=tags
 
 MainOperationalProcedure
 
@@ -280,7 +296,8 @@ MainOperationalProcedure
 # services-tcp objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=services-tcp
+export APICLIobjecttype=service-tcp
+export APICLIobjectstype=services-tcp
 
 MainOperationalProcedure
 
@@ -289,7 +306,8 @@ MainOperationalProcedure
 # services-udp objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=services-udp
+export APICLIobjecttype=service-udp
+export APICLIobjectstype=services-udp
 
 MainOperationalProcedure
 
@@ -298,7 +316,8 @@ MainOperationalProcedure
 # services-icmp objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=services-icmp
+export APICLIobjecttype=service-icmp
+export APICLIobjectstype=services-icmp
 
 MainOperationalProcedure
 
@@ -307,7 +326,8 @@ MainOperationalProcedure
 # services-icmp6 objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=services-icmp6
+export APICLIobjecttype=service-icmp6
+export APICLIobjectstype=services-icmp6
 
 MainOperationalProcedure
 
@@ -316,7 +336,8 @@ MainOperationalProcedure
 # services-sctp objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=services-sctp
+export APICLIobjecttype=service-sctp
+export APICLIobjectstype=services-sctp
 
 MainOperationalProcedure
 
@@ -325,7 +346,8 @@ MainOperationalProcedure
 # services-other objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=services-other
+export APICLIobjecttype=service-other
+export APICLIobjectstype=services-other
 
 MainOperationalProcedure
 
@@ -334,7 +356,8 @@ MainOperationalProcedure
 # services-dce-rpc objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=services-dce-rpc
+export APICLIobjecttype=service-dce-rpc
+export APICLIobjectstype=services-dce-rpc
 
 MainOperationalProcedure
 
@@ -343,7 +366,8 @@ MainOperationalProcedure
 # services-rpc objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=services-rpc
+export APICLIobjecttype=service-rpc
+export APICLIobjectstype=services-rpc
 
 MainOperationalProcedure
 
@@ -352,7 +376,8 @@ MainOperationalProcedure
 # service-groups objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=service-groups
+export APICLIobjecttype=service-group
+export APICLIobjectstype=service-groups
 
 MainOperationalProcedure
 
@@ -361,7 +386,8 @@ MainOperationalProcedure
 # application-sites objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=application-sites
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
 
 MainOperationalProcedure
 
@@ -370,7 +396,8 @@ MainOperationalProcedure
 # application-site-categories objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=application-site-categories
+export APICLIobjecttype=application-site-category
+export APICLIobjectstype=application-site-categories
 
 MainOperationalProcedure
 
@@ -379,7 +406,8 @@ MainOperationalProcedure
 # application-site-groups objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=application-site-groups
+export APICLIobjecttype=application-site-group
+export APICLIobjectstype=application-site-groups
 
 MainOperationalProcedure
 

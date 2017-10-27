@@ -2,12 +2,12 @@
 #
 # SCRIPT Object export address-ranges to CSV file for API CLI Operations
 #
-ScriptVersion=00.25.01
-ScriptDate=2017-08-31
+ScriptVersion=00.26.01
+ScriptDate=2017-10-27
 
 #
 
-export APIScriptVersion=v00x25x01
+export APIScriptVersion=v00x26x01
 ScriptName=cli_api_export_object_hosts_to_csv
 
 # =================================================================================================
@@ -652,6 +652,9 @@ echo
 # SetupExportObjectsToCSVviaJQ
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 # The SetupExportObjectsToCSVviaJQ is the setup actions for the script's repeated actions.
 #
 
@@ -664,7 +667,7 @@ SetupExportObjectsToCSVviaJQ () {
     
     echo
     
-    export APICLICSVfilename=$APICLIobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLICSVfilename=$APICLIobjectstype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
     export APICLICSVfile=$APICLIpathexport/$APICLICSVfilename
     export APICLICSVfilewip=$APICLIpathexportwip/$APICLICSVfilename
     export APICLICSVfileheader=$APICLICSVfilewip.$APICLICSVheaderfilesuffix
@@ -694,7 +697,7 @@ SetupExportObjectsToCSVviaJQ () {
     fi
     
     echo
-    echo "Creat $APICLIobjecttype CSV File : $APICLICSVfile"
+    echo "Creat $APICLIobjectstype CSV File : $APICLICSVfile"
     echo
     
     #
@@ -717,7 +720,14 @@ SetupExportObjectsToCSVviaJQ () {
     #
 }
 
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
+
+
 # -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 # The FinalizeExportObjectsToCSVviaJQ is the finaling actions for the script's repeated actions.
 #
@@ -760,7 +770,7 @@ FinalizeExportObjectsToCSVviaJQ () {
     cat $APICLICSVfilesort >> $APICLICSVfile
     
     echo
-    echo "Done creating $APICLIobjecttype CSV File : $APICLICSVfile"
+    echo "Done creating $APICLIobjectstype CSV File : $APICLICSVfile"
     echo
     
     head $APICLICSVfile
@@ -777,14 +787,18 @@ FinalizeExportObjectsToCSVviaJQ () {
     #
 }
 
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
+
+
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2017-08-28  \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The ExportObjectsToCSVviaJQ is the meat of the script's repeated actions.
 #
-# For this script the $APICLIobjecttype item's name is exported to a CSV file and sorted.
+# For this script the $APICLIobjectstype item's name is exported to a CSV file and sorted.
 # The original exported data and raw sorted data are retained in separate files, as is the header
 # for the CSV file generated.
 
@@ -822,7 +836,7 @@ ExportObjectsToCSVviaJQ () {
     
     export MgmtCLI_Show_OpParms="details-level \"$APICLIdetaillvl\" $MgmtCLI_Base_OpParms"
     
-    objectstotal=$(mgmt_cli show $APICLIobjecttype limit 1 offset 0 details-level "$APICLIdetaillvl" $MgmtCLI_Base_OpParms | $JQ ".total")
+    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 
     objectstoshow=$objectstotal
 
@@ -832,7 +846,7 @@ ExportObjectsToCSVviaJQ () {
     currentoffset=0
 
     echo
-    echo "Exportport $APICLIobjecttype to CSV File"
+    echo "Exportport $APICLIobjectstype to CSV File"
     echo "  mgmt_cli parameters : $MgmtCLI_Show_OpParms"
     echo "  and dump to $APICLICSVfile"
     echo
@@ -841,7 +855,7 @@ ExportObjectsToCSVviaJQ () {
         # we have objects to process
         echo "  Now processing up to next $APICLIObjectLimit objects starting with object $currentoffset of $objectslefttoshow remaining!"
 
-        mgmt_cli show $APICLIobjecttype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | [ '"$CSVJQparms"' ] | @csv' -r >> $APICLICSVfiledata
+        mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | [ '"$CSVJQparms"' ] | @csv' -r >> $APICLICSVfiledata
         errorreturn=$?
         if [ $errorreturn != 0 ] ; then
             # Something went wrong, terminate
@@ -863,7 +877,7 @@ ExportObjectsToCSVviaJQ () {
     
     if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
         echo
-        echo "Done with Exporting $APICLIobjecttype to CSV File : $APICLICSVfile"
+        echo "Done with Exporting $APICLIobjectstype to CSV File : $APICLICSVfile"
     
         read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
     
@@ -876,14 +890,15 @@ ExportObjectsToCSVviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\  MODIFIED 2017-08-28
-# ADDED 2017-08-28 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
 
 
 # -------------------------------------------------------------------------------------------------
 # GetNumberOfObjectsviaJQ
 # -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 # The GetNumberOfObjectsviaJQ is the obtains the number of objects for that type indicated.
 #
@@ -904,7 +919,7 @@ GetNumberOfObjectsviaJQ () {
         echo
     fi
     
-    objectstotal=$(mgmt_cli show $APICLIobjecttype limit 1 offset 0 details-level "$APICLIdetaillvl" --format json -s $APICLIsessionfile | $JQ ".total")
+    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "$APICLIdetaillvl" --format json -s $APICLIsessionfile | $JQ ".total")
     errorreturn=$?
 
     if [ $errorreturn != 0 ] ; then
@@ -919,7 +934,7 @@ GetNumberOfObjectsviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ ADDED 2017-08-28
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
 
 # -------------------------------------------------------------------------------------------------
 
@@ -938,7 +953,9 @@ GetNumberOfObjectsviaJQ () {
 # address-ranges
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=address-ranges
+export APICLIobjecttype=address-range
+export APICLIobjectstype=address-ranges
+
 #
 # APICLICSVsortparms can change due to the nature of the object
 #
