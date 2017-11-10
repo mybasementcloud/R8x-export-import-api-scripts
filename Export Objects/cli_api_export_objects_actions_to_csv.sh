@@ -2,12 +2,12 @@
 #
 # SCRIPT Object dump to CSV action operations for API CLI Operations
 #
-ScriptVersion=00.26.01
-ScriptDate=2017-10-27
+ScriptVersion=00.26.05
+ScriptDate=2017-11-09
 
 #
 
-export APIActionsScriptVersion=v00x26x01
+export APIActionsScriptVersion=v00x26x05
 ScriptName=cli_api_export_objects_actions_to_csv
 
 # =================================================================================================
@@ -89,7 +89,11 @@ SetupExportObjectsToCSVviaJQ () {
     
     echo
     
-    export APICLICSVfilename=$APICLIobjectstype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLICSVfilename=$APICLIobjectstype
+    if [ x"$APICLIexportnameaddon" != x"" ] ; then
+        export APICLICSVfilename=$APICLICSVfilename'_'$APICLIexportnameaddon
+    fi
+    export APICLICSVfilename=$APICLICSVfilename'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
     export APICLICSVfile=$APICLIpathexport/$APICLICSVfilename
     export APICLICSVfilewip=$APICLIpathexportwip/$APICLICSVfilename
     export APICLICSVfileheader=$APICLICSVfilewip.$APICLICSVheaderfilesuffix
@@ -268,14 +272,14 @@ ExportObjectsToCSVviaJQ () {
     currentoffset=0
 
     echo
-    echo "Exportport $APICLIobjectstype to CSV File"
+    echo "Export $APICLIobjectstype to CSV File"
     echo "  mgmt_cli parameters : $MgmtCLI_Show_OpParms"
     echo "  and dump to $APICLICSVfile"
     echo
     
     while [ $objectslefttoshow -ge 1 ] ; do
         # we have objects to process
-        echo "  Now processing up to next $APICLIObjectLimit objects starting with object $currentoffset of $objectslefttoshow remaining!"
+        echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentoffset of $objectslefttoshow remaining!"
 
         mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | [ '"$CSVJQparms"' ] | @csv' -r >> $APICLICSVfiledata
         errorreturn=$?
@@ -319,7 +323,7 @@ ExportObjectsToCSVviaJQ () {
 # GetNumberOfObjectsviaJQ
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2017-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The GetNumberOfObjectsviaJQ is the obtains the number of objects for that type indicated.
@@ -341,7 +345,7 @@ GetNumberOfObjectsviaJQ () {
         echo
     fi
     
-    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "$APICLIdetaillvl" --format json -s $APICLIsessionfile | $JQ ".total")
+    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
     errorreturn=$?
 
     if [ $errorreturn != 0 ] ; then
@@ -356,7 +360,7 @@ GetNumberOfObjectsviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-11-09
 
 # -------------------------------------------------------------------------------------------------
 
@@ -377,6 +381,7 @@ GetNumberOfObjectsviaJQ () {
 
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -405,6 +410,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=network
 export APICLIobjectstype=networks
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -432,6 +438,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -455,6 +462,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=group-with-exclusion
 export APICLIobjectstype=groups-with-exclusion
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -480,6 +488,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=address-range
 export APICLIobjectstype=address-ranges
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -507,6 +516,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=multicast-address-range
 export APICLIobjectstype=multicast-address-ranges
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -534,6 +544,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=dns-domain
 export APICLIobjectstype=dns-domains
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -559,6 +570,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=security-zone
 export APICLIobjectstype=security-zones
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -587,6 +599,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=dynamic-object
 export APICLIobjectstype=dynamic-objects
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -637,6 +650,7 @@ echo >> $APICLIlogfilepath
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -672,6 +686,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=application-site-category
 export APICLIobjectstype=application-site-categories
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -696,15 +711,16 @@ ExportObjectsToCSVviaJQ
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
 
 
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2017-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # -------------------------------------------------------------------------------------------------
-# application-site-groups objects
+# application-sites objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=application-site-group
-export APICLIobjectstype=application-site-groups
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLIexportnameaddon=risk_data_export_only
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -713,20 +729,51 @@ export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
+export CSVFileHeader=$CSVFileHeader',"primary-category","risk"'
 export CSVFileHeader=$CSVFileHeader',"user-defined","read-only", "meta-info.creator"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
+export CSVJQparms=$CSVJQparms', .["primary-category"], .["risk"]'
 export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
 
-objectstotal_application_site_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_application_site_groups="$objectstotal_application_site_groups"
-export number_of_objects=$number_application_site_groups
+objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_application_sites="$objectstotal_application_sites"
+export number_of_objects=$number_application_sites
 
 ExportObjectsToCSVviaJQ
 
+# -------------------------------------------------------------------------------------------------
+# application-sites objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLIexportnameaddon=
+
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+#export CSVFileHeader=$CSVFileHeader',"icon"'
+export CSVFileHeader=$CSVFileHeader',"primary-category","risk"'
+export CSVFileHeader=$CSVFileHeader',"user-defined","read-only", "meta-info.creator"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+#export CSVJQparms=$CSVJQparms', .["icon"]'
+export CSVJQparms=$CSVJQparms', .["primary-category"], .["risk"]'
+export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
+
+objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_application_sites="$objectstotal_application_sites"
+export number_of_objects=$number_application_sites
+
+#ExportObjectsToCSVviaJQ
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-11-09
 
 
 # -------------------------------------------------------------------------------------------------
@@ -745,6 +792,7 @@ echo
 
 export APICLIobjecttype=tags
 export APICLIobjectstype=tags
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -779,6 +827,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=simple-gateway
 export APICLIobjectstype=simple-gateways
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -804,6 +853,7 @@ export number_of_objects=$number_simplegateways
 
 export APICLIobjecttype=time
 export APICLIobjectstype=times
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -829,6 +879,7 @@ export number_of_objects=$number_times
 
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -854,6 +905,7 @@ export number_of_objects=$number_time_groups
 
 export APICLIobjecttype=access-role
 export APICLIobjectstype=access-roles
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -879,6 +931,7 @@ export number_of_objects=$number_access_roles
 
 export APICLIobjecttype=opsec-application
 export APICLIobjectstype=opsec-applications
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -917,6 +970,7 @@ export number_of_objects=$number_opsec_applications
 
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -942,6 +996,7 @@ export number_of_objects=$number_services_tcp
 
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -967,6 +1022,7 @@ export number_of_objects=$number_services_udp
 
 export APICLIobjecttype=service-icmp
 export APICLIobjectstype=services-icmp
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -992,6 +1048,7 @@ export number_of_objects=$number_services_icmp
 
 export APICLIobjecttype=service-icmp6
 export APICLIobjectstype=services-icmp6
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -1017,6 +1074,7 @@ export number_of_objects=$number_services_icmp6
 
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -1042,6 +1100,7 @@ export number_of_objects=$number_services_sctp
 
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -1067,6 +1126,7 @@ export number_of_objects=$number_services_other
 
 export APICLIobjecttype=service-dce-rpc
 export APICLIobjectstype=services-dce-rpc
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -1092,6 +1152,7 @@ export number_of_objects=$number_services_dce_rpc
 
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -1117,6 +1178,7 @@ export number_of_objects=$number_services_rpc
 
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
+export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -1152,15 +1214,162 @@ export number_of_objects=$number_service_groups
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2017-08-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# ADDED 2017-11-09  \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# SetupExportComplexObjectsToCSVviaJQ
+# -------------------------------------------------------------------------------------------------
+
+# The SetupExportComplexObjectsToCSVviaJQ is the setup actions for the script's repeated actions.
+#
+
+SetupExportComplexObjectsToCSVviaJQ () {
+    #
+    # Screen width template for sizing, default width of 80 characters assumed
+    #
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+    
+    echo
+    
+    export APICLICSVfilename=$APICLIcomplexobjectstype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLICSVfile=$APICLIpathexport/$APICLICSVfilename
+    export APICLICSVfilewip=$APICLIpathexportwip/$APICLICSVfilename
+    export APICLICSVfileheader=$APICLICSVfilewip.$APICLICSVheaderfilesuffix
+    export APICLICSVfiledata=$APICLICSVfilewip.data
+    export APICLICSVfilesort=$APICLICSVfilewip.sort
+    export APICLICSVfileoriginal=$APICLICSVfilewip.original
+
+    
+    if [ ! -r $APICLIpathexportwip ] ; then
+        mkdir $APICLIpathexportwip
+    fi
+
+    if [ -r $APICLICSVfile ] ; then
+        rm $APICLICSVfile
+    fi
+    if [ -r $APICLICSVfileheader ] ; then
+        rm $APICLICSVfileheader
+    fi
+    if [ -r $APICLICSVfiledata ] ; then
+        rm $APICLICSVfiledata
+    fi
+    if [ -r $APICLICSVfilesort ] ; then
+        rm $APICLICSVfilesort
+    fi
+    if [ -r $APICLICSVfileoriginal ] ; then
+        rm $APICLICSVfileoriginal
+    fi
+    
+    echo
+    echo "Creat $APICLIcomplexobjectstype CSV File : $APICLICSVfile"
+    echo
+    
+    #
+    # Troubleshooting output
+    #
+    if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+        # Verbose mode ON
+        echo
+        echo '$CSVFileHeader' - $CSVFileHeader
+        echo
+    
+    fi
+    
+    echo $CSVFileHeader > $APICLICSVfileheader
+    echo
+    
+    echo
+    return 0
+    
+    #
+}
+
+
+# -------------------------------------------------------------------------------------------------
+
+# The FinalizeExportComplexObjectsToCSVviaJQ is the finaling actions for the script's repeated actions.
+#
+
+FinalizeExportComplexObjectsToCSVviaJQ () {
+    #
+    # Screen width template for sizing, default width of 80 characters assumed
+    #
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+
+    if [ ! -r $APICLICSVfileheader ] ; then
+        # Uh, Oh, something went wrong, no header file
+        echo
+        echo '!!!! Error header file missing : '$APICLICSVfileheader
+        echo 'Terminating!'
+        echo
+        exit 254
+        
+    elif [ ! -r $APICLICSVfiledata ] ; then
+        # Uh, Oh, something went wrong, no data file
+        echo
+        echo '!!!! Error data file missing : '$APICLICSVfiledata
+        echo 'Terminating!'
+        echo
+        exit 253
+        
+    fi
+
+    echo
+    echo "Sort data and build CSV export file"
+    echo
+    
+    cat $APICLICSVfileheader > $APICLICSVfileoriginal
+    cat $APICLICSVfiledata >> $APICLICSVfileoriginal
+    
+    sort $APICLICSVsortparms $APICLICSVfiledata > $APICLICSVfilesort
+    
+    cat $APICLICSVfileheader > $APICLICSVfile
+    cat $APICLICSVfilesort >> $APICLICSVfile
+    
+    echo
+    echo "Done creating $APICLIcomplexobjectstype CSV File : $APICLICSVfile"
+    echo
+    
+    head $APICLICSVfile
+    echo
+    echo
+   
+    
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+
+    echo
+    return 0
+    
+    #
+}
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\  ADDED 2017-11-09
+
+
+# MODIFIED 2017-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # -------------------------------------------------------------------------------------------------
 # group members
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=group-members
+export APICLIobjecttype=group
 export APICLIobjectstype=groups
+export APICLIcomplexobjecttype=group-member
+export APICLIcomplexobjectstype=group-members
+export APICLIexportnameaddon=
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------
 # SetupGetGroupMembers proceedure
@@ -1178,7 +1387,7 @@ SetupGetGroupMembers () {
     
     export CSVFileHeader='"name","members.add"'
     
-    SetupExportObjectsToCSVviaJQ
+    SetupExportComplexObjectsToCSVviaJQ
     
     return 0
 }
@@ -1192,7 +1401,7 @@ SetupGetGroupMembers () {
 
 FinalizeGetGroupMembers () {
 
-    FinalizeExportObjectsToCSVviaJQ
+    FinalizeExportComplexObjectsToCSVviaJQ
     errorreturn=$?
     if [ $errorreturn != 0 ] ; then
         # Something went wrong, terminate
@@ -1211,6 +1420,8 @@ FinalizeGetGroupMembers () {
 
 PopulateArrayOfGroupObjects () {
     
+    echo "  $APICLIobjectstype - Populate up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentgroupoffset of $objectslefttoshow remaining!"
+
     # MGMT_CLI_GROUPS_STRING is a string with multiple lines. Each line contains a name of a group members.
     # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
     
@@ -1257,7 +1468,7 @@ GetArrayOfGroupObjects () {
 
     objectstoshow=$objectstotal
 
-    echo "Processing $objectstoshow $APICLIobjectstype objects in $APICLIObjectLimit object chunks:"
+    echo "Processing $objectstoshow $APICLIobjecttype objects in $APICLIObjectLimit object chunks:"
 
     objectslefttoshow=$objectstoshow
 
@@ -1265,7 +1476,7 @@ GetArrayOfGroupObjects () {
     
     while [ $objectslefttoshow -ge 1 ] ; do
         # we have objects to process
-        echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currenthostoffset of $objectslefttoshow remaining!"
+        echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentgroupoffset of $objectslefttoshow remaining!"
 
         PopulateArrayOfGroupObjects
         errorreturn=$?
@@ -1275,7 +1486,7 @@ GetArrayOfGroupObjects () {
         fi
 
         objectslefttoshow=`expr $objectslefttoshow - $APICLIObjectLimit`
-        currenthostoffset=`expr $currenthostoffset + $APICLIObjectLimit`
+        currentgroupoffset=`expr $currentgroupoffset + $APICLIObjectLimit`
     done
 
     
@@ -1292,30 +1503,32 @@ GetArrayOfGroupObjects () {
 
 DumpArrayOfGroupObjects () {
     
-    # print the elements in the array
-    echo
-    echo groups
-    echo
-    #echo >> $APICLIlogfilepath
-    #echo groups >> $APICLIlogfilepath
-    #echo >> $APICLIlogfilepath
-    
-    for i in "${ALLGROUPARR[@]}"
-    do
-        if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
-            # Verbose mode ON
-            # Output list of all groups found
+    if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+        # Verbose mode ON
+        # Output list of all groups found
+ 
+        # print the elements in the array
+        echo
+        echo Dump groups
+        echo
+        #echo >> $APICLIlogfilepath
+        #echo groups >> $APICLIlogfilepath
+        #echo >> $APICLIlogfilepath
+        
+        for i in "${ALLGROUPARR[@]}"
+        do
             echo "$i, ${i//\'/}"
-        fi
-        #echo "$i, ${i//\'/}" >> $APICLIlogfilepath
-    done
+            #echo "$i, ${i//\'/}" >> $APICLIlogfilepath
+        done
+        
+        echo
+        echo Done dumping groups
+        echo
+        #echo >> $APICLIlogfilepath
+        #echo Done dumping groups >> $APICLIlogfilepath
+        #echo >> $APICLIlogfilepath
     
-    echo
-    echo Done dumping groups
-    echo
-    #echo >> $APICLIlogfilepath
-    #echo Done dumping groups >> $APICLIlogfilepath
-    #echo >> $APICLIlogfilepath
+    fi
     
     return 0
 }
@@ -1344,9 +1557,9 @@ CollectMembersInGroupObjects () {
     for i in "${ALLGROUPARR[@]}"
     do
         echo
-        echo group "${i//\'/}"
+        #echo group "${i//\'/}"
     
-        MEMBERS_COUNT=$(mgmt_cli show group name "${i//\'/}" -s $APICLIsessionfile --format json | $JQ ".members | length")
+        MEMBERS_COUNT=$(mgmt_cli show $APICLIobjecttype name "${i//\'/}" -s $APICLIsessionfile --format json | $JQ ".members | length")
     
         NUM_GROUP_MEMBERS=$MEMBERS_COUNT
 
@@ -1359,9 +1572,12 @@ CollectMembersInGroupObjects () {
             
             while [ $COUNTER -lt $NUM_GROUP_MEMBERS ]; do
                 
-                MEMBER_NAME=$(mgmt_cli show group name ${i//\'/} -s $APICLIsessionfile --format json | $JQ ".members[$COUNTER].name")
+                MEMBER_NAME=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ ".members[$COUNTER].name")
                 
-                #echo -n '.'
+                if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+                    # Verbose mode ON
+                    echo -n '.'
+                    fi
                 
                 echo ${i//\'/},$MEMBER_NAME >> $APICLICSVfiledata
                 #echo ${i//\'/},$MEMBER_NAME >> $APICLIlogfilepath
@@ -1371,7 +1587,8 @@ CollectMembersInGroupObjects () {
             done
             
         else
-            echo
+            echo Group "${i//\'/}"' number of members = NONE (0 zero)'
+            #echo Group "${i//\'/}"' number of members = NONE (0 zero)' >> $APICLIlogfilepath
         fi
 
     done
@@ -1405,7 +1622,7 @@ GetGroupMembers () {
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-objectstotal_groups=$(mgmt_cli show groups limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_groups="$objectstotal_groups"
 
 if [ $number_groups -le 0 ] ; then
@@ -1422,16 +1639,25 @@ fi
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-08-03
-# ADD 2017-08-03  \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-11-09
+# MODIFIED 2017-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
+
 # -------------------------------------------------------------------------------------------------
 # host interfaces
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=host-interfaces
+export APICLIobjecttype=host
 export APICLIobjectstype=hosts
+export APICLIcomplexobjecttype=host-interface
+export APICLIcomplexobjectstype=host-interfaces
+export APICLIexportnameaddon=
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------
 # SetupGetHostInterfaces proceedure
@@ -1459,7 +1685,7 @@ SetupGetHostInterfaces () {
     export CSVJQparms=$CSVJQparms', .["interfaces"]['$COUNTER']["subnet6"], .["interfaces"]['$COUNTER']["mask-length6"]'
     export CSVJQparms=$CSVJQparms', .["interfaces"]['$COUNTER']["color"], .["interfaces"]['$COUNTER']["comments"]'
 
-    SetupExportObjectsToCSVviaJQ
+    SetupExportComplexObjectsToCSVviaJQ
     
     return 0
 }
@@ -1473,7 +1699,7 @@ SetupGetHostInterfaces () {
 
 FinalizeGetHostInterfaces () {
 
-    FinalizeExportObjectsToCSVviaJQ
+    FinalizeExportComplexObjectsToCSVviaJQ
     errorreturn=$?
     if [ $errorreturn != 0 ] ; then
         # Something went wrong, terminate
@@ -1496,10 +1722,13 @@ PopulateArrayOfHostInterfaces () {
     # APICLICSVsortparms can change due to the nature of the object
     #
 
+    echo "  $APICLIobjectstype - Populate up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currenthostoffset of $objectslefttoshow remaining!"
+    #echo "  $APICLIobjectstype - Populate up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currenthostoffset of $objectslefttoshow remaining!" >> $APICLIlogfilepath
+
     # MGMT_CLI_HOSTS_STRING is a string with multiple lines. Each line contains a name of a host.
     # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
     
-    MGMT_CLI_HOSTS_STRING="`mgmt_cli show hosts limit $APICLIObjectLimit offset $currenthostoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+    MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
     
     # break the string into an array - each element of the array is a line in the original string
     # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
@@ -1524,8 +1753,8 @@ PopulateArrayOfHostInterfaces () {
             #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"' '
         fi
 
-        #INTERFACES_COUNT=$(mgmt_cli show host name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level "full" -s $APICLIsessionfile --format json | $JQ ".interfaces | length")
-        INTERFACES_COUNT=$(mgmt_cli show host name "$(eval echo $line)" details-level "full" -s $APICLIsessionfile --format json | $JQ ".interfaces | length")
+        #INTERFACES_COUNT=$(mgmt_cli show $APICLIobjecttype name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level "full" -s $APICLIsessionfile --format json | $JQ ".interfaces | length")
+        INTERFACES_COUNT=$(mgmt_cli show $APICLIobjecttype name "$(eval echo $line)" details-level "full" -s $APICLIsessionfile --format json | $JQ ".interfaces | length")
 
         NUM_HOST_INTERFACES=$INTERFACES_COUNT
 
@@ -1545,6 +1774,7 @@ PopulateArrayOfHostInterfaces () {
          if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
             # Verbose mode ON
             echo
+            #echo >> $APICLIlogfilepath
         fi
 
     done <<< "$MGMT_CLI_HOSTS_STRING"
@@ -1565,6 +1795,9 @@ GetArrayOfHostInterfaces () {
     echo
     echo 'Generate array of hosts'
     echo
+    #echo >> $APICLIlogfilepath
+    #echo 'Generate array of hosts' >> $APICLIlogfilepath
+    #echo >> $APICLIlogfilepath
     
     HOSTSARR=()
     ALLHOSTSARR=()
@@ -1578,7 +1811,8 @@ GetArrayOfHostInterfaces () {
 
     objectstoshow=$objectstotal
 
-    echo "Processing $objectstoshow $APICLIobjectstype objects in $APICLIObjectLimit object chunks:"
+    echo "Processing $objectstoshow $APICLIobjecttype objects in $APICLIObjectLimit object chunks:"
+    #echo "Processing $objectstoshow $APICLIobjecttype objects in $APICLIObjectLimit object chunks:" >> $APICLIlogfilepath
 
     objectslefttoshow=$objectstoshow
 
@@ -1587,6 +1821,7 @@ GetArrayOfHostInterfaces () {
     while [ $objectslefttoshow -ge 1 ] ; do
         # we have objects to process
         echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currenthostoffset of $objectslefttoshow remaining!"
+        #echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currenthostoffset of $objectslefttoshow remaining!" >> $APICLIlogfilepath
 
         PopulateArrayOfHostInterfaces
         errorreturn=$?
@@ -1600,6 +1835,7 @@ GetArrayOfHostInterfaces () {
     done
 
     echo
+    #echo >> $APICLIlogfilepath
     
     return 0
 }
@@ -1614,44 +1850,46 @@ GetArrayOfHostInterfaces () {
 
 DumpArrayOfHostsObjects () {
     
-    # print the elements in the array
-    echo
-    echo All hosts
-    echo
-    #echo >> $APICLIlogfilepath
-    #echo All hosts >> $APICLIlogfilepath
-    #echo >> $APICLIlogfilepath
+    if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+        # Verbose mode ON
+        # Output list of all hosts found
     
-    for i in "${ALLHOSTSARR[@]}"
-    do
-        if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
-            # Verbose mode ON
-            # Output list of all hosts found
+        # print the elements in the array
+        echo
+        echo Dump All hosts
+        echo
+        #echo >> $APICLIlogfilepath
+        #echo All hosts >> $APICLIlogfilepath
+        #echo >> $APICLIlogfilepath
+        
+        for i in "${ALLHOSTSARR[@]}"
+        do
             echo "$i, ${i//\'/}"
-        fi
-        #echo "$i, ${i//\'/}" >> $APICLIlogfilepath
-    done
-    
-    echo
-    echo hosts with interfaces defined
-    echo
-    #echo >> $APICLIlogfilepath
-    #echo hosts with interfaces defined >> $APICLIlogfilepath
-    #echo >> $APICLIlogfilepath
-    
-    for j in "${HOSTSARR[@]}"
-    do
-        echo "$j, ${j//\'/}"
-        #echo "$j, ${j//\'/}" >> $APICLIlogfilepath
-    done
-    
-    echo
-    echo Done dumping hosts
-    echo
-    #echo >> $APICLIlogfilepath
-    #echo Done dumping hosts >> $APICLIlogfilepath
-    #echo >> $APICLIlogfilepath
-    
+            #echo "$i, ${i//\'/}" >> $APICLIlogfilepath
+        done
+        
+        echo
+        echo hosts with interfaces defined
+        echo
+        #echo >> $APICLIlogfilepath
+        #echo hosts with interfaces defined >> $APICLIlogfilepath
+        #echo >> $APICLIlogfilepath
+        
+        for j in "${HOSTSARR[@]}"
+        do
+            echo "$j, ${j//\'/}"
+            #echo "$j, ${j//\'/}" >> $APICLIlogfilepath
+        done
+        
+        echo
+        echo Done dumping hosts
+        echo
+        #echo >> $APICLIlogfilepath
+        #echo Done dumping hosts >> $APICLIlogfilepath
+        #echo >> $APICLIlogfilepath
+        
+    fi
+
     return 0
 }
 
@@ -1681,7 +1919,7 @@ CollectInterfacesInHostObjects () {
         echo
         echo Host with interfaces "${i//\'/}"
     
-        INTERFACES_COUNT=$(mgmt_cli show host name "${i//\'/}" -s $APICLIsessionfile --format json | $JQ ".interfaces | length")
+        INTERFACES_COUNT=$(mgmt_cli show $APICLIobjecttype name "${i//\'/}" -s $APICLIsessionfile --format json | $JQ ".interfaces | length")
 
         NUM_HOST_INTERFACES=$INTERFACES_COUNT
     
@@ -1691,28 +1929,30 @@ CollectInterfacesInHostObjects () {
             #echo host "${i//\'/}"' number of interfaces = '"$NUM_HOST_INTERFACES" >> $APICLIlogfilepath
        
             COUNTER=0
-            echo $CSVFileHeader
-            
+            if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+                # Verbose mode ON
+                echo $CSVFileHeader
+                #echo $CSVFileHeader >> $APICLIlogfilepath
+                fi
+
             while [ $COUNTER -lt $NUM_HOST_INTERFACES ]; do
         
                 #echo -n '.'
     
                 #export CSVJQparms='.["name"], .["interfaces"]['$COUNTER']["name"]'
-                ##export CSVJQparms=$CSVJQparms', .["interfaces"]['$COUNTER']["subnet4"], .["interfaces"]['$COUNTER']["mask-length4"], .["interfaces"]['$COUNTER']["subnet-mask"]'
+                #export CSVJQparms=$CSVJQparms', .["interfaces"]['$COUNTER']["subnet4"], .["interfaces"]['$COUNTER']["mask-length4"], .["interfaces"]['$COUNTER']["subnet-mask"]'
                 #export CSVJQparms=$CSVJQparms', .["interfaces"]['$COUNTER']["subnet4"], .["interfaces"]['$COUNTER']["mask-length4"],
                 #export CSVJQparms=$CSVJQparms', .["interfaces"]['$COUNTER']["subnet6"], .["interfaces"]['$COUNTER']["mask-length6"]'
                 #export CSVJQparms=$CSVJQparms', .["interfaces"]['$COUNTER']["color"], .["interfaces"]['$COUNTER']["comments"]'
 
-                #mgmt_cli show host name BeasleyQNAP-01 details-level "full" --format json -r true | $CPDIR/jq/jq '.["interfaces"][0]["mask-length4"]'
-
-                INTERFACE_NAME=$(mgmt_cli show host name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["name"]')
-                INTERFACE_subnet4=$(mgmt_cli show host name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["subnet4"]')
-                INTERFACE_masklength4=$(mgmt_cli show host name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["mask-length4"]')
-                INTERFACE_subnetmask=$(mgmt_cli show host name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["subnet-mask"]')
-                INTERFACE_subnet6=$(mgmt_cli show host name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["subnet6"]')
-                INTERFACE_masklength6=$(mgmt_cli show host name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["mask-length6"]')
-                INTERFACE_COLOR=$(mgmt_cli show host name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["color"]')
-                INTERFACE_COMMENT=$(mgmt_cli show host name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["comments"]')
+                INTERFACE_NAME=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["name"]')
+                INTERFACE_subnet4=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["subnet4"]')
+                INTERFACE_masklength4=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["mask-length4"]')
+                INTERFACE_subnetmask=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["subnet-mask"]')
+                INTERFACE_subnet6=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["subnet6"]')
+                INTERFACE_masklength6=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["mask-length6"]')
+                INTERFACE_COLOR=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["color"]')
+                INTERFACE_COMMENT=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["comments"]')
                 
                 export CSVoutputline="${i//\'/}","$INTERFACE_NAME"
                 #export CSVoutputline=$CSVoutputline,"$INTERFACE_subnet4","$INTERFACE_masklength4","$INTERFACE_subnetmask"
@@ -1720,7 +1960,12 @@ CollectInterfacesInHostObjects () {
                 export CSVoutputline=$CSVoutputline,"$INTERFACE_subnet6","$INTERFACE_masklength6"
                 export CSVoutputline=$CSVoutputline,"$INTERFACE_COLOR","$INTERFACE_COMMENT"
                 
-                echo $CSVoutputline
+                if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+                    # Verbose mode ON
+                    echo $CSVoutputline
+                    #echo $CSVoutputline >> $APICLIlogfilepath
+                    fi
+
                 echo $CSVoutputline >> $APICLICSVfiledata
                 #echo $CSVoutputline >> $APICLIlogfilepath
         
@@ -1728,7 +1973,8 @@ CollectInterfacesInHostObjects () {
         
             done
         else
-            echo
+            echo host "${i//\'/}"' number of interfaces = NONE (0 zero)'
+            #echo host "${i//\'/}"' number of interfaces = NONE (0 zero)' >> $APICLIlogfilepath
         fi
     
     done
@@ -1762,7 +2008,7 @@ GetHostInterfaces () {
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-objectstotal_hosts=$(mgmt_cli show hosts limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_hosts=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_hosts="$objectstotal_hosts"
 
 if [ $number_hosts -le 0 ] ; then
@@ -1779,8 +2025,10 @@ fi
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\  ADD 2017-08-03
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-11-09
 
 
 # -------------------------------------------------------------------------------------------------

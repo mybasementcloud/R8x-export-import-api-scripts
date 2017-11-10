@@ -2,12 +2,12 @@
 #
 # SCRIPT Object import using CSV file for API CLI Operations
 #
-ScriptVersion=00.26.01
-ScriptDate=2017-10-27
+ScriptVersion=00.26.05
+ScriptDate=2017-11-09
 
 #
 
-export APIScriptVersion=v00x26x01
+export APIScriptVersion=v00x26x05
 ScriptName=cli_api_import_objects_from_csv
 
 # =================================================================================================
@@ -656,7 +656,15 @@ ImportSimpleObjects () {
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     
-    export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLICSVobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLIfilename=$APICLICSVobjecttype
+    if [ x"$APICLIexportnameaddon" != x"" ] ; then
+        export APICLIfilename=$APICLIfilename'_'$APICLIexportnameaddon
+    fi
+    export APICLIfilename=$APICLIfilename'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+
+    #export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLICSVobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLIfilename
+
     export OutputPath=$APICLIpathexport/$APICLIfileexportpre'add_'$APICLIobjecttype'_'$APICLIfileexportext
     
     if [ ! -r $APICLIImportCSVfile ] ; then
@@ -726,7 +734,9 @@ echo
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=host
+export APICLIobjectstype=hosts
 export APICLICSVobjecttype=hosts
+export APICLIexportnameaddon=
 
 ImportSimpleObjects
 
@@ -736,7 +746,9 @@ ImportSimpleObjects
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=network
+export APICLIobjectstype=networks
 export APICLICSVobjecttype=networks
+export APICLIexportnameaddon=
 
 ImportSimpleObjects
 
@@ -746,7 +758,9 @@ ImportSimpleObjects
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=group
+export APICLIobjectstype=groups
 export APICLICSVobjecttype=groups
+export APICLIexportnameaddon=
 
 ImportSimpleObjects
 
@@ -756,7 +770,9 @@ ImportSimpleObjects
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=group-with-exclusion
+export APICLIobjectstype=groups-with-exclusion
 export APICLICSVobjecttype=groups-with-exclusion
+export APICLIexportnameaddon=
 
 ImportSimpleObjects
 
@@ -766,7 +782,9 @@ ImportSimpleObjects
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=address-range
+export APICLIobjectstype=address-ranges
 export APICLICSVobjecttype=address-ranges
+export APICLIexportnameaddon=
 
 ImportSimpleObjects
 
@@ -776,7 +794,9 @@ ImportSimpleObjects
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=dns-domain
+export APICLIobjectstype=dns-domains
 export APICLICSVobjecttype=dns-domains
+export APICLIexportnameaddon=
 
 ImportSimpleObjects
 
@@ -786,7 +806,9 @@ ImportSimpleObjects
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=security-zone
+export APICLIobjectstype=security-zones
 export APICLICSVobjecttype=security-zones
+export APICLIexportnameaddon=
 
 ImportSimpleObjects
 
@@ -800,6 +822,8 @@ ImportSimpleObjects
 
 export APICLIobjecttype=dynamic-object
 export APICLIobjectstype=dynamic-objects
+export APICLICSVobjecttype=dynamic-objects
+export APICLIexportnameaddon=
 
 ImportSimpleObjects
 
@@ -835,6 +859,8 @@ echo >> $APICLIlogfilepath
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
+export APICLICSVobjecttype=application-sites
+export APICLIexportnameaddon=
 
 ImportSimpleObjects
 
@@ -851,6 +877,8 @@ ImportSimpleObjects
 
 export APICLIobjecttype=application-site-category
 export APICLIobjectstype=application-site-categories
+export APICLICSVobjecttype=application-site-categories
+export APICLIexportnameaddon=
 
 ImportSimpleObjects
 
@@ -867,6 +895,8 @@ ImportSimpleObjects
 
 export APICLIobjecttype=application-site-group
 export APICLIobjectstype=application-site-groups
+export APICLICSVobjecttype=application-site-groups
+export APICLIexportnameaddon=
 
 ImportSimpleObjects
 
@@ -888,8 +918,10 @@ echo
 # tags
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=tags
+export APICLIobjecttype=tag
 export APICLIobjectstype=tags
+export APICLICSVobjecttype=tags
+export APICLIexportnameaddon=
 
 ImportSimpleObjects
 
@@ -909,6 +941,8 @@ ImportSimpleObjects
 
 export APICLIobjecttype=simple-gateway
 export APICLIobjectstype=simple-gateways
+export APICLICSVobjecttype=simple-gateways
+export APICLIexportnameaddon=
 
 #ImportSimpleObjects
 
@@ -919,8 +953,10 @@ export APICLIobjectstype=simple-gateways
 
 export APICLIobjecttype=time
 export APICLIobjectstype=times
+export APICLICSVobjecttype=times
+export APICLIexportnameaddon=
 
-#ImportSimpleObjects
+ImportSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -929,8 +965,10 @@ export APICLIobjectstype=times
 
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
+export APICLICSVobjecttype=time-groups
+export APICLIexportnameaddon=
 
-#ImportSimpleObjects
+ImportSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -939,8 +977,10 @@ export APICLIobjectstype=time-groups
 
 export APICLIobjecttype=access-role
 export APICLIobjectstype=access-roles
+export APICLICSVobjecttype=access-roles
+export APICLIexportnameaddon=
 
-#ImportSimpleObjects
+ImportSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -949,8 +989,10 @@ export APICLIobjectstype=access-roles
 
 export APICLIobjecttype=opsec-application
 export APICLIobjectstype=opsec-applications
+export APICLICSVobjecttype=opsec-applications
+export APICLIexportnameaddon=
 
-#ImportSimpleObjects
+ImportSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -972,8 +1014,10 @@ export APICLIobjectstype=opsec-applications
 
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
+export APICLICSVobjecttype=services-tcp
+export APICLIexportnameaddon=
 
-#ImportSimpleObjects
+ImportSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -982,8 +1026,10 @@ export APICLIobjectstype=services-tcp
 
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
+export APICLICSVobjecttype=services-udp
+export APICLIexportnameaddon=
 
-#ImportSimpleObjects
+ImportSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -992,8 +1038,10 @@ export APICLIobjectstype=services-udp
 
 export APICLIobjecttype=service-icmp
 export APICLIobjectstype=services-icmp
+export APICLICSVobjecttype=services-icmp
+export APICLIexportnameaddon=
 
-#ImportSimpleObjects
+ImportSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1002,8 +1050,10 @@ export APICLIobjectstype=services-icmp
 
 export APICLIobjecttype=service-icmp6
 export APICLIobjectstype=services-icmp6
+export APICLICSVobjecttype=services-icmp6
+export APICLIexportnameaddon=
 
-#ImportSimpleObjects
+ImportSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1012,8 +1062,10 @@ export APICLIobjectstype=services-icmp6
 
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
+export APICLICSVobjecttype=services-sctp
+export APICLIexportnameaddon=
 
-#ImportSimpleObjects
+ImportSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1022,8 +1074,10 @@ export APICLIobjectstype=services-sctp
 
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
+export APICLICSVobjecttype=services-other
+export APICLIexportnameaddon=
 
-#ImportSimpleObjects
+ImportSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1032,8 +1086,10 @@ export APICLIobjectstype=services-other
 
 export APICLIobjecttype=service-dce-rpc
 export APICLIobjectstype=services-dce-rpc
+export APICLICSVobjecttype=services-dce-rpc
+export APICLIexportnameaddon=
 
-#ImportSimpleObjects
+ImportSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1042,8 +1098,10 @@ export APICLIobjectstype=services-dce-rpc
 
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
+export APICLICSVobjecttype=services-rpc
+export APICLIexportnameaddon=
 
-#ImportSimpleObjects
+ImportSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1052,8 +1110,10 @@ export APICLIobjectstype=services-rpc
 
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
+export APICLICSVobjecttype=service-groups
+export APICLIexportnameaddon=
 
-#ImportSimpleObjects
+ImportSimpleObjects
 
 
 #
@@ -1095,7 +1155,15 @@ ConfigureComplexObjects () {
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     
         
-    export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLICSVobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLIfilename=$APICLICSVobjecttype
+    if [ x"$APICLIexportnameaddon" != x"" ] ; then
+        export APICLIfilename=$APICLIfilename'_'$APICLIexportnameaddon
+    fi
+    export APICLIfilename=$APICLIfilename'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+
+    #export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLICSVobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLIfilename
+
     export OutputPath=$APICLIpathexport/$APICLIfileexportpre'set_'$APICLICSVobjecttype'_'$APICLIfileexportext
     
     if [ ! -r $APICLIImportCSVfile ] ; then
@@ -1149,7 +1217,11 @@ ConfigureComplexObjects () {
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=group
+export APICLIobjectstype=groups
+export APICLIcomplexobjecttype=group-member
+export APICLIcomplexobjectstype=group-members
 export APICLICSVobjecttype=group-members
+export APICLIexportnameaddon=
 
 ConfigureComplexObjects
 
@@ -1159,7 +1231,11 @@ ConfigureComplexObjects
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=host
+export APICLIobjectstype=hosts
+export APICLIcomplexobjecttype=host-interface
+export APICLIcomplexobjectstype=host-interfaces
 export APICLICSVobjecttype=host-interfaces
+export APICLIexportnameaddon=
 
 ConfigureComplexObjects
 

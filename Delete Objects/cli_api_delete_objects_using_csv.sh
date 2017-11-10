@@ -2,12 +2,12 @@
 #
 # SCRIPT Object delete using object-names csv files for API CLI Operations
 #
-ScriptVersion=00.26.01
-ScriptDate=2017-10-27
+ScriptVersion=00.26.05
+ScriptDate=2017-11-09
 
 #
 
-export APIScriptVersion=v00x26x01
+export APIScriptVersion=v00x26x05
 ScriptName=cli_api_delete_objects_using_csv
 
 # =================================================================================================
@@ -663,7 +663,15 @@ DeleteSimpleObjects () {
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     
-    export APICLIDeleteCSVfile=$APICLICSVDeletepathbase/$APICLICSVobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLIfilename=$APICLICSVobjecttype
+    if [ x"$APICLIexportnameaddon" != x"" ] ; then
+        export APICLIfilename=$APICLIfilename'_'$APICLIexportnameaddon
+    fi
+    export APICLIfilename=$APICLIfilename'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+
+    #export APICLIDeleteCSVfile=$APICLICSVDeletepathbase/$APICLICSVobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLIDeleteCSVfile=$APICLICSVDeletepathbase/$APICLIfilename
+
     export OutputPath=$APICLIpathexport/$APICLIfileexportpre'add_'$APICLIobjecttype'_'$APICLIfileexportext
     
     if [ ! -r $APICLIDeleteCSVfile ] ; then
@@ -724,7 +732,9 @@ echo
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=group-with-exclusion
+export APICLIobjectstype=groups-with-exclusion
 export APICLICSVobjecttype=groups-with-exclusion
+export APICLIexportnameaddon=
 
 DeleteSimpleObjects
 
@@ -734,7 +744,9 @@ DeleteSimpleObjects
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=group
+export APICLIobjectstype=groups
 export APICLICSVobjecttype=groups
+export APICLIexportnameaddon=
 
 DeleteSimpleObjects
 
@@ -744,7 +756,9 @@ DeleteSimpleObjects
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=security-zone
+export APICLIobjectstype=security-zones
 export APICLICSVobjecttype=security-zones
+export APICLIexportnameaddon=
 
 DeleteSimpleObjects
 
@@ -754,7 +768,9 @@ DeleteSimpleObjects
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=dns-domain
+export APICLIobjectstype=dns-domains
 export APICLICSVobjecttype=dns-domains
+export APICLIexportnameaddon=
 
 DeleteSimpleObjects
 
@@ -764,7 +780,9 @@ DeleteSimpleObjects
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=address-range
+export APICLIobjectstype=address-ranges
 export APICLICSVobjecttype=address-ranges
+export APICLIexportnameaddon=
 
 DeleteSimpleObjects
 
@@ -774,7 +792,9 @@ DeleteSimpleObjects
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=network
+export APICLIobjectstype=networks
 export APICLICSVobjecttype=networks
+export APICLIexportnameaddon=
 
 DeleteSimpleObjects
 
@@ -784,7 +804,9 @@ DeleteSimpleObjects
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=host
+export APICLIobjectstype=hosts
 export APICLICSVobjecttype=hosts
+export APICLIexportnameaddon=
 
 DeleteSimpleObjects
 
@@ -798,6 +820,8 @@ DeleteSimpleObjects
 
 export APICLIobjecttype=dynamic-object
 export APICLIobjectstype=dynamic-objects
+export APICLICSVobjecttype=dynamic-objects
+export APICLIexportnameaddon=
 
 DeleteSimpleObjects
 
@@ -833,6 +857,8 @@ echo >> $APICLIlogfilepath
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
+export APICLICSVobjecttype=application-sites
+export APICLIexportnameaddon=
 
 DeleteSimpleObjects
 
@@ -849,6 +875,8 @@ DeleteSimpleObjects
 
 export APICLIobjecttype=application-site-category
 export APICLIobjectstype=application-site-categories
+export APICLICSVobjecttype=application-site-categories
+export APICLIexportnameaddon=
 
 DeleteSimpleObjects
 
@@ -865,6 +893,8 @@ DeleteSimpleObjects
 
 export APICLIobjecttype=application-site-group
 export APICLIobjectstype=application-site-groups
+export APICLICSVobjecttype=application-site-groups
+export APICLIexportnameaddon=
 
 DeleteSimpleObjects
 
@@ -888,6 +918,8 @@ echo
 
 export APICLIobjecttype=tags
 export APICLIobjectstype=tags
+export APICLICSVobjecttype=tags
+export APICLIexportnameaddon=
 
 DeleteSimpleObjects
 
@@ -907,8 +939,10 @@ DeleteSimpleObjects
 
 export APICLIobjecttype=simple-gateway
 export APICLIobjectstype=simple-gateways
+export APICLICSVobjecttype=simple-gateways
+export APICLIexportnameaddon=
 
-#DeleteSimpleObjects
+DeleteSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -917,8 +951,10 @@ export APICLIobjectstype=simple-gateways
 
 export APICLIobjecttype=time
 export APICLIobjectstype=times
+export APICLICSVobjecttype=times
+export APICLIexportnameaddon=
 
-#DeleteSimpleObjects
+DeleteSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -927,8 +963,10 @@ export APICLIobjectstype=times
 
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
+export APICLICSVobjecttype=time-groups
+export APICLIexportnameaddon=
 
-#DeleteSimpleObjects
+DeleteSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -937,8 +975,10 @@ export APICLIobjectstype=time-groups
 
 export APICLIobjecttype=access-role
 export APICLIobjectstype=access-roles
+export APICLICSVobjecttype=access-roles
+export APICLIexportnameaddon=
 
-#DeleteSimpleObjects
+DeleteSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -947,8 +987,10 @@ export APICLIobjectstype=access-roles
 
 export APICLIobjecttype=opsec-application
 export APICLIobjectstype=opsec-applications
+export APICLICSVobjecttype=opsec-applications
+export APICLIexportnameaddon=
 
-#DeleteSimpleObjects
+DeleteSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -970,8 +1012,10 @@ export APICLIobjectstype=opsec-applications
 
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
+export APICLICSVobjecttype=services-tcp
+export APICLIexportnameaddon=
 
-#DeleteSimpleObjects
+DeleteSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -980,8 +1024,10 @@ export APICLIobjectstype=services-tcp
 
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
+export APICLICSVobjecttype=services-udp
+export APICLIexportnameaddon=
 
-#DeleteSimpleObjects
+DeleteSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -990,8 +1036,10 @@ export APICLIobjectstype=services-udp
 
 export APICLIobjecttype=service-icmp
 export APICLIobjectstype=services-icmp
+export APICLICSVobjecttype=services-icmp
+export APICLIexportnameaddon=
 
-#DeleteSimpleObjects
+DeleteSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1000,8 +1048,10 @@ export APICLIobjectstype=services-icmp
 
 export APICLIobjecttype=service-icmp6
 export APICLIobjectstype=services-icmp6
+export APICLICSVobjecttype=services-icmp6
+export APICLIexportnameaddon=
 
-#DeleteSimpleObjects
+DeleteSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1010,8 +1060,10 @@ export APICLIobjectstype=services-icmp6
 
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
+export APICLICSVobjecttype=services-sctp
+export APICLIexportnameaddon=
 
-#DeleteSimpleObjects
+DeleteSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1020,8 +1072,10 @@ export APICLIobjectstype=services-sctp
 
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
+export APICLICSVobjecttype=services-other
+export APICLIexportnameaddon=
 
-#DeleteSimpleObjects
+DeleteSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1030,8 +1084,10 @@ export APICLIobjectstype=services-other
 
 export APICLIobjecttype=service-dce-rpc
 export APICLIobjectstype=services-dce-rpc
+export APICLICSVobjecttype=services-dce-rpc
+export APICLIexportnameaddon=
 
-#DeleteSimpleObjects
+DeleteSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1040,8 +1096,10 @@ export APICLIobjectstype=services-dce-rpc
 
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
+export APICLICSVobjecttype=services-rpc
+export APICLIexportnameaddon=
 
-#DeleteSimpleObjects
+DeleteSimpleObjects
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1050,8 +1108,10 @@ export APICLIobjectstype=services-rpc
 
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
+export APICLICSVobjecttype=service-groups
+export APICLIexportnameaddon=
 
-#DeleteSimpleObjects
+DeleteSimpleObjects
 
 
 #

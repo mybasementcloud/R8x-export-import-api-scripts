@@ -2,12 +2,12 @@
 #
 # SCRIPT Object export hosts to CSV file for API CLI Operations
 #
-ScriptVersion=00.26.01
-ScriptDate=2017-10-27
+ScriptVersion=00.26.05
+ScriptDate=2017-11-09
 
 #
 
-export APIScriptVersion=v00x26x01
+export APIScriptVersion=v00x26x05
 ScriptName=cli_api_export_object_hosts_to_csv
 
 # =================================================================================================
@@ -666,7 +666,11 @@ SetupExportObjectsToCSVviaJQ () {
     
     echo
     
-    export APICLICSVfilename=$APICLIobjectstype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLICSVfilename=$APICLIobjectstype
+    if [ x"$APICLIexportnameaddon" != x"" ] ; then
+        export APICLICSVfilename=$APICLICSVfilename'_'$APICLIexportnameaddon
+    fi
+    export APICLICSVfilename=$APICLICSVfilename'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
     export APICLICSVfile=$APICLIpathexport/$APICLICSVfilename
     export APICLICSVfilewip=$APICLIpathexportwip/$APICLICSVfilename
     export APICLICSVfileheader=$APICLICSVfilewip.$APICLICSVheaderfilesuffix
@@ -845,14 +849,14 @@ ExportObjectsToCSVviaJQ () {
     currentoffset=0
 
     echo
-    echo "Exportport $APICLIobjectstype to CSV File"
+    echo "Export $APICLIobjectstype to CSV File"
     echo "  mgmt_cli parameters : $MgmtCLI_Show_OpParms"
     echo "  and dump to $APICLICSVfile"
     echo
     
     while [ $objectslefttoshow -ge 1 ] ; do
         # we have objects to process
-        echo "  Now processing up to next $APICLIObjectLimit objects starting with object $currentoffset of $objectslefttoshow remaining!"
+        echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentoffset of $objectslefttoshow remaining!"
 
         mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | [ '"$CSVJQparms"' ] | @csv' -r >> $APICLICSVfiledata
         errorreturn=$?
@@ -896,7 +900,7 @@ ExportObjectsToCSVviaJQ () {
 # GetNumberOfObjectsviaJQ
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2017-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The GetNumberOfObjectsviaJQ is the obtains the number of objects for that type indicated.
@@ -918,7 +922,7 @@ GetNumberOfObjectsviaJQ () {
         echo
     fi
     
-    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "$APICLIdetaillvl" --format json -s $APICLIsessionfile | $JQ ".total")
+    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
     errorreturn=$?
 
     if [ $errorreturn != 0 ] ; then
@@ -933,7 +937,7 @@ GetNumberOfObjectsviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-11-09
 
 # -------------------------------------------------------------------------------------------------
 
@@ -961,15 +965,162 @@ GetNumberOfObjectsviaJQ () {
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2017-08-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# ADDED 2017-11-09  \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# SetupExportComplexObjectsToCSVviaJQ
+# -------------------------------------------------------------------------------------------------
+
+# The SetupExportComplexObjectsToCSVviaJQ is the setup actions for the script's repeated actions.
+#
+
+SetupExportComplexObjectsToCSVviaJQ () {
+    #
+    # Screen width template for sizing, default width of 80 characters assumed
+    #
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+    
+    echo
+    
+    export APICLICSVfilename=$APICLIcomplexobjectstype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLICSVfile=$APICLIpathexport/$APICLICSVfilename
+    export APICLICSVfilewip=$APICLIpathexportwip/$APICLICSVfilename
+    export APICLICSVfileheader=$APICLICSVfilewip.$APICLICSVheaderfilesuffix
+    export APICLICSVfiledata=$APICLICSVfilewip.data
+    export APICLICSVfilesort=$APICLICSVfilewip.sort
+    export APICLICSVfileoriginal=$APICLICSVfilewip.original
+
+    
+    if [ ! -r $APICLIpathexportwip ] ; then
+        mkdir $APICLIpathexportwip
+    fi
+
+    if [ -r $APICLICSVfile ] ; then
+        rm $APICLICSVfile
+    fi
+    if [ -r $APICLICSVfileheader ] ; then
+        rm $APICLICSVfileheader
+    fi
+    if [ -r $APICLICSVfiledata ] ; then
+        rm $APICLICSVfiledata
+    fi
+    if [ -r $APICLICSVfilesort ] ; then
+        rm $APICLICSVfilesort
+    fi
+    if [ -r $APICLICSVfileoriginal ] ; then
+        rm $APICLICSVfileoriginal
+    fi
+    
+    echo
+    echo "Creat $APICLIcomplexobjectstype CSV File : $APICLICSVfile"
+    echo
+    
+    #
+    # Troubleshooting output
+    #
+    if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+        # Verbose mode ON
+        echo
+        echo '$CSVFileHeader' - $CSVFileHeader
+        echo
+    
+    fi
+    
+    echo $CSVFileHeader > $APICLICSVfileheader
+    echo
+    
+    echo
+    return 0
+    
+    #
+}
+
+
+# -------------------------------------------------------------------------------------------------
+
+# The FinalizeExportComplexObjectsToCSVviaJQ is the finaling actions for the script's repeated actions.
+#
+
+FinalizeExportComplexObjectsToCSVviaJQ () {
+    #
+    # Screen width template for sizing, default width of 80 characters assumed
+    #
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+
+    if [ ! -r $APICLICSVfileheader ] ; then
+        # Uh, Oh, something went wrong, no header file
+        echo
+        echo '!!!! Error header file missing : '$APICLICSVfileheader
+        echo 'Terminating!'
+        echo
+        exit 254
+        
+    elif [ ! -r $APICLICSVfiledata ] ; then
+        # Uh, Oh, something went wrong, no data file
+        echo
+        echo '!!!! Error data file missing : '$APICLICSVfiledata
+        echo 'Terminating!'
+        echo
+        exit 253
+        
+    fi
+
+    echo
+    echo "Sort data and build CSV export file"
+    echo
+    
+    cat $APICLICSVfileheader > $APICLICSVfileoriginal
+    cat $APICLICSVfiledata >> $APICLICSVfileoriginal
+    
+    sort $APICLICSVsortparms $APICLICSVfiledata > $APICLICSVfilesort
+    
+    cat $APICLICSVfileheader > $APICLICSVfile
+    cat $APICLICSVfilesort >> $APICLICSVfile
+    
+    echo
+    echo "Done creating $APICLIcomplexobjectstype CSV File : $APICLICSVfile"
+    echo
+    
+    head $APICLICSVfile
+    echo
+    echo
+   
+    
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+
+    echo
+    return 0
+    
+    #
+}
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\  ADDED 2017-11-09
+
+
+# MODIFIED 2017-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # -------------------------------------------------------------------------------------------------
 # group members
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=group-members
+export APICLIobjecttype=group
 export APICLIobjectstype=groups
+export APICLIcomplexobjecttype=group-member
+export APICLIcomplexobjectstype=group-members
+export APICLIexportnameaddon=
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------
 # SetupGetGroupMembers proceedure
@@ -987,7 +1138,7 @@ SetupGetGroupMembers () {
     
     export CSVFileHeader='"name","members.add"'
     
-    SetupExportObjectsToCSVviaJQ
+    SetupExportComplexObjectsToCSVviaJQ
     
     return 0
 }
@@ -1001,7 +1152,7 @@ SetupGetGroupMembers () {
 
 FinalizeGetGroupMembers () {
 
-    FinalizeExportObjectsToCSVviaJQ
+    FinalizeExportComplexObjectsToCSVviaJQ
     errorreturn=$?
     if [ $errorreturn != 0 ] ; then
         # Something went wrong, terminate
@@ -1020,6 +1171,8 @@ FinalizeGetGroupMembers () {
 
 PopulateArrayOfGroupObjects () {
     
+    echo "  $APICLIobjectstype - Populate up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentgroupoffset of $objectslefttoshow remaining!"
+
     # MGMT_CLI_GROUPS_STRING is a string with multiple lines. Each line contains a name of a group members.
     # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
     
@@ -1066,7 +1219,7 @@ GetArrayOfGroupObjects () {
 
     objectstoshow=$objectstotal
 
-    echo "Processing $objectstoshow $APICLIobjectstype objects in $APICLIObjectLimit object chunks:"
+    echo "Processing $objectstoshow $APICLIobjecttype objects in $APICLIObjectLimit object chunks:"
 
     objectslefttoshow=$objectstoshow
 
@@ -1074,7 +1227,7 @@ GetArrayOfGroupObjects () {
     
     while [ $objectslefttoshow -ge 1 ] ; do
         # we have objects to process
-        echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currenthostoffset of $objectslefttoshow remaining!"
+        echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentgroupoffset of $objectslefttoshow remaining!"
 
         PopulateArrayOfGroupObjects
         errorreturn=$?
@@ -1084,7 +1237,7 @@ GetArrayOfGroupObjects () {
         fi
 
         objectslefttoshow=`expr $objectslefttoshow - $APICLIObjectLimit`
-        currenthostoffset=`expr $currenthostoffset + $APICLIObjectLimit`
+        currentgroupoffset=`expr $currentgroupoffset + $APICLIObjectLimit`
     done
 
     
@@ -1101,30 +1254,32 @@ GetArrayOfGroupObjects () {
 
 DumpArrayOfGroupObjects () {
     
-    # print the elements in the array
-    echo
-    echo groups
-    echo
-    #echo >> $APICLIlogfilepath
-    #echo groups >> $APICLIlogfilepath
-    #echo >> $APICLIlogfilepath
-    
-    for i in "${ALLGROUPARR[@]}"
-    do
-        if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
-            # Verbose mode ON
-            # Output list of all groups found
+    if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+        # Verbose mode ON
+        # Output list of all groups found
+ 
+        # print the elements in the array
+        echo
+        echo Dump groups
+        echo
+        #echo >> $APICLIlogfilepath
+        #echo groups >> $APICLIlogfilepath
+        #echo >> $APICLIlogfilepath
+        
+        for i in "${ALLGROUPARR[@]}"
+        do
             echo "$i, ${i//\'/}"
-        fi
-        #echo "$i, ${i//\'/}" >> $APICLIlogfilepath
-    done
+            #echo "$i, ${i//\'/}" >> $APICLIlogfilepath
+        done
+        
+        echo
+        echo Done dumping groups
+        echo
+        #echo >> $APICLIlogfilepath
+        #echo Done dumping groups >> $APICLIlogfilepath
+        #echo >> $APICLIlogfilepath
     
-    echo
-    echo Done dumping groups
-    echo
-    #echo >> $APICLIlogfilepath
-    #echo Done dumping groups >> $APICLIlogfilepath
-    #echo >> $APICLIlogfilepath
+    fi
     
     return 0
 }
@@ -1153,9 +1308,9 @@ CollectMembersInGroupObjects () {
     for i in "${ALLGROUPARR[@]}"
     do
         echo
-        echo group "${i//\'/}"
+        #echo group "${i//\'/}"
     
-        MEMBERS_COUNT=$(mgmt_cli show group name "${i//\'/}" -s $APICLIsessionfile --format json | $JQ ".members | length")
+        MEMBERS_COUNT=$(mgmt_cli show $APICLIobjecttype name "${i//\'/}" -s $APICLIsessionfile --format json | $JQ ".members | length")
     
         NUM_GROUP_MEMBERS=$MEMBERS_COUNT
 
@@ -1168,9 +1323,12 @@ CollectMembersInGroupObjects () {
             
             while [ $COUNTER -lt $NUM_GROUP_MEMBERS ]; do
                 
-                MEMBER_NAME=$(mgmt_cli show group name ${i//\'/} -s $APICLIsessionfile --format json | $JQ ".members[$COUNTER].name")
+                MEMBER_NAME=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ ".members[$COUNTER].name")
                 
-                #echo -n '.'
+                if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+                    # Verbose mode ON
+                    echo -n '.'
+                    fi
                 
                 echo ${i//\'/},$MEMBER_NAME >> $APICLICSVfiledata
                 #echo ${i//\'/},$MEMBER_NAME >> $APICLIlogfilepath
@@ -1180,7 +1338,8 @@ CollectMembersInGroupObjects () {
             done
             
         else
-            echo
+            echo Group "${i//\'/}"' number of members = NONE (0 zero)'
+            #echo Group "${i//\'/}"' number of members = NONE (0 zero)' >> $APICLIlogfilepath
         fi
 
     done
@@ -1214,7 +1373,7 @@ GetGroupMembers () {
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-objectstotal_groups=$(mgmt_cli show groups limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_groups="$objectstotal_groups"
 
 if [ $number_groups -le 0 ] ; then
@@ -1229,9 +1388,12 @@ else
     GetGroupMembers
 fi
 
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-08-03
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-11-09
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------

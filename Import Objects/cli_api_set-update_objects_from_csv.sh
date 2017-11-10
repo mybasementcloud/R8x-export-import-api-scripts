@@ -2,12 +2,12 @@
 #
 # SCRIPT Object import using CSV file for API CLI Operations
 #
-ScriptVersion=00.26.01
-ScriptDate=2017-10-27
+ScriptVersion=00.26.05
+ScriptDate=2017-11-09
 
 #
 
-export APIScriptVersion=v00x26x01
+export APIScriptVersion=v00x26x05
 ScriptName=cli_api_set-update_objects_from_csv
 
 # =================================================================================================
@@ -656,8 +656,16 @@ SetUpdateSimpleObjects () {
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     
-    export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLICSVobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
-    export OutputPath=$APICLIpathexport/$APICLIfileexportpre'add_'$APICLIobjecttype'_'$APICLIfileexportext
+    export APICLIfilename=$APICLICSVobjecttype
+    if [ x"$APICLIexportnameaddon" != x"" ] ; then
+        export APICLIfilename=$APICLIfilename'_'$APICLIexportnameaddon
+    fi
+    export APICLIfilename=$APICLIfilename'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+
+    #export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLICSVobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLIfilename
+
+    export OutputPath=$APICLIpathexport/$APICLIfileexportpre'set_'$APICLIobjecttype'_'$APICLIfileexportext
     
     if [ ! -r $APICLIImportCSVfile ] ; then
         # no CSV file for this type of object
@@ -795,6 +803,7 @@ SetUpdateSimpleObjects
 
 export APICLIobjecttype=dynamic-object
 export APICLIobjectstype=dynamic-objects
+export APICLIexportnameaddon=
 
 SetUpdateSimpleObjects
 
@@ -830,6 +839,7 @@ echo >> $APICLIlogfilepath
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
+export APICLIexportnameaddon=
 
 SetUpdateSimpleObjects
 
@@ -846,6 +856,7 @@ SetUpdateSimpleObjects
 
 export APICLIobjecttype=application-site-category
 export APICLIobjectstype=application-site-categories
+export APICLIexportnameaddon=
 
 SetUpdateSimpleObjects
 
@@ -862,6 +873,7 @@ SetUpdateSimpleObjects
 
 export APICLIobjecttype=application-site-group
 export APICLIobjectstype=application-site-groups
+export APICLIexportnameaddon=
 
 SetUpdateSimpleObjects
 
@@ -885,6 +897,7 @@ echo
 
 export APICLIobjecttype=tags
 export APICLIobjectstype=tags
+export APICLIexportnameaddon=
 
 SetUpdateSimpleObjects
 
@@ -904,6 +917,7 @@ SetUpdateSimpleObjects
 
 export APICLIobjecttype=simple-gateway
 export APICLIobjectstype=simple-gateways
+export APICLIexportnameaddon=
 
 #SetUpdateSimpleObjects
 
@@ -914,6 +928,7 @@ export APICLIobjectstype=simple-gateways
 
 export APICLIobjecttype=time
 export APICLIobjectstype=times
+export APICLIexportnameaddon=
 
 #SetUpdateSimpleObjects
 
@@ -924,6 +939,7 @@ export APICLIobjectstype=times
 
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
+export APICLIexportnameaddon=
 
 #SetUpdateSimpleObjects
 
@@ -934,6 +950,7 @@ export APICLIobjectstype=time-groups
 
 export APICLIobjecttype=access-role
 export APICLIobjectstype=access-roles
+export APICLIexportnameaddon=
 
 #SetUpdateSimpleObjects
 
@@ -944,6 +961,7 @@ export APICLIobjectstype=access-roles
 
 export APICLIobjecttype=opsec-application
 export APICLIobjectstype=opsec-applications
+export APICLIexportnameaddon=
 
 #SetUpdateSimpleObjects
 
@@ -967,6 +985,7 @@ export APICLIobjectstype=opsec-applications
 
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
+export APICLIexportnameaddon=
 
 #SetUpdateSimpleObjects
 
@@ -977,6 +996,7 @@ export APICLIobjectstype=services-tcp
 
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
+export APICLIexportnameaddon=
 
 #SetUpdateSimpleObjects
 
@@ -987,6 +1007,7 @@ export APICLIobjectstype=services-udp
 
 export APICLIobjecttype=service-icmp
 export APICLIobjectstype=services-icmp
+export APICLIexportnameaddon=
 
 #SetUpdateSimpleObjects
 
@@ -997,6 +1018,7 @@ export APICLIobjectstype=services-icmp
 
 export APICLIobjecttype=service-icmp6
 export APICLIobjectstype=services-icmp6
+export APICLIexportnameaddon=
 
 #SetUpdateSimpleObjects
 
@@ -1007,6 +1029,7 @@ export APICLIobjectstype=services-icmp6
 
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
+export APICLIexportnameaddon=
 
 #SetUpdateSimpleObjects
 
@@ -1017,6 +1040,7 @@ export APICLIobjectstype=services-sctp
 
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
+export APICLIexportnameaddon=
 
 #SetUpdateSimpleObjects
 
@@ -1027,6 +1051,7 @@ export APICLIobjectstype=services-other
 
 export APICLIobjecttype=service-dce-rpc
 export APICLIobjectstype=services-dce-rpc
+export APICLIexportnameaddon=
 
 #SetUpdateSimpleObjects
 
@@ -1037,6 +1062,7 @@ export APICLIobjectstype=services-dce-rpc
 
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
+export APICLIexportnameaddon=
 
 #SetUpdateSimpleObjects
 
@@ -1047,6 +1073,7 @@ export APICLIobjectstype=services-rpc
 
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
+export APICLIexportnameaddon=
 
 #SetUpdateSimpleObjects
 
@@ -1090,7 +1117,15 @@ ConfigureComplexObjects () {
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     
         
-    export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLICSVobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLIfilename=$APICLICSVobjecttype
+    if [ x"$APICLIexportnameaddon" != x"" ] ; then
+        export APICLIfilename=$APICLIfilename'_'$APICLIexportnameaddon
+    fi
+    export APICLIfilename=$APICLIfilename'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+
+    #export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLICSVobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLIfilename
+
     export OutputPath=$APICLIpathexport/$APICLIfileexportpre'set_'$APICLICSVobjecttype'_'$APICLIfileexportext
     
     if [ ! -r $APICLIImportCSVfile ] ; then

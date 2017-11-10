@@ -2,12 +2,12 @@
 #
 # SCRIPT Object count totals
 #
-ScriptVersion=00.26.01
-ScriptDate=2017-10-27
+ScriptVersion=00.26.05
+ScriptDate=2017-11-09
 
 #
 
-export APIScriptVersion=v00x26x01
+export APIScriptVersion=v00x26x05
 ScriptName=cli_api_get_object_totals
 
 # =================================================================================================
@@ -643,6 +643,9 @@ echo
 # GetNumberOfObjectsviaJQ
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2017-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 # The GetNumberOfObjectsviaJQ is the obtains the number of objects for that type indicated.
 #
 
@@ -662,7 +665,7 @@ GetNumberOfObjectsviaJQ () {
         echo
     fi
     
-    objectstotal=$(mgmt_cli show $APICLIobjecttype limit 1 offset 0 details-level "$APICLIdetaillvl" --format json -s $APICLIsessionfile | $JQ ".total")
+    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
     errorreturn=$?
 
     if [ $errorreturn != 0 ] ; then
@@ -675,6 +678,9 @@ GetNumberOfObjectsviaJQ () {
     
     #
 }
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-11-09
 
 # -------------------------------------------------------------------------------------------------
 
@@ -708,6 +714,7 @@ echo >> $APICLIlogfilepath
 
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
+export APICLIexportnameaddon=
 
 objectstotal_hosts=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_hosts="$objectstotal_hosts"
@@ -722,6 +729,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=network
 export APICLIobjectstype=networks
+export APICLIexportnameaddon=
 
 objectstotal_networks=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_networks="$objectstotal_networks"
@@ -737,6 +745,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
+export APICLIexportnameaddon=
 
 objectstotal_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_groups="$objectstotal_groups"
@@ -752,6 +761,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=group-with-exclusion
 export APICLIobjectstype=groups-with-exclusion
+export APICLIexportnameaddon=
 
 objectstotal_groupswithexclusion=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_groupswithexclusion="$objectstotal_groupswithexclusion"
@@ -767,6 +777,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=address-range
 export APICLIobjectstype=address-ranges
+export APICLIexportnameaddon=
 
 objectstotal_addressranges=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_addressranges="$objectstotal_addressranges"
@@ -782,6 +793,8 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=multicast-address-range
 export APICLIobjectstype=multicast-address-ranges
+export APICLIexportnameaddon=
+
 objectstotal_multicastaddressranges=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_multicastaddressranges="$objectstotal_multicastaddressranges"
 export number_of_objects=$number_multicastaddressranges
@@ -796,6 +809,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=dns-domain
 export APICLIobjectstype=dns-domains
+export APICLIexportnameaddon=
 
 objectstotal_dnsdomains=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_dnsdomains="$objectstotal_dnsdomains"
@@ -811,6 +825,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=security-zone
 export APICLIobjectstype=security-zones
+export APICLIexportnameaddon=
 
 objectstotal_securityzones=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_securityzones="$objectstotal_securityzones"
@@ -826,6 +841,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=dynamic-object
 export APICLIobjectstype=dynamic-objects
+export APICLIexportnameaddon=
 
 objectstotal_dynamicobjects=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_dynamicobjects="$objectstotal_dynamicobjects"
@@ -841,6 +857,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=simple-gateway
 export APICLIobjectstype=simple-gateways
+export APICLIexportnameaddon=
 
 objectstotal_simplegateways=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_simplegateways="$objectstotal_simplegateways"
@@ -856,6 +873,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=time
 export APICLIobjectstype=times
+export APICLIexportnameaddon=
 
 objectstotal_times=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_times="$objectstotal_times"
@@ -871,6 +889,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
+export APICLIexportnameaddon=
 
 objectstotal_time_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_time_groups="$objectstotal_time_groups"
@@ -886,6 +905,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=access-role
 export APICLIobjectstype=access-roles
+export APICLIexportnameaddon=
 
 objectstotal_access_roles=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_access_roles="$objectstotal_access_roles"
@@ -901,6 +921,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=opsec-application
 export APICLIobjectstype=opsec-applications
+export APICLIexportnameaddon=
 
 objectstotal_opsec_applications=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_opsec_applications="$objectstotal_opsec_applications"
@@ -929,6 +950,7 @@ echo >> $APICLIlogfilepath
 
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
+export APICLIexportnameaddon=
 
 objectstotal_services_tcp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_services_tcp="$objectstotal_services_tcp"
@@ -944,6 +966,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
+export APICLIexportnameaddon=
 
 objectstotal_services_udp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_services_udp="$objectstotal_services_udp"
@@ -959,6 +982,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=service-icmp
 export APICLIobjectstype=services-icmp
+export APICLIexportnameaddon=
 
 objectstotal_services_icmp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_services_icmp="$objectstotal_services_icmp"
@@ -974,6 +998,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=service-icmp6
 export APICLIobjectstype=services-icmp6
+export APICLIexportnameaddon=
 
 objectstotal_services_icmp6=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_services_icmp6="$objectstotal_services_icmp6"
@@ -989,6 +1014,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
+export APICLIexportnameaddon=
 
 objectstotal_services_sctp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_services_sctp="$objectstotal_services_sctp"
@@ -1004,6 +1030,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
+export APICLIexportnameaddon=
 
 objectstotal_services_other=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_services_other="$objectstotal_services_other"
@@ -1019,6 +1046,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=service-dce-rpc
 export APICLIobjectstype=services-dce-rpc
+export APICLIexportnameaddon=
 
 objectstotal_services_dce_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_services_dce_rpc="$objectstotal_services_dce_rpc"
@@ -1034,6 +1062,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
+export APICLIexportnameaddon=
 
 objectstotal_services_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_services_rpc="$objectstotal_services_rpc"
@@ -1049,6 +1078,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
+export APICLIexportnameaddon=
 
 objectstotal_service_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_service_groups="$objectstotal_service_groups"
@@ -1064,6 +1094,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=application-sites
 export APICLIobjectstype=application-sites
+export APICLIexportnameaddon=
 
 objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_application_sites="$objectstotal_application_sites"
@@ -1079,6 +1110,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=application-site-category
 export APICLIobjectstype=application-site-categories
+export APICLIexportnameaddon=
 
 objectstotal_application_site_categories=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_application_site_categories="$objectstotal_application_site_categories"
@@ -1094,6 +1126,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=application-site-groups
 export APICLIobjectstype=application-site-groups
+export APICLIexportnameaddon=
 
 objectstotal_application_site_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_application_site_groups="$objectstotal_application_site_groups"
@@ -1119,6 +1152,7 @@ echo
 
 export APICLIobjecttype=tags
 export APICLIobjectstype=tags
+export APICLIexportnameaddon=
 
 objectstotal_tags=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 export number_tags="$objectstotal_tags"
@@ -1146,6 +1180,7 @@ echo 'Number of '$APICLIobjecttype' Objects is = '$number_of_objects' '$APICLIob
 
 export APICLIobjecttype=group-member
 export APICLIobjectstype=group-members
+export APICLIexportnameaddon=
 
 # -------------------------------------------------------------------------------------------------
 # PopulateArrayOfGroupObjects proceedure
@@ -1187,9 +1222,6 @@ GetArrayOfGroupObjects () {
     # APICLICSVsortparms can change due to the nature of the object
     #
 
-    #export APICLIobjecttype=group
-    #export APICLIobjectstype=groups
-    
     echo
     echo 'Generate array of groups'
     echo

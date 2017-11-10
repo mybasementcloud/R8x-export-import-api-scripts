@@ -2,12 +2,12 @@
 #
 # SCRIPT Object export to JSON (standard and full details), and CSV file for API CLI Operations
 #
-ScriptVersion=00.26.01
-ScriptDate=2017-10-27
+ScriptVersion=00.26.05
+ScriptDate=2017-11-09
 
 #
 
-export APIScriptVersion=v00x26x01
+export APIScriptVersion=v00x26x05
 ScriptName=cli_api_export_objects
 
 # =================================================================================================

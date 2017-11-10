@@ -2,12 +2,12 @@
 #
 # SCRIPT Object import using CSV file for API CLI Operations for setting dns-domain
 #
-ScriptVersion=00.26.01
-ScriptDate=2017-10-27
+ScriptVersion=00.26.05
+ScriptDate=2017-11-09
 
 #
 
-export APIScriptVersion=v00x26x01
+export APIScriptVersion=v00x26x05
 ScriptName=cli_api_import_object_dns-domain_from_csv
 
 # =================================================================================================
@@ -660,7 +660,15 @@ ImportSimpleObjects () {
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     
-    export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLICSVobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLIfilename=$APICLICSVobjecttype
+    if [ x"$APICLIexportnameaddon" != x"" ] ; then
+        export APICLIfilename=$APICLIfilename'_'$APICLIexportnameaddon
+    fi
+    export APICLIfilename=$APICLIfilename'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+
+    #export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLICSVobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLIfilename
+
     export OutputPath=$APICLIpathexport/$APICLIfileexportpre'add_'$APICLIobjecttype'_'$APICLIfileexportext
     
     if [ ! -r $APICLIImportCSVfile ] ; then
@@ -730,7 +738,9 @@ echo
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=dns-domain
+export APICLIobjectstype=dns-domains
 export APICLICSVobjecttype=dns-domains
+export APICLIexportnameaddon=
 
 ImportSimpleObjects
 

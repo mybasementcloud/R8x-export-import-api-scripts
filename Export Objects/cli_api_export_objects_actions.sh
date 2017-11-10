@@ -2,12 +2,12 @@
 #
 # SCRIPT Object dump action operations for API CLI Operations
 #
-ScriptVersion=00.26.01
-ScriptDate=2017-10-27
+ScriptVersion=00.26.05
+ScriptDate=2017-11-09
 
 #
 
-export APIActionsScriptVersion=v00x26x01
+export APIActionsScriptVersion=v00x26x05
 ActionScriptName=cli_api_export_objects_actions
 
 # =================================================================================================
@@ -74,7 +74,12 @@ MainOperationalProcedure () {
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
 
-    export APICLIfileexport=$APICLIpathexport/$APICLIfileexportpre$APICLIobjecttype$APICLIfileexportpost
+    export APICLIfilename=$APICLIobjectstype
+    if [ x"$APICLIexportnameaddon" != x"" ] ; then
+        export APICLIfilename=$APICLIfilename'_'$APICLIexportnameaddon
+    fi
+
+    export APICLIfileexport=$APICLIpathexport/$APICLIfileexportpre$APICLIfilename$APICLIfileexportpost
 
     export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
     export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
@@ -104,7 +109,7 @@ MainOperationalProcedure () {
                 export APICLIfileexport=$APICLIpathexport/$APICLIfileexportpre$APICLIobjecttype'_'$currentoffset'_'$APICLIfileexportpost
             fi
     
-            echo "  Now processing up to next $APICLIObjectLimit objects starting with object $currentoffset of $objectslefttoshow remaining!"
+            echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentoffset of $objectslefttoshow remaining!"
     
             mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms > $APICLIfileexport
     
@@ -136,6 +141,7 @@ MainOperationalProcedure () {
 
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -146,6 +152,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=network
 export APICLIobjectstype=networks
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -156,6 +163,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -166,6 +174,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=group-with-exclusion
 export APICLIobjectstype=groups-with-exclusion
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -176,6 +185,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=address-range
 export APICLIobjectstype=address-ranges
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -186,6 +196,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=multicast-address-range
 export APICLIobjectstype=multicast-address-ranges
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -196,6 +207,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=dns-domain
 export APICLIobjectstype=dns-domains
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -206,6 +218,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=security-zone
 export APICLIobjectstype=security-zones
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -216,6 +229,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=dynamic-object
 export APICLIobjectstype=dynamic-objects
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -226,6 +240,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=simple-gateway
 export APICLIobjectstype=simple-gateways
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -236,6 +251,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=time
 export APICLIobjectstype=times
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -246,6 +262,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -256,6 +273,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=access-role
 export APICLIobjectstype=access-roles
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -266,6 +284,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=opsec-application
 export APICLIobjectstype=opsec-applications
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -282,6 +301,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=tag
 export APICLIobjectstype=tags
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -298,6 +318,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -308,6 +329,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -318,6 +340,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=service-icmp
 export APICLIobjectstype=services-icmp
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -328,6 +351,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=service-icmp6
 export APICLIobjectstype=services-icmp6
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -338,6 +362,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -348,6 +373,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -358,6 +384,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=service-dce-rpc
 export APICLIobjectstype=services-dce-rpc
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -368,6 +395,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -378,6 +406,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -388,6 +417,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -398,6 +428,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=application-site-category
 export APICLIobjectstype=application-site-categories
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
@@ -408,6 +439,7 @@ MainOperationalProcedure
 
 export APICLIobjecttype=application-site-group
 export APICLIobjectstype=application-site-groups
+export APICLIexportnameaddon=
 
 MainOperationalProcedure
 
