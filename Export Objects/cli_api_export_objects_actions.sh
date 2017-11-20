@@ -2,12 +2,12 @@
 #
 # SCRIPT Object dump action operations for API CLI Operations
 #
-ScriptVersion=00.26.05
-ScriptDate=2017-11-09
+ScriptVersion=00.26.07
+ScriptDate=2017-11-20
 
 #
 
-export APIActionsScriptVersion=v00x26x05
+export APIActionsScriptVersion=v00x26x07
 ActionScriptName=cli_api_export_objects_actions
 
 # =================================================================================================
@@ -63,6 +63,9 @@ echo
 # Main Operational repeated proceedure
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2017-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 # The Main Operational Procedure is the meat of the script's repeated actions.
 #
 # For this script the $APICLIobjecttype details is exported to a json at the $APICLIdetaillvl.
@@ -95,8 +98,7 @@ MainOperationalProcedure () {
     else
     
         echo
-        echo "Processing $objectstoshow $APICLIobjecttype objects in $APICLIObjectLimit object historychunks:"
-        echo 'Dump '$APICLIobjectstype' to '$APICLIfileexport
+        echo "Processing $objectstoshow $APICLIobjecttype objects in $APICLIObjectLimit object chunks:"
 
         objectslefttoshow=$objectstoshow
         currentoffset=0
@@ -104,17 +106,40 @@ MainOperationalProcedure () {
         while [ $objectslefttoshow -ge 1 ] ; do
             # we have objects to process
     
-            if [ $currentoffset -gt 0 ] ; then
+            nextoffset=`expr $currentoffset + $APICLIObjectLimit`
+
+            #if [ $currentoffset -gt 0 ] ; then
+            #    # Export file for the next $APICLIObjectLimit objects
+            #    export APICLIfileexport=$APICLIpathexport/$APICLIfileexportpre$APICLIobjectstype'_'$currentoffset'_'$APICLIfileexportpost
+            #fi
+    
+            # 2017-11-20 Updating naming of files for multiple $APICLIObjectLimit chunks to clean-up name listing
+            if [ $objectstotal -gt $APICLIObjectLimit ] ; then
                 # Export file for the next $APICLIObjectLimit objects
-                export APICLIfileexport=$APICLIpathexport/$APICLIfileexportpre$APICLIobjecttype'_'$currentoffset'_'$APICLIfileexportpost
+                export APICLIfilename=$APICLIobjectstype
+                if [ x"$APICLIexportnameaddon" != x"" ] ; then
+                    export APICLIfilename=$APICLIfilename'_'$APICLIexportnameaddon
+                fi
+
+                #export APICLIfilename=$APICLIfilename'_'$currentoffset'-'$nextoffset'_of_'$objectstotal
+
+                currentoffsetformatted=`printf "%05d" $currentoffset`
+                nextoffsetformatted=`printf "%05d" $nextoffset`
+                objectstotalformatted=`printf "%05d" $objectstotal`
+                export APICLIfilename=$APICLIfilename'_'$currentoffsetformatted'-'$nextoffsetformatted'_of_'$objectstotalformatted
+
+                #export APICLIfileexport=$APICLIpathexport/$APICLIfileexportpre$APICLIobjectstype'_'$currentoffset'_'$APICLIfileexportpost
+                export APICLIfileexport=$APICLIpathexport/$APICLIfileexportpre$APICLIfilename$APICLIfileexportpost
             fi
     
-            echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentoffset of $objectslefttoshow remaining!"
-    
+            echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentoffset to $nextoffset of $objectslefttoshow remaining!"
+            echo '    Dump to '$APICLIfileexport
+
             mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms > $APICLIfileexport
     
             objectslefttoshow=`expr $objectslefttoshow - $APICLIObjectLimit`
-            currentoffset=`expr $currentoffset + $APICLIObjectLimit`
+            #currentoffset=`expr $currentoffset + $APICLIObjectLimit`
+            currentoffset=$nextoffset
     
         done
     
@@ -130,6 +155,9 @@ MainOperationalProcedure () {
     echo
     return 0
 }
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2017-11-20
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------

@@ -2,12 +2,12 @@
 #
 # SCRIPT Object dump to CSV action operations for API CLI Operations
 #
-ScriptVersion=00.26.05
-ScriptDate=2017-11-09
+ScriptVersion=00.26.07
+ScriptDate=2017-11-20
 
 #
 
-export APIActionsScriptVersion=v00x26x05
+export APIActionsScriptVersion=v00x26x07
 ScriptName=cli_api_export_objects_actions_to_csv
 
 # =================================================================================================
@@ -641,7 +641,7 @@ echo >> $APICLIlogfilepath
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
 
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2017-11-20 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # -------------------------------------------------------------------------------------------------
@@ -671,10 +671,39 @@ objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset
 export number_application_sites="$objectstotal_application_sites"
 export number_of_objects=$number_application_sites
 
+#ExportObjectsToCSVviaJQ
+
+# -------------------------------------------------------------------------------------------------
+# application-sites objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLIexportnameaddon=risk_data_export_only
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+#export CSVFileHeader=$CSVFileHeader',"icon"'
+export CSVFileHeader=$CSVFileHeader',"primary-category","risk"'
+export CSVFileHeader=$CSVFileHeader',"user-defined","read-only", "meta-info.creator"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+#export CSVJQparms=$CSVJQparms', .["icon"]'
+export CSVJQparms=$CSVJQparms', .["primary-category"], .["risk"]'
+export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
+
+objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_application_sites="$objectstotal_application_sites"
+export number_of_objects=$number_application_sites
+
 ExportObjectsToCSVviaJQ
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-11-20
 
 
 # MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -711,44 +740,15 @@ ExportObjectsToCSVviaJQ
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
 
 
-# MODIFIED 2017-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # -------------------------------------------------------------------------------------------------
-# application-sites objects
+# application-site-groups objects
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=application-site
-export APICLIobjectstype=application-sites
-export APICLIexportnameaddon=risk_data_export_only
-
-#
-# APICLICSVsortparms can change due to the nature of the object
-#
-export APICLICSVsortparms='-f -t , -k 1,1'
-
-export CSVFileHeader='"name","color","comments"'
-#export CSVFileHeader=$CSVFileHeader',"icon"'
-export CSVFileHeader=$CSVFileHeader',"primary-category","risk"'
-export CSVFileHeader=$CSVFileHeader',"user-defined","read-only", "meta-info.creator"'
-
-export CSVJQparms='.["name"], .["color"], .["comments"]'
-#export CSVJQparms=$CSVJQparms', .["icon"]'
-export CSVJQparms=$CSVJQparms', .["primary-category"], .["risk"]'
-export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
-
-objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_application_sites="$objectstotal_application_sites"
-export number_of_objects=$number_application_sites
-
-ExportObjectsToCSVviaJQ
-
-# -------------------------------------------------------------------------------------------------
-# application-sites objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=application-site
-export APICLIobjectstype=application-sites
+export APICLIobjecttype=application-site-group
+export APICLIobjectstype=application-site-groups
 export APICLIexportnameaddon=
 
 #
@@ -758,22 +758,20 @@ export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
-export CSVFileHeader=$CSVFileHeader',"primary-category","risk"'
 export CSVFileHeader=$CSVFileHeader',"user-defined","read-only", "meta-info.creator"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
-export CSVJQparms=$CSVJQparms', .["primary-category"], .["risk"]'
 export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
 
-objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
-export number_application_sites="$objectstotal_application_sites"
-export number_of_objects=$number_application_sites
+objectstotal_application_site_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+export number_application_site_groups="$objectstotal_application_site_groups"
+export number_of_objects=$number_application_site_groups
 
-#ExportObjectsToCSVviaJQ
+ExportObjectsToCSVviaJQ
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-11-09
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
 
 
 # -------------------------------------------------------------------------------------------------

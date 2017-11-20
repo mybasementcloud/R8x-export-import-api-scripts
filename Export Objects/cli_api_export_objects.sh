@@ -2,12 +2,12 @@
 #
 # SCRIPT Object export to JSON (standard and full details), and CSV file for API CLI Operations
 #
-ScriptVersion=00.26.05
-ScriptDate=2017-11-09
+ScriptVersion=00.26.07
+ScriptDate=2017-11-20
 
 #
 
-export APIScriptVersion=v00x26x05
+export APIScriptVersion=v00x26x07
 ScriptName=cli_api_export_objects
 
 # =================================================================================================
@@ -618,18 +618,23 @@ export APICLIObjectLimit=500
 # Start executing Main operations
 # -------------------------------------------------------------------------------------------------
 
-export APICLIdetaillvl=standard
+if [ x"$script_dump_standard" = x"TRUE" ] ; then
+    export APICLIdetaillvl=standard
+    
+    ./$APIScriptSubFile
+fi
 
-./$APIScriptSubFile
+if [ x"$script_dump_full" = x"TRUE" ] ; then
+    export APICLIdetaillvl=full
+    
+    ./$APIScriptSubFile
+fi
 
-export APICLIdetaillvl=full
-
-./$APIScriptSubFile
-
-export APICLIdetaillvl=full
-
-./$APIScriptCSVSubFile
-
+if [ x"$script_dump_csv" = x"TRUE" ] ; then
+    export APICLIdetaillvl=full
+    
+    ./$APIScriptCSVSubFile
+fi
 
 echo
 echo 'Dumps Completed!'

@@ -2,12 +2,12 @@
 #
 # SCRIPT Object count totals with group member count
 #
-ScriptVersion=00.26.05
-ScriptDate=2017-11-09
+ScriptVersion=00.26.07
+ScriptDate=2017-11-20
 
 #
 
-export APIScriptVersion=v00x26x05
+export APIScriptVersion=v00x26x07
 ScriptName=cli_api_get_object_totals_w_group_member_count
 
 # =================================================================================================

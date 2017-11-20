@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT Object import using CSV file for API CLI Operations
+# SCRIPT Object export to JSON (standard details) file for API CLI Operations
 #
 ScriptVersion=00.26.07
 ScriptDate=2017-11-20
@@ -8,7 +8,7 @@ ScriptDate=2017-11-20
 #
 
 export APIScriptVersion=v00x26x07
-ScriptName=cli_api_set-update_objects_from_csv
+ScriptName=cli_api_export_objects
 
 # =================================================================================================
 # =================================================================================================
@@ -98,7 +98,6 @@ fi
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2017-08-28
 
 
-
 # -------------------------------------------------------------------------------------------------
 # Root script declarations
 # -------------------------------------------------------------------------------------------------
@@ -106,13 +105,13 @@ fi
 # ADDED 2017-07-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-export script_use_publish="TRUE"
+export script_use_publish="FALSE"
 
 export script_use_export="TRUE"
-export script_use_import="TRUE"
+export script_use_import="FALSE"
 export script_use_delete="FALSE"
 
-export script_dump_standard="FALSE"
+export script_dump_standard="TRUE"
 export script_dump_full="FALSE"
 export script_dump_csv="FALSE"
 
@@ -129,9 +128,12 @@ export WAITTIME=15
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-08-03
 
-#export APIScriptSubFilePrefix=cli_api_export_objects
+export APIScriptSubFilePrefix=cli_api_export_objects
 #export APIScriptSubFile=$APIScriptSubFilePrefix'_actions_'$APIScriptVersion.sh
 #export APIScriptCSVSubFile=$APIScriptSubFilePrefix'_actions_to_csv_'$APIScriptVersion.sh
+export APIScriptSubFile=$APIScriptSubFilePrefix'_actions'.sh
+export APIScriptCSVSubFile=$APIScriptSubFilePrefix'_actions_to_csv'.sh
+
 
 # MODIFIED 2017-08-28 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
@@ -608,607 +610,34 @@ export APICLICSVfileexportsufix='.'$APICLICSVfileexportext
 export APICLIObjectLimit=500
 
 # =================================================================================================
-# START:  Export objects to csv
+# START:  Main operations
 # =================================================================================================
-
-
-#export APICLIdetaillvl=standard
-
-export APICLIdetaillvl=full
 
 
 # -------------------------------------------------------------------------------------------------
 # Start executing Main operations
 # -------------------------------------------------------------------------------------------------
 
-echo
-echo $APICLIdetaillvl' - Import from CSV Starting!'
-echo
-
-#export APICLIpathexport=$APICLIpathbase/$APICLIdetaillvl
-#export APICLIpathexport=$APICLIpathbase/csv
-export APICLIpathexport=$APICLIpathbase/import
-#export APICLIpathexport=$APICLIpathbase/delete
-export APICLIfileexportpost='_'$APICLIdetaillvl'_'$APICLIfileexportsufix
-
-#echo
-#echo 'Dump "'$APICLIdetaillvl'" details to path:  '$APICLIpathexport
-#echo
-
-
-# -------------------------------------------------------------------------------------------------
-# Main Operational repeated proceedure - SetUpdateSimpleObjects
-# -------------------------------------------------------------------------------------------------
-
-# -------------------------------------------------------------------------------------------------
-# Operational repeated proceedure - Import Simple Objects
-# -------------------------------------------------------------------------------------------------
-
-# The Operational repeated proceedure - Import Simple Objects is the meat of the script's simple
-# objects releated repeated actions.
-#
-# For this script the $APICLIobjecttype items are deleted.
-
-SetUpdateSimpleObjects () {
-    #
-    # Screen width template for sizing, default width of 80 characters assumed
-    #
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+if [ x"$script_dump_standard" = x"TRUE" ] ; then
+    export APICLIdetaillvl=standard
     
-    export APICLIfilename=$APICLICSVobjecttype
-    if [ x"$APICLIexportnameaddon" != x"" ] ; then
-        export APICLIfilename=$APICLIfilename'_'$APICLIexportnameaddon
-    fi
-    export APICLIfilename=$APICLIfilename'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
+    ./$APIScriptSubFile
+fi
 
-    #export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLICSVobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
-    export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLIfilename
-
-    export OutputPath=$APICLIpathexport/$APICLIfileexportpre'set_'$APICLIobjecttype'_'$APICLIfileexportext
+if [ x"$script_dump_full" = x"TRUE" ] ; then
+    export APICLIdetaillvl=full
     
-    if [ ! -r $APICLIImportCSVfile ] ; then
-        # no CSV file for this type of object
-        echo
-        echo 'CSV file for object '$APICLIobjecttype' missing : '$APICLIImportCSVfile
-        echo 'Skipping!'
-        echo
-        return 0
-    fi
+    ./$APIScriptSubFile
+fi
 
-    export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
-    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
+if [ x"$script_dump_csv" = x"TRUE" ] ; then
+    export APICLIdetaillvl=full
     
-    export MgmtCLI_Set_OpParms="$MgmtCLI_IgnoreErr_OpParms $MgmtCLI_Base_OpParms"
-
-    echo "Update and set $APICLIobjecttype $APICLICSVobjecttype from CSV File : $APICLIImportCSVfile"
-    echo "  mgmt_cli parameters : $MgmtCLI_Set_OpParms"
-    echo "  and dump to $OutputPath"
-    echo
-    
-    mgmt_cli set $APICLIobjecttype --batch $APICLIImportCSVfile $MgmtCLI_Set_OpParms > $OutputPath
-
-    echo
-    tail $OutputPath
-    echo
-    echo
-
-    echo
-    echo 'Publish $APICLIobjecttype object changes!  This could take a while...'
-    echo
-    mgmt_cli publish -s $APICLIsessionfile
-        
-    echo
-    echo "Done with Setting $APICLIobjecttype using CSV File : $APICLIImportCSVfile"
-
-    read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
-
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-
-    echo
-    return 0
-}
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# handle simple objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+    ./$APIScriptCSVSubFile
+fi
 
 echo
-echo $APICLIdetaillvl' CSV import - simple objects - Import from CSV starting!'
-echo
-
-# -------------------------------------------------------------------------------------------------
-# host objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=host
-export APICLICSVobjecttype=hosts
-
-SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# network objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=network
-export APICLICSVobjecttype=networks
-
-SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# group objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=group
-export APICLICSVobjecttype=groups
-
-SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# group-with-exclusion objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=group-with-exclusion
-export APICLICSVobjecttype=groups-with-exclusion
-
-SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# address-range objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=address-range
-export APICLICSVobjecttype=address-ranges
-
-SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# dns-domain objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=dns-domain
-export APICLICSVobjecttype=dns-domains
-
-SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# security-zone objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=security-zone
-export APICLICSVobjecttype=security-zones
-
-SetUpdateSimpleObjects
-
-
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# dynamic-objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=dynamic-object
-export APICLIobjectstype=dynamic-objects
-export APICLIexportnameaddon=
-
-SetUpdateSimpleObjects
-
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
-
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Services and Applications
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-echo
-echo 'Services and Applications'
-echo
-echo >> $APICLIlogfilepath
-echo 'Services and Applications' >> $APICLIlogfilepath
-echo >> $APICLIlogfilepath
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
-
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# application-sites objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=application-site
-export APICLIobjectstype=application-sites
-export APICLIexportnameaddon=
-
-SetUpdateSimpleObjects
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
-
-
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# application-site-categories objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=application-site-category
-export APICLIobjectstype=application-site-categories
-export APICLIexportnameaddon=
-
-SetUpdateSimpleObjects
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
-
-
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# application-site-groups objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=application-site-group
-export APICLIobjectstype=application-site-groups
-export APICLIexportnameaddon=
-
-SetUpdateSimpleObjects
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Identifying Data
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-echo
-echo 'Identifying Data'
-echo
-
-# -------------------------------------------------------------------------------------------------
-# tags
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=tags
-export APICLIobjectstype=tags
-export APICLIexportnameaddon=
-
-SetUpdateSimpleObjects
-
-
-# ADDED 2017-07-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Future objects to export to CSV
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-# -------------------------------------------------------------------------------------------------
-# simple-gateways
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=simple-gateway
-export APICLIobjectstype=simple-gateways
-export APICLIexportnameaddon=
-
-#SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# times
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=time
-export APICLIobjectstype=times
-export APICLIexportnameaddon=
-
-#SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# time_groups
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=time-group
-export APICLIobjectstype=time-groups
-export APICLIexportnameaddon=
-
-#SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# access-roles
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=access-role
-export APICLIobjectstype=access-roles
-export APICLIexportnameaddon=
-
-#SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# opsec-applications
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=opsec-application
-export APICLIobjectstype=opsec-applications
-export APICLIexportnameaddon=
-
-#SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Services and Applications
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-#echo
-#echo 'Services and Applications'
-#echo
-#echo >> $APICLIlogfilepath
-#echo 'Services and Applications' >> $APICLIlogfilepath
-#echo >> $APICLIlogfilepath
-
-# -------------------------------------------------------------------------------------------------
-# services-tcp objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-tcp
-export APICLIobjectstype=services-tcp
-export APICLIexportnameaddon=
-
-#SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# services-udp objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-udp
-export APICLIobjectstype=services-udp
-export APICLIexportnameaddon=
-
-#SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# services-icmp objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-icmp
-export APICLIobjectstype=services-icmp
-export APICLIexportnameaddon=
-
-#SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# services-icmp6 objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-icmp6
-export APICLIobjectstype=services-icmp6
-export APICLIexportnameaddon=
-
-#SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# services-sctp objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-sctp
-export APICLIobjectstype=services-sctp
-export APICLIexportnameaddon=
-
-#SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# services-other objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-other
-export APICLIobjectstype=services-other
-export APICLIexportnameaddon=
-
-#SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# services-dce-rpc objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-dce-rpc
-export APICLIobjectstype=services-dce-rpc
-export APICLIexportnameaddon=
-
-#SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# services-rpc objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-rpc
-export APICLIobjectstype=services-rpc
-export APICLIexportnameaddon=
-
-#SetUpdateSimpleObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# service-groups objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=service-group
-export APICLIobjectstype=service-groups
-export APICLIexportnameaddon=
-
-#SetUpdateSimpleObjects
-
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-08-28
-
-
-# -------------------------------------------------------------------------------------------------
-# no more simple objects
-# -------------------------------------------------------------------------------------------------
-
-echo
-echo $APICLIdetaillvl' CSV import - simple objects - Complete!'
-echo
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# handle complex objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-echo
-echo $APICLIdetaillvl' - Import from complex elements from CSV Starting!'
-echo
-
-# -------------------------------------------------------------------------------------------------
-# Operational repeated proceedure - Configure Complex Objects
-# -------------------------------------------------------------------------------------------------
-
-# The Operational repeated proceedure - Configure Complex Objects is the meat of the script's
-# complex objects releated repeated actions.
-#
-# For this script the $APICLIobjecttype items are deleted.
-
-ConfigureComplexObjects () {
-    #
-    # Screen width template for sizing, default width of 80 characters assumed
-    #
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-    
-        
-    export APICLIfilename=$APICLICSVobjecttype
-    if [ x"$APICLIexportnameaddon" != x"" ] ; then
-        export APICLIfilename=$APICLIfilename'_'$APICLIexportnameaddon
-    fi
-    export APICLIfilename=$APICLIfilename'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
-
-    #export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLICSVobjecttype'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsufix
-    export APICLIImportCSVfile=$APICLICSVImportpathbase/$APICLIfilename
-
-    export OutputPath=$APICLIpathexport/$APICLIfileexportpre'set_'$APICLICSVobjecttype'_'$APICLIfileexportext
-    
-    if [ ! -r $APICLIImportCSVfile ] ; then
-        # no CSV file for this type of object
-        echo
-        echo 'CSV file for object '$APICLIobjecttype' missing : '$APICLIImportCSVfile
-        echo 'Skipping!'
-        echo
-        return 0
-    fi
-
-    export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
-    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
-    
-    export MgmtCLI_Set_OpParms="$MgmtCLI_IgnoreErr_OpParms $MgmtCLI_Base_OpParms"
-
-    echo "Update and set $APICLIobjecttype $APICLICSVobjecttype from CSV File : $APICLIImportCSVfile"
-    echo "  mgmt_cli parameters : $MgmtCLI_Set_OpParms"
-    echo "  and dump to $OutputPath"
-    echo
-    
-    mgmt_cli set $APICLIobjecttype --batch $APICLIImportCSVfile $MgmtCLI_Set_OpParms > $OutputPath
-
-    echo
-    tail $OutputPath
-    echo
-    
-    echo
-    echo 'Publish $APICLIobjecttype object changes!  This could take a while...'
-    echo
-    mgmt_cli publish -s $APICLIsessionfile
-        
-    echo
-    echo "Done with Setting $APICLIobjecttype using CSV File : $APICLIImportCSVfile"
-
-    read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
-
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-
-    echo
-    return 0
-}
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-# -------------------------------------------------------------------------------------------------
-# group members
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=group
-export APICLICSVobjecttype=group-members
-
-ConfigureComplexObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# host interfaces
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=host
-export APICLICSVobjecttype=host-interfaces
-
-ConfigureComplexObjects
-
-
-# -------------------------------------------------------------------------------------------------
-# no more complex objects
-# -------------------------------------------------------------------------------------------------
-
-echo
-echo $APICLIdetaillvl' CSV import - Completed!'
-echo
-
-
-# -------------------------------------------------------------------------------------------------
-# no objects
-# -------------------------------------------------------------------------------------------------
-
-echo
-echo 'Import Completed!'
+echo 'Dumps Completed!'
 echo
 
 

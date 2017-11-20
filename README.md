@@ -1,14 +1,14 @@
 # R8x-export-import-api-scripts
 Check Point R8x Export, Import, [and more] API scripts for bash and powershell
 
-CLI API Example for exporting, importing, and deleting different objects using CSV files (v00.26.05)
+CLI API Example for exporting, importing, and deleting different objects using CSV files (v00.26.07)
 
 For a complete overview, review the PDF - TBD 
 
 
 # Overview
 
-The export, import, delete using CSV files scripts in this post, currently version 00.26.05 dated 2017-11-09, are intended to allow operations on an existing R80 or R80.10 Check Point management server (SMS or MDM) from bash on the management server or a management server able authenticate and reach the target management server.
+The export, import, delete using CSV files scripts in this post, currently version 00.26.07 dated 2017-11-20, are intended to allow operations on an existing R80 or R80.10 Check Point management server (SMS or MDM) from bash on the management server or a management server able authenticate and reach the target management server.
 
 
 These scripts show examples of:
@@ -30,11 +30,11 @@ This post includes a set of five (5) script packages, which can be used independ
 
 The packages are:
 
-- Export Objects          :  cli_api_Export_Objects_v00.26.05_2017-11-09-2302CS.7z
-- Export Specific Objects :  cli_api_Export_Specific_Objects_v00.26.05_2017-11-09-2302CS.7z
-- Import Objects          :  cli_api_Import_Objects_v00.26.05_2017-11-09-2302CS.7z
-- Import Specific Objects :  cli_api_Import_Specific_Objects_v00.26.05_2017-11-09-2302CS.7z
-- Delete Objects          :  cli_api_Delete_Objects_v00.26.05_2017-11-09-2302CS.7z
+- Export Objects          :  cli_api_Export_Objectsv00.26.07_2017-11-20-1601CST.7z
+- Export Specific Objects :  cli_api_Export_Specific_Objectsv00.26.07_2017-11-20-1601CST.7z
+- Import Objects          :  cli_api_Import_Objectsv00.26.07_2017-11-20-1601CST.7z
+- Import Specific Objects :  cli_api_Import_Specific_Objectsv00.26.07_2017-11-20-1601CST.7z
+- Delete Objects          :  cli_api_Delete_Objectsv00.26.07_2017-11-20-1601CST.7z
 - template                :  template\api_mgmt_cli_shell_template_with_cmd_line_parameters.template.sh
 
  

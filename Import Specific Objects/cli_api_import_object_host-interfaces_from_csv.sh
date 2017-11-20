@@ -2,12 +2,12 @@
 #
 # SCRIPT Object import using CSV file for API CLI Operations for setting host interfaces
 #
-ScriptVersion=00.26.05
-ScriptDate=2017-11-09
+ScriptVersion=00.26.07
+ScriptDate=2017-11-20
 
 #
 
-export APIScriptVersion=v00x26x05
+export APIScriptVersion=v00x26x07
 ScriptName=cli_api_import_object_host-interfaces_from_csv
 
 # =================================================================================================
