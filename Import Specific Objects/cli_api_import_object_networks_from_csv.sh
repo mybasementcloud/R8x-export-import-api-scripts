@@ -2,12 +2,12 @@
 #
 # SCRIPT Object import using CSV file for API CLI Operations for setting networks
 #
-ScriptVersion=00.26.07
-ScriptDate=2017-11-20
+ScriptVersion=00.27.05
+ScriptDate=2018-03-05
 
 #
 
-export APIScriptVersion=v00x26x07
+export APIScriptVersion=v00x27x05
 ScriptName=cli_api_import_object_networks_from_csv
 
 # =================================================================================================
@@ -17,7 +17,7 @@ ScriptName=cli_api_import_object_networks_from_csv
 # =================================================================================================
 
 
-# MODIFIED 2017-08-28 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-03-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # =================================================================================================
@@ -29,9 +29,21 @@ ScriptName=cli_api_import_object_networks_from_csv
 echo
 echo 'Script:  '$ScriptName'  Script Version: '$APIScriptVersion
 
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-05
+
+# MODIFIED 2018-03-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 # -------------------------------------------------------------------------------------------------
 # Handle important basics
 # -------------------------------------------------------------------------------------------------
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-05
+
+# MODIFIED 2018-03-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 #points to where jq is installed
 #Apparently MDM, MDS, and Domains don't agree on who sets CPDIR, so better to check!
@@ -47,7 +59,19 @@ else
     exit 1
 fi
 
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-05
+
+# MODIFIED 2018-03-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 export currentapisslport=$(clish -c "show web ssl-port" | cut -d " " -f 2)
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-05
+
+# MODIFIED 2018-03-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 export minapiversionrequired=1.0
 
@@ -75,19 +99,45 @@ else
     exit 250
 fi
 
-if [ x"$APISCRIPTVERBOSE" = x"" ] ; then
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-05
+
+# MODIFIED 2018-03-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+if [ -z $APISCRIPTVERBOSE ] ; then
     # Verbose mode not set from shell level
+    echo "!! Verbose mode not set from shell level"
+    export APISCRIPTVERBOSE=false
     echo
-elif [ x"$APISCRIPTVERBOSE" = x"FALSE" ] ; then
+elif [ x"`echo "$APISCRIPTVERBOSE" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
     # Verbose mode set OFF from shell level
+    echo "!! Verbose mode set OFF from shell level"
+    export APISCRIPTVERBOSE=false
     echo
-else
+elif [ x"`echo "$APISCRIPTVERBOSE" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # Verbose mode set ON from shell level
+    echo "!! Verbose mode set ON from shell level"
+    export APISCRIPTVERBOSE=true
     echo
     echo 'Script :  '$0
-    echo 'Verbose mode set'
+    echo 'Verbose mode enabled'
+    echo
+else
+    # Verbose mode set to wrong value from shell level
+    echo "!! Verbose mode set to wrong value from shell level >"$APISCRIPTVERBOSE"<"
+    echo "!! Settting Verbose mode OFF, pending command line parameter checking!"
+    export APISCRIPTVERBOSE=false
     echo
 fi
 
+export APISCRIPTVERBOSECHECK=true
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-05
+
+# MODIFIED 2018-03-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 # -------------------------------------------------------------------------------------------------
 # END Initial Script Setup
@@ -106,17 +156,17 @@ fi
 # ADDED 2017-07-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-export script_use_publish="TRUE"
+export script_use_publish="true"
 
-export script_use_export="TRUE"
-export script_use_import="TRUE"
-export script_use_delete="FALSE"
+export script_use_export="true"
+export script_use_import="true"
+export script_use_delete="false"
 
-export script_dump_standard="FALSE"
-export script_dump_full="FALSE"
-export script_dump_csv="FALSE"
+export script_dump_standard="false"
+export script_dump_full="false"
+export script_dump_csv="false"
 
-export script_use_csvfile="FALSE"
+export script_use_csvfile="false"
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-07-21
@@ -133,7 +183,7 @@ export WAITTIME=15
 #export APIScriptSubFile=$APIScriptSubFilePrefix'_actions_'$APIScriptVersion.sh
 #export APIScriptCSVSubFile=$APIScriptSubFilePrefix'_actions_to_csv_'$APIScriptVersion.sh
 
-# MODIFIED 2017-08-28 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-03-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # =================================================================================================
@@ -166,7 +216,9 @@ export WAITTIME=15
 #
 # -c <csv_path> | --csv <csv_path> | -c=<csv_path> | --csv=<csv_path>'
 #
-
+# --NSO | --no-system-objects
+# --SO | --system-objects
+#
 
 export SHOWHELP=false
 export CLIparm_websslport=443
@@ -184,10 +236,18 @@ export CLIparm_deletepath=
 
 export CLIparm_csvpath=
 
+export CLIparm_NoSystemObjects=false
+
 export REMAINS=
 
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-04
+
+# MODIFIED 2018-03-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 # -------------------------------------------------------------------------------------------------
+# dumpcliparmparseresults
 # -------------------------------------------------------------------------------------------------
 
 dumpcliparmparseresults () {
@@ -195,11 +255,11 @@ dumpcliparmparseresults () {
 	#
 	# Testing - Dump aquired values
 	#
-	if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+	if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
 	    # Verbose mode ON
 	    
 	    export outstring=
-	    export outstring=$outstring"Command line parameters after: \n "
+	    export outstring=$outstring"After: \n "
 	    export outstring=$outstring"CLIparm_rootuser='$CLIparm_rootuser' \n "
 	    export outstring=$outstring"CLIparm_user='$CLIparm_user' \n "
 	    export outstring=$outstring"CLIparm_password='$CLIparm_password' \n "
@@ -210,16 +270,18 @@ dumpcliparmparseresults () {
 	    export outstring=$outstring"CLIparm_sessionidfile='$CLIparm_sessionidfile' \n "
 	    export outstring=$outstring"CLIparm_logpath='$CLIparm_logpath' \n "
 	
-	    if [ x"$script_use_export" = x"TRUE" ] ; then
+	    export outstring=$outstring"CLIparm_NoSystemObjects='$CLIparm_NoSystemObjects' \n "
+	
+	    if [ x"$script_use_export" = x"true" ] ; then
 	        export outstring=$outstring"CLIparm_exportpath='$CLIparm_exportpath' \n "
 	    fi
-	    if [ x"$script_use_import" = x"TRUE" ] ; then
+	    if [ x"$script_use_import" = x"true" ] ; then
 	        export outstring=$outstring"CLIparm_importpath='$CLIparm_importpath' \n "
 	    fi
-	    if [ x"$script_use_delete" = x"TRUE" ] ; then
+	    if [ x"$script_use_delete" = x"true" ] ; then
 	        export outstring=$outstring"CLIparm_deletepath='$CLIparm_deletepath' \n "
 	    fi
-	    if [ x"$script_use_csvfile" = x"TRUE" ] ; then
+	    if [ x"$script_use_csvfile" = x"true" ] ; then
 	        export outstring=$outstring"CLIparm_csvpath='$CLIparm_csvpath' \n "
 	    fi
 	    
@@ -239,11 +301,18 @@ dumpcliparmparseresults () {
 }
 
 
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-04
+
+# MODIFIED 2018-03-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 # -------------------------------------------------------------------------------------------------
+# Call command line parameter handler action script
 # -------------------------------------------------------------------------------------------------
 
 
-export cli_api_cmdlineparm_handler=cmd_line_parameters_handler.action.common.001.sh
+export cli_api_cmdlineparm_handler=cmd_line_parameters_handler.action.common.003.sh
 
 echo
 echo '--------------------------------------------------------------------------'
@@ -259,16 +328,23 @@ echo
 
 dumpcliparmparseresults "$@"
 
-if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
     echo
     read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
 fi
+
 echo
 echo "Starting local execution"
 echo
 echo '--------------------------------------------------------------------------'
 echo
 
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-04
+
+# MODIFIED 2018-03-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 # -------------------------------------------------------------------------------------------------
 # Handle request for help and exit
@@ -284,8 +360,14 @@ if [ x"$SHOWHELP" = x"true" ] ; then
     exit
 fi
 
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-04
+
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2018-03-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 
 # =================================================================================================
@@ -294,7 +376,7 @@ fi
 # =================================================================================================
 
 #
-# -------------------------------------------------------------------------------- MODIFIED 2017-08-28
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ MODIFIED 2018-03-03
 
 
 # =================================================================================================
@@ -307,7 +389,7 @@ fi
 
 export gaiaversion=$(clish -c "show version product" | cut -d " " -f 6)
 
-if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
     echo 'Gaia Version : $gaiaversion = '$gaiaversion
     echo
 fi
@@ -315,7 +397,7 @@ fi
 
 export DATE=`date +%Y-%m-%d-%H%M%Z`
 
-if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
     echo 'Date Time Group   :  '$DATE
     echo
 fi
@@ -439,7 +521,7 @@ echo
 #
 # Testing - Dump login string bullt from parameters
 #
-if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
     echo 'Execute login with loginstring '\"$loginstring\"
     echo 'Execute operations with domaintarget '\"$domaintarget\"
     echo 'Execute operations with mgmttarget '\"$mgmttarget\"
@@ -480,7 +562,7 @@ fi
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-07-21
-# MODIFIED 2017-07-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-03-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # =================================================================================================
@@ -510,7 +592,7 @@ fi
 
 export APICLIlogfilepath=$APICLIlogpathbase/$ScriptName'_'$APIScriptVersion'_'$DATE.log
 
-if [ x"$script_use_export" = x"TRUE" ] ; then
+if [ x"$script_use_export" = x"true" ] ; then
     if [ x"$CLIparm_exportpath" != x"" ] ; then
         export APICLIpathroot=$CLIparm_exportpath
     else
@@ -527,7 +609,7 @@ if [ x"$script_use_export" = x"TRUE" ] ; then
     fi
 fi
 
-if [ x"$script_use_import" = x"TRUE" ] ; then
+if [ x"$script_use_import" = x"true" ] ; then
     if [ x"$CLIparm_importpath" != x"" ] ; then
         export APICLICSVImportpathbase=$CLIparm_importpath
     else
@@ -539,7 +621,7 @@ if [ x"$script_use_import" = x"TRUE" ] ; then
     fi
 fi
 
-if [ x"$script_use_delete" = x"TRUE" ] ; then
+if [ x"$script_use_delete" = x"true" ] ; then
     if [ x"$CLIparm_deletepath" != x"" ] ; then
         export APICLICSVDeletepathbase=$CLIparm_deletepath
     else
@@ -551,33 +633,38 @@ if [ x"$script_use_delete" = x"TRUE" ] ; then
     fi
 fi
 
-if [ x"$script_use_csvfile" = x"TRUE" ] ; then
+if [ x"$script_use_csvfile" = x"true" ] ; then
     if [ x"$CLIparm_csvpath" != x"" ] ; then
         export APICLICSVcsvpath=$CLIparm_csvpath
     else
         export APICLICSVcsvpath=./domains.csv
     fi
-    
 fi
 
-if [ x"$script_dump_csv" = x"TRUE" ] ; then
+if [ x"$script_dump_csv" = x"true" ] ; then
     if [ ! -r $APICLIpathbase/csv ] ; then
         mkdir $APICLIpathbase/csv
     fi
 fi
 
-if [ x"$script_dump_full" = x"TRUE" ] ; then
+if [ x"$script_dump_full" = x"true" ] ; then
     if [ ! -r $APICLIpathbase/full ] ; then
         mkdir $APICLIpathbase/full
     fi
 fi
 
-if [ x"$script_dump_standard" = x"TRUE" ] ; then
+if [ x"$script_dump_standard" = x"true" ] ; then
     if [ ! -r $APICLIpathbase/standard ] ; then
         mkdir $APICLIpathbase/standard
     fi
 fi
 
+#export NoSystemObjects=`echo "$CLIparm_NoSystemObjects" | tr '[:upper:]' '[:lower:]'`
+if [ x"`echo "$CLIparm_NoSystemObjects" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    export NoSystemObjects=false
+else
+    export NoSystemObjects=true
+fi
     
 # =================================================================================================
 # END:  Setup CLI Parameters
@@ -585,7 +672,7 @@ fi
 # =================================================================================================
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-07-21
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-05
 
 # =================================================================================================
 # -------------------------------------------------------------------------------------------------
@@ -616,6 +703,13 @@ export APICLIObjectLimit=500
 
 export APICLIdetaillvl=full
 
+# ADDED 2018-03-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#export CLIparm_NoSystemObjects=false
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ ADDED 2018-03-03
 
 # -------------------------------------------------------------------------------------------------
 # Start executing Main operations
@@ -783,7 +877,7 @@ echo
 # -------------------------------------------------------------------------------------------------
 
 
-if [ x"$script_use_publish" = x"TRUE" ] ; then
+if [ x"$script_use_publish" = x"true" ] ; then
     echo
     echo 'Publish changes!'
     echo
@@ -809,7 +903,7 @@ mgmt_cli logout -s $APICLIsessionfile
 
 rm $APICLIsessionfile
 
-# MODIFIED 2017-07-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-03-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # -------------------------------------------------------------------------------------------------
@@ -818,24 +912,32 @@ rm $APICLIsessionfile
 
 echo 'CLI Operations Completed'
 
-if [ "$APICLIlogpathbase" != "$APICLIpathroot" ] ; then
+if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+    # Verbose mode ON
+
     echo
-    ls -alh $APICLIlogpathbase
+    #echo "Files in >$apiclipathroot<"
+    #ls -alh $apiclipathroot
+    #echo
+
+    if [ "$APICLIlogpathbase" != "$APICLIpathbase" ] ; then
+        echo "Files in >$APICLIlogpathbase<"
+        ls -alhR $APICLIpathbase
+        echo
+    fi
+    
+    echo "Files in >$APICLIpathbase<"
+    ls -alhR $APICLIpathbase
     echo
 fi
 
 echo
-ls -alh $APICLIpathroot
-echo
-echo
-ls -alhR $APICLIpathroot/$DATE
-echo
-
+echo "Results in directory $APICLIpathbase"
 echo "Log output in file $APICLIlogfilepath"
 echo
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-07-21
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-04
 
 
 # =================================================================================================

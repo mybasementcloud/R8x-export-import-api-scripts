@@ -2,12 +2,12 @@
 #
 # SCRIPT Object dump to CSV action operations for API CLI Operations
 #
-ScriptVersion=00.26.07
-ScriptDate=2017-11-20
+ScriptVersion=00.27.05
+ScriptDate=2018-03-05
 
 #
 
-export APIActionsScriptVersion=v00x26x07
+export APIActionsScriptVersion=v00x27x05
 ScriptName=cli_api_export_objects_actions_to_csv
 
 # =================================================================================================
@@ -129,7 +129,7 @@ SetupExportObjectsToCSVviaJQ () {
     #
     # Troubleshooting output
     #
-    if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
         # Verbose mode ON
         echo
         echo '$CSVFileHeader' - $CSVFileHeader
@@ -152,7 +152,7 @@ SetupExportObjectsToCSVviaJQ () {
 
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-03-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The FinalizeExportObjectsToCSVviaJQ is the finaling actions for the script's repeated actions.
@@ -180,6 +180,14 @@ FinalizeExportObjectsToCSVviaJQ () {
         echo 'Terminating!'
         echo
         exit 253
+        
+    elif [ ! -s $APICLICSVfiledata ] ; then
+        # data file is empty, nothing was found
+        echo
+        echo '!! data file is empty : '$APICLICSVfiledata
+        echo 'Skipping CSV creation!'
+        echo
+        return 0
         
     fi
 
@@ -214,12 +222,12 @@ FinalizeExportObjectsToCSVviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-03
 
 
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-03-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The ExportObjectsToCSVviaJQ is the meat of the script's repeated actions.
@@ -231,7 +239,7 @@ FinalizeExportObjectsToCSVviaJQ () {
 ExportObjectsToCSVviaJQ () {
     #
     
-    if [ $number_of_objects -le 1 ] ; then
+    if [[ $number_of_objects -le 1 ]] ; then
         # no objects of this type
  
         echo "No objects of type $APICLIobjecttype to process, skipping..."
@@ -240,8 +248,7 @@ ExportObjectsToCSVviaJQ () {
        
     else
         # we have objects to handle
-        echo
-        echo "Process $number_of_objects $APICLIobjecttype objects..."
+        echo "Processing $number_of_objects $APICLIobjecttype objects..."
         echo
    fi
 
@@ -250,7 +257,7 @@ ExportObjectsToCSVviaJQ () {
     #
     # Troubleshooting output
     #
-    if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
         # Verbose mode ON
         echo
         echo '$CSVJQparms' - $CSVJQparms
@@ -260,8 +267,12 @@ ExportObjectsToCSVviaJQ () {
     export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
     export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
     
-    export MgmtCLI_Show_OpParms="details-level \"$APICLIdetaillvl\" $MgmtCLI_Base_OpParms"
+    export MgmtCLI_Show_OpParms="details-level \"full\" $MgmtCLI_Base_OpParms"
     
+    # System Object selection operands
+    # export systemobjectselector='select(."meta-info"."creator" != "System")'
+    export systemobjectselector='select(."meta-info"."creator" | contains ("System") | not)'
+
     objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 
     objectstoshow=$objectstotal
@@ -277,12 +288,28 @@ ExportObjectsToCSVviaJQ () {
     echo "  and dump to $APICLICSVfile"
     echo
     
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+        echo "  System Object Selector : "$systemobjectselector
+    fi
+
     while [ $objectslefttoshow -ge 1 ] ; do
         # we have objects to process
         echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentoffset of $objectslefttoshow remaining!"
 
-        mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | [ '"$CSVJQparms"' ] | @csv' -r >> $APICLICSVfiledata
-        errorreturn=$?
+#        mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | [ '"$CSVJQparms"' ] | @csv' -r >> $APICLICSVfiledata
+#        errorreturn=$?
+
+        if [ x"$NoSystemObjects" = x"true" ] ; then
+            # Ignore System Objects
+            #mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | select(."meta-info"."creator" != "System") | [ '"$CSVJQparms"' ] | @csv' -r >> $APICLICSVfiledata
+            mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | '"$systemobjectselector"' | [ '"$CSVJQparms"' ] | @csv' -r >> $APICLICSVfiledata
+            errorreturn=$?
+        else   
+            # Don't Ignore System Objects
+            mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | [ '"$CSVJQparms"' ] | @csv' -r >> $APICLICSVfiledata
+            errorreturn=$?
+        fi
+
         if [ $errorreturn != 0 ] ; then
             # Something went wrong, terminate
             exit $errorreturn
@@ -301,7 +328,7 @@ ExportObjectsToCSVviaJQ () {
         exit $errorreturn
     fi
     
-    if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
         echo
         echo "Done with Exporting $APICLIobjectstype to CSV File : $APICLICSVfile"
     
@@ -316,14 +343,14 @@ ExportObjectsToCSVviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-03
 
 
 # -------------------------------------------------------------------------------------------------
 # GetNumberOfObjectsviaJQ
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2017-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-03-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The GetNumberOfObjectsviaJQ is the obtains the number of objects for that type indicated.
@@ -338,7 +365,7 @@ GetNumberOfObjectsviaJQ () {
     #
     # Troubleshooting output
     #
-    if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
         # Verbose mode ON
         echo
         echo '$CSVJQparms' - $CSVJQparms
@@ -353,6 +380,8 @@ GetNumberOfObjectsviaJQ () {
         exit $errorreturn
     fi
     
+    export number_of_objects=$objectstotal
+
     echo
     return 0
     
@@ -360,7 +389,7 @@ GetNumberOfObjectsviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-11-09
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-03
 
 # -------------------------------------------------------------------------------------------------
 
@@ -1267,7 +1296,7 @@ SetupExportComplexObjectsToCSVviaJQ () {
     #
     # Troubleshooting output
     #
-    if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
         # Verbose mode ON
         echo
         echo '$CSVFileHeader' - $CSVFileHeader
@@ -1285,6 +1314,13 @@ SetupExportComplexObjectsToCSVviaJQ () {
 }
 
 
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2018-03-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# FinalizeExportComplexObjectsToCSVviaJQ
 # -------------------------------------------------------------------------------------------------
 
 # The FinalizeExportComplexObjectsToCSVviaJQ is the finaling actions for the script's repeated actions.
@@ -1312,6 +1348,14 @@ FinalizeExportComplexObjectsToCSVviaJQ () {
         echo 'Terminating!'
         echo
         exit 253
+        
+    elif [ ! -s $APICLICSVfiledata ] ; then
+        # data file is empty, nothing was found
+        echo
+        echo '!! data file is empty : '$APICLICSVfiledata
+        echo 'Skipping CSV creation!'
+        echo
+        return 0
         
     fi
 
@@ -1344,6 +1388,9 @@ FinalizeExportComplexObjectsToCSVviaJQ () {
     
     #
 }
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-04
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -1409,6 +1456,10 @@ FinalizeGetGroupMembers () {
     return 0
 }
     
+# MODIFIED 2018-03-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+
 # -------------------------------------------------------------------------------------------------
 # PopulateArrayOfGroupObjects proceedure
 # -------------------------------------------------------------------------------------------------
@@ -1418,12 +1469,25 @@ FinalizeGetGroupMembers () {
 
 PopulateArrayOfGroupObjects () {
     
+    # System Object selection operands
+    # export systemobjectselector='select(."meta-info"."creator" != "System")'
+    export systemobjectselector='select(."meta-info"."creator" | contains ("System") | not)'
+    
     echo "  $APICLIobjectstype - Populate up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentgroupoffset of $objectslefttoshow remaining!"
 
     # MGMT_CLI_GROUPS_STRING is a string with multiple lines. Each line contains a name of a group members.
     # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
     
-    MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+    #MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+    
+    if [ x"$NoSystemObjects" = x"true" ] ; then
+        # Ignore System Objects
+        #MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "full" -s $APICLIsessionfile --format json | $JQ ".objects[] | '"$systemobjectselector"' | .name | @sh" -r`"
+        MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "full" -s $APICLIsessionfile --format json | $JQ '.objects[] | '"$systemobjectselector"' | .name | @sh' -r`"
+    else   
+        # Don't Ignore System Objects
+        MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+    fi
     
     # break the string into an array - each element of the array is a line in the original string
     # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
@@ -1436,6 +1500,9 @@ PopulateArrayOfGroupObjects () {
     
     return 0
 }
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-05
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1501,7 +1568,7 @@ GetArrayOfGroupObjects () {
 
 DumpArrayOfGroupObjects () {
     
-    if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
         # Verbose mode ON
         # Output list of all groups found
  
@@ -1572,7 +1639,7 @@ CollectMembersInGroupObjects () {
                 
                 MEMBER_NAME=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ ".members[$COUNTER].name")
                 
-                if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+                if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
                     # Verbose mode ON
                     echo -n '.'
                     fi
@@ -1707,6 +1774,9 @@ FinalizeGetHostInterfaces () {
     return 0
 }
     
+# MODIFIED 2018-03-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 # -------------------------------------------------------------------------------------------------
 # PopulateArrayOfHostInterfaces proceedure
 # -------------------------------------------------------------------------------------------------
@@ -1720,17 +1790,49 @@ PopulateArrayOfHostInterfaces () {
     # APICLICSVsortparms can change due to the nature of the object
     #
 
+    # System Object selection operands
+    # export systemobjectselector='select(."meta-info"."creator" != "System")'
+    export systemobjectselector='select(."meta-info"."creator" | contains ("System") | not)'
+    
+    echo
     echo "  $APICLIobjectstype - Populate up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currenthostoffset of $objectslefttoshow remaining!"
+    echo
+    #echo >> $APICLIlogfilepath
     #echo "  $APICLIobjectstype - Populate up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currenthostoffset of $objectslefttoshow remaining!" >> $APICLIlogfilepath
+    #echo >> $APICLIlogfilepath
 
     # MGMT_CLI_HOSTS_STRING is a string with multiple lines. Each line contains a name of a host.
     # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
     
-    MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+    #MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+    
+    if [ x"$NoSystemObjects" = x"true" ] ; then
+        # Ignore System Objects
+        #MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "full" -s $APICLIsessionfile --format json | $JQ ".objects[] | '"$systemobjectselector"' | .name | @sh" -r`"
+        MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "full" -s $APICLIsessionfile --format json | $JQ '.objects[] | '"$systemobjectselector"' | .name | @sh' -r`"
+    else   
+        # Don't Ignore System Objects
+        MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+    fi
     
     # break the string into an array - each element of the array is a line in the original string
     # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
     
+     if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+        # Verbose mode ON
+        echo
+        #echo >> $APICLIlogfilepath
+
+        # Output list of all hosts found - Header
+        echo -n '. $line, '
+        echo -n '$(eval echo $line), '
+        echo -n 'arraylength, '
+        echo -n 'arrayelement, '
+        #echo -n '$(eval echo ${ALLHOSTARR[${arrayelement}]}) '
+        echo -n '$NUM_HOST_INTERFACES, NUM_HOST_INTERFACES > 0 '
+        echo
+    fi
+
     while read -r line; do
 
         ALLHOSTSARR+=("$line")
@@ -1741,14 +1843,14 @@ PopulateArrayOfHostInterfaces () {
         arrayelement=$((arraylength-1))
         
 
-        if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+        if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
             # Verbose mode ON
             # Output list of all hosts found
-            echo -n "$line"' '
-            echo -n "$(eval echo $line)"' '
-            echo -n "$arraylength"' '
-            echo -n "$arrayelement"' '
-            #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"' '
+            echo -n ' '"$line"', '
+            echo -n "$(eval echo $line)"', '
+            echo -n "$arraylength"', '
+            echo -n "$arrayelement"', '
+            #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"', '
         fi
 
         #INTERFACES_COUNT=$(mgmt_cli show $APICLIobjecttype name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level "full" -s $APICLIsessionfile --format json | $JQ ".interfaces | length")
@@ -1756,30 +1858,48 @@ PopulateArrayOfHostInterfaces () {
 
         NUM_HOST_INTERFACES=$INTERFACES_COUNT
 
-        if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
-            # Verbose mode ON
-            echo -n $NUM_HOST_INTERFACES' '
+        if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+            echo -n "$NUM_HOST_INTERFACES"', '
+        else
+            echo -n "$NUM_HOST_INTERFACES"
         fi
 
         if [ $NUM_HOST_INTERFACES -gt 0 ]; then
             HOSTSARR+=("$line")
-            if [ x"$APISCRIPTVERBOSE" != x"TRUE" ] ; then
-                echo -n $NUM_HOST_INTERFACES
-            fi
+            let HostInterfacesCount=HostInterfacesCount+$NUM_HOST_INTERFACES
             echo -n '!'
+        else
+            echo -n '-'
         fi
 
-         if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+         if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
             # Verbose mode ON
             echo
             #echo >> $APICLIlogfilepath
         fi
 
     done <<< "$MGMT_CLI_HOSTS_STRING"
-    
+
+     if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+        # Verbose mode ON
+        echo
+        #echo >> $APICLIlogfilepath
+       
+        echo 'HostInterfacesCount = '$HostInterfacesCount
+        #echo 'HostInterfacesCount = '$HostInterfacesCount >> $APICLIlogfilepath
+    fi
+
+    export HostInterfacesCount=$HostInterfacesCount
+
     return 0
 }
 
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-05
+
+
+# MODIFIED 2018-03-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 # -------------------------------------------------------------------------------------------------
 # GetArrayOfHostInterfaces proceedure
@@ -1835,8 +1955,16 @@ GetArrayOfHostInterfaces () {
     echo
     #echo >> $APICLIlogfilepath
     
+    echo
+    echo 'Final HostInterfacesCount = '$HostInterfacesCount
+    echo 'Final Host Array = '\>"${HOSTSARR[@]}"\<
+    echo
+
     return 0
 }
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-04
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1848,7 +1976,7 @@ GetArrayOfHostInterfaces () {
 
 DumpArrayOfHostsObjects () {
     
-    if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
         # Verbose mode ON
         # Output list of all hosts found
     
@@ -1892,6 +2020,9 @@ DumpArrayOfHostsObjects () {
 }
 
 
+# MODIFIED 2018-03-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 # -------------------------------------------------------------------------------------------------
 # CollectInterfacesInHostObjects proceedure
 # -------------------------------------------------------------------------------------------------
@@ -1927,7 +2058,7 @@ CollectInterfacesInHostObjects () {
             #echo host "${i//\'/}"' number of interfaces = '"$NUM_HOST_INTERFACES" >> $APICLIlogfilepath
        
             COUNTER=0
-            if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+            if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
                 # Verbose mode ON
                 echo $CSVFileHeader
                 #echo $CSVFileHeader >> $APICLIlogfilepath
@@ -1958,7 +2089,7 @@ CollectInterfacesInHostObjects () {
                 export CSVoutputline=$CSVoutputline,"$INTERFACE_subnet6","$INTERFACE_masklength6"
                 export CSVoutputline=$CSVoutputline,"$INTERFACE_COLOR","$INTERFACE_COMMENT"
                 
-                if [ x"$APISCRIPTVERBOSE" = x"TRUE" ] ; then
+                if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
                     # Verbose mode ON
                     echo $CSVoutputline
                     #echo $CSVoutputline >> $APICLIlogfilepath
@@ -1981,6 +2112,12 @@ CollectInterfacesInHostObjects () {
     return 0
 }
 
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-03-04
+
+
+# MODIFIED 2018-03-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 # -------------------------------------------------------------------------------------------------
 # GetHostInterfaces proceedure
@@ -1991,18 +2128,28 @@ CollectInterfacesInHostObjects () {
 
 GetHostInterfaces () {
 
+    export HostInterfacesCount=0
+
     SetupGetHostInterfaces
 
     GetArrayOfHostInterfaces
 
-    DumpArrayOfHostsObjects
-
-    CollectInterfacesInHostObjects
-
-    FinalizeGetHostInterfaces
-
-}
+    if [ $HostInterfacesCount -gt 0 ]; then
+        # We have host interfaces to process
+        DumpArrayOfHostsObjects
     
+        CollectInterfacesInHostObjects
+    
+        FinalizeGetHostInterfaces
+
+    else
+        # No host interfaces
+        echo
+        echo '! No host interfaces found'
+        echo
+    fi
+}
+
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 

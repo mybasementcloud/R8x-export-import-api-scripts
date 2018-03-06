@@ -2,12 +2,12 @@
 #
 # SCRIPT Object dump action operations for API CLI Operations
 #
-ScriptVersion=00.26.07
-ScriptDate=2017-11-20
+ScriptVersion=00.27.05
+ScriptDate=2018-03-05
 
 #
 
-export APIActionsScriptVersion=v00x26x07
+export APIActionsScriptVersion=v00x27x05
 ActionScriptName=cli_api_export_objects_actions
 
 # =================================================================================================
@@ -63,7 +63,7 @@ echo
 # Main Operational repeated proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2017-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-03-05 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The Main Operational Procedure is the meat of the script's repeated actions.
@@ -77,6 +77,10 @@ MainOperationalProcedure () {
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
 
+    # System Object selection operands
+    # export systemobjectselector='select(."meta-info"."creator" != "System")'
+    export systemobjectselector='select(."meta-info"."creator" | contains ("System") | not)'
+    
     export APICLIfilename=$APICLIobjectstype
     if [ x"$APICLIexportnameaddon" != x"" ] ; then
         export APICLIfilename=$APICLIfilename'_'$APICLIexportnameaddon
@@ -135,8 +139,34 @@ MainOperationalProcedure () {
             echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentoffset to $nextoffset of $objectslefttoshow remaining!"
             echo '    Dump to '$APICLIfileexport
 
-            mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms > $APICLIfileexport
+            #mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms > $APICLIfileexport
     
+            if [ x"$APICLIdetaillvl" = x"full" ] ; then
+                # full detail-level JSON dump
+                if [ x"$NoSystemObjects" = x"true" ] ; then
+                    # Ignore System Objects
+                	if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                        echo '      No System Objects.  Selector = '$systemobjectselector
+                    fi
+                    #mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ .objects[] | $systemobjectselector >> $APICLIfileexport
+                    #mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | '"$systemobjectselector"' | @json' >> $APICLIfileexport
+                    mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | '"$systemobjectselector" >> $APICLIfileexport
+                else   
+                    # Don't Ignore System Objects
+                	if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                        echo '      All objects, including System Objects'
+                    fi
+                    mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms >> $APICLIfileexport
+                fi
+            else
+                # standard detail-level JSON dump
+                # Don't Ignore System Objects since we can't filter them based on data in standard detail-level
+            	if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                    echo '      All objects, including System Objects'
+                fi
+                mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms >> $APICLIfileexport
+            fi
+            
             objectslefttoshow=`expr $objectslefttoshow - $APICLIObjectLimit`
             #currentoffset=`expr $currentoffset + $APICLIObjectLimit`
             currentoffset=$nextoffset
@@ -157,7 +187,7 @@ MainOperationalProcedure () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2017-11-20
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-03-05
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
