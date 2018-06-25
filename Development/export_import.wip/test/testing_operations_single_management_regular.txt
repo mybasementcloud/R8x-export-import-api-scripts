@@ -1,0 +1,16 @@
+Command Line strings for execution of testing script.
+
+Assumptions:
+
+SMS has SSL Webportal on port 443
+
+
+
+./cli_api_import_objects_from_csv.sh -v -i /var/cli_api_ops/export_import/test/import.csv
+./cli_api_export_objects.sh -v
+./cli_api_get_object_totals_w_group_member_count.sh -v
+./cli_api_get_object_totals.sh -v
+./cli_api_set-update_objects_from_csv.sh -i /var/cli_api_ops/export_import/test/set_update.csv
+./cli_api_delete_objects_using_csv.sh -k /var/cli_api_ops/export_import/test/delete.csv
+
+
