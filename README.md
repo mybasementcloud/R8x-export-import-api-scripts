@@ -1,14 +1,14 @@
 # R8x-export-import-api-scripts
 Check Point R8x Export, Import, [and more] API scripts for bash and powershell
 
-CLI API Example for exporting, importing, and deleting different objects using CSV files (v00.29.02)
+CLI API Example for exporting, importing, and deleting different objects using CSV files (v00.29.05)
 
 For a complete overview, review the PDF - TBD 
 
 
 # Overview
 
-The export, import, set, and delete using CSV files scripts in this post, currently version 00.29.02 dated 2018-06-24, are intended to allow operations on an existing R80, R80.10, R80.20 Check Point management server (SMS or MDM) from bash on the management server or a management server (Check Point Gaia OS R8X) able to authenticate and reach the target management server.
+The export, import, set, and delete using CSV files scripts in this post, currently version 00.29.05 dated 2018-07-20, are intended to allow operations on an existing R80, R80.10, R80.20 Check Point management server (SMS or MDM) from bash on the management server or a management server (Check Point Gaia OS R8X) able to authenticate and reach the target management server.
 
 
 These scripts show examples of:
@@ -33,9 +33,9 @@ NOTE:  As of version 00.29.02 all export scripts default to pulling data for Sys
 
 The packages are:
 
-- Export, Import, Set, Delete Object :  export_import.all.v00.29.02.tgz
-- Common operations handlers         :  common.v00.29.02.tgz
-- template for script development with command line parameter handling for the API from bash :  _templates.v00.29.02.tgz              
+- Export, Import, Set, Delete Object :  export_import.all.v00.29.05.tgz
+- Common operations handlers         :  common.v00.29.05.tgz
+- template for script development with command line parameter handling for the API from bash :  _templates.v00.29.05.tgz
 
  
 The approach to provided compressed packages was changed to facilitate quicker implementation on the management hosts.

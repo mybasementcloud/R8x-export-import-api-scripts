@@ -2,12 +2,12 @@
 #
 # SCRIPT Base Template for API CLI Operations with command line parameters script utilization
 #
-ScriptVersion=00.29.02
-ScriptDate=2018-06-24
+ScriptVersion=00.29.05
+ScriptDate=2018-07-20
 
 #
 
-export APIScriptVersion=v00x29x02
+export APIScriptVersion=v00x29x05
 ScriptName=api_mgmt_cli_shell_template_with_cmd_line_parameters_script.template.v$ScriptVersion
 
 # =================================================================================================

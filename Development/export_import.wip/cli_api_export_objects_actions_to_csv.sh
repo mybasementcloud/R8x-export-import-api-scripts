@@ -3,11 +3,11 @@
 # SCRIPT Object dump to CSV action operations for API CLI Operations
 #
 ScriptVersion=00.29.01
-ScriptDate=2018-06-24
+ScriptDate=2018-07-20
 
 #
 
-export APIActionsScriptVersion=v00x29x02
+export APIActionsScriptVersion=v00x29x05
 ActionScriptName=cli_api_export_objects_actions_to_csv
 
 # =================================================================================================
@@ -395,13 +395,26 @@ ExportObjectsToCSVviaJQ () {
     
     export MgmtCLI_Show_OpParms="details-level \"full\" $MgmtCLI_Base_OpParms"
     
+    # MODIFIED 2018-07-20 -
+    
     # System Object selection operands
     # This one won't work because upgrades set all objects to creator = System"
     #export notsystemobjectselector='select(."meta-info"."creator" | contains ("System") | not)'
     #
-    # This should work if assumptions aren't wrong
-    export notsystemobjectselector='select(."domain"."name" != "Check Point Data")'
-
+    # This should work if assumptions aren't wrong (not complete enough based on object type)
+    #export notsystemobjectselector='select(."domain"."name" != "Check Point Data")'
+    
+    #
+    # This should work, but might need more tweeks if other data types use more values
+    #export notsystemobjectselector='select(."domain"."name" | contains ("Check Point Data", "APPI Data", "IPS Data") | not)'
+    #export notsystemobjectselector='select(any(."domain"."name"; in("Check Point Data", "APPI Data", "IPS Data")) | not)'
+    #export notsystemobjectselector='select((."domain"."name" != "Check Point Data") and (."domain"."name" != "APPI Data") and (."domain"."name" != "IPS Data"))'
+    
+    #
+    # Future alternative if more options to exclude are needed
+    export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
+    export notsystemobjectselector='select(."domain"."name" as $a | ['$systemobjectdomains'] | index($a) | not)'
+    
     objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
 
     objectstoshow=$objectstotal
@@ -1620,13 +1633,26 @@ FinalizeGetGroupMembers () {
 
 PopulateArrayOfGroupObjects () {
     
+    # MODIFIED 2018-07-20 -
+    
     # System Object selection operands
     # This one won't work because upgrades set all objects to creator = System"
     # export notsystemobjectselector='select(."meta-info"."creator" != "System")'
     #export notsystemobjectselector='select(."meta-info"."creator" | contains ("System") | not)'
     #
     # This should work if assumptions aren't wrong
-    export notsystemobjectselector='select(."domain"."name" != "Check Point Data")'
+    #export notsystemobjectselector='select(."domain"."name" != "Check Point Data")'
+    
+    #
+    # This should work, but might need more tweeks if other data types use more values
+    #export notsystemobjectselector='select(."domain"."name" | contains ("Check Point Data", "APPI Data", "IPS Data") | not)'
+    #export notsystemobjectselector='select(any(."domain"."name"; in("Check Point Data", "APPI Data", "IPS Data")) | not)'
+    #export notsystemobjectselector='select((."domain"."name" != "Check Point Data") and (."domain"."name" != "APPI Data") and (."domain"."name" != "IPS Data"))'
+    
+    #
+    # Future alternative if more options to exclude are needed
+    export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
+    export notsystemobjectselector='select(."domain"."name" as $a | ['$systemobjectdomains'] | index($a) | not)'
     
     echo "  $APICLIobjectstype - Populate up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentgroupoffset of $objectslefttoshow remaining!" | tee -a -i $APICLIlogfilepath
 
@@ -1969,13 +1995,26 @@ PopulateArrayOfHostInterfaces () {
     # APICLICSVsortparms can change due to the nature of the object
     #
     
+    # MODIFIED 2018-07-20 -
+    
     # System Object selection operands
     # This one won't work because upgrades set all objects to creator = System"
     # export notsystemobjectselector='select(."meta-info"."creator" != "System")'
     #export notsystemobjectselector='select(."meta-info"."creator" | contains ("System") | not)'
     #
     # This should work if assumptions aren't wrong
-    export notsystemobjectselector='select(."domain"."name" != "Check Point Data")'
+    #export notsystemobjectselector='select(."domain"."name" != "Check Point Data")'
+    
+    #
+    # This should work, but might need more tweeks if other data types use more values
+    #export notsystemobjectselector='select(."domain"."name" | contains ("Check Point Data", "APPI Data", "IPS Data") | not)'
+    #export notsystemobjectselector='select(any(."domain"."name"; in("Check Point Data", "APPI Data", "IPS Data")) | not)'
+    #export notsystemobjectselector='select((."domain"."name" != "Check Point Data") and (."domain"."name" != "APPI Data") and (."domain"."name" != "IPS Data"))'
+    
+    #
+    # Future alternative if more options to exclude are needed
+    export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
+    export notsystemobjectselector='select(."domain"."name" as $a | ['$systemobjectdomains'] | index($a) | not)'
     
     echo | tee -a -i $APICLIlogfilepath
     echo "  $APICLIobjectstype - Populate up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currenthostoffset of $objectslefttoshow remaining!" | tee -a -i $APICLIlogfilepath

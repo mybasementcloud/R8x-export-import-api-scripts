@@ -2,12 +2,12 @@
 #
 # SCRIPT Template for CLI Operations for command line parameters handling
 #
-ScriptVersion=00.29.02
-ScriptDate=2018-06-24
+ScriptVersion=00.29.05
+ScriptDate=2018-07-20
 
 #
 
-export APIActionsScriptVersion=v00x29x02
+export APIActionsScriptVersion=v00x29x05
 ActionScriptName=cmd_line_parameters_handler.action.common.005.v$ScriptVersion
 
 # =================================================================================================

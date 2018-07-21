@@ -2,12 +2,12 @@
 #
 # SCRIPT Object import using CSV file for API CLI Operations for setting dns-domain
 #
-ScriptVersion=00.29.02
-ScriptDate=2018-06-24
+ScriptVersion=00.29.05
+ScriptDate=2018-07-20
 
 #
 
-export APIScriptVersion=v00x29x02
+export APIScriptVersion=v00x29x05
 ScriptName=cli_api_import_object_dns-domain_from_csv
 
 # =================================================================================================

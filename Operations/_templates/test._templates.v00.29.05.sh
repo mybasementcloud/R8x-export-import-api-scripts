@@ -2,12 +2,12 @@
 #
 # SCRIPT Base Template testing script for automated execution of standard tests
 #
-ScriptVersion=00.29.02
-ScriptDate=2018-06-24
+ScriptVersion=00.29.05
+ScriptDate=2018-07-20
 
 #
 
-export APIScriptVersion=v00x29x02
+export APIScriptVersion=v00x29x05
 ScriptName=test._templates.v$ScriptVersion
 
 # =================================================================================================

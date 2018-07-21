@@ -3,11 +3,11 @@
 # SCRIPT Object dump action operations for API CLI Operations
 #
 ScriptVersion=00.29.01
-ScriptDate=2018-06-24
+ScriptDate=2018-07-20
 
 #
 
-export APIActionsScriptVersion=v00x29x02
+export APIActionsScriptVersion=v00x29x05
 ActionScriptName=cli_api_export_objects_actions
 
 # =================================================================================================
@@ -221,13 +221,26 @@ ExportRAWObjectToJSON () {
     # Export Objects to raw JSON
     #
     
+    # MODIFIED 2018-07-20 -
+    
     # System Object selection operands
     # This one won't work because upgrades set all objects to creator = System"
     # export notsystemobjectselector='select(."meta-info"."creator" != "System")'
     #export notsystemobjectselector='select(."meta-info"."creator" | contains ("System") | not)'
     #
     # This should work if assumptions aren't wrong
-    export notsystemobjectselector='select(."domain"."name" != "Check Point Data")'
+    #export notsystemobjectselector='select(."domain"."name" != "Check Point Data")'
+    
+    #
+    # This should work, but might need more tweeks if other data types use more values
+    #export notsystemobjectselector='select(."domain"."name" | contains ("Check Point Data", "APPI Data", "IPS Data") | not)'
+    #export notsystemobjectselector='select(any(."domain"."name"; in("Check Point Data", "APPI Data", "IPS Data")) | not)'
+    #export notsystemobjectselector='select((."domain"."name" != "Check Point Data") and (."domain"."name" != "APPI Data") and (."domain"."name" != "IPS Data"))'
+    
+    #
+    # Future alternative if more options to exclude are needed
+    export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
+    export notsystemobjectselector='select(."domain"."name" as $a | ['$systemobjectdomains'] | index($a) | not)'
     
     export APICLIfilename=$APICLIobjectstype
     if [ x"$APICLIexportnameaddon" != x"" ] ; then
@@ -287,28 +300,16 @@ ExportRAWObjectToJSON () {
             echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentoffset to $nextoffset of $objectslefttoshow remaining!" | tee -a -i $APICLIlogfilepath
             echo '    Dump to '$APICLIfileexport | tee -a -i $APICLIlogfilepath
 
-            #mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms > $APICLIfileexport
-    
-            if [ x"$APICLIdetaillvl" = x"full" ] ; then
-                # full detail-level JSON dump
-                if [ x"$NoSystemObjects" = x"true" ] ; then
-                    # Ignore System Objects
-                	if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-                        echo '      No System Objects.  Selector = '$notsystemobjectselector | tee -a -i $APICLIlogfilepath
-                    fi
-                    #mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ .objects[] | $notsystemobjectselector >> $APICLIfileexport
-                    #mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | '"$notsystemobjectselector"' | @json' >> $APICLIfileexport
-                    mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | '"$notsystemobjectselector" >> $APICLIfileexport
-                else   
-                    # Don't Ignore System Objects
-                	if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-                        echo '      All objects, including System Objects' | tee -a -i $APICLIlogfilepath
-                    fi
-                    mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms >> $APICLIfileexport
+            # MODIFIED 2018-07-20 -
+                
+            if [ x"$NoSystemObjects" = x"true" ] ; then
+                # Ignore System Objects
+            	if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                    echo '      No System Objects.  Selector = '$notsystemobjectselector | tee -a -i $APICLIlogfilepath
                 fi
-            else
-                # standard detail-level JSON dump
-                # Don't Ignore System Objects since we can't filter them based on data in standard detail-level
+                mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | '"$notsystemobjectselector" >> $APICLIfileexport
+            else   
+                # Don't Ignore System Objects
             	if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
                     echo '      All objects, including System Objects' | tee -a -i $APICLIlogfilepath
                 fi
