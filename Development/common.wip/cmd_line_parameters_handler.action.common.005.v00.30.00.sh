@@ -2,12 +2,12 @@
 #
 # SCRIPT Template for CLI Operations for command line parameters handling
 #
-ScriptVersion=00.29.05
-ScriptDate=2018-07-20
+ScriptVersion=00.30.00
+ScriptDate=2018-09-21
 
 #
 
-export APIActionsScriptVersion=v00x29x05
+export APIActionsScriptVersion=v00x30x00
 ActionScriptName=cmd_line_parameters_handler.action.common.005.v$ScriptVersion
 
 # =================================================================================================
@@ -121,7 +121,7 @@ fi
 # START:  Command Line Parameter Handling and Help
 # =================================================================================================
 
-# MODIFIED 2018-05-03-2 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -158,7 +158,9 @@ fi
 #
 
 export SHOWHELP=false
-export CLIparm_websslport=443
+# MODIFIED 2018-09-21 -
+#export CLIparm_websslport=443
+export CLIparm_websslport=
 export CLIparm_rootuser=false
 export CLIparm_user=
 export CLIparm_password=
@@ -250,7 +252,7 @@ fi
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-03-2
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
 
 # -------------------------------------------------------------------------------------------------
 # dumpcliparmparseresults
@@ -270,47 +272,47 @@ dumpcliparmparseresults () {
     #                                    1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #                          01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     export outstring=
-    #export outstring=$outstring"After: \n "
-    export outstring=$outstring"CLIparm_rootuser        ='$CLIparm_rootuser' \n "
-    export outstring=$outstring"CLIparm_user            ='$CLIparm_user' \n "
-    export outstring=$outstring"CLIparm_password        ='$CLIparm_password' \n "
+    export outstring=$outstring"Parameters : \n"
+    export outstring=$outstring"CLIparm_rootuser        ='$CLIparm_rootuser' \n"
+    export outstring=$outstring"CLIparm_user            ='$CLIparm_user' \n"
+    export outstring=$outstring"CLIparm_password        ='$CLIparm_password' \n"
     
-    export outstring=$outstring"CLIparm_websslport      ='$CLIparm_websslport' \n "
-    export outstring=$outstring"CLIparm_mgmt            ='$CLIparm_mgmt' \n "
-    export outstring=$outstring"CLIparm_domain          ='$CLIparm_domain' \n "
-    export outstring=$outstring"CLIparm_sessionidfile   ='$CLIparm_sessionidfile' \n "
-    export outstring=$outstring"CLIparm_logpath         ='$CLIparm_logpath' \n "
-    export outstring=$outstring"CLIparm_outputpath      ='$CLIparm_outputpath' \n "
+    export outstring=$outstring"CLIparm_websslport      ='$CLIparm_websslport' \n"
+    export outstring=$outstring"CLIparm_mgmt            ='$CLIparm_mgmt' \n"
+    export outstring=$outstring"CLIparm_domain          ='$CLIparm_domain' \n"
+    export outstring=$outstring"CLIparm_sessionidfile   ='$CLIparm_sessionidfile' \n"
+    export outstring=$outstring"CLIparm_logpath         ='$CLIparm_logpath' \n"
+    export outstring=$outstring"CLIparm_outputpath      ='$CLIparm_outputpath' \n"
     
     if [ x"$script_use_export" = x"true" ] ; then
-        export outstring=$outstring"CLIparm_exportpath      ='$CLIparm_exportpath' \n "
+        export outstring=$outstring"CLIparm_exportpath      ='$CLIparm_exportpath' \n"
     fi
     if [ x"$script_use_import" = x"true" ] ; then
-        export outstring=$outstring"CLIparm_importpath      ='$CLIparm_importpath' \n "
+        export outstring=$outstring"CLIparm_importpath      ='$CLIparm_importpath' \n"
     fi
     if [ x"$script_use_delete" = x"true" ] ; then
-        export outstring=$outstring"CLIparm_deletepath      ='$CLIparm_deletepath' \n "
+        export outstring=$outstring"CLIparm_deletepath      ='$CLIparm_deletepath' \n"
     fi
     if [ x"$script_use_csvfile" = x"true" ] ; then
-        export outstring=$outstring"CLIparm_csvpath         ='$CLIparm_csvpath' \n "
+        export outstring=$outstring"CLIparm_csvpath         ='$CLIparm_csvpath' \n"
     fi
     
-    export outstring=$outstring"CLIparm_NoSystemObjects ='$CLIparm_NoSystemObjects' \n "
+    export outstring=$outstring"CLIparm_NoSystemObjects ='$CLIparm_NoSystemObjects' \n"
 	
-    export outstring=$outstring"SHOWHELP                ='$SHOWHELP' \n "
-    export outstring=$outstring" \n "
-    export outstring=$outstring"APISCRIPTVERBOSE        ='$APISCRIPTVERBOSE' \n "
-    export outstring=$outstring"NOWAIT                  ='$NOWAIT' \n "
-    export outstring=$outstring"CLEANUPWIP              ='$CLEANUPWIP' \n "
-    export outstring=$outstring"NODOMAINFOLDERS         ='$NODOMAINFOLDERS' \n "
-    export outstring=$outstring"CSVEXPORTADDIGNOREERR   ='$CSVEXPORTADDIGNOREERR' \n "
-    export outstring=$outstring" \n "
-    export outstring=$outstring"CLIparm_NOWAIT          ='$CLIparm_NOWAIT' \n "
-    export outstring=$outstring"CLIparm_CLEANUPWIP      ='$CLIparm_CLEANUPWIP' \n "
-    export outstring=$outstring"CLIparm_NODOMAINFOLDERS ='$CLIparm_NODOMAINFOLDERS' \n "
-    export outstring=$outstring"C_CSVEXPORTADDIGNOREERR ='$CLIparm_CSVEXPORTADDIGNOREERR' \n "
-    export outstring=$outstring" \n "
-    export outstring=$outstring"remains                 ='$REMAINS' \n "
+    export outstring=$outstring"SHOWHELP                ='$SHOWHELP' \n"
+    export outstring=$outstring" \n"
+    export outstring=$outstring"APISCRIPTVERBOSE        ='$APISCRIPTVERBOSE' \n"
+    export outstring=$outstring"NOWAIT                  ='$NOWAIT' \n"
+    export outstring=$outstring"CLEANUPWIP              ='$CLEANUPWIP' \n"
+    export outstring=$outstring"NODOMAINFOLDERS         ='$NODOMAINFOLDERS' \n"
+    export outstring=$outstring"CSVEXPORTADDIGNOREERR   ='$CSVEXPORTADDIGNOREERR' \n"
+    export outstring=$outstring" \n"
+    export outstring=$outstring"CLIparm_NOWAIT          ='$CLIparm_NOWAIT' \n"
+    export outstring=$outstring"CLIparm_CLEANUPWIP      ='$CLIparm_CLEANUPWIP' \n"
+    export outstring=$outstring"CLIparm_NODOMAINFOLDERS ='$CLIparm_NODOMAINFOLDERS' \n"
+    export outstring=$outstring"C_CSVEXPORTADDIGNOREERR ='$CLIparm_CSVEXPORTADDIGNOREERR' \n"
+    export outstring=$outstring" \n"
+    export outstring=$outstring"remains                 ='$REMAINS' \n"
     
 	if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
 	    # Verbose mode ON
@@ -319,7 +321,7 @@ dumpcliparmparseresults () {
 	    echo -e $outstring | tee -a -i $APICLIlogfilepath
 	    echo | tee -a -i $APICLIlogfilepath
 	    for i ; do echo - $i | tee -a -i $APICLIlogfilepath ; done
-	    echo CLI parms - number $# parms $@ | tee -a -i $APICLIlogfilepath
+	    echo CLI parms - number "$#" parms "$@" | tee -a -i $APICLIlogfilepath
 	    echo | tee -a -i $APICLIlogfilepath
         
     else
@@ -329,7 +331,7 @@ dumpcliparmparseresults () {
 	    echo -e $outstring >> $APICLIlogfilepath
 	    echo >> $APICLIlogfilepath
 	    for i ; do echo - $i >> $APICLIlogfilepath ; done
-	    echo CLI parms - number $# parms $@ >> $APICLIlogfilepath
+	    echo CLI parms - number "$#" parms "$@" >> $APICLIlogfilepath
 	    echo >> $APICLIlogfilepath
         
 	fi
@@ -345,21 +347,23 @@ dumpcliparmparseresults () {
 # dumprawcliparms
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 dumprawcliparms () {
     #
     echo | tee -a -i $APICLIlogfilepath
-    echo "Command line parameters before" | tee -a -i $APICLIlogfilepath
-    echo number parms $# | tee -a -i $APICLIlogfilepath
-    echo parms raw : \> $@ \< | tee -a -i $APICLIlogfilepath
-    for k ; do echo $k $'\t' "${k}" | tee -a -i $APICLIlogfilepath ; done
+    echo "Command line parameters before : " | tee -a -i $APICLIlogfilepath
+    echo "Number parms $#" | tee -a -i $APICLIlogfilepath
+    echo "parms raw : \> $@ \<" | tee -a -i $APICLIlogfilepath
+    for k ; do
+        echo "$k $'\t' ${k}" | tee -a -i $APICLIlogfilepath
+    done
     echo | tee -a -i $APICLIlogfilepath
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
 
 
 # =================================================================================================
@@ -546,12 +550,12 @@ doshowhelp () {
 # Process command line parameters and set appropriate values
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-04-2 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
     # Verbose mode ON
-    dumprawcliparms "@$"    
+    dumprawcliparms "$@"
 fi
 
 while [ -n "$1" ]; do
@@ -629,6 +633,7 @@ while [ -n "$1" ]; do
                 ;;
             -d=* | --domain=* )
                 CLIparm_domain="${OPT#*=}"
+                CLIparm_domain=${CLIparm_domain//\"}
                 #shift
                 ;;
             -s=* | --session-file=* )
@@ -678,6 +683,7 @@ while [ -n "$1" ]; do
                 ;;
             -d* | --domain )
                 CLIparm_domain="$2"
+                CLIparm_domain=${CLIparm_domain//\"}
                 shift
                 ;;
             -s* | --session-file )
@@ -735,7 +741,7 @@ eval set -- $REMAINS
 # -------------------------------------------------------------------------------------------------
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04-2
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
 
 # MODIFIED 2018-05-03-2 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #

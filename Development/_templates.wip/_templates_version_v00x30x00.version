@@ -1,0 +1,11 @@
+#
+# SCRIPT Base Template for API CLI Operations with command line parameters
+#
+ScriptVersion=00.30.00
+ScriptDate=2018-09-21
+
+#
+
+export APIScriptVersion=v00x30x00
+export APIActionsScriptVersion=v00x30x00
+export ActionScriptVersion=v00x30x00

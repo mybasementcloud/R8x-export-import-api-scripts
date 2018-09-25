@@ -2,12 +2,12 @@
 #
 # SCRIPT Object export application-site-group to CSV file for API CLI Operations
 #
-ScriptVersion=00.29.05
-ScriptDate=2018-07-20
+ScriptVersion=00.30.00
+ScriptDate=2018-09-21
 
 #
 
-export APIScriptVersion=v00x29x05
+export APIScriptVersion=v00x30x00
 ScriptName=cli_api_export_object_application-site-group_to_csv
 
 # =================================================================================================
@@ -41,6 +41,12 @@ export APICLIlogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_'$DATEDTGS.lo
 export cli_api_cmdlineparm_handler_root=.
 export cli_api_cmdlineparm_handler_folder=common
 export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.action.common.005.v$ScriptVersion.sh
+
+# ADDED 2018-09-21 -
+export gaia_version_handler_root=.
+export gaia_version_handler_folder=common
+export gaia_version_handler_file=identify_gaia_and_installation.action.common.005.v$ScriptVersion.sh
+
 
 # -------------------------------------------------------------------------------------------------
 # Root script declarations
@@ -198,7 +204,7 @@ ConfigureJQLocation () {
 
 ScriptAPIVersionCheck () {
 
-    getapiversion=$(mgmt_cli show api-versions -r true --format json --port $currentapisslport | $JQ '.["current-version"]' -r)
+    getapiversion=$(mgmt_cli show api-versions -r true -f json --port $currentapisslport | $JQ '.["current-version"]' -r)
     export checkapiversion=$getapiversion
     if [ $checkapiversion = null ] ; then
         # show api-versions does not exist in version 1.0, so it fails and returns null
@@ -317,7 +323,7 @@ CheckAPIScriptVerboseOutput
 # START:  Command Line Parameter Handling and Help
 # =================================================================================================
 
-# MODIFIED 2018-05-03-2 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -354,7 +360,9 @@ CheckAPIScriptVerboseOutput
 #
 
 export SHOWHELP=false
-export CLIparm_websslport=443
+# MODIFIED 2018-09-21 -
+#export CLIparm_websslport=443
+export CLIparm_websslport=
 export CLIparm_rootuser=false
 export CLIparm_user=
 export CLIparm_password=
@@ -446,14 +454,14 @@ fi
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-03-2
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
 
 # =================================================================================================
 # -------------------------------------------------------------------------------------------------
 # START:  Local Help display proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Show local help information.  Add script specific information here to show when help requested
@@ -465,7 +473,7 @@ doshowlocalhelp () {
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     echo
-
+    echo 'Local Help Information : '
 
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
@@ -479,7 +487,7 @@ doshowlocalhelp () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-03
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
 
 # -------------------------------------------------------------------------------------------------
 # END:  Local Help display proceedure
@@ -545,7 +553,7 @@ export cli_api_cmdlineparm_handler=$cli_api_cmdlineparm_handler_path/$cli_api_cm
 if [ ! -r $cli_api_cmdlineparm_handler ] ; then
     # no file found, that is a problem
     echo | tee -a -i $APICLIlogfilepath
-    echo 'Command Line Parameter hander script file missing' | tee -a -i $APICLIlogfilepath
+    echo 'Command Line Parameter handler script file missing' | tee -a -i $APICLIlogfilepath
     echo '  File not found : '$cli_api_cmdlineparm_handler | tee -a -i $APICLIlogfilepath
     echo | tee -a -i $APICLIlogfilepath
     echo 'Other parameter elements : ' | tee -a -i $APICLIlogfilepath
@@ -571,7 +579,7 @@ CommandLineParameterHandler "$@"
 # Local Handle request for help and return
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -580,11 +588,11 @@ CommandLineParameterHandler "$@"
 if [ x"$SHOWHELP" = x"true" ] ; then
     # Show Local Help
     doshowlocalhelp
-    return 255 
+    exit 255 
 fi
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -601,19 +609,93 @@ fi
 # START:  Setup Standard Parameters
 # =================================================================================================
 
-export gaiaversion=$(clish -c "show version product" | cut -d " " -f 6)
-
-if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-    echo 'Gaia Version : $gaiaversion = '$gaiaversion | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-fi
-
-
 if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
     echo 'Date Time Group   :  '$DATE | tee -a -i $APICLIlogfilepath
     echo 'Date Time Group S :  '$DATEDTGS | tee -a -i $APICLIlogfilepath
     echo | tee -a -i $APICLIlogfilepath
 fi
+
+# -------------------------------------------------------------------------------------------------
+# GetGaiaVersionAndInstallationType - Gaia version and installation type Handler calling routine
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+GetGaiaVersionAndInstallationType () {
+    #
+    # GetGaiaVersionAndInstallationType - Gaia version and installation type Handler calling routine
+    #
+    
+    echo | tee -a -i $APICLIlogfilepath
+    echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo "Calling external Gaia version and installation type Handling Script" | tee -a -i $APICLIlogfilepath
+    echo " - External Script : "$gaia_version_handler | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    
+    . $gaia_version_handler "$@"
+    
+    echo | tee -a -i $APICLIlogfilepath
+    echo "Returned from external Gaia version and installation type Handling Script" | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    
+    if [ "$APISCRIPTVERBOSE" = "true" ] && [ "$NOWAIT" != "true" ] ; then
+        echo
+        read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
+    fi
+    
+    echo | tee -a -i $APICLIlogfilepath
+    echo "Continueing local execution" | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
+# Call Gaia version and installation type Handler action script
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+export gaia_version_handler_path=$gaia_version_handler_root/$gaia_version_handler_folder
+
+export gaia_version_handler=$gaia_version_handler_path/$gaia_version_handler_file
+
+# Check that we can finde the command line parameter handler file
+#
+if [ ! -r $gaia_version_handler ] ; then
+    # no file found, that is a problem
+    echo | tee -a -i $APICLIlogfilepath
+    echo ' Gaia version and installation type handler script file missing' | tee -a -i $APICLIlogfilepath
+    echo '  File not found : '$gaia_version_handler | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Other parameter elements : ' | tee -a -i $APICLIlogfilepath
+    echo '  Root of folder path : '$gaia_version_handler_root | tee -a -i $APICLIlogfilepath
+    echo '  Folder in Root path : '$gaia_version_handler_folder | tee -a -i $APICLIlogfilepath
+    echo '  Folder Root path    : '$gaia_version_handler_path | tee -a -i $APICLIlogfilepath
+    echo '  Script Filename     : '$gaia_version_handler_file | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Critical Error - Exiting Script !!!!' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo "Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+
+    exit 251
+fi
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
+
+GetGaiaVersionAndInstallationType "$@"
 
 
 # =================================================================================================
@@ -982,7 +1064,7 @@ HandleMgmtCLILogin () {
 # SetupLogin2MgmtCLI - Setup Login to Management CLI
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-03 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 SetupLogin2MgmtCLI () {
@@ -990,12 +1072,60 @@ SetupLogin2MgmtCLI () {
     # setup the mgmt_cli login fundamentals
     #
     
-    export APICLIwebsslport=443
-    if [ ! -z "$CLIparm_websslport" ] ; then
-        export APICLIwebsslport=$CLIparm_websslport
+    # MODIFIED 2018-09-21 -
+    # Stipulate that if running on the actual management host, use it's web ssl-port value
+    #
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'Initial $APICLIwebsslport   = '$APICLIwebsslport | tee -a -i $APICLIlogfilepath
+        echo 'Current $CLIparm_websslport = '$CLIparm_websslport | tee -a -i $APICLIlogfilepath
+        echo 'Current $currentapisslport  = '$currentapisslport | tee -a -i $APICLIlogfilepath
+    fi            
+
+    export APICLIwebsslport=$currentapisslport
+
+    if [ ! -z "$CLIparm_mgmt" ] ; then
+        # working with remote management server
+        if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+            echo 'Working with remote management server' | tee -a -i $APICLIlogfilepath
+        fi            
+        
+        if [ ! -z "$CLIparm_websslport" ] ; then
+            if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                echo 'Working with web ssl-port from CLI parms' | tee -a -i $APICLIlogfilepath
+            fi            
+            export APICLIwebsslport=$CLIparm_websslport
+        else
+            # Default back to expected SSL port, since we won't know what the remote management server configuration for web ssl-port is.
+            # This may change once Gaia API is readily available and can be checked.
+            if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                echo 'Remote management cannot currently be queried for web ssl-port, so defaulting to 443' | tee -a -i $APICLIlogfilepath
+            fi            
+            export APICLIwebsslport=443
+        fi
     else
-        export APICLIwebsslport=443
+        # not working with remote management server
+        if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+            echo 'Not working with remote management server' | tee -a -i $APICLIlogfilepath
+        fi            
+        
+        if [ ! -z "$CLIparm_websslport" ] ; then
+            if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                echo 'Working with web ssl-port from CLI parms' | tee -a -i $APICLIlogfilepath
+            fi            
+            export APICLIwebsslport=$CLIparm_websslport
+        else
+            if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                echo 'Working with web ssl-port harvested from Gaia' | tee -a -i $APICLIlogfilepath
+            fi            
+            export APICLIwebsslport=$currentapisslport
+        fi
     fi
+
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+        echo 'Final $APICLIwebsslport     = '$APICLIwebsslport | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+    fi            
     
     # MODIFIED 2018-05-03 -
 
@@ -1028,7 +1158,7 @@ SetupLogin2MgmtCLI () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-05-03
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
 
 # -------------------------------------------------------------------------------------------------
 # Login2MgmtCLI - Process Login to Management CLI
@@ -1334,13 +1464,15 @@ fi
 # START:  Setup Login Parameters and Login to Mgmt_CLI
 # =================================================================================================
 
+# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 SetupLogin2MgmtCLI
 
 if [ ! -z "$CLIparm_domain" ] ; then
     # Handle domain parameter for login string
     if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-        echo 'Command line parameter for domain set!' | tee -a -i $APICLIlogfilepath
+        echo 'Command line parameter for domain set!  Domain = '$CLIparm_domain | tee -a -i $APICLIlogfilepath
     fi
     export domaintarget=$CLIparm_domain
 else
@@ -1355,11 +1487,18 @@ if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
 fi
 
 Login2MgmtCLI
+LOGINEXITCODE=$?
 
+export LoggedIntoMgmtCli=false
 
-# =================================================================================================
-# END:  Setup Login Parameters and Login to Mgmt_CLI
-# =================================================================================================
+if [ "$LOGINEXITCODE" != "0" ] ; then
+    exit $LOGINEXITCODE
+else
+    export LoggedIntoMgmtCli=true
+fi
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
 
 
 # =================================================================================================
@@ -1756,7 +1895,7 @@ ExportObjectsToCSVviaJQ () {
         return $errorreturn
     fi
     
-    export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
+    export MgmtCLI_Base_OpParms="-f json -s $APICLIsessionfile"
     export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
     
     export MgmtCLI_Show_OpParms="details-level \"full\" $MgmtCLI_Base_OpParms"
@@ -1781,7 +1920,7 @@ ExportObjectsToCSVviaJQ () {
     export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
     export notsystemobjectselector='select(."domain"."name" as $a | ['$systemobjectdomains'] | index($a) | not)'
     
-    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 
     objectstoshow=$objectstotal
 
@@ -1881,7 +2020,7 @@ GetNumberOfObjectsviaJQ () {
         echo | tee -a -i $APICLIlogfilepath
     fi
     
-    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
     errorreturn=$?
 
     if [ $errorreturn != 0 ] ; then
@@ -1938,7 +2077,7 @@ export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
 
-objectstotal_application_site_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_application_site_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_application_site_groups="$objectstotal_application_site_groups"
 export number_of_objects=$number_application_site_groups
 

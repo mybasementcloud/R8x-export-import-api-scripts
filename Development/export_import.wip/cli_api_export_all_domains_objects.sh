@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT Object export security-zones to CSV file for API CLI Operations
+# SCRIPT Export objects from all domains, object export to JSON (standard and full details), and CSV file for API CLI Operations
 #
 ScriptVersion=00.30.00
 ScriptDate=2018-09-21
@@ -8,7 +8,7 @@ ScriptDate=2018-09-21
 #
 
 export APIScriptVersion=v00x30x00
-ScriptName=cli_api_export_object_security-zones_to_csv
+ScriptName=cli_api_export_all_domains_objects
 
 # =================================================================================================
 # =================================================================================================
@@ -67,7 +67,7 @@ export gaia_version_handler_file=identify_gaia_and_installation.action.common.00
 export DefaultMgmtAdmin=administrator
 
 
-# 2018-05-02 - script type - export objects (specific to CSV)
+# 2018-05-02 - script type - export objects (all)
 
 export script_use_publish="false"
 
@@ -77,9 +77,9 @@ export script_use_delete="false"
 export script_use_csvfile="false"
 
 export script_dump_csv="true"
-export script_dump_json="false"
-export script_dump_standard="false"
-export script_dump_full="false"
+export script_dump_json="true"
+export script_dump_standard="true"
+export script_dump_full="true"
 
 export script_uses_wip="true"
 export script_uses_wip_json="false"
@@ -1160,6 +1160,7 @@ SetupLogin2MgmtCLI () {
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
 
+
 # -------------------------------------------------------------------------------------------------
 # Login2MgmtCLI - Process Login to Management CLI
 # -------------------------------------------------------------------------------------------------
@@ -1243,6 +1244,8 @@ ConfigureRootPath () {
     if [ ! -r $APICLIpathbase ] ; then
         mkdir -p -v $APICLIpathbase | tee -a -i $APICLIlogfilepath
     fi
+
+    echo | tee -a -i $APICLIlogfilepath
     
 }
 
@@ -1280,6 +1283,8 @@ ConfigureLogPath () {
     
     cat $APICLIlogfilepathtemp >> $APICLIlogfilepath
     rm $APICLIlogfilepathtemp | tee -a -i $APICLIlogfilepath
+    
+    echo | tee -a -i $APICLIlogfilepath
     
 }
 
@@ -1439,6 +1444,184 @@ ConfigureSpecificCLIParameterValues
 # =================================================================================================
 
 
+# =================================================================================================
+# =================================================================================================
+# START:  Main Dump Procedures
+# =================================================================================================
+
+# ADDED 2018-09-21 -
+
+# -------------------------------------------------------------------------------------------------
+# Start :  Check that Action Handler Scripts exist before executing
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+CheckExportActionHandlerScripts () {
+
+    #
+    # Check that Action Handler Scripts exist before executing
+    #
+        
+    # -------------------------------------------------------------------------------------------------
+    # Check that Action Handler Scripts exist before executing
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2018-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    #
+    
+    # Basic information for formation of file path for action handler scripts
+    #
+    # APIScriptActionFileRoot - root path to for action handler scripts
+    # APIScriptActionFileFolder - folder under root path to for action handler scripts
+    # APIScriptActionFilePath - path, for action handler scripts
+    #
+    if [ ! -z "$APIScriptActionFileFolder" ]; then
+        export APIScriptActionFilePath=$APIScriptActionFileRoot/$APIScriptActionFileFolder
+    else
+        export APIScriptActionFilePath=$APIScriptActionFileRoot
+    fi
+    
+    export APIScriptJSONActionFile=$APIScriptActionFilePath/$APIScriptJSONActionFilename
+    export APIScriptCSVActionFile=$APIScriptActionFilePath/$APIScriptCSVActionFilename
+    
+    # Check that we can find the action handler scripts
+    #
+    if [ ! -r $APIScriptJSONActionFile ] ; then
+        # no file found, that is a problem
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'JSON Action Handler script file missing' | tee -a -i $APICLIlogfilepath
+        echo '  File not found : '$APIScriptJSONActionFile | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'Other parameter elements : ' | tee -a -i $APICLIlogfilepath
+        echo '  Root of folder path : '$APIScriptActionFileRoot | tee -a -i $APICLIlogfilepath
+        echo '  Folder in Root path : '$APIScriptActionFileFolder | tee -a -i $APICLIlogfilepath
+        echo '  Folder Root path    : '$APIScriptActionFilePath | tee -a -i $APICLIlogfilepath
+        echo '  Script Filename     : '$APIScriptJSONActionFilename | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'Critical Error - Exiting Script !!!!' | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        echo "Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        
+        exit 251
+    fi
+    
+    # Check that we can find the action handler scripts
+    #
+    if [ ! -r $APIScriptCSVActionFile ] ; then
+        # no file found, that is a problem
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'CSV Action Handler script file missing' | tee -a -i $APICLIlogfilepath
+        echo '  File not found : '$APIScriptCSVActionFile | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'Other parameter elements : ' | tee -a -i $APICLIlogfilepath
+        echo '  Root of folder path : '$APIScriptActionFileRoot | tee -a -i $APICLIlogfilepath
+        echo '  Folder in Root path : '$APIScriptActionFileFolder | tee -a -i $APICLIlogfilepath
+        echo '  Folder Root path    : '$APIScriptActionFilePath | tee -a -i $APICLIlogfilepath
+        echo '  Script Filename     : '$APIScriptCSVActionFilename | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'Critical Error - Exiting Script !!!!' | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        echo "Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        
+        exit 251
+    fi
+    
+    return 0
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
+
+# -------------------------------------------------------------------------------------------------
+# End :  Check that Action Handler Scripts exist before executing
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# MainExportDumpOperations - Execute Main Dump operations - json Standard, json Full, CSV
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+MainExportDumpOperations () {
+    #
+    # Execute Main Dump operations - json Standard, json Full, CSV
+    #
+    
+    # -------------------------------------------------------------------------------------------------
+    # Start executing Main Dump operations - json Standard, json Full, CSV
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2018-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    #
+    
+    if [ x"$script_dump_json" = x"true" ] ; then
+        
+        export primarytargetoutputformat=$FileExtJSON
+    
+        if [ x"$script_dump_standard" = x"true" ] ; then
+            export APICLIdetaillvl=standard
+            
+            echo | tee -a -i $APICLIlogfilepath
+            echo 'Now dumping "'$APICLIdetaillvl'" details to '$primarytargetoutputformat | tee -a -i $APICLIlogfilepath
+            echo 'Calling Action File : '$APIScriptJSONActionFile | tee -a -i $APICLIlogfilepath
+            echo | tee -a -i $APICLIlogfilepath
+            
+            . $APIScriptJSONActionFile "$@"
+        fi
+        
+        if [ x"$script_dump_full" = x"true" ] ; then
+            export APICLIdetaillvl=full
+            
+            echo | tee -a -i $APICLIlogfilepath
+            echo 'Now dumping "'$APICLIdetaillvl'" details to '$primarytargetoutputformat | tee -a -i $APICLIlogfilepath
+            echo 'Calling Action File : '$APIScriptJSONActionFile | tee -a -i $APICLIlogfilepath
+            echo | tee -a -i $APICLIlogfilepath
+            
+            . $APIScriptJSONActionFile "$@"
+        fi
+        
+    fi
+    
+    if [ x"$script_dump_csv" = x"true" ] ; then
+    
+        export primarytargetoutputformat=$FileExtCSV
+    
+        export APICLIdetaillvl=full
+        
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'Now dumping "'$APICLIdetaillvl'" details to '$primarytargetoutputformat | tee -a -i $APICLIlogfilepath
+        echo 'Calling Action File : '$APIScriptCSVActionFile | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        
+        . $APIScriptCSVActionFile "$@"
+    fi
+    
+    #
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04
+    
+    echo
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# =================================================================================================
+# END:  Main Dump Procedures
+# =================================================================================================
+# =================================================================================================
+
+
 # -------------------------------------------------------------------------------------------------
 # Set parameters for Main operations - Other Path Values
 # -------------------------------------------------------------------------------------------------
@@ -1500,9 +1683,13 @@ fi
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
 
+# =================================================================================================
+# END:  Setup Login Parameters and Login to Mgmt_CLI
+# =================================================================================================
+
 
 # =================================================================================================
-# START:  Export objects to csv
+# START:  Export objects - json (standard and full), csv
 # =================================================================================================
 
 
@@ -1517,579 +1704,226 @@ export APICLIdetaillvl=full
 #export CLIparm_NoSystemObjects=false
 
 # ADDED 2018-04-25 -
-export primarytargetoutputformat=$FileExtCSV
+export primarytargetoutputformat=$FileExtJSON
 
 # -------------------------------------------------------------------------------------------------
 # Start executing Main operations
 # -------------------------------------------------------------------------------------------------
 
+CheckExportActionHandlerScripts
+
+
+# =================================================================================================
+# =================================================================================================
+# START:  Main Domain Handling Procedures
+# =================================================================================================
+
 # -------------------------------------------------------------------------------------------------
-# Configure working paths for export and dump
+# GenerateArrayOfDomains - Generate Array with list of domains on MDS
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-04-3 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-# ------------------------------------------------------------------------
-# Set and clear temporary log file
-# ------------------------------------------------------------------------
-
-export templogfilepath=/var/tmp/templog_$ScriptName.`date +%Y%m%d-%H%M%S%Z`.log
-echo > $templogfilepath
-
-echo 'Configure working paths for export and dump' >> $templogfilepath
-echo >> $templogfilepath
-
-echo "domainnamenospace = '$domainnamenospace' " >> $templogfilepath
-echo "CLIparm_NODOMAINFOLDERS = '$CLIparm_NODOMAINFOLDERS' " >> $templogfilepath
-echo "primarytargetoutputformat = '$primarytargetoutputformat' " >> $templogfilepath
-echo "APICLICSVExportpathbase = '$APICLICSVExportpathbase' " >> $templogfilepath
-echo "APICLIpathexport = '$APICLIpathexport' " >> $templogfilepath
-
-# ------------------------------------------------------------------------
-
-if [ ! -z "$domainnamenospace" ] && [ "$CLIparm_NODOMAINFOLDERS" != "true" ] ; then
-    # Handle adding domain name to path for MDM operations
-    export APICLIpathexport=$APICLICSVExportpathbase/$domainnamenospace
-
-    echo 'Handle adding domain name to path for MDM operations' >> $templogfilepath
-    echo "APICLIpathexport = '$APICLIpathexport' " >> $templogfilepath
-
-    if [ ! -r $APICLIpathexport ] ; then
-        mkdir -p -v $APICLIpathexport >> $templogfilepath
-    fi
-else
-    # NOT adding domain name to path for MDM operations
-    export APICLIpathexport=$APICLICSVExportpathbase
-
-    echo 'NOT adding domain name to path for MDM operations' >> $templogfilepath
-    echo "APICLIpathexport = '$APICLIpathexport' " >> $templogfilepath
-
-    if [ ! -r $APICLIpathexport ] ; then
-        mkdir -p -v $APICLIpathexport >> $templogfilepath
-    fi
-fi
-
-# ------------------------------------------------------------------------
-
-if [ x"$script_use_delete" = x"true" ] ; then
-    # primary operation is delete
-
-    export APICLIpathexport=$APICLIpathexport/delete
-
-    echo | tee -a -i $APICLIlogfilepath $templogfilepath
-    echo 'Delete using '$primarytargetoutputformat' Starting!' | tee -a -i $APICLIlogfilepath $templogfilepath
-    
-elif [ x"$script_use_import" = x"true" ] ; then
-    # primary operation is import
-
-    export APICLIpathexport=$APICLIpathexport/import
-
-    echo | tee -a -i $APICLIlogfilepath $templogfilepath
-    echo 'Import using '$primarytargetoutputformat' Starting!' | tee -a -i $APICLIlogfilepath $templogfilepath
-    
-elif [ x"$script_use_export" = x"true" ] ; then
-    # primary operation is export
-
-    # primary operation is export to primarytargetoutputformat
-    export APICLIpathexport=$APICLIpathexport/$primarytargetoutputformat
-
-    echo | tee -a -i $APICLIlogfilepath $templogfilepath
-    echo 'Export to '$primarytargetoutputformat' Starting!' | tee -a -i $APICLIlogfilepath $templogfilepath
-    
-else
-    # primary operation is something else
-
-    export APICLIpathexport=$APICLIpathbase
-
-fi
-
-if [ ! -r $APICLIpathexport ] ; then
-    mkdir -p -v $APICLIpathexport >> $templogfilepath
-fi
-
-echo >> $templogfilepath
-echo 'After Evaluation of script type' >> $templogfilepath
-echo "APICLIpathexport = '$APICLIpathexport' " >> $templogfilepath
-echo " = '$' " >> $templogfilepath
-
-# ------------------------------------------------------------------------
-
-if [ x"$primarytargetoutputformat" = x"$FileExtJSON" ] ; then
-    # for JSON provide the detail level
-
-    export APICLIpathexport=$APICLIpathexport/$APICLIdetaillvl
-
-    if [ ! -r $APICLIpathexport ] ; then
-        mkdir -p -v $APICLIpathexport >> $templogfilepath
-    fi
-
-    export APICLIJSONpathexportwip=
-    if [ x"$script_uses_wip_json" = x"true" ] ; then
-        # script uses work-in-progress (wip) folder for json
-    
-        export APICLIJSONpathexportwip=$APICLIpathexport/wip
-        
-        if [ ! -r $APICLIJSONpathexportwip ] ; then
-            mkdir -p -v $APICLIJSONpathexportwip >> $templogfilepath
-        fi
-    fi
-else    
-    export APICLIJSONpathexportwip=
-fi
-
-echo >> $templogfilepath
-echo 'After handling json target' >> $templogfilepath
-echo "APICLIpathexport = '$APICLIpathexport' " >> $templogfilepath
-echo "APICLIJSONpathexportwip = '$APICLIJSONpathexportwip' " >> $templogfilepath
-
-# ------------------------------------------------------------------------
-
-if [ x"$primarytargetoutputformat" = x"$FileExtCSV" ] ; then
-    # for CSV handle specifics, like wip
-
-    export APICLICSVpathexportwip=
-    if [ x"$script_uses_wip" = x"true" ] ; then
-        # script uses work-in-progress (wip) folder for csv
-    
-        export APICLICSVpathexportwip=$APICLIpathexport/wip
-        
-        if [ ! -r $APICLICSVpathexportwip ] ; then
-            mkdir -p -v $APICLICSVpathexportwip >> $templogfilepath
-        fi
-    fi
-else
-    export APICLICSVpathexportwip=
-fi
-
-echo >> $templogfilepath
-echo 'After handling csv target' >> $templogfilepath
-echo "APICLIpathexport = '$APICLIpathexport' " >> $templogfilepath
-echo "APICLICSVpathexportwip = '$APICLICSVpathexportwip' " >> $templogfilepath
-
-# ------------------------------------------------------------------------
-
-export APICLIfileexportpost='_'$APICLIdetaillvl'_'$APICLIfileexportsuffix
-
-export APICLICSVheaderfilesuffix=header
-
-export APICLICSVfileexportpost='_'$APICLIdetaillvl'_'$APICLICSVfileexportsuffix
-
-export APICLIJSONheaderfilesuffix=header
-export APICLIJSONfooterfilesuffix=footer
-
-export APICLIJSONfileexportpost='_'$APICLIdetaillvl'_'$APICLIJSONfileexportsuffix
-
-echo >> $templogfilepath
-echo 'Setup other file and path variables' >> $templogfilepath
-echo "APICLIfileexportpost = '$APICLIfileexportpost' " >> $templogfilepath
-echo "APICLICSVheaderfilesuffix = '$APICLICSVheaderfilesuffix' " >> $templogfilepath
-echo "APICLICSVfileexportpost = '$APICLICSVfileexportpost' " >> $templogfilepath
-echo "APICLIJSONheaderfilesuffix = '$APICLIJSONheaderfilesuffix' " >> $templogfilepath
-echo "APICLIJSONfooterfilesuffix = '$APICLIJSONfooterfilesuffix' " >> $templogfilepath
-echo "APICLIJSONfileexportpost = '$APICLIJSONfileexportpost' " >> $templogfilepath
-
-# ------------------------------------------------------------------------
-
-echo >> $templogfilepath
-
-cat $templogfilepath >> $APICLIlogfilepath
-rm -v $templogfilepath >> $APICLIlogfilepath
-
-# ------------------------------------------------------------------------
-
-echo 'Dump "'$APICLIdetaillvl'" details to path:  '$APICLIpathexport | tee -a -i $APICLIlogfilepath
-echo | tee -a -i $APICLIlogfilepath
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04-3
-
-
-# -------------------------------------------------------------------------------------------------
-# Main Operational repeated proceedure - ExportObjectsToCSVviaJQ
-# -------------------------------------------------------------------------------------------------
-
-# -------------------------------------------------------------------------------------------------
-# SetupExportObjectsToCSVviaJQ
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2018-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# The SetupExportObjectsToCSVviaJQ is the setup actions for the script's repeated actions.
-#
-
-SetupExportObjectsToCSVviaJQ () {
+GenerateArrayOfDomains () {
     #
-    # Screen width template for sizing, default width of 80 characters assumed
-    #
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-    
-    echo
-    
-    export APICLICSVfilename=$APICLIobjectstype
-    if [ x"$APICLIexportnameaddon" != x"" ] ; then
-        export APICLICSVfilename=$APICLICSVfilename'_'$APICLIexportnameaddon
-    fi
-    export APICLICSVfilename=$APICLICSVfilename'_'$APICLIdetaillvl'_csv'$APICLICSVfileexportsuffix
-    export APICLICSVfile=$APICLIpathexport/$APICLICSVfilename
-    export APICLICSVfilewip=$APICLICSVpathexportwip/$APICLICSVfilename
-    export APICLICSVfileheader=$APICLICSVfilewip.$APICLICSVheaderfilesuffix
-    export APICLICSVfiledata=$APICLICSVfilewip.data
-    export APICLICSVfilesort=$APICLICSVfilewip.sort
-    export APICLICSVfileoriginal=$APICLICSVfilewip.original
-
-    
-    if [ ! -r $APICLICSVpathexportwip ] ; then
-        mkdir -p -v $APICLICSVpathexportwip | tee -a -i $APICLIlogfilepath
-    fi
-
-    if [ -r $APICLICSVfile ] ; then
-        rm $APICLICSVfile >> $APICLIlogfilepath
-    fi
-    if [ -r $APICLICSVfileheader ] ; then
-        rm $APICLICSVfileheader >> $APICLIlogfilepath
-    fi
-    if [ -r $APICLICSVfiledata ] ; then
-        rm $APICLICSVfiledata >> $APICLIlogfilepath
-    fi
-    if [ -r $APICLICSVfilesort ] ; then
-        rm $APICLICSVfilesort >> $APICLIlogfilepath
-    fi
-    if [ -r $APICLICSVfileoriginal ] ; then
-        rm $APICLICSVfileoriginal >> $APICLIlogfilepath
-    fi
-    
-    echo | tee -a -i $APICLIlogfilepath
-    echo "Creat $APICLIobjectstype CSV File : $APICLICSVfile" | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    
-    #
-    # Troubleshooting output
-    #
-    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-        # Verbose mode ON
-        echo | tee -a -i $APICLIlogfilepath
-        echo '$CSVFileHeader' - $CSVFileHeader | tee -a -i $APICLIlogfilepath
-        echo | tee -a -i $APICLIlogfilepath
-    
-    fi
-    
-    echo $CSVFileHeader > $APICLICSVfileheader | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    
-    echo | tee -a -i $APICLIlogfilepath
-    return 0
-    
-    #
-}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04
-
-
-# -------------------------------------------------------------------------------------------------
-# The FinalizeExportObjectsToCSVviaJQ
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2018-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-FinalizeExportObjectsToCSVviaJQ () {
-    #
-    # The FinalizeExportObjectsToCSVviaJQ is the finaling actions for the script's repeated actions.
-    #
-
-    if [ ! -r "$APICLICSVfileheader" ] ; then
-        # Uh, Oh, something went wrong, no header file
-        echo | tee -a -i $APICLIlogfilepath
-        echo '!!!! Error header file missing : '$APICLICSVfileheader | tee -a -i $APICLIlogfilepath
-        echo 'Terminating!' | tee -a -i $APICLIlogfilepath
-        echo | tee -a -i $APICLIlogfilepath
-        return 254
-        
-    elif [ ! -r "$APICLICSVfiledata" ] ; then
-        # Uh, Oh, something went wrong, no data file
-        echo | tee -a -i $APICLIlogfilepath
-        echo '!!!! Error data file missing : '$APICLICSVfiledata | tee -a -i $APICLIlogfilepath
-        echo 'Terminating!' | tee -a -i $APICLIlogfilepath
-        echo | tee -a -i $APICLIlogfilepath
-        return 253
-        
-    elif [ ! -s "$APICLICSVfiledata" ] ; then
-        # data file is empty, nothing was found
-        echo | tee -a -i $APICLIlogfilepath
-        echo '!! data file is empty : '$APICLICSVfiledata | tee -a -i $APICLIlogfilepath
-        echo 'Skipping CSV creation!' | tee -a -i $APICLIlogfilepath
-        echo | tee -a -i $APICLIlogfilepath
-        return 0
-        
-    fi
-
-    echo | tee -a -i $APICLIlogfilepath
-    echo "Sort data and build CSV export file" | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    
-    cat $APICLICSVfileheader > $APICLICSVfileoriginal
-    cat $APICLICSVfiledata >> $APICLICSVfileoriginal
-    
-    sort $APICLICSVsortparms $APICLICSVfiledata > $APICLICSVfilesort
-    
-    cat $APICLICSVfileheader > $APICLICSVfile
-    cat $APICLICSVfilesort >> $APICLICSVfile
-    
-    echo | tee -a -i $APICLIlogfilepath
-    echo "Done creating $APICLIobjectstype CSV File : $APICLICSVfile" | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    
-    head $APICLICSVfile | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-   
-    
-    echo | tee -a -i $APICLIlogfilepath
-    return 0
-    
-    #
-}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04
-
-
-# -------------------------------------------------------------------------------------------------
-# ExportObjectsToCSVviaJQ
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2018-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# The ExportObjectsToCSVviaJQ is the meat of the script's repeated actions.
-#
-# For this script the $APICLIobjectstype item's name is exported to a CSV file and sorted.
-# The original exported data and raw sorted data are retained in separate files, as is the header
-# for the CSV file generated.
-
-ExportObjectsToCSVviaJQ () {
+    # Generate Array with list of domains on MDS
     #
     
-    if [[ $number_of_objects -lt 1 ]] ; then
-        # no objects of this type
- 
-        echo "No objects of type $APICLIobjecttype to process, skipping..." | tee -a -i $APICLIlogfilepath
-
-        return 0
-       
-    else
-        # we have objects to handle
-        echo "Processing $number_of_objects $APICLIobjecttype objects..." | tee -a -i $APICLIlogfilepath
-        echo | tee -a -i $APICLIlogfilepath
-    fi
-
-    SetupExportObjectsToCSVviaJQ
-    errorreturn=$?
-    if [ $errorreturn != 0 ] ; then
-        # Something went wrong, terminate
-        echo 'Problem found in procedure SetupExportObjectsToCSVviaJQ! error return = '$errorreturn | tee -a -i $APICLIlogfilepath
-        return $errorreturn
-    fi
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Generate Array with list of domains on MDS' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
     
     export MgmtCLI_Base_OpParms="-f json -s $APICLIsessionfile"
     export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
-    
     export MgmtCLI_Show_OpParms="details-level \"full\" $MgmtCLI_Base_OpParms"
     
-    # MODIFIED 2018-07-20 -
+    objectstotal=$(mgmt_cli show domains limit 1 offset 0 details-level "standard" $MgmtCLI_Base_OpParms | $JQ ".total")
     
-    # System Object selection operands
-    # This one won't work because upgrades set all objects to creator = System"
-    #export notsystemobjectselector='select(."meta-info"."creator" | contains ("System") | not)'
-    #
-    # This should work if assumptions aren't wrong (not complete enough based on object type)
-    #export notsystemobjectselector='select(."domain"."name" != "Check Point Data")'
+    GETDOMAINS="`mgmt_cli show domains $MgmtCLI_Base_OpParms | jq '.objects[].name'`"
     
-    #
-    # This should work, but might need more tweeks if other data types use more values
-    #export notsystemobjectselector='select(."domain"."name" | contains ("Check Point Data", "APPI Data", "IPS Data") | not)'
-    #export notsystemobjectselector='select(any(."domain"."name"; in("Check Point Data", "APPI Data", "IPS Data")) | not)'
-    #export notsystemobjectselector='select((."domain"."name" != "Check Point Data") and (."domain"."name" != "APPI Data") and (."domain"."name" != "IPS Data"))'
-    
-    #
-    # Future alternative if more options to exclude are needed
-    export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
-    export notsystemobjectselector='select(."domain"."name" as $a | ['$systemobjectdomains'] | index($a) | not)'
-    
-    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
-
-    objectstoshow=$objectstotal
-
-    echo "Processing $objectstoshow $APICLIobjecttype objects in $APICLIObjectLimit object chunks:" | tee -a -i $APICLIlogfilepath
-
-    objectslefttoshow=$objectstoshow
-    currentoffset=0
-
+    echo 'Populate array of domains : ' | tee -a -i $APICLIlogfilepath
     echo | tee -a -i $APICLIlogfilepath
-    echo "Export $APICLIobjectstype to CSV File" | tee -a -i $APICLIlogfilepath
-    echo "  and dump to $APICLICSVfile" | tee -a -i $APICLIlogfilepath
-    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-        # Verbose mode ON
-        echo "  mgmt_cli parameters : $MgmtCLI_Show_OpParms" | tee -a -i $APICLIlogfilepath
-        echo '  $CSVJQparms' - $CSVJQparms | tee -a -i $APICLIlogfilepath
-        echo "  System Object Selector : "$notsystemobjectselector | tee -a -i $APICLIlogfilepath
-    fi
+    
+    line="\"System Data\""
+    DOMAINSARRAY+=("$line")
+    echo -n 'Domains :  '$line
+    
+    line="\"Global\""
+    DOMAINSARRAY+=("$line")
+    echo -n ', '$line
+    
+    arraylength=2
+    while read -r line; do
+    
+        if [ $arraylength -eq 0 ]; then
+        	echo -n 'Domains :  '
+        else
+        	echo -n ', '
+        fi
+    
+        DOMAINSARRAY+=("$line")
+        echo -n $line
+    
+        #if [ "$line" == 'lo' ]; then
+        #    echo -n 'Not adding '$line
+        #else 
+        #    DOMAINSARRAY+=("$line")
+        #    echo -n $line
+        #fi
+    	
+    	arraylength=${#DOMAINSARRAY[@]}
+    	arrayelement=$((arraylength-1))
+    	
+    done <<< "$GETDOMAINS"
+    echo
+
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
+
+# -------------------------------------------------------------------------------------------------
+# DumpArrayOfDomains - repeated proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED YYYY-MM-DD -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+DumpArrayOfDomains () {
+    #
+    # repeated procedure description
+    #
+    
+    echo 'Show list of domains in array' | tee -a -i $APICLIlogfilepath
     echo | tee -a -i $APICLIlogfilepath
-
-    while [ $objectslefttoshow -ge 1 ] ; do
-        # we have objects to process
-        echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentoffset of $objectslefttoshow remaining!" | tee -a -i $APICLIlogfilepath
-
-        #mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | [ '"$CSVJQparms"' ] | @csv' -r >> $APICLICSVfiledata
-        #errorreturn=$?
-
-        if [ x"$NoSystemObjects" = x"true" ] ; then
-            # Ignore System Objects
-            #mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | select(."meta-info"."creator" != "System") | [ '"$CSVJQparms"' ] | @csv' -r >> $APICLICSVfiledata
-            mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | '"$notsystemobjectselector"' | [ '"$CSVJQparms"' ] | @csv' -r >> $APICLICSVfiledata
-            errorreturn=$?
-        else   
-            # Don't Ignore System Objects
-            mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currentoffset $MgmtCLI_Show_OpParms | $JQ '.objects[] | [ '"$CSVJQparms"' ] | @csv' -r >> $APICLICSVfiledata
-            errorreturn=$?
-        fi
-
-        if [ $errorreturn != 0 ] ; then
-            # Something went wrong, terminate
-            echo 'Problem during mgmt_cli operation! error return = '$errorreturn | tee -a -i $APICLIlogfilepath
-            return $errorreturn
-        fi
-
-        objectslefttoshow=`expr $objectslefttoshow - $APICLIObjectLimit`
-        currentoffset=`expr $currentoffset + $APICLIObjectLimit`
+    for j in "${DOMAINSARRAY[@]}"
+    do
+        echo "${j}" | tee -a -i $APICLIlogfilepath
     done
-
-    FinalizeExportObjectsToCSVviaJQ
-    errorreturn=$?
-    if [ $errorreturn != 0 ] ; then
-        # Something went wrong, terminate
-        echo 'Problem found in procedure FinalizeExportObjectsToCSVviaJQ! error return = '$errorreturn | tee -a -i $APICLIlogfilepath
-        return $errorreturn
-    fi
+    echo | tee -a -i $APICLIlogfilepath
     
     if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-        echo
-        echo "Done with Exporting $APICLIobjectstype to CSV File : $APICLICSVfile" | tee -a -i $APICLIlogfilepath
-    
-        if [ "$CLIparm_NOWAIT" != "true" ] ; then
-            read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
-        fi
-    
+            
+        echo 'Raw dump of domains array : ' | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        echo ${DOMAINSARRAY[@]} | tee -a -i $APICLIlogfilepath
+        #echo ${DOMAINSARRAY[*]} | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        
     fi
     
-    echo | tee -a -i $APICLIlogfilepath
     return 0
-    
-    #
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04
-
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED YYYY-MM-DD
 
 # -------------------------------------------------------------------------------------------------
-# GetNumberOfObjectsviaJQ
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+
+
+# =================================================================================================
+# END:  Main Domain Handling Procedures
+# =================================================================================================
+# =================================================================================================
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
 #
+# Generate list of domains in Array
+#
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
 
-GetNumberOfObjectsviaJQ () {
-    #
-    # The GetNumberOfObjectsviaJQ obtains the number of objects for that object type indicated.
-    #
-    
-    export objectstotal=
-    
-    #
-    # Troubleshooting output
-    #
-    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-        # Verbose mode ON
-        echo | tee -a -i $APICLIlogfilepath
-        echo 'Get objectstotal of object type '$APICLIobjectstype | tee -a -i $APICLIlogfilepath
-        echo | tee -a -i $APICLIlogfilepath
-    fi
-    
-    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
-    errorreturn=$?
 
-    if [ $errorreturn != 0 ] ; then
-        # Something went wrong, terminate
-        echo 'Problem during mgmt_cli objectstotal operation! error return = '$errorreturn | tee -a -i $APICLIlogfilepath
-        return $errorreturn
-    fi
+if [ "$sys_type_MDS" != "true" ]; then
     
-    export number_of_objects=$objectstotal
+    echo | tee -a -i $APICLIlogfilepath
+    echo '!!!! This script is expected to run on Multi-Domain Management !!!!' | tee -a -i $APICLIlogfilepath
+    echo 'Exiting...!' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    exit 255
+    
+fi
+
+DOMAINSARRAY=()
+
+GenerateArrayOfDomains
+echo | tee -a -i $APICLIlogfilepath
+
+DumpArrayOfDomains
+echo | tee -a -i $APICLIlogfilepath
+
+if [ "$CLIparm_NOWAIT" != "true" ] ; then
+    read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
+fi
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+
+echo | tee -a -i $APICLIlogfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+echo | tee -a -i $APICLIlogfilepath
+
+for j in "${DOMAINSARRAY[@]}"
+do
+    workdomain=${j}
+    #workdomain=\'${workdomain//\"}\'
+    workdomain=${workdomain//\"}
 
     echo | tee -a -i $APICLIlogfilepath
-    return 0
+    echo 'Domain :  >'${workdomain}'< ' | tee -a -i $APICLIlogfilepath
     
-    #
-}
+    # we logged in earlier, time to logout
+    HandleMgmtCLILogout
 
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04
+    echo | tee -a -i $APICLIlogfilepath
 
-# -------------------------------------------------------------------------------------------------
+    # we need to login to the specific domain for the API export, so let's set that up from scratch again
+    SetupLogin2MgmtCLI
+    
+    export domaintarget=${workdomain}
 
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'domaintarget =  >'$domaintarget'< ' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+    
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+    # we need to login to the specific domain for the API export
+    Login2MgmtCLI
+    LOGINEXITCODE=$?
+    
+    export LoggedIntoMgmtCli=false
+    
+    if [ "$LOGINEXITCODE" != "0" ] ; then
+        # well that went sideways...
+        exit $LOGINEXITCODE
+    else
+        export LoggedIntoMgmtCli=true
+    fi
+    
+    echo | tee -a -i $APICLIlogfilepath
 
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# handle simple objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-# -------------------------------------------------------------------------------------------------
-# security-zones
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=security-zone
-export APICLIobjectstype=security-zones
-export APICLIexportnameaddon=
-
-#
-# APICLICSVsortparms can change due to the nature of the object
-#
-export APICLICSVsortparms='-f -t , -k 1,1'
-
-export CSVFileHeader='"name","color","comments"'
-#export CSVFileHeader=$CSVFileHeader',"icon"'
-
-export CSVJQparms='.["name"], .["color"], .["comments"]'
-#export CSVJQparms=$CSVJQparms', .["icon"]'
-
-ExportObjectsToCSVviaJQ
-
-
-# -------------------------------------------------------------------------------------------------
-# no more objects
-# -------------------------------------------------------------------------------------------------
-
-echo | tee -a -i $APICLIlogfilepath
-echo $APICLIdetaillvl' CSV dump - Completed!' | tee -a -i $APICLIlogfilepath
-echo | tee -a -i $APICLIlogfilepath
-
-echo | tee -a -i $APICLIlogfilepath
-echo | tee -a -i $APICLIlogfilepath
-
-
-# -------------------------------------------------------------------------------------------------
-# Finished with exporting
-# -------------------------------------------------------------------------------------------------
+    MainExportDumpOperations
+    
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Dump for '$domaintarget' Completed!' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+    echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    
+    if [ "$CLIparm_NOWAIT" != "true" ] ; then
+        read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
+    fi
+    
+done
 
 echo | tee -a -i $APICLIlogfilepath
 echo 'Dumps Completed!' | tee -a -i $APICLIlogfilepath
