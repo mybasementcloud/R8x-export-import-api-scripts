@@ -7,7 +7,7 @@ ScriptDate=2018-09-21
 
 #
 
-export APIActionsScriptVersion=v00x30x00
+export APIActionsScriptVersion=v00x31x00
 ActionScriptName=cli_api_export_objects_actions
 
 # =================================================================================================

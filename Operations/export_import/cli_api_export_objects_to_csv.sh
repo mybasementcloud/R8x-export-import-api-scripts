@@ -2,12 +2,12 @@
 #
 # SCRIPT Object export to CSV file for API CLI Operations
 #
-ScriptVersion=00.29.05
-ScriptDate=2018-07-20
+ScriptVersion=00.31.00
+ScriptDate=2018-10-27
 
 #
 
-export APIScriptVersion=v00x29x05
+export APIScriptVersion=v00x31x00
 ScriptName=cli_api_export_objects_to_csv
 
 # =================================================================================================
@@ -41,6 +41,12 @@ export APICLIlogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_'$DATEDTGS.lo
 export cli_api_cmdlineparm_handler_root=.
 export cli_api_cmdlineparm_handler_folder=common
 export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.action.common.005.v$ScriptVersion.sh
+
+# ADDED 2018-09-21 -
+export gaia_version_handler_root=.
+export gaia_version_handler_folder=common
+export gaia_version_handler_file=identify_gaia_and_installation.action.common.005.v$ScriptVersion.sh
+
 
 # -------------------------------------------------------------------------------------------------
 # Root script declarations
@@ -77,6 +83,11 @@ export script_dump_full="false"
 
 export script_uses_wip="true"
 export script_uses_wip_json="false"
+
+# ADDED 2018-10-27 -
+export UseR8XAPI=true
+export UseJSONJQ=true
+
 
 # Wait time in seconds
 export WAITTIME=15
@@ -198,7 +209,7 @@ ConfigureJQLocation () {
 
 ScriptAPIVersionCheck () {
 
-    getapiversion=$(mgmt_cli show api-versions -r true --format json --port $currentapisslport | $JQ '.["current-version"]' -r)
+    getapiversion=$(mgmt_cli show api-versions -r true -f json --port $currentapisslport | $JQ '.["current-version"]' -r)
     export checkapiversion=$getapiversion
     if [ $checkapiversion = null ] ; then
         # show api-versions does not exist in version 1.0, so it fails and returns null
@@ -317,7 +328,7 @@ CheckAPIScriptVerboseOutput
 # START:  Command Line Parameter Handling and Help
 # =================================================================================================
 
-# MODIFIED 2018-05-03-2 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -354,7 +365,9 @@ CheckAPIScriptVerboseOutput
 #
 
 export SHOWHELP=false
-export CLIparm_websslport=443
+# MODIFIED 2018-09-21 -
+#export CLIparm_websslport=443
+export CLIparm_websslport=
 export CLIparm_rootuser=false
 export CLIparm_user=
 export CLIparm_password=
@@ -446,14 +459,14 @@ fi
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-03-2
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
 
 # =================================================================================================
 # -------------------------------------------------------------------------------------------------
 # START:  Local Help display proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Show local help information.  Add script specific information here to show when help requested
@@ -465,7 +478,7 @@ doshowlocalhelp () {
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     echo
-
+    echo 'Local Help Information : '
 
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
@@ -479,7 +492,7 @@ doshowlocalhelp () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-03
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
 
 # -------------------------------------------------------------------------------------------------
 # END:  Local Help display proceedure
@@ -545,7 +558,7 @@ export cli_api_cmdlineparm_handler=$cli_api_cmdlineparm_handler_path/$cli_api_cm
 if [ ! -r $cli_api_cmdlineparm_handler ] ; then
     # no file found, that is a problem
     echo | tee -a -i $APICLIlogfilepath
-    echo 'Command Line Parameter hander script file missing' | tee -a -i $APICLIlogfilepath
+    echo 'Command Line Parameter handler script file missing' | tee -a -i $APICLIlogfilepath
     echo '  File not found : '$cli_api_cmdlineparm_handler | tee -a -i $APICLIlogfilepath
     echo | tee -a -i $APICLIlogfilepath
     echo 'Other parameter elements : ' | tee -a -i $APICLIlogfilepath
@@ -571,7 +584,7 @@ CommandLineParameterHandler "$@"
 # Local Handle request for help and return
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -580,11 +593,11 @@ CommandLineParameterHandler "$@"
 if [ x"$SHOWHELP" = x"true" ] ; then
     # Show Local Help
     doshowlocalhelp
-    return 255 
+    exit 255 
 fi
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -601,19 +614,93 @@ fi
 # START:  Setup Standard Parameters
 # =================================================================================================
 
-export gaiaversion=$(clish -c "show version product" | cut -d " " -f 6)
-
-if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-    echo 'Gaia Version : $gaiaversion = '$gaiaversion | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-fi
-
-
 if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
     echo 'Date Time Group   :  '$DATE | tee -a -i $APICLIlogfilepath
     echo 'Date Time Group S :  '$DATEDTGS | tee -a -i $APICLIlogfilepath
     echo | tee -a -i $APICLIlogfilepath
 fi
+
+# -------------------------------------------------------------------------------------------------
+# GetGaiaVersionAndInstallationType - Gaia version and installation type Handler calling routine
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+GetGaiaVersionAndInstallationType () {
+    #
+    # GetGaiaVersionAndInstallationType - Gaia version and installation type Handler calling routine
+    #
+    
+    echo | tee -a -i $APICLIlogfilepath
+    echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo "Calling external Gaia version and installation type Handling Script" | tee -a -i $APICLIlogfilepath
+    echo " - External Script : "$gaia_version_handler | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    
+    . $gaia_version_handler "$@"
+    
+    echo | tee -a -i $APICLIlogfilepath
+    echo "Returned from external Gaia version and installation type Handling Script" | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    
+    if [ "$APISCRIPTVERBOSE" = "true" ] && [ "$NOWAIT" != "true" ] ; then
+        echo
+        read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
+    fi
+    
+    echo | tee -a -i $APICLIlogfilepath
+    echo "Continueing local execution" | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
+# Call Gaia version and installation type Handler action script
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+export gaia_version_handler_path=$gaia_version_handler_root/$gaia_version_handler_folder
+
+export gaia_version_handler=$gaia_version_handler_path/$gaia_version_handler_file
+
+# Check that we can finde the command line parameter handler file
+#
+if [ ! -r $gaia_version_handler ] ; then
+    # no file found, that is a problem
+    echo | tee -a -i $APICLIlogfilepath
+    echo ' Gaia version and installation type handler script file missing' | tee -a -i $APICLIlogfilepath
+    echo '  File not found : '$gaia_version_handler | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Other parameter elements : ' | tee -a -i $APICLIlogfilepath
+    echo '  Root of folder path : '$gaia_version_handler_root | tee -a -i $APICLIlogfilepath
+    echo '  Folder in Root path : '$gaia_version_handler_folder | tee -a -i $APICLIlogfilepath
+    echo '  Folder Root path    : '$gaia_version_handler_path | tee -a -i $APICLIlogfilepath
+    echo '  Script Filename     : '$gaia_version_handler_file | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Critical Error - Exiting Script !!!!' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo "Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+
+    exit 251
+fi
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
+
+GetGaiaVersionAndInstallationType "$@"
 
 
 # =================================================================================================
@@ -982,7 +1069,7 @@ HandleMgmtCLILogin () {
 # SetupLogin2MgmtCLI - Setup Login to Management CLI
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-03 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 SetupLogin2MgmtCLI () {
@@ -990,12 +1077,60 @@ SetupLogin2MgmtCLI () {
     # setup the mgmt_cli login fundamentals
     #
     
-    export APICLIwebsslport=443
-    if [ ! -z "$CLIparm_websslport" ] ; then
-        export APICLIwebsslport=$CLIparm_websslport
+    # MODIFIED 2018-09-21 -
+    # Stipulate that if running on the actual management host, use it's web ssl-port value
+    #
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'Initial $APICLIwebsslport   = '$APICLIwebsslport | tee -a -i $APICLIlogfilepath
+        echo 'Current $CLIparm_websslport = '$CLIparm_websslport | tee -a -i $APICLIlogfilepath
+        echo 'Current $currentapisslport  = '$currentapisslport | tee -a -i $APICLIlogfilepath
+    fi            
+
+    export APICLIwebsslport=$currentapisslport
+
+    if [ ! -z "$CLIparm_mgmt" ] ; then
+        # working with remote management server
+        if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+            echo 'Working with remote management server' | tee -a -i $APICLIlogfilepath
+        fi            
+        
+        if [ ! -z "$CLIparm_websslport" ] ; then
+            if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                echo 'Working with web ssl-port from CLI parms' | tee -a -i $APICLIlogfilepath
+            fi            
+            export APICLIwebsslport=$CLIparm_websslport
+        else
+            # Default back to expected SSL port, since we won't know what the remote management server configuration for web ssl-port is.
+            # This may change once Gaia API is readily available and can be checked.
+            if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                echo 'Remote management cannot currently be queried for web ssl-port, so defaulting to 443' | tee -a -i $APICLIlogfilepath
+            fi            
+            export APICLIwebsslport=443
+        fi
     else
-        export APICLIwebsslport=443
+        # not working with remote management server
+        if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+            echo 'Not working with remote management server' | tee -a -i $APICLIlogfilepath
+        fi            
+        
+        if [ ! -z "$CLIparm_websslport" ] ; then
+            if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                echo 'Working with web ssl-port from CLI parms' | tee -a -i $APICLIlogfilepath
+            fi            
+            export APICLIwebsslport=$CLIparm_websslport
+        else
+            if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                echo 'Working with web ssl-port harvested from Gaia' | tee -a -i $APICLIlogfilepath
+            fi            
+            export APICLIwebsslport=$currentapisslport
+        fi
     fi
+
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+        echo 'Final $APICLIwebsslport     = '$APICLIwebsslport | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+    fi            
     
     # MODIFIED 2018-05-03 -
 
@@ -1028,7 +1163,7 @@ SetupLogin2MgmtCLI () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-05-03
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
 
 # -------------------------------------------------------------------------------------------------
 # Login2MgmtCLI - Process Login to Management CLI
@@ -1188,6 +1323,9 @@ ConfigureCommonCLIParameterValues () {
 # ConfigureOtherCLIParameterPaths - Configure other path and folder values based on CLI parameters
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2018-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 ConfigureOtherCLIParameterPaths () {
 
     # ---------------------------------------------------------
@@ -1196,12 +1334,22 @@ ConfigureOtherCLIParameterPaths () {
     # ---------------------------------------------------------
     
     export APICLICSVExportpathbase=
-    if [ x"$script_use_export" = x"true" ] ; then
-        if [ x"$CLIparm_exportpath" != x"" ] ; then
-            export APICLICSVExportpathbase=$CLIparm_exportpath
-        else
-            export APICLICSVExportpathbase=$APICLIpathbase
-        fi
+#    if [ x"$script_use_export" = x"true" ] ; then
+#        if [ x"$CLIparm_exportpath" != x"" ] ; then
+#            export APICLICSVExportpathbase=$CLIparm_exportpath
+#        else
+#            export APICLICSVExportpathbase=$APICLIpathbase
+#        fi
+#    fi
+
+    # Since we use the $APICLICSVExportpathbase as a base folder for output results, 
+    # we need this for all operations.  
+    # FUTURE UDPATE : migrate the common dump location to a new standard variable
+    #
+    if [ x"$CLIparm_exportpath" != x"" ] ; then
+        export APICLICSVExportpathbase=$CLIparm_exportpath
+    else
+        export APICLICSVExportpathbase=$APICLIpathbase
     fi
     
     export APICLICSVImportpathbase=
@@ -1232,6 +1380,9 @@ ConfigureOtherCLIParameterPaths () {
     fi
     return 0
 }
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-10-27
 
 # -------------------------------------------------------------------------------------------------
 # ConfigureOtherCLIParameterValues - Configure other values based on CLI parameters
@@ -1334,36 +1485,48 @@ fi
 # START:  Setup Login Parameters and Login to Mgmt_CLI
 # =================================================================================================
 
+# MODIFIED 2018-10-27 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
-SetupLogin2MgmtCLI
+if $UseR8XAPI ; then
 
-if [ ! -z "$CLIparm_domain" ] ; then
-    # Handle domain parameter for login string
-    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-        echo 'Command line parameter for domain set!' | tee -a -i $APICLIlogfilepath
+    SetupLogin2MgmtCLI
+    
+    if [ ! -z "$CLIparm_domain" ] ; then
+        # Handle domain parameter for login string
+        if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+            echo 'Command line parameter for domain set!  Domain = '$CLIparm_domain | tee -a -i $APICLIlogfilepath
+        fi
+        export domaintarget=$CLIparm_domain
+    else
+        if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+            echo 'Command line parameter for domain NOT set!' | tee -a -i $APICLIlogfilepath
+        fi
+        export domaintarget=
     fi
-    export domaintarget=$CLIparm_domain
-else
+    
     if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-        echo 'Command line parameter for domain NOT set!' | tee -a -i $APICLIlogfilepath
+        echo "domaintarget = '$domaintarget' " | tee -a -i $APICLIlogfilepath
     fi
-    export domaintarget=
+    
+    Login2MgmtCLI
+    LOGINEXITCODE=$?
+    
+    export LoggedIntoMgmtCli=false
+    
+    if [ "$LOGINEXITCODE" != "0" ] ; then
+        exit $LOGINEXITCODE
+    else
+        export LoggedIntoMgmtCli=true
+    fi
+
 fi
 
-if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-    echo "domaintarget = '$domaintarget' " | tee -a -i $APICLIlogfilepath
-fi
-
-Login2MgmtCLI
-
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-10-27
 
 # =================================================================================================
 # END:  Setup Login Parameters and Login to Mgmt_CLI
-# =================================================================================================
-
-
-# =================================================================================================
-# START:  Export objects to csv
 # =================================================================================================
 
 
@@ -1756,7 +1919,7 @@ ExportObjectsToCSVviaJQ () {
         return $errorreturn
     fi
     
-    export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
+    export MgmtCLI_Base_OpParms="-f json -s $APICLIsessionfile"
     export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
     
     export MgmtCLI_Show_OpParms="details-level \"full\" $MgmtCLI_Base_OpParms"
@@ -1781,7 +1944,7 @@ ExportObjectsToCSVviaJQ () {
     export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
     export notsystemobjectselector='select(."domain"."name" as $a | ['$systemobjectdomains'] | index($a) | not)'
     
-    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 
     objectstoshow=$objectstotal
 
@@ -1881,7 +2044,7 @@ GetNumberOfObjectsviaJQ () {
         echo | tee -a -i $APICLIlogfilepath
     fi
     
-    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
     errorreturn=$?
 
     if [ $errorreturn != 0 ] ; then
@@ -1936,7 +2099,7 @@ export CSVJQparms=$CSVJQparms', .["ipv4-address"], .["ipv6-address"]'
 export CSVJQparms=$CSVJQparms', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"]'
 export CSVJQparms=$CSVJQparms', .["nat-settings"]["ipv4-address"], .["nat-settings"]["ipv6-address"], .["nat-settings"]["method"]'
 
-objectstotal_hosts=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_hosts=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_hosts="$objectstotal_hosts"
 export number_of_objects=$number_hosts
 
@@ -1964,7 +2127,7 @@ export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["broadcast"], .["subnet4"], .["mask-length4"], .["subnet6"], .["mask-length6"]'
 export CSVJQparms=$CSVJQparms', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"], .["nat-settings"]["method"]'
 
-objectstotal_networks=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_networks=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_networks="$objectstotal_networks"
 export number_of_objects=$number_networks
 
@@ -1988,7 +2151,7 @@ export CSVFileHeader='"name","color","comments"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 
-objectstotal_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_groups="$objectstotal_groups"
 export number_of_objects=$number_groups
 
@@ -2014,7 +2177,7 @@ export CSVFileHeader=$CSVFileHeader',"include","except"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["include"]["name"], .["except"]["name"]'
 
-objectstotal_groupswithexclusion=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_groupswithexclusion=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_groupswithexclusion="$objectstotal_groupswithexclusion"
 export number_of_objects=$number_groupswithexclusion
 
@@ -2042,7 +2205,7 @@ export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["ipv4-address-first"], .["ipv4-address-last"]'
 export CSVJQparms=$CSVJQparms', .["ipv6-address-first"], .["ipv6-address-last"]'
 
-objectstotal_addressranges=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_addressranges=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_addressranges="$objectstotal_addressranges"
 export number_of_objects=$number_addressranges
 
@@ -2070,7 +2233,7 @@ export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["ipv4-address-first"], .["ipv4-address-last"]'
 export CSVJQparms=$CSVJQparms', .["ipv6-address-first"], .["ipv6-address-last"]'
 
-objectstotal_multicastaddressranges=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_multicastaddressranges=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_multicastaddressranges="$objectstotal_multicastaddressranges"
 export number_of_objects=$number_multicastaddressranges
 
@@ -2096,7 +2259,7 @@ export CSVFileHeader=$CSVFileHeader',"is-sub-domain"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["is-sub-domain"]'
 
-objectstotal_dnsdomains=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_dnsdomains=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_dnsdomains="$objectstotal_dnsdomains"
 export number_of_objects=$number_dnsdomains
 
@@ -2122,7 +2285,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_securityzones=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_securityzones=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_securityzones="$objectstotal_securityzones"
 export number_of_objects=$number_securityzones
 
@@ -2151,7 +2314,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_dynamicobjects=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_dynamicobjects=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_dynamicobjects="$objectstotal_dynamicobjects"
 export number_of_objects=$number_dynamicobjects
 
@@ -2206,7 +2369,7 @@ export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["primary-category"], .["risk"], .["description"], .["urls-defined-as-regular-expression"]'
 export CSVJQparms=$CSVJQparms', .["meta-info"]["creator"], .["user-defined"], .["read-only"]'
 
-objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_application_sites="$objectstotal_application_sites"
 export number_of_objects=$number_application_sites
 
@@ -2243,7 +2406,7 @@ export CSVJQparms='.["name"]'
 export CSVJQparms=$CSVJQparms', .["primary-category"], .["risk"], .["description"]'
 export CSVJQparms=$CSVJQparms', .["meta-info"]["creator"], .["user-defined"], .["read-only"]'
 
-objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_application_sites="$objectstotal_application_sites"
 export number_of_objects=$number_application_sites
 
@@ -2277,7 +2440,7 @@ export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
 
-objectstotal_application_site_categories=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_application_site_categories=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_application_site_categories="$objectstotal_application_site_categories"
 export number_of_objects=$number_application_site_categories
 
@@ -2311,7 +2474,7 @@ export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
 
-objectstotal_application_site_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_application_site_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_application_site_groups="$objectstotal_application_site_groups"
 export number_of_objects=$number_application_site_groups
 
@@ -2350,7 +2513,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_tags=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_tags=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_tags="$objectstotal_tags"
 export number_of_objects=$number_tags
 
@@ -2385,7 +2548,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_simplegateways=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_simplegateways=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_simplegateways="$objectstotal_simplegateways"
 export number_of_objects=$number_simplegateways
 
@@ -2411,7 +2574,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_times=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_times=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_times="$objectstotal_times"
 export number_of_objects=$number_times
 
@@ -2437,7 +2600,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_time_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_time_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_time_groups="$objectstotal_time_groups"
 export number_of_objects=$number_time_groups
 
@@ -2463,7 +2626,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_access_roles=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_access_roles=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_access_roles="$objectstotal_access_roles"
 export number_of_objects=$number_access_roles
 
@@ -2489,7 +2652,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_opsec_applications=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_opsec_applications=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_opsec_applications="$objectstotal_opsec_applications"
 export number_of_objects=$number_opsec_applications
 
@@ -2528,7 +2691,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_services_tcp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_services_tcp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_services_tcp="$objectstotal_services_tcp"
 export number_of_objects=$number_services_tcp
 
@@ -2554,7 +2717,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_services_udp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_services_udp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_services_udp="$objectstotal_services_udp"
 export number_of_objects=$number_services_udp
 
@@ -2580,7 +2743,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_services_icmp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_services_icmp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_services_icmp="$objectstotal_services_icmp"
 export number_of_objects=$number_services_icmp
 
@@ -2606,7 +2769,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_services_icmp6=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_services_icmp6=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_services_icmp6="$objectstotal_services_icmp6"
 export number_of_objects=$number_services_icmp6
 
@@ -2632,7 +2795,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_services_sctp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_services_sctp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_services_sctp="$objectstotal_services_sctp"
 export number_of_objects=$number_services_sctp
 
@@ -2658,7 +2821,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_services_other=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_services_other=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_services_other="$objectstotal_services_other"
 export number_of_objects=$number_services_other
 
@@ -2684,7 +2847,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_services_dce_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_services_dce_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_services_dce_rpc="$objectstotal_services_dce_rpc"
 export number_of_objects=$number_services_dce_rpc
 
@@ -2710,7 +2873,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_services_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_services_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_services_rpc="$objectstotal_services_rpc"
 export number_of_objects=$number_services_rpc
 
@@ -2736,7 +2899,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_service_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_service_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_service_groups="$objectstotal_service_groups"
 export number_of_objects=$number_service_groups
 
@@ -3025,15 +3188,15 @@ PopulateArrayOfGroupObjects () {
     # MGMT_CLI_GROUPS_STRING is a string with multiple lines. Each line contains a name of a group members.
     # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
     
-    #MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+    #MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "standard" -s $APICLIsessionfile -f json | $JQ ".objects[].name | @sh" -r`"
     
     if [ x"$NoSystemObjects" = x"true" ] ; then
         # Ignore System Objects
-        #MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "full" -s $APICLIsessionfile --format json | $JQ ".objects[] | '"$notsystemobjectselector"' | .name | @sh" -r`"
-        MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "full" -s $APICLIsessionfile --format json | $JQ '.objects[] | '"$notsystemobjectselector"' | .name | @sh' -r`"
+        #MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "full" -s $APICLIsessionfile -f json | $JQ ".objects[] | '"$notsystemobjectselector"' | .name | @sh" -r`"
+        MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "full" -s $APICLIsessionfile -f json | $JQ '.objects[] | '"$notsystemobjectselector"' | .name | @sh' -r`"
     else   
         # Don't Ignore System Objects
-        MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+        MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "standard" -s $APICLIsessionfile -f json | $JQ ".objects[].name | @sh" -r`"
     fi
     
     # break the string into an array - each element of the array is a line in the original string
@@ -3074,7 +3237,7 @@ GetArrayOfGroupObjects () {
     
     ALLGROUPARR=()
 
-    export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
+    export MgmtCLI_Base_OpParms="-f json -s $APICLIsessionfile"
     export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
     
     export MgmtCLI_Show_OpParms="details-level \"$APICLIdetaillvl\" $MgmtCLI_Base_OpParms"
@@ -3175,7 +3338,7 @@ CollectMembersInGroupObjects () {
     do
         echo | tee -a -i $APICLIlogfilepath
     
-        MEMBERS_COUNT=$(mgmt_cli show $APICLIobjecttype name "${i//\'/}" -s $APICLIsessionfile --format json | $JQ ".members | length")
+        MEMBERS_COUNT=$(mgmt_cli show $APICLIobjecttype name "${i//\'/}" -s $APICLIsessionfile -f json | $JQ ".members | length")
     
         NUM_GROUP_MEMBERS=$MEMBERS_COUNT
 
@@ -3187,7 +3350,7 @@ CollectMembersInGroupObjects () {
             
             while [ $COUNTER -lt $NUM_GROUP_MEMBERS ]; do
                 
-                MEMBER_NAME=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ ".members[$COUNTER].name")
+                MEMBER_NAME=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ ".members[$COUNTER].name")
                 
                 if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
                     # Verbose mode ON
@@ -3248,7 +3411,7 @@ GetGroupMembers () {
 # MODIFIED 2018-05-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-objectstotal_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_groups="$objectstotal_groups"
 
 if [ $number_groups -le 0 ] ; then
@@ -3389,15 +3552,15 @@ PopulateArrayOfHostInterfaces () {
     # MGMT_CLI_HOSTS_STRING is a string with multiple lines. Each line contains a name of a host.
     # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
     
-    #MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+    #MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "standard" -s $APICLIsessionfile -f json | $JQ ".objects[].name | @sh" -r`"
     
     if [ x"$NoSystemObjects" = x"true" ] ; then
         # Ignore System Objects
-        #MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "full" -s $APICLIsessionfile --format json | $JQ ".objects[] | '"$notsystemobjectselector"' | .name | @sh" -r`"
-        MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "full" -s $APICLIsessionfile --format json | $JQ '.objects[] | '"$notsystemobjectselector"' | .name | @sh' -r`"
+        #MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "full" -s $APICLIsessionfile -f json | $JQ ".objects[] | '"$notsystemobjectselector"' | .name | @sh" -r`"
+        MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "full" -s $APICLIsessionfile -f json | $JQ '.objects[] | '"$notsystemobjectselector"' | .name | @sh' -r`"
     else   
         # Don't Ignore System Objects
-        MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+        MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "standard" -s $APICLIsessionfile -f json | $JQ ".objects[].name | @sh" -r`"
     fi
     
     # break the string into an array - each element of the array is a line in the original string
@@ -3437,8 +3600,8 @@ PopulateArrayOfHostInterfaces () {
             #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"', ' | tee -a -i $APICLIlogfilepath
         fi
 
-        #INTERFACES_COUNT=$(mgmt_cli show $APICLIobjecttype name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level "full" -s $APICLIsessionfile --format json | $JQ ".interfaces | length")
-        INTERFACES_COUNT=$(mgmt_cli show $APICLIobjecttype name "$(eval echo $line)" details-level "full" -s $APICLIsessionfile --format json | $JQ ".interfaces | length")
+        #INTERFACES_COUNT=$(mgmt_cli show $APICLIobjecttype name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level "full" -s $APICLIsessionfile -f json | $JQ ".interfaces | length")
+        INTERFACES_COUNT=$(mgmt_cli show $APICLIobjecttype name "$(eval echo $line)" details-level "full" -s $APICLIsessionfile -f json | $JQ ".interfaces | length")
 
         NUM_HOST_INTERFACES=$INTERFACES_COUNT
 
@@ -3497,7 +3660,7 @@ GetArrayOfHostInterfaces () {
     HOSTSARR=()
     ALLHOSTSARR=()
 
-    export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
+    export MgmtCLI_Base_OpParms="-f json -s $APICLIsessionfile"
     export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
     
     export MgmtCLI_Show_OpParms="details-level \"$APICLIdetaillvl\" $MgmtCLI_Base_OpParms"
@@ -3614,7 +3777,7 @@ CollectInterfacesInHostObjects () {
         echo | tee -a -i $APICLIlogfilepath
         echo Host with interfaces "${i//\'/}" | tee -a -i $APICLIlogfilepath
     
-        INTERFACES_COUNT=$(mgmt_cli show $APICLIobjecttype name "${i//\'/}" -s $APICLIsessionfile --format json | $JQ ".interfaces | length")
+        INTERFACES_COUNT=$(mgmt_cli show $APICLIobjecttype name "${i//\'/}" -s $APICLIsessionfile -f json | $JQ ".interfaces | length")
 
         NUM_HOST_INTERFACES=$INTERFACES_COUNT
     
@@ -3638,14 +3801,14 @@ CollectInterfacesInHostObjects () {
                 #export CSVJQparms=$CSVJQparms', .["interfaces"]['$COUNTER']["subnet6"], .["interfaces"]['$COUNTER']["mask-length6"]'
                 #export CSVJQparms=$CSVJQparms', .["interfaces"]['$COUNTER']["color"], .["interfaces"]['$COUNTER']["comments"]'
 
-                INTERFACE_NAME=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["name"]')
-                INTERFACE_subnet4=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["subnet4"]')
-                INTERFACE_masklength4=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["mask-length4"]')
-                INTERFACE_subnetmask=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["subnet-mask"]')
-                INTERFACE_subnet6=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["subnet6"]')
-                INTERFACE_masklength6=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["mask-length6"]')
-                INTERFACE_COLOR=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["color"]')
-                INTERFACE_COMMENT=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["comments"]')
+                INTERFACE_NAME=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ '.["interfaces"]['$COUNTER']["name"]')
+                INTERFACE_subnet4=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ '.["interfaces"]['$COUNTER']["subnet4"]')
+                INTERFACE_masklength4=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ '.["interfaces"]['$COUNTER']["mask-length4"]')
+                INTERFACE_subnetmask=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ '.["interfaces"]['$COUNTER']["subnet-mask"]')
+                INTERFACE_subnet6=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ '.["interfaces"]['$COUNTER']["subnet6"]')
+                INTERFACE_masklength6=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ '.["interfaces"]['$COUNTER']["mask-length6"]')
+                INTERFACE_COLOR=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ '.["interfaces"]['$COUNTER']["color"]')
+                INTERFACE_COMMENT=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ '.["interfaces"]['$COUNTER']["comments"]')
                 
                 export CSVoutputline="${i//\'/}","$INTERFACE_NAME"
                 #export CSVoutputline=$CSVoutputline,"$INTERFACE_subnet4","$INTERFACE_masklength4","$INTERFACE_subnetmask"
@@ -3721,7 +3884,7 @@ GetHostInterfaces () {
 # MODIFIED 2018-05-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-objectstotal_hosts=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_hosts=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_hosts="$objectstotal_hosts"
 
 if [ $number_hosts -le 0 ] ; then
@@ -3785,17 +3948,21 @@ echo | tee -a -i $APICLIlogfilepath
 # Publish Changes
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-02 -
+# MODIFIED 2018-10-27 -
  
-HandleMgmtCLIPublish
+if $UseR8XAPI ; then
+    HandleMgmtCLIPublish
+fi
 
 # -------------------------------------------------------------------------------------------------
 # Logout from mgmt_cli, also cleanup session file
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-02 -
+# MODIFIED 2018-10-27 -
  
-HandleMgmtCLILogout
+if $UseR8XAPI ; then
+    HandleMgmtCLILogout
+fi
 
 # -------------------------------------------------------------------------------------------------
 # Clean-up and exit

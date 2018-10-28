@@ -2,12 +2,12 @@
 #
 # SCRIPT Object dump to CSV action operations for API CLI Operations
 #
-ScriptVersion=00.29.01
-ScriptDate=2018-07-20
+ScriptVersion=00.30.00
+ScriptDate=2018-09-21
 
 #
 
-export APIActionsScriptVersion=v00x29x05
+export APIActionsScriptVersion=v00x31x00
 ActionScriptName=cli_api_export_objects_actions_to_csv
 
 # =================================================================================================
@@ -390,7 +390,7 @@ ExportObjectsToCSVviaJQ () {
         return $errorreturn
     fi
     
-    export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
+    export MgmtCLI_Base_OpParms="-f json -s $APICLIsessionfile"
     export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
     
     export MgmtCLI_Show_OpParms="details-level \"full\" $MgmtCLI_Base_OpParms"
@@ -415,7 +415,7 @@ ExportObjectsToCSVviaJQ () {
     export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
     export notsystemobjectselector='select(."domain"."name" as $a | ['$systemobjectdomains'] | index($a) | not)'
     
-    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 
     objectstoshow=$objectstotal
 
@@ -515,7 +515,7 @@ GetNumberOfObjectsviaJQ () {
         echo | tee -a -i $APICLIlogfilepath
     fi
     
-    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
     errorreturn=$?
 
     if [ $errorreturn != 0 ] ; then
@@ -570,7 +570,7 @@ export CSVJQparms=$CSVJQparms', .["ipv4-address"], .["ipv6-address"]'
 export CSVJQparms=$CSVJQparms', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"]'
 export CSVJQparms=$CSVJQparms', .["nat-settings"]["ipv4-address"], .["nat-settings"]["ipv6-address"], .["nat-settings"]["method"]'
 
-objectstotal_hosts=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_hosts=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_hosts="$objectstotal_hosts"
 export number_of_objects=$number_hosts
 
@@ -598,7 +598,7 @@ export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["broadcast"], .["subnet4"], .["mask-length4"], .["subnet6"], .["mask-length6"]'
 export CSVJQparms=$CSVJQparms', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"], .["nat-settings"]["method"]'
 
-objectstotal_networks=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_networks=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_networks="$objectstotal_networks"
 export number_of_objects=$number_networks
 
@@ -622,7 +622,7 @@ export CSVFileHeader='"name","color","comments"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 
-objectstotal_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_groups="$objectstotal_groups"
 export number_of_objects=$number_groups
 
@@ -648,7 +648,7 @@ export CSVFileHeader=$CSVFileHeader',"include","except"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["include"]["name"], .["except"]["name"]'
 
-objectstotal_groupswithexclusion=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_groupswithexclusion=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_groupswithexclusion="$objectstotal_groupswithexclusion"
 export number_of_objects=$number_groupswithexclusion
 
@@ -676,7 +676,7 @@ export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["ipv4-address-first"], .["ipv4-address-last"]'
 export CSVJQparms=$CSVJQparms', .["ipv6-address-first"], .["ipv6-address-last"]'
 
-objectstotal_addressranges=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_addressranges=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_addressranges="$objectstotal_addressranges"
 export number_of_objects=$number_addressranges
 
@@ -704,7 +704,7 @@ export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["ipv4-address-first"], .["ipv4-address-last"]'
 export CSVJQparms=$CSVJQparms', .["ipv6-address-first"], .["ipv6-address-last"]'
 
-objectstotal_multicastaddressranges=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_multicastaddressranges=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_multicastaddressranges="$objectstotal_multicastaddressranges"
 export number_of_objects=$number_multicastaddressranges
 
@@ -730,7 +730,7 @@ export CSVFileHeader=$CSVFileHeader',"is-sub-domain"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["is-sub-domain"]'
 
-objectstotal_dnsdomains=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_dnsdomains=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_dnsdomains="$objectstotal_dnsdomains"
 export number_of_objects=$number_dnsdomains
 
@@ -756,7 +756,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_securityzones=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_securityzones=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_securityzones="$objectstotal_securityzones"
 export number_of_objects=$number_securityzones
 
@@ -785,7 +785,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_dynamicobjects=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_dynamicobjects=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_dynamicobjects="$objectstotal_dynamicobjects"
 export number_of_objects=$number_dynamicobjects
 
@@ -840,7 +840,7 @@ export CSVJQparms='.["name"], .["color"], .["comments"]'
 export CSVJQparms=$CSVJQparms', .["primary-category"], .["risk"], .["description"], .["urls-defined-as-regular-expression"]'
 export CSVJQparms=$CSVJQparms', .["meta-info"]["creator"], .["user-defined"], .["read-only"]'
 
-objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_application_sites="$objectstotal_application_sites"
 export number_of_objects=$number_application_sites
 
@@ -877,7 +877,7 @@ export CSVJQparms='.["name"]'
 export CSVJQparms=$CSVJQparms', .["primary-category"], .["risk"], .["description"]'
 export CSVJQparms=$CSVJQparms', .["meta-info"]["creator"], .["user-defined"], .["read-only"]'
 
-objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_application_sites="$objectstotal_application_sites"
 export number_of_objects=$number_application_sites
 
@@ -911,7 +911,7 @@ export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
 
-objectstotal_application_site_categories=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_application_site_categories=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_application_site_categories="$objectstotal_application_site_categories"
 export number_of_objects=$number_application_site_categories
 
@@ -945,7 +945,7 @@ export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
 
-objectstotal_application_site_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_application_site_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_application_site_groups="$objectstotal_application_site_groups"
 export number_of_objects=$number_application_site_groups
 
@@ -984,7 +984,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_tags=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_tags=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_tags="$objectstotal_tags"
 export number_of_objects=$number_tags
 
@@ -1019,7 +1019,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_simplegateways=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_simplegateways=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_simplegateways="$objectstotal_simplegateways"
 export number_of_objects=$number_simplegateways
 
@@ -1045,7 +1045,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_times=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_times=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_times="$objectstotal_times"
 export number_of_objects=$number_times
 
@@ -1071,7 +1071,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_time_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_time_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_time_groups="$objectstotal_time_groups"
 export number_of_objects=$number_time_groups
 
@@ -1097,7 +1097,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_access_roles=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_access_roles=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_access_roles="$objectstotal_access_roles"
 export number_of_objects=$number_access_roles
 
@@ -1123,7 +1123,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_opsec_applications=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_opsec_applications=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_opsec_applications="$objectstotal_opsec_applications"
 export number_of_objects=$number_opsec_applications
 
@@ -1162,7 +1162,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_services_tcp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_services_tcp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_services_tcp="$objectstotal_services_tcp"
 export number_of_objects=$number_services_tcp
 
@@ -1188,7 +1188,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_services_udp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_services_udp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_services_udp="$objectstotal_services_udp"
 export number_of_objects=$number_services_udp
 
@@ -1214,7 +1214,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_services_icmp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_services_icmp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_services_icmp="$objectstotal_services_icmp"
 export number_of_objects=$number_services_icmp
 
@@ -1240,7 +1240,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_services_icmp6=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_services_icmp6=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_services_icmp6="$objectstotal_services_icmp6"
 export number_of_objects=$number_services_icmp6
 
@@ -1266,7 +1266,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_services_sctp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_services_sctp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_services_sctp="$objectstotal_services_sctp"
 export number_of_objects=$number_services_sctp
 
@@ -1292,7 +1292,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_services_other=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_services_other=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_services_other="$objectstotal_services_other"
 export number_of_objects=$number_services_other
 
@@ -1318,7 +1318,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_services_dce_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_services_dce_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_services_dce_rpc="$objectstotal_services_dce_rpc"
 export number_of_objects=$number_services_dce_rpc
 
@@ -1344,7 +1344,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_services_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_services_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_services_rpc="$objectstotal_services_rpc"
 export number_of_objects=$number_services_rpc
 
@@ -1370,7 +1370,7 @@ export CSVFileHeader='"name","color","comments"'
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
-objectstotal_service_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_service_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_service_groups="$objectstotal_service_groups"
 export number_of_objects=$number_service_groups
 
@@ -1659,15 +1659,15 @@ PopulateArrayOfGroupObjects () {
     # MGMT_CLI_GROUPS_STRING is a string with multiple lines. Each line contains a name of a group members.
     # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
     
-    #MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+    #MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "standard" -s $APICLIsessionfile -f json | $JQ ".objects[].name | @sh" -r`"
     
     if [ x"$NoSystemObjects" = x"true" ] ; then
         # Ignore System Objects
-        #MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "full" -s $APICLIsessionfile --format json | $JQ ".objects[] | '"$notsystemobjectselector"' | .name | @sh" -r`"
-        MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "full" -s $APICLIsessionfile --format json | $JQ '.objects[] | '"$notsystemobjectselector"' | .name | @sh' -r`"
+        #MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "full" -s $APICLIsessionfile -f json | $JQ ".objects[] | '"$notsystemobjectselector"' | .name | @sh" -r`"
+        MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "full" -s $APICLIsessionfile -f json | $JQ '.objects[] | '"$notsystemobjectselector"' | .name | @sh' -r`"
     else   
         # Don't Ignore System Objects
-        MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+        MGMT_CLI_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentgroupoffset details-level "standard" -s $APICLIsessionfile -f json | $JQ ".objects[].name | @sh" -r`"
     fi
     
     # break the string into an array - each element of the array is a line in the original string
@@ -1708,7 +1708,7 @@ GetArrayOfGroupObjects () {
     
     ALLGROUPARR=()
 
-    export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
+    export MgmtCLI_Base_OpParms="-f json -s $APICLIsessionfile"
     export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
     
     export MgmtCLI_Show_OpParms="details-level \"$APICLIdetaillvl\" $MgmtCLI_Base_OpParms"
@@ -1809,7 +1809,7 @@ CollectMembersInGroupObjects () {
     do
         echo | tee -a -i $APICLIlogfilepath
     
-        MEMBERS_COUNT=$(mgmt_cli show $APICLIobjecttype name "${i//\'/}" -s $APICLIsessionfile --format json | $JQ ".members | length")
+        MEMBERS_COUNT=$(mgmt_cli show $APICLIobjecttype name "${i//\'/}" -s $APICLIsessionfile -f json | $JQ ".members | length")
     
         NUM_GROUP_MEMBERS=$MEMBERS_COUNT
 
@@ -1821,7 +1821,7 @@ CollectMembersInGroupObjects () {
             
             while [ $COUNTER -lt $NUM_GROUP_MEMBERS ]; do
                 
-                MEMBER_NAME=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ ".members[$COUNTER].name")
+                MEMBER_NAME=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ ".members[$COUNTER].name")
                 
                 if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
                     # Verbose mode ON
@@ -1882,7 +1882,7 @@ GetGroupMembers () {
 # MODIFIED 2018-05-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-objectstotal_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_groups="$objectstotal_groups"
 
 if [ $number_groups -le 0 ] ; then
@@ -2023,15 +2023,15 @@ PopulateArrayOfHostInterfaces () {
     # MGMT_CLI_HOSTS_STRING is a string with multiple lines. Each line contains a name of a host.
     # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
     
-    #MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+    #MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "standard" -s $APICLIsessionfile -f json | $JQ ".objects[].name | @sh" -r`"
     
     if [ x"$NoSystemObjects" = x"true" ] ; then
         # Ignore System Objects
-        #MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "full" -s $APICLIsessionfile --format json | $JQ ".objects[] | '"$notsystemobjectselector"' | .name | @sh" -r`"
-        MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "full" -s $APICLIsessionfile --format json | $JQ '.objects[] | '"$notsystemobjectselector"' | .name | @sh' -r`"
+        #MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "full" -s $APICLIsessionfile -f json | $JQ ".objects[] | '"$notsystemobjectselector"' | .name | @sh" -r`"
+        MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "full" -s $APICLIsessionfile -f json | $JQ '.objects[] | '"$notsystemobjectselector"' | .name | @sh' -r`"
     else   
         # Don't Ignore System Objects
-        MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "standard" -s $APICLIsessionfile --format json | $JQ ".objects[].name | @sh" -r`"
+        MGMT_CLI_HOSTS_STRING="`mgmt_cli show $APICLIobjectstype limit $APICLIObjectLimit offset $currenthostoffset details-level "standard" -s $APICLIsessionfile -f json | $JQ ".objects[].name | @sh" -r`"
     fi
     
     # break the string into an array - each element of the array is a line in the original string
@@ -2071,8 +2071,8 @@ PopulateArrayOfHostInterfaces () {
             #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"', ' | tee -a -i $APICLIlogfilepath
         fi
 
-        #INTERFACES_COUNT=$(mgmt_cli show $APICLIobjecttype name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level "full" -s $APICLIsessionfile --format json | $JQ ".interfaces | length")
-        INTERFACES_COUNT=$(mgmt_cli show $APICLIobjecttype name "$(eval echo $line)" details-level "full" -s $APICLIsessionfile --format json | $JQ ".interfaces | length")
+        #INTERFACES_COUNT=$(mgmt_cli show $APICLIobjecttype name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level "full" -s $APICLIsessionfile -f json | $JQ ".interfaces | length")
+        INTERFACES_COUNT=$(mgmt_cli show $APICLIobjecttype name "$(eval echo $line)" details-level "full" -s $APICLIsessionfile -f json | $JQ ".interfaces | length")
 
         NUM_HOST_INTERFACES=$INTERFACES_COUNT
 
@@ -2131,7 +2131,7 @@ GetArrayOfHostInterfaces () {
     HOSTSARR=()
     ALLHOSTSARR=()
 
-    export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
+    export MgmtCLI_Base_OpParms="-f json -s $APICLIsessionfile"
     export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
     
     export MgmtCLI_Show_OpParms="details-level \"$APICLIdetaillvl\" $MgmtCLI_Base_OpParms"
@@ -2248,7 +2248,7 @@ CollectInterfacesInHostObjects () {
         echo | tee -a -i $APICLIlogfilepath
         echo Host with interfaces "${i//\'/}" | tee -a -i $APICLIlogfilepath
     
-        INTERFACES_COUNT=$(mgmt_cli show $APICLIobjecttype name "${i//\'/}" -s $APICLIsessionfile --format json | $JQ ".interfaces | length")
+        INTERFACES_COUNT=$(mgmt_cli show $APICLIobjecttype name "${i//\'/}" -s $APICLIsessionfile -f json | $JQ ".interfaces | length")
 
         NUM_HOST_INTERFACES=$INTERFACES_COUNT
     
@@ -2272,14 +2272,14 @@ CollectInterfacesInHostObjects () {
                 #export CSVJQparms=$CSVJQparms', .["interfaces"]['$COUNTER']["subnet6"], .["interfaces"]['$COUNTER']["mask-length6"]'
                 #export CSVJQparms=$CSVJQparms', .["interfaces"]['$COUNTER']["color"], .["interfaces"]['$COUNTER']["comments"]'
 
-                INTERFACE_NAME=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["name"]')
-                INTERFACE_subnet4=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["subnet4"]')
-                INTERFACE_masklength4=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["mask-length4"]')
-                INTERFACE_subnetmask=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["subnet-mask"]')
-                INTERFACE_subnet6=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["subnet6"]')
-                INTERFACE_masklength6=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["mask-length6"]')
-                INTERFACE_COLOR=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["color"]')
-                INTERFACE_COMMENT=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile --format json | $JQ '.["interfaces"]['$COUNTER']["comments"]')
+                INTERFACE_NAME=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ '.["interfaces"]['$COUNTER']["name"]')
+                INTERFACE_subnet4=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ '.["interfaces"]['$COUNTER']["subnet4"]')
+                INTERFACE_masklength4=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ '.["interfaces"]['$COUNTER']["mask-length4"]')
+                INTERFACE_subnetmask=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ '.["interfaces"]['$COUNTER']["subnet-mask"]')
+                INTERFACE_subnet6=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ '.["interfaces"]['$COUNTER']["subnet6"]')
+                INTERFACE_masklength6=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ '.["interfaces"]['$COUNTER']["mask-length6"]')
+                INTERFACE_COLOR=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ '.["interfaces"]['$COUNTER']["color"]')
+                INTERFACE_COMMENT=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ '.["interfaces"]['$COUNTER']["comments"]')
                 
                 export CSVoutputline="${i//\'/}","$INTERFACE_NAME"
                 #export CSVoutputline=$CSVoutputline,"$INTERFACE_subnet4","$INTERFACE_masklength4","$INTERFACE_subnetmask"
@@ -2355,7 +2355,7 @@ GetHostInterfaces () {
 # MODIFIED 2018-05-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-objectstotal_hosts=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" --format json -s $APICLIsessionfile | $JQ ".total")
+objectstotal_hosts=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_hosts="$objectstotal_hosts"
 
 if [ $number_hosts -le 0 ] ; then

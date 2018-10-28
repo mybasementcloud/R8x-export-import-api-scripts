@@ -2,12 +2,12 @@
 #
 # SCRIPT Object export to CSV file for API CLI Operations
 #
-ScriptVersion=00.30.00
-ScriptDate=2018-09-21
+ScriptVersion=00.31.00
+ScriptDate=2018-10-27
 
 #
 
-export APIScriptVersion=v00x30x00
+export APIScriptVersion=v00x31x00
 ScriptName=cli_api_export_objects_to_csv
 
 # =================================================================================================
@@ -83,6 +83,11 @@ export script_dump_full="false"
 
 export script_uses_wip="true"
 export script_uses_wip_json="false"
+
+# ADDED 2018-10-27 -
+export UseR8XAPI=true
+export UseJSONJQ=true
+
 
 # Wait time in seconds
 export WAITTIME=15
@@ -1318,6 +1323,9 @@ ConfigureCommonCLIParameterValues () {
 # ConfigureOtherCLIParameterPaths - Configure other path and folder values based on CLI parameters
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2018-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 ConfigureOtherCLIParameterPaths () {
 
     # ---------------------------------------------------------
@@ -1326,12 +1334,22 @@ ConfigureOtherCLIParameterPaths () {
     # ---------------------------------------------------------
     
     export APICLICSVExportpathbase=
-    if [ x"$script_use_export" = x"true" ] ; then
-        if [ x"$CLIparm_exportpath" != x"" ] ; then
-            export APICLICSVExportpathbase=$CLIparm_exportpath
-        else
-            export APICLICSVExportpathbase=$APICLIpathbase
-        fi
+#    if [ x"$script_use_export" = x"true" ] ; then
+#        if [ x"$CLIparm_exportpath" != x"" ] ; then
+#            export APICLICSVExportpathbase=$CLIparm_exportpath
+#        else
+#            export APICLICSVExportpathbase=$APICLIpathbase
+#        fi
+#    fi
+
+    # Since we use the $APICLICSVExportpathbase as a base folder for output results, 
+    # we need this for all operations.  
+    # FUTURE UDPATE : migrate the common dump location to a new standard variable
+    #
+    if [ x"$CLIparm_exportpath" != x"" ] ; then
+        export APICLICSVExportpathbase=$CLIparm_exportpath
+    else
+        export APICLICSVExportpathbase=$APICLIpathbase
     fi
     
     export APICLICSVImportpathbase=
@@ -1362,6 +1380,9 @@ ConfigureOtherCLIParameterPaths () {
     fi
     return 0
 }
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-10-27
 
 # -------------------------------------------------------------------------------------------------
 # ConfigureOtherCLIParameterValues - Configure other values based on CLI parameters
@@ -1464,45 +1485,48 @@ fi
 # START:  Setup Login Parameters and Login to Mgmt_CLI
 # =================================================================================================
 
-# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-10-27 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-SetupLogin2MgmtCLI
+if $UseR8XAPI ; then
 
-if [ ! -z "$CLIparm_domain" ] ; then
-    # Handle domain parameter for login string
-    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-        echo 'Command line parameter for domain set!  Domain = '$CLIparm_domain | tee -a -i $APICLIlogfilepath
+    SetupLogin2MgmtCLI
+    
+    if [ ! -z "$CLIparm_domain" ] ; then
+        # Handle domain parameter for login string
+        if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+            echo 'Command line parameter for domain set!  Domain = '$CLIparm_domain | tee -a -i $APICLIlogfilepath
+        fi
+        export domaintarget=$CLIparm_domain
+    else
+        if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+            echo 'Command line parameter for domain NOT set!' | tee -a -i $APICLIlogfilepath
+        fi
+        export domaintarget=
     fi
-    export domaintarget=$CLIparm_domain
-else
+    
     if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-        echo 'Command line parameter for domain NOT set!' | tee -a -i $APICLIlogfilepath
+        echo "domaintarget = '$domaintarget' " | tee -a -i $APICLIlogfilepath
     fi
-    export domaintarget=
-fi
+    
+    Login2MgmtCLI
+    LOGINEXITCODE=$?
+    
+    export LoggedIntoMgmtCli=false
+    
+    if [ "$LOGINEXITCODE" != "0" ] ; then
+        exit $LOGINEXITCODE
+    else
+        export LoggedIntoMgmtCli=true
+    fi
 
-if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-    echo "domaintarget = '$domaintarget' " | tee -a -i $APICLIlogfilepath
-fi
-
-Login2MgmtCLI
-LOGINEXITCODE=$?
-
-export LoggedIntoMgmtCli=false
-
-if [ "$LOGINEXITCODE" != "0" ] ; then
-    exit $LOGINEXITCODE
-else
-    export LoggedIntoMgmtCli=true
 fi
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
-
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-10-27
 
 # =================================================================================================
-# START:  Export objects to csv
+# END:  Setup Login Parameters and Login to Mgmt_CLI
 # =================================================================================================
 
 
@@ -3924,17 +3948,21 @@ echo | tee -a -i $APICLIlogfilepath
 # Publish Changes
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-02 -
+# MODIFIED 2018-10-27 -
  
-HandleMgmtCLIPublish
+if $UseR8XAPI ; then
+    HandleMgmtCLIPublish
+fi
 
 # -------------------------------------------------------------------------------------------------
 # Logout from mgmt_cli, also cleanup session file
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-02 -
+# MODIFIED 2018-10-27 -
  
-HandleMgmtCLILogout
+if $UseR8XAPI ; then
+    HandleMgmtCLILogout
+fi
 
 # -------------------------------------------------------------------------------------------------
 # Clean-up and exit

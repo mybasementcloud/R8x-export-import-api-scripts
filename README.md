@@ -1,7 +1,7 @@
 # R8x-export-import-api-scripts
 Check Point R8x Export, Import, [and more] API scripts for bash and powershell
 
-CLI API Example for exporting, importing, and deleting different objects using CSV files (v00.29.05)
+CLI API Example for exporting, importing, and deleting different objects using CSV files (v00.31.00)
 
 For a complete overview, review the PDF - TBD 
 
@@ -29,13 +29,11 @@ Description
 
 This post includes a set of script packages, which can be used independently combined.  All script files end with .sh for shell and are intended for Check Point bash implementation on R80, R80.10 and R80.20 or later.  Scripts in the packages have specific purposes and some scripts call sub-scripts for extensive repeated operations.  The packages also include specific expected default directory folders that are not created by the script action.  Template shell is also provided to generate other scripts.
 
-NOTE:  As of version 00.29.02 all export scripts default to pulling data for System (Check Point generated) and non-System (user) generated objects by default.  Parameter "--SO" will enable export of System Objects while "--NSO" {default) will ignore System Objects.  This applies to CSV and full JSON dump; standard JSON dump can not be limited due to lacking data to select from on that dump type.
-
 The packages are:
 
-- Export, Import, Set, Delete Object :  export_import.all.v00.29.05.tgz
-- Common operations handlers         :  common.v00.29.05.tgz
-- template for script development with command line parameter handling for the API from bash :  _templates.v00.29.05.tgz
+- Export, Import, Set, Delete Object :  export_import.all.v00.31.00.tgz
+- Common operations handlers         :  common.v00.31.00.tgz
+- template for script development with command line parameter handling for the API from bash :  _templates.v00.31.00.tgz
 
  
 The approach to provided compressed packages was changed to facilitate quicker implementation on the management hosts.

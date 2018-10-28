@@ -2,12 +2,12 @@
 #
 # SCRIPT Object dump action operations for API CLI Operations
 #
-ScriptVersion=00.29.01
-ScriptDate=2018-07-20
+ScriptVersion=00.30.00
+ScriptDate=2018-09-21
 
 #
 
-export APIActionsScriptVersion=v00x29x05
+export APIActionsScriptVersion=v00x31x00
 ActionScriptName=cli_api_export_objects_actions
 
 # =================================================================================================
@@ -249,7 +249,7 @@ ExportRAWObjectToJSON () {
 
     export APICLIfileexport=$APICLIpathexport/$APICLIfileexportpre$APICLIfilename$APICLIfileexportpost
 
-    export MgmtCLI_Base_OpParms="--format json -s $APICLIsessionfile"
+    export MgmtCLI_Base_OpParms="-f json -s $APICLIsessionfile"
     export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
     
     export MgmtCLI_Show_OpParms="details-level \"$APICLIdetaillvl\" $MgmtCLI_Base_OpParms"
