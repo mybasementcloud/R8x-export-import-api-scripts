@@ -2,12 +2,19 @@
 #
 # SCRIPT Object dump to CSV action operations for API CLI Operations
 #
-ScriptVersion=00.30.00
-ScriptDate=2018-09-21
+# (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
+#
+ScriptVersion=00.33.00
+ScriptRevision=000
+ScriptDate=2019-01-18
+TemplateVersion=00.33.00
+CommonScriptsVersion=00.33.00
+CommonScriptsRevision=005
 
 #
 
-export APIActionsScriptVersion=v00x31x00
+export APIActionsScriptVersion=v${ScriptVersion//./x}
+export APIActionScriptTemplateVersion=v${TemplateVersion//./x}
 ActionScriptName=cli_api_export_objects_actions_to_csv
 
 # =================================================================================================
@@ -15,17 +22,17 @@ ActionScriptName=cli_api_export_objects_actions_to_csv
 # =================================================================================================
 
 
-if [ x"$APIScriptVersion" = x"$APIActionsScriptVersion" ] ; then
+if [ x"$APIExpectedActionScriptsVersion" = x"$APIActionsScriptVersion" ] ; then
     # Script and Actions Script versions match, go ahead
-    echo | tee -a -i $APICLIlogfilepath
-    echo 'Verify Actions Scripts Version - OK' | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
+    echo >> $APICLIlogfilepath
+    echo 'Verify Actions Scripts Version - OK' >> $APICLIlogfilepath
+    echo >> $APICLIlogfilepath
 else
     # Script and Actions Script versions don't match, ALL STOP!
     echo | tee -a -i $APICLIlogfilepath
     echo 'Verify Actions Scripts Version - Missmatch' | tee -a -i $APICLIlogfilepath
-    echo 'Calling Script version : '$APIScriptVersion | tee -a -i $APICLIlogfilepath
-    echo 'Actions Script version : '$APIActionsScriptVersion | tee -a -i $APICLIlogfilepath
+    echo 'Expected Action Script version : '$APIExpectedActionScriptsVersion | tee -a -i $APICLIlogfilepath
+    echo 'Current  Action Script version : '$APIActionsScriptVersion | tee -a -i $APICLIlogfilepath
     echo | tee -a -i $APICLIlogfilepath
     echo 'Critical Error - Exiting Script !!!!' | tee -a -i $APICLIlogfilepath
     echo | tee -a -i $APICLIlogfilepath
@@ -42,15 +49,123 @@ fi
 # =================================================================================================
 
 
-echo | tee -a -i $APICLIlogfilepath
-echo 'ActionScriptName:  '$ActionScriptName'  Script Version: '$APIActionsScriptVersion | tee -a -i $APICLIlogfilepath
+if [ "$APISCRIPTVERBOSE" = "true" ] ; then
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'ActionScriptName:  '$ActionScriptName'  Script Version: '$ScriptVersion'  Revision:  '$ScriptRevision | tee -a -i $APICLIlogfilepath
+else
+    echo >> $APICLIlogfilepath
+    echo 'ActionScriptName:  '$ActionScriptName'  Script Version: '$ScriptVersion'  Revision:  '$ScriptRevision >> $APICLIlogfilepath
+fi
+
+
+# -------------------------------------------------------------------------------------------------
+# Handle important basics
+# -------------------------------------------------------------------------------------------------
+
+
+# =================================================================================================
+# START:  Local Proceedures
+# =================================================================================================
+
+export APICLIActionstemplogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_temp_'$DATEDTGS.log
+
+# -------------------------------------------------------------------------------------------------
+# SetupTempLogFile - Setup Temporary Log File and clear any debris
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+SetupTempLogFile () {
+    #
+    # SetupTempLogFile - Setup Temporary Log File and clear any debris
+    #
+
+    export APICLIActionstemplogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_temp_'$DATEDTGS.log
+
+    rm $APICLIActionstemplogfilepath >> $APICLIlogfilepath 2> $APICLIlogfilepath
+
+    touch $APICLIActionstemplogfilepath
+
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# HandleShowTempLogFile - Handle Showing of Temporary Log File based on verbose setting
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+HandleShowTempLogFile () {
+    #
+    # HandleShowTempLogFile - Handle Showing of Temporary Log File based on verbose setting
+    #
+
+    if [ "$APISCRIPTVERBOSE" = "true" ] ; then
+        # verbose mode so show the logged results and copy to normal log file
+        cat $APICLIActionstemplogfilepath | tee -a -i $APICLIlogfilepath
+    else
+        # NOT verbose mode so push logged results to normal log file
+        cat $APICLIActionstemplogfilepath >> $APICLIlogfilepath
+    fi
+    
+    rm $APICLIActionstemplogfilepath >> $APICLIlogfilepath 2> $APICLIlogfilepath
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ForceShowTempLogFile - Handle Showing of Temporary Log File based forced display
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+ForceShowTempLogFile () {
+    #
+    # ForceShowTempLogFile - Handle Showing of Temporary Log File based forced display
+    #
+
+    cat $APICLIActionstemplogfilepath | tee -a -i $APICLIlogfilepath
+    
+    rm $APICLIActionstemplogfilepath >> $APICLIlogfilepath 2> $APICLIlogfilepath
+
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# =================================================================================================
+# END:  Local Proceedures
+# =================================================================================================
+
 
 # ADDED 2018-04-25 -
 export primarytargetoutputformat=$FileExtCSV
 
-# -------------------------------------------------------------------------------------------------
+
+# =================================================================================================
 # Start executing Main operations
-# -------------------------------------------------------------------------------------------------
+# =================================================================================================
 
 # MODIFIED 2018-05-04-4 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #

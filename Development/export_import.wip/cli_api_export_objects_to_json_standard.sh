@@ -2,12 +2,20 @@
 #
 # SCRIPT Object export to JSON (standard details) file for API CLI Operations
 #
-ScriptVersion=00.31.00
-ScriptDate=2018-10-27
+# (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
+#
+ScriptVersion=00.33.00
+ScriptRevision=000
+ScriptDate=2019-01-18
+TemplateVersion=00.33.00
+CommonScriptsVersion=00.33.00
+CommonScriptsRevision=005
 
 #
 
-export APIScriptVersion=v00x31x00
+export APIScriptVersion=v${ScriptVersion//./x}
+export APIExpectedCommonScriptsVersion=v${CommonScriptsVersion//./x}
+export APIExpectedActionScriptsVersion=v${ScriptVersion//./x}
 ScriptName=cli_api_export_objects_to_json_standard
 
 # =================================================================================================
@@ -40,20 +48,70 @@ export APICLIlogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_'$DATEDTGS.lo
 #
 export cli_api_cmdlineparm_handler_root=.
 export cli_api_cmdlineparm_handler_folder=common
-export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.action.common.005.v$ScriptVersion.sh
+export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.action.common.$CommonScriptsRevision.v$CommonScriptsVersion.sh
 
 # ADDED 2018-09-21 -
 export gaia_version_handler_root=.
 export gaia_version_handler_folder=common
-export gaia_version_handler_file=identify_gaia_and_installation.action.common.005.v$ScriptVersion.sh
+export gaia_version_handler_file=identify_gaia_and_installation.action.common.$CommonScriptsRevision.v$CommonScriptsVersion.sh
 
 
 # -------------------------------------------------------------------------------------------------
 # Root script declarations
 # -------------------------------------------------------------------------------------------------
 
-# ADDED 2018-05-03 -
+# ADDED 2018-11-20 -
 
+# Output folder is relative to local folder where script is started, e.g. ./dump
+#
+export OutputRelLocalPath=true
+
+
+# If there are issues with running in /home/ subfolder set this to false
+#
+export IgnoreInHome=true
+
+
+# Configure output file folder target
+# One of these needs to be set to true, just one
+#
+export OutputToRoot=false
+export OutputToDump=true
+export OutputToChangeLog=false
+export OutputToOther=false
+#
+# if OutputToOther is true, then this next value needs to be set
+#
+export OtherOutputFolder=Specify_The_Folder_Here
+
+# if we are date-time stamping the output location as a subfolder of the 
+# output folder set this to true,  otherwise it needs to be false
+#
+export OutputDATESubfolder=true
+export OutputDTGSSubfolder=false
+#export OutputSubfolderScriptName=false
+#export OutputSubfolderScriptShortName=false
+
+export notthispath=/home/
+export startpathroot=.
+
+export localdotpath=`echo $PWD`
+export currentlocalpath=$localdotpath
+export workingpath=$currentlocalpath
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+export scriptspathroot=/var/log/__customer/upgrade_export/scripts
+
+export rootscriptconfigfile=__root_script_config.sh
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# ADDED 2018-05-03 -
 # ================================================================================================
 # NOTE:  
 #   DefaultMgmtAdmin value is used to set the APICLIadmin value in the setup for logon.  This is
@@ -88,6 +146,22 @@ export script_uses_wip_json="false"
 export UseR8XAPI=true
 export UseJSONJQ=true
 
+# MODIFIED 2019-01-17 -
+# R80       version 1.0
+# R80.10    version 1.1
+# R80.20.M1 version 1.2
+# R80.20 GA version 1.3
+# R80.20.M2 version 1.4
+# R80.30    version 1.5 ???
+#
+# For common scripts minimum API version at 1.0 should suffice, otherwise get explicit
+#
+export MinAPIVersionRequired=1.0
+
+# If the API version needs to be enforced in commands set this to true
+# NOTE not currently used!
+#
+export ForceAPIVersionToMinimum=false
 
 # Wait time in seconds
 export WAITTIME=15
@@ -146,7 +220,7 @@ export APIScriptCSVActionFilename=$APIScriptActionFilePrefix'_actions_to_csv'.sh
 # -------------------------------------------------------------------------------------------------
 
 echo | tee -a -i $APICLIlogfilepath
-echo 'Script:  '$ScriptName'  Script Version: '$APIScriptVersion | tee -a -i $APICLIlogfilepath
+echo 'Script:  '$ScriptName'  Script Version: '$ScriptVersion'  Revision: '$ScriptRevision | tee -a -i $APICLIlogfilepath
 
 # -------------------------------------------------------------------------------------------------
 # Handle important basics
@@ -156,6 +230,140 @@ echo 'Script:  '$ScriptName'  Script Version: '$APIScriptVersion | tee -a -i $AP
 # -------------------------------------------------------------------------------------------------
 # Start of procedures block
 # -------------------------------------------------------------------------------------------------
+
+export APICLItemplogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_temp_'$DATEDTGS.log
+
+# -------------------------------------------------------------------------------------------------
+# SetupTempLogFile - Setup Temporary Log File and clear any debris
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+SetupTempLogFile () {
+    #
+    # SetupTempLogFile - Setup Temporary Log File and clear any debris
+    #
+
+    export APICLItemplogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_temp_'$DATEDTGS.log
+
+    rm $APICLItemplogfilepath >> $APICLIlogfilepath 2> $APICLIlogfilepath
+
+    touch $APICLItemplogfilepath
+
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# HandleShowTempLogFile - Handle Showing of Temporary Log File based on verbose setting
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+HandleShowTempLogFile () {
+    #
+    # HandleShowTempLogFile - Handle Showing of Temporary Log File based on verbose setting
+    #
+
+    if [ "$APISCRIPTVERBOSE" = "true" ] ; then
+        # verbose mode so show the logged results and copy to normal log file
+        cat $APICLItemplogfilepath | tee -a -i $APICLIlogfilepath
+    else
+        # NOT verbose mode so push logged results to normal log file
+        cat $APICLItemplogfilepath >> $APICLIlogfilepath
+    fi
+    
+    rm $APICLItemplogfilepath >> $APICLIlogfilepath 2> $APICLIlogfilepath
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ForceShowTempLogFile - Handle Showing of Temporary Log File based forced display
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+ForceShowTempLogFile () {
+    #
+    # ForceShowTempLogFile - Handle Showing of Temporary Log File based forced display
+    #
+
+    cat $APICLItemplogfilepath | tee -a -i $APICLIlogfilepath
+    
+    rm $APICLItemplogfilepath >> $APICLIlogfilepath 2> $APICLIlogfilepath
+
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# GetScriptSourceFolder - Get the actual source folder for the running script
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2018-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+GetScriptSourceFolder () {
+    #
+    # repeated procedure description
+    #
+
+    echo >> $APICLIlogfilepath
+
+    SOURCE="${BASH_SOURCE[0]}"
+    while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+        TARGET="$(readlink "$SOURCE")"
+        if [[ $TARGET == /* ]]; then
+            echo "SOURCE '$SOURCE' is an absolute symlink to '$TARGET'" >> $APICLIlogfilepath
+            SOURCE="$TARGET"
+        else
+            DIR="$( dirname "$SOURCE" )"
+            echo "SOURCE '$SOURCE' is a relative symlink to '$TARGET' (relative to '$DIR')" >> $APICLIlogfilepath
+            SOURCE="$DIR/$TARGET" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+        fi
+    done
+
+    echo "SOURCE is '$SOURCE'" >> $APICLIlogfilepath
+
+    RDIR="$( dirname "$SOURCE" )"
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    if [ "$DIR" != "$RDIR" ]; then
+        echo "DIR '$RDIR' resolves to '$DIR'" >> $APICLIlogfilepath
+    fi
+    echo "DIR is '$DIR'" >> $APICLIlogfilepath
+    
+    export ScriptSourceFolder=$DIR
+
+    echo >> $APICLIlogfilepath
+    
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-11-20
+
 
 # -------------------------------------------------------------------------------------------------
 # ConfigureJQLocation - Configure the value of JQ based on installation
@@ -168,20 +376,31 @@ echo 'Script:  '$ScriptName'  Script Version: '$APIScriptVersion | tee -a -i $AP
 # ConfigureJQLocation - Configure the value of JQ based on installation
 #
 
+# MODIFIED 2018-11-20 -
 ConfigureJQLocation () {
-
+    #
+    # Configure JQ variable value for JSON parsing
+    #
     # variable JQ points to where jq is installed
-    
+    #
     # Apparently MDM, MDS, and Domains don't agree on who sets CPDIR, so better to check!
 
     #export JQ=${CPDIR}/jq/jq
 
     if [ -r ${CPDIR}/jq/jq ] ; then
         export JQ=${CPDIR}/jq/jq
-    elif [ -r /opt/CPshrd-R80/jq/jq ] ; then
-        export JQ=/opt/CPshrd-R80/jq/jq
+    elif [ -r ${CPDIR_PATH}/jq/jq ] ; then
+        export JQ=${CPDIR_PATH}/jq/jq
+    elif [ -r ${MDS_CPDIR}/jq/jq ] ; then
+        export JQ=${MDS_CPDIR}/jq/jq
+#    elif [ -r /opt/CPshrd-R80/jq/jq ] ; then
+#        export JQ=/opt/CPshrd-R80/jq/jq
+#    elif [ -r /opt/CPshrd-R80.10/jq/jq ] ; then
+#        export JQ=/opt/CPshrd-R80.10/jq/jq
+#    elif [ -r /opt/CPshrd-R80.20/jq/jq ] ; then
+#        export JQ=/opt/CPshrd-R80.20/jq/jq
     else
-        echo "Missing jq, not found in ${CPDIR}/jq/jq or /opt/CPshrd-R80/jq/jq" | tee -a -i $APICLIlogfilepath
+        echo "Missing jq, not found in ${CPDIR}/jq/jq, ${CPDIR_PATH}/jq/jq, or ${MDS_CPDIR}/jq/jq" | tee -a -i $APICLIlogfilepath
         echo 'Critical Error - Exiting Script !!!!' | tee -a -i $APICLIlogfilepath
         echo | tee -a -i $APICLIlogfilepath
         echo "Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
@@ -196,10 +415,48 @@ ConfigureJQLocation () {
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-05-02
 
 # -------------------------------------------------------------------------------------------------
+# GaiaWebSSLPortCheck - Check local Gaia Web SSL Port configuration for local operations
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2019-01-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# GaiaWebSSLPortCheck - Check local Gaia Web SSL Port configuration for local operations
+#
+
+GaiaWebSSLPortCheck () {
+
+    # Removing dependency on clish to avoid collissions when database is locked
+    #
+    #export currentapisslport=$(clish -c "show web ssl-port" | cut -d " " -f 2)
+    #
+    export pythonpath=$MDS_FWDIR/Python/bin/
+    export get_api_local_port=`$pythonpath/python $MDS_FWDIR/scripts/api_get_port.py -f json | $JQ '. | .external_port'`
+    export api_local_port=${get_api_local_port//\"/}
+    export currentapisslport=$api_local_port
+    
+    if [ "$APISCRIPTVERBOSE" = "true" ] ; then
+        echo 'Current Gaia web ssl-port : '$currentapisslport | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+    else
+        echo 'Current Gaia web ssl-port : '$currentapisslport >> $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
+    fi
+    
+    return 0
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-01-18
+
+
+# -------------------------------------------------------------------------------------------------
 # ScriptAPIVersionCheck - Check version of the script to ensure it is able to operate at minimum expected
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -209,42 +466,50 @@ ConfigureJQLocation () {
 
 ScriptAPIVersionCheck () {
 
-    getapiversion=$(mgmt_cli show api-versions -r true -f json --port $currentapisslport | $JQ '.["current-version"]' -r)
-    export checkapiversion=$getapiversion
-    if [ $checkapiversion = null ] ; then
+    SetupTempLogFile
+
+    GetAPIVersion=$(mgmt_cli show api-versions -r true -f json --port $currentapisslport | $JQ '.["current-version"]' -r)
+    export CheckAPIVersion=$GetAPIVersion
+
+    if [ $CheckAPIVersion = null ] ; then
         # show api-versions does not exist in version 1.0, so it fails and returns null
-        currentapiversion=1.0
+        CurrentAPIVersion=1.0
     else
-        currentapiversion=$checkapiversion
+        CurrentAPIVersion=$CheckAPIVersion
     fi
     
-    echo 'API version = '$currentapiversion | tee -a -i $APICLIlogfilepath
+    echo 'API version = '$CurrentAPIVersion >> $APICLItemplogfilepath
     
-    if [ $(expr $minapiversionrequired '<=' $currentapiversion) ] ; then
+    if [ $(expr $MinAPIVersionRequired '<=' $CurrentAPIVersion) ] ; then
         # API is sufficient version
-        echo | tee -a -i $APICLIlogfilepath
+        echo >> $APICLItemplogfilepath
+    
+        HandleShowTempLogFile
+    
     else
         # API is not of a sufficient version to operate
-        echo | tee -a -i $APICLIlogfilepath
-        echo 'Current API Version ('$currentapiversion') does not meet minimum API version requirement ('$minapiversionrequired')' | tee -a -i $APICLIlogfilepath
-        echo | tee -a -i $APICLIlogfilepath
-        echo '! termination execution !' | tee -a -i $APICLIlogfilepath
-        echo | tee -a -i $APICLIlogfilepath
+        echo >> $APICLItemplogfilepath
+        echo 'Current API Version ('$CurrentAPIVersion') does not meet minimum API version expected requirement ('$MinAPIVersionRequired')' >> $APICLItemplogfilepath
+        echo >> $APICLItemplogfilepath
+        echo '! termination execution !' >> $APICLItemplogfilepath
+        echo >> $APICLItemplogfilepath
+    
+        ForceShowTempLogFile
+    
         exit 250
     fi
     
-    echo | tee -a -i $APICLIlogfilepath
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-05-02
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
 
 # -------------------------------------------------------------------------------------------------
 # CheckAPIScriptVerboseOutput - Check if verbose output is configured externally
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-01-18-01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -257,64 +522,67 @@ CheckAPIScriptVerboseOutput () {
 
     if [ -z $APISCRIPTVERBOSE ] ; then
         # Verbose mode not set from shell level
-        echo "!! Verbose mode not set from shell level" | tee -a -i $APICLIlogfilepath
+        echo "!! Verbose mode not set from shell level" >> $APICLIlogfilepath
         export APISCRIPTVERBOSE=false
-        echo | tee -a -i $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
     elif [ x"`echo "$APISCRIPTVERBOSE" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
         # Verbose mode set OFF from shell level
-        echo "!! Verbose mode set OFF from shell level" | tee -a -i $APICLIlogfilepath
+        echo "!! Verbose mode set OFF from shell level" >> $APICLIlogfilepath
         export APISCRIPTVERBOSE=false
-        echo | tee -a -i $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
     elif [ x"`echo "$APISCRIPTVERBOSE" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
         # Verbose mode set ON from shell level
-        echo "!! Verbose mode set ON from shell level" | tee -a -i $APICLIlogfilepath
+        echo "!! Verbose mode set ON from shell level" >> $APICLIlogfilepath
         export APISCRIPTVERBOSE=true
-        echo | tee -a -i $APICLIlogfilepath
-        echo 'Script :  '$0 | tee -a -i $APICLIlogfilepath
-        echo 'Verbose mode enabled' | tee -a -i $APICLIlogfilepath
-        echo | tee -a -i $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
+        echo 'Script :  '$0 >> $APICLIlogfilepath
+        echo 'Verbose mode enabled' >> $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
     else
         # Verbose mode set to wrong value from shell level
-        echo "!! Verbose mode set to wrong value from shell level >"$APISCRIPTVERBOSE"<" | tee -a -i $APICLIlogfilepath
-        echo "!! Settting Verbose mode OFF, pending command line parameter checking!" | tee -a -i $APICLIlogfilepath
+        echo "!! Verbose mode set to wrong value from shell level >"$APISCRIPTVERBOSE"<" >> $APICLIlogfilepath
+        echo "!! Settting Verbose mode OFF, pending command line parameter checking!" >> $APICLIlogfilepath
         export APISCRIPTVERBOSE=false
-        echo | tee -a -i $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
     fi
     
     export APISCRIPTVERBOSECHECK=true
 
-    echo | tee -a -i $APICLIlogfilepath
+    echo >> $APICLIlogfilepath
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-05-02
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18-01
 
 # -------------------------------------------------------------------------------------------------
 # End of procedures block
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-# variable JQ points to where jq is installed
-export JQ=${CPDIR}/jq/jq
+# We need the Script's actual source folder to find subscripts
+#
+GetScriptSourceFolder
 
-ConfigureJQLocation
 
-export currentapisslport=$(clish -c "show web ssl-port" | cut -d " " -f 2)
-echo 'Current Gaia web ssl-port : '$currentapisslport >> $APICLIlogfilepath
-
-export minapiversionrequired=1.0
-export checkapiversion=
-
-ScriptAPIVersionCheck
-
-# We want to leave som externally set variables as they were
+# We want to leave some externally set variables as they were
 #
 #export APISCRIPTVERBOSE=false
 
 export APISCRIPTVERBOSECHECK=false
 
 CheckAPIScriptVerboseOutput
+
+# variable JQ points to where jq is installed
+export JQ=${CPDIR_PATH}/jq/jq
+
+ConfigureJQLocation
+
+GaiaWebSSLPortCheck
+
+export CheckAPIVersion=
+
+ScriptAPIVersionCheck
 
 
 # -------------------------------------------------------------------------------------------------
@@ -328,7 +596,7 @@ CheckAPIScriptVerboseOutput
 # START:  Command Line Parameter Handling and Help
 # =================================================================================================
 
-# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-01-17 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -344,6 +612,7 @@ CheckAPIScriptVerboseOutput
 # -m <server_IP> | --management <server_IP> | -m=<server_IP> | --management=<server_IP>
 # -d <domain> | --domain <domain> | -d=<domain> | --domain=<domain>
 # -s <session_file_filepath> | --session-file <session_file_filepath> | -s=<session_file_filepath> | --session-file=<session_file_filepath>
+# --session-timeout <session_time_out> 10-3600
 # -l <log_path> | --log-path <log_path> | -l=<log_path> | --log-path=<log_path>'
 #
 # -o <output_path> | --output <output_path> | -o=<output_path> | --output=<output_path> 
@@ -374,6 +643,7 @@ export CLIparm_password=
 export CLIparm_mgmt=
 export CLIparm_domain=
 export CLIparm_sessionidfile=
+export CLIparm_sessiontimeout=
 export CLIparm_logpath=
 
 export CLIparm_outputpath=
@@ -459,7 +729,8 @@ fi
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-01-17
+
 
 # =================================================================================================
 # -------------------------------------------------------------------------------------------------
@@ -503,7 +774,7 @@ doshowlocalhelp () {
 # CommandLineParameterHandler - Command Line Parameter Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-03 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CommandLineParameterHandler () {
@@ -511,34 +782,54 @@ CommandLineParameterHandler () {
     # CommandLineParameterHandler - Command Line Parameter Handler calling routine
     #
     
-    echo | tee -a -i $APICLIlogfilepath
-    echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    echo "Calling external Command Line Paramenter Handling Script" | tee -a -i $APICLIlogfilepath
-    echo " - External Script : "$cli_api_cmdlineparm_handler | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
+    if [ "$APISCRIPTVERBOSE" = "true" ] ; then
+        echo | tee -a -i $APICLIlogfilepath
+        echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        echo "Calling external Command Line Paramenter Handling Script" | tee -a -i $APICLIlogfilepath
+        echo " - External Script : "$cli_api_cmdlineparm_handler | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+    else
+        echo >> $APICLIlogfilepath
+        echo '--------------------------------------------------------------------------' >> $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
+        echo "Calling external Command Line Paramenter Handling Script" >> $APICLIlogfilepath
+        echo " - External Script : "$cli_api_cmdlineparm_handler >> $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
+    fi
+    
     
     . $cli_api_cmdlineparm_handler "$@"
     
-    echo | tee -a -i $APICLIlogfilepath
-    echo "Returned from external Command Line Paramenter Handling Script" | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    
-    if [ "$APISCRIPTVERBOSE" = "true" ] && [ "$NOWAIT" != "true" ] ; then
-        echo
-        read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
+    if [ "$APISCRIPTVERBOSE" = "true" ] ; then
+        echo | tee -a -i $APICLIlogfilepath
+        echo "Returned from external Command Line Paramenter Handling Script" | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+
+        if [ "$NOWAIT" != "true" ] ; then
+            echo
+            read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
+        fi
+
+        echo | tee -a -i $APICLIlogfilepath
+        echo "Continueing local execution" | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+    else
+        echo >> $APICLIlogfilepath
+        echo "Returned from external Command Line Paramenter Handling Script" >> $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
+        echo "Continueing local execution" >> $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
+        echo '--------------------------------------------------------------------------' >> $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
     fi
-    
-    echo | tee -a -i $APICLIlogfilepath
-    echo "Starting local execution" | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    
+
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-05-03
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -549,8 +840,24 @@ CommandLineParameterHandler () {
 
 # MODIFIED 2018-05-03-3 -
 
-export cli_api_cmdlineparm_handler_path=$cli_api_cmdlineparm_handler_root/$cli_api_cmdlineparm_handler_folder
+export configured_handler_root=$cli_api_cmdlineparm_handler_root
+export actual_handler_root=$configured_handler_root
 
+if [ "$configured_handler_root" == "." ] ; then
+    if [ $ScriptSourceFolder != $localdotpath ] ; then
+        # Script is not running from it's source folder, might be linked, so since we expect the handler folder
+        # to be relative to the script source folder, use the identified script source folder instead
+        export actual_handler_root=$ScriptSourceFolder
+    else
+        # Script is running from it's source folder
+        export actual_handler_root=$configured_handler_root
+    fi
+else
+    # handler root path is not period (.), so stipulating fully qualified path
+    export actual_handler_root=$configured_handler_root
+fi
+
+export cli_api_cmdlineparm_handler_path=$actual_handler_root/$cli_api_cmdlineparm_handler_folder
 export cli_api_cmdlineparm_handler=$cli_api_cmdlineparm_handler_path/$cli_api_cmdlineparm_handler_file
 
 # Check that we can finde the command line parameter handler file
@@ -562,6 +869,8 @@ if [ ! -r $cli_api_cmdlineparm_handler ] ; then
     echo '  File not found : '$cli_api_cmdlineparm_handler | tee -a -i $APICLIlogfilepath
     echo | tee -a -i $APICLIlogfilepath
     echo 'Other parameter elements : ' | tee -a -i $APICLIlogfilepath
+    echo '  Configured Root path    : '$configured_handler_root | tee -a -i $APICLIlogfilepath
+    echo '  Actual Script Root path : '$actual_handler_root | tee -a -i $APICLIlogfilepath
     echo '  Root of folder path : '$cli_api_cmdlineparm_handler_root | tee -a -i $APICLIlogfilepath
     echo '  Folder in Root path : '$cli_api_cmdlineparm_handler_folder | tee -a -i $APICLIlogfilepath
     echo '  Folder Root path    : '$cli_api_cmdlineparm_handler_path | tee -a -i $APICLIlogfilepath
@@ -618,13 +927,17 @@ if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
     echo 'Date Time Group   :  '$DATE | tee -a -i $APICLIlogfilepath
     echo 'Date Time Group S :  '$DATEDTGS | tee -a -i $APICLIlogfilepath
     echo | tee -a -i $APICLIlogfilepath
+else
+    echo 'Date Time Group   :  '$DATE >> $APICLIlogfilepath
+    echo 'Date Time Group S :  '$DATEDTGS >> $APICLIlogfilepath
+    echo >> $APICLIlogfilepath
 fi
 
 # -------------------------------------------------------------------------------------------------
 # GetGaiaVersionAndInstallationType - Gaia version and installation type Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 GetGaiaVersionAndInstallationType () {
@@ -632,34 +945,53 @@ GetGaiaVersionAndInstallationType () {
     # GetGaiaVersionAndInstallationType - Gaia version and installation type Handler calling routine
     #
     
-    echo | tee -a -i $APICLIlogfilepath
-    echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    echo "Calling external Gaia version and installation type Handling Script" | tee -a -i $APICLIlogfilepath
-    echo " - External Script : "$gaia_version_handler | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
+    if [ "$APISCRIPTVERBOSE" = "true" ] ; then
+        echo | tee -a -i $APICLIlogfilepath
+        echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        echo "Calling external Gaia version and installation type Handling Script" | tee -a -i $APICLIlogfilepath
+        echo " - External Script : "$gaia_version_handler | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+    else
+        echo >> $APICLIlogfilepath
+        echo '--------------------------------------------------------------------------' >> $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
+        echo "Calling external Gaia version and installation type Handling Script" >> $APICLIlogfilepath
+        echo " - External Script : "$gaia_version_handler >> $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
+    fi
     
     . $gaia_version_handler "$@"
     
-    echo | tee -a -i $APICLIlogfilepath
-    echo "Returned from external Gaia version and installation type Handling Script" | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    
-    if [ "$APISCRIPTVERBOSE" = "true" ] && [ "$NOWAIT" != "true" ] ; then
-        echo
-        read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
+    if [ "$APISCRIPTVERBOSE" = "true" ] ; then
+        echo | tee -a -i $APICLIlogfilepath
+        echo "Returned from external Gaia version and installation type Handling Script" | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+
+        if [ "$NOWAIT" != "true" ] ; then
+            echo
+            read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
+        fi
+
+        echo | tee -a -i $APICLIlogfilepath
+        echo "Continueing local execution" | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+    else
+        echo >> $APICLIlogfilepath
+        echo "Returned from external Gaia version and installation type Handling Script" >> $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
+        echo "Continueing local execution" >> $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
+        echo '--------------------------------------------------------------------------' >> $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
     fi
-    
-    echo | tee -a -i $APICLIlogfilepath
-    echo "Continueing local execution" | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    
+
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -671,8 +1003,24 @@ GetGaiaVersionAndInstallationType () {
 # MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-export gaia_version_handler_path=$gaia_version_handler_root/$gaia_version_handler_folder
+export configured_handler_root=$gaia_version_handler_root
+export actual_handler_root=$configured_handler_root
 
+if [ "$configured_handler_root" == "." ] ; then
+    if [ $ScriptSourceFolder != $localdotpath ] ; then
+        # Script is not running from it's source folder, might be linked, so since we expect the handler folder
+        # to be relative to the script source folder, use the identified script source folder instead
+        export actual_handler_root=$ScriptSourceFolder
+    else
+        # Script is running from it's source folder
+        export actual_handler_root=$configured_handler_root
+    fi
+else
+    # handler root path is not period (.), so stipulating fully qualified path
+    export actual_handler_root=$configured_handler_root
+fi
+
+export gaia_version_handler_path=$actual_handler_root/$gaia_version_handler_folder
 export gaia_version_handler=$gaia_version_handler_path/$gaia_version_handler_file
 
 # Check that we can finde the command line parameter handler file
@@ -684,6 +1032,8 @@ if [ ! -r $gaia_version_handler ] ; then
     echo '  File not found : '$gaia_version_handler | tee -a -i $APICLIlogfilepath
     echo | tee -a -i $APICLIlogfilepath
     echo 'Other parameter elements : ' | tee -a -i $APICLIlogfilepath
+    echo '  Configured Root path    : '$configured_handler_root | tee -a -i $APICLIlogfilepath
+    echo '  Actual Script Root path : '$actual_handler_root | tee -a -i $APICLIlogfilepath
     echo '  Root of folder path : '$gaia_version_handler_root | tee -a -i $APICLIlogfilepath
     echo '  Folder in Root path : '$gaia_version_handler_folder | tee -a -i $APICLIlogfilepath
     echo '  Folder Root path    : '$gaia_version_handler_path | tee -a -i $APICLIlogfilepath
@@ -783,7 +1133,7 @@ HandleMgmtCLILogout () {
 # HandleMgmtCLILogin - Login to the API via mgmt_cli login
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-04-3 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-01-17 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -834,6 +1184,7 @@ HandleMgmtCLILogin () {
     
     echo | tee -a -i $APICLIlogfilepath
     echo 'APICLIwebsslport  :  '$APICLIwebsslport | tee -a -i $APICLIlogfilepath
+    echo 'APISessionTimeout :  '$APISessionTimeout | tee -a -i $APICLIlogfilepath
     echo 'Domain Target     :  '$domaintarget | tee -a -i $APICLIlogfilepath
     echo 'Domain no space   :  '$domainnamenospace | tee -a -i $APICLIlogfilepath
     echo 'APICLIsessionfile :  '$APICLIsessionfile | tee -a -i $APICLIlogfilepath
@@ -871,7 +1222,7 @@ HandleMgmtCLILogin () {
                 echo | tee -a -i $APICLIlogfilepath
             fi
             
-            mgmt_cli login -r true domain "$domaintarget" --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+            mgmt_cli login -r true domain "$domaintarget" session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
             EXITCODE=$?
             cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
         else
@@ -883,7 +1234,7 @@ HandleMgmtCLILogin () {
                 echo
             fi
             
-            mgmt_cli login -r true --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+            mgmt_cli login -r true session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
             EXITCODE=$?
             cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
         fi
@@ -924,7 +1275,7 @@ HandleMgmtCLILogin () {
                         echo | tee -a -i $APICLIlogfilepath
                     fi
                     
-                    mgmt_cli login user $APICLIadmin password "$CLIparm_password" domain "$domaintarget" -m "$CLIparm_mgmt" --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                    mgmt_cli login user $APICLIadmin password "$CLIparm_password" domain "$domaintarget" -m "$CLIparm_mgmt" session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
                     EXITCODE=$?
                     cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
                 else
@@ -936,7 +1287,7 @@ HandleMgmtCLILogin () {
                         echo | tee -a -i $APICLIlogfilepath
                     fi
                     
-                    mgmt_cli login user $APICLIadmin password "$CLIparm_password" domain "$domaintarget" --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                    mgmt_cli login user $APICLIadmin password "$CLIparm_password" domain "$domaintarget" session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
                     EXITCODE=$?
                     cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
                 fi
@@ -954,7 +1305,7 @@ HandleMgmtCLILogin () {
                         echo | tee -a -i $APICLIlogfilepath
                     fi
                     
-                    mgmt_cli login user $APICLIadmin password "$CLIparm_password" -m "$CLIparm_mgmt" --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                    mgmt_cli login user $APICLIadmin password "$CLIparm_password" -m "$CLIparm_mgmt" session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
                     EXITCODE=$?
                     cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
                 else
@@ -966,7 +1317,7 @@ HandleMgmtCLILogin () {
                         echo | tee -a -i $APICLIlogfilepath
                     fi
                     
-                    mgmt_cli login user $APICLIadmin password "$CLIparm_password" --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                    mgmt_cli login user $APICLIadmin password "$CLIparm_password" session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
                     EXITCODE=$?
                     cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
                 fi
@@ -991,7 +1342,7 @@ HandleMgmtCLILogin () {
                         echo | tee -a -i $APICLIlogfilepath
                     fi
                     
-                    mgmt_cli login user $APICLIadmin domain "$domaintarget" -m "$CLIparm_mgmt" --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                    mgmt_cli login user $APICLIadmin domain "$domaintarget" -m "$CLIparm_mgmt" session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
                     EXITCODE=$?
                     cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
                 else
@@ -1003,7 +1354,7 @@ HandleMgmtCLILogin () {
                         echo | tee -a -i $APICLIlogfilepath
                     fi
                     
-                    mgmt_cli login user $APICLIadmin domain "$domaintarget" --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                    mgmt_cli login user $APICLIadmin domain "$domaintarget" session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
                     EXITCODE=$?
                     cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
                 fi
@@ -1021,7 +1372,7 @@ HandleMgmtCLILogin () {
                         echo | tee -a -i $APICLIlogfilepath
                     fi
                     
-                    mgmt_cli login user $APICLIadmin -m "$CLIparm_mgmt" --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                    mgmt_cli login user $APICLIadmin -m "$CLIparm_mgmt" session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
                     EXITCODE=$?
                     cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
                 else
@@ -1033,7 +1384,7 @@ HandleMgmtCLILogin () {
                         echo | tee -a -i $APICLIlogfilepath
                     fi
                     
-                    mgmt_cli login user $APICLIadmin --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                    mgmt_cli login user $APICLIadmin session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
                     EXITCODE=$?
                     cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
                 fi
@@ -1063,13 +1414,13 @@ HandleMgmtCLILogin () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-05-04-3
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-17
 
 # -------------------------------------------------------------------------------------------------
 # SetupLogin2MgmtCLI - Setup Login to Management CLI
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-01-17 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 SetupLogin2MgmtCLI () {
@@ -1077,17 +1428,7 @@ SetupLogin2MgmtCLI () {
     # setup the mgmt_cli login fundamentals
     #
     
-    # MODIFIED 2018-09-21 -
-    # Stipulate that if running on the actual management host, use it's web ssl-port value
-    #
-    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-        echo | tee -a -i $APICLIlogfilepath
-        echo 'Initial $APICLIwebsslport   = '$APICLIwebsslport | tee -a -i $APICLIlogfilepath
-        echo 'Current $CLIparm_websslport = '$CLIparm_websslport | tee -a -i $APICLIlogfilepath
-        echo 'Current $currentapisslport  = '$currentapisslport | tee -a -i $APICLIlogfilepath
-    fi            
-
-    export APICLIwebsslport=$currentapisslport
+    #export APICLIwebsslport=$currentapisslport
 
     if [ ! -z "$CLIparm_mgmt" ] ; then
         # working with remote management server
@@ -1095,6 +1436,17 @@ SetupLogin2MgmtCLI () {
             echo 'Working with remote management server' | tee -a -i $APICLIlogfilepath
         fi            
         
+        # MODIFIED 2019-01-17 -
+        # Stipulate that if running on the actual management host, use it's web ssl-port value
+        # unless we're running with the management server setting CLIparm_mgmt, then use the
+        # passed parameter from the CLI or default to 443
+        #
+        if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+            echo | tee -a -i $APICLIlogfilepath
+            echo 'Initial $APICLIwebsslport   = '$APICLIwebsslport | tee -a -i $APICLIlogfilepath
+            echo 'Current $CLIparm_websslport = '$CLIparm_websslport | tee -a -i $APICLIlogfilepath
+        fi            
+    
         if [ ! -z "$CLIparm_websslport" ] ; then
             if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
                 echo 'Working with web ssl-port from CLI parms' | tee -a -i $APICLIlogfilepath
@@ -1114,6 +1466,18 @@ SetupLogin2MgmtCLI () {
             echo 'Not working with remote management server' | tee -a -i $APICLIlogfilepath
         fi            
         
+        # MODIFIED 2019-01-17 -
+        # Stipulate that if running on the actual management host, use it's web ssl-port value
+        # unless we're running with the management server setting CLIparm_mgmt, then use the
+        # passed parameter from the CLI or default to 443
+        #
+        if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+            echo | tee -a -i $APICLIlogfilepath
+            echo 'Initial $APICLIwebsslport   = '$APICLIwebsslport | tee -a -i $APICLIlogfilepath
+            echo 'Current $CLIparm_websslport = '$CLIparm_websslport | tee -a -i $APICLIlogfilepath
+            echo 'Current $currentapisslport  = '$currentapisslport | tee -a -i $APICLIlogfilepath
+        fi            
+    
         if [ ! -z "$CLIparm_websslport" ] ; then
             if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
                 echo 'Working with web ssl-port from CLI parms' | tee -a -i $APICLIlogfilepath
@@ -1131,7 +1495,43 @@ SetupLogin2MgmtCLI () {
         echo 'Final $APICLIwebsslport     = '$APICLIwebsslport | tee -a -i $APICLIlogfilepath
         echo | tee -a -i $APICLIlogfilepath
     fi            
-    
+    # ADDED 2019-01-17 -
+    # Handle login session-timeout parameter
+    #
+
+    export APISessionTimeout=600
+
+    MinAPISessionTimeout=10
+    MaxAPISessionTimeout=3600
+    DefaultAPISessionTimeout=600
+
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'Initial $APISessionTimeout      = '$APISessionTimeout | tee -a -i $APICLIlogfilepath
+        echo 'Current $CLIparm_sessiontimeout = '$CLIparm_sessiontimeout | tee -a -i $APICLIlogfilepath
+    fi            
+
+    if [ ! -z $CLIparm_sessiontimeout ]; then
+        # CLI Parameter for session-timeout was passed
+        if [ $CLIparm_sessiontimeout -lt $MinAPISessionTimeout ] ||  [ $CLIparm_sessiontimeout -gt $MaxAPISessionTimeout ]; then
+            # parameter is outside of range for MinAPISessionTimeout to MaxAPISessionTimeout
+            echo 'Value of $CLIparm_sessiontimeout ('$CLIparm_sessiontimeout') is out side of allowed range!' | tee -a -i $APICLIlogfilepath
+            echo 'Allowed session-timeout value range is '$MinAPISessionTimeout' to '$MaxAPISessionTimeout | tee -a -i $APICLIlogfilepath
+            export APISessionTimeout=$DefaultAPISessionTimeout
+        else
+            # parameter is within range for MinAPISessionTimeout to MaxAPISessionTimeout
+            export APISessionTimeout=$CLIparm_sessiontimeout
+        fi
+    else
+        # CLI Parameter for session-timeout not set
+        export APISessionTimeout=$DefaultAPISessionTimeout
+    fi
+
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'Final $APISessionTimeout       = '$APISessionTimeout | tee -a -i $APICLIlogfilepath
+    fi
+
     # MODIFIED 2018-05-03 -
 
     # ================================================================================================
@@ -1163,7 +1563,7 @@ SetupLogin2MgmtCLI () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-17
 
 # -------------------------------------------------------------------------------------------------
 # Login2MgmtCLI - Process Login to Management CLI
@@ -1218,37 +1618,345 @@ Login2MgmtCLI () {
 # START:  Common Procedures
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-03 -
+# -------------------------------------------------------------------------------------------------
+# localrootscriptconfiguration - Local Root Script Configuration setup
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-01-17 -
+localrootscriptconfiguration () {
+    #
+    # Local Root Script Configuration setup
+    #
+
+    # WAITTIME in seconds for read -t commands
+    
+    export customerpathroot=/var/log/__customer
+    export customerworkpathroot=$customerpathroot/upgrade_export
+    export outputpathroot=$customerworkpathroot
+    export dumppathroot=$customerworkpathroot/dump
+    export changelogpathroot=$customerworkpathroot/Change_Log
+    
+    export customerapipathroot=/var/log/__customer/cli_api_ops
+    export customerapiwippathroot=/var/log/__customer/cli_api_ops.wip
+
+    echo
+    return 0
+}
+
+
+# -------------------------------------------------------------------------------------------------
+# HandleRootScriptConfiguration - Root Script Configuration
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2018-09-29 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+HandleRootScriptConfiguration () {
+    #
+    # Root Script Configuration
+    #
+    
+    # -------------------------------------------------------------------------------------------------
+    # START: Root Script Configuration
+    # -------------------------------------------------------------------------------------------------
+    
+    if [ -r "$scriptspathroot/$rootscriptconfigfile" ] ; then
+        # Found the Root Script Configuration File in the folder for scripts
+        # So let's call that script to configure what we need
+    
+        . $scriptspathroot/$rootscriptconfigfile "$@"
+        errorreturn=$?
+    elif [ -r "../$rootscriptconfigfile" ] ; then
+        # Found the Root Script Configuration File in the folder above the executiong script
+        # So let's call that script to configure what we need
+    
+        . ../$rootscriptconfigfile "$@"
+        errorreturn=$?
+    elif [ -r "$rootscriptconfigfile" ] ; then
+        # Found the Root Script Configuration File in the folder with the executiong script
+        # So let's call that script to configure what we need
+    
+        . $rootscriptconfigfile "$@"
+        errorreturn=$?
+    else
+        # Did not the Root Script Configuration File
+        # So let's call local configuration
+    
+        localrootscriptconfiguration "$@"
+        errorreturn=$?
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    # END:  Root Script Configuration
+    # -------------------------------------------------------------------------------------------------
+    
+    return $errorreturn
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-29
+
+
+# -------------------------------------------------------------------------------------------------
+# HandleLaunchInHomeFolder - Handle if folder where this was launched is the $HOME Folder
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2018-09-22 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+HandleLaunchInHomeFolder () {
+    #
+    # Handle if folder where this was launched is the $HOME Folder
+    #
+    
+    export expandedpath=$(cd $startpathroot ; pwd)
+    export startpathroot=$expandedpath
+    export checkthispath=`echo "${expandedpath}" | grep -i "$notthispath"`
+    export isitthispath=`test -z $checkthispath; echo $?`
+    
+    if [ $isitthispath -eq 1 ] ; then
+        #Oh, Oh, we're in the home directory executing, not good!!!
+        #Configure outputpathroot for $alternatepathroot folder since we can't run in /home/
+        echo 'In home directory folder : '$startpathroot >> $APICLIlogfilepath
+        export outputpathroot=$alternatepathroot
+    else
+        #OK use the current folder and create working sub-folder
+        echo 'NOT in home directory folder : '$startpathroot >> $APICLIlogfilepath
+        # let's not change the configuration provided
+        #export outputpathroot=$startpathroot
+    fi
+    
+    if [ ! -r $outputpathroot ] ; then
+        #not where we're expecting to be, since $outputpathroot is missing here
+        #maybe this hasn't been run here yet.
+        #OK, so make the expected folder and set permissions we need
+        mkdir $outputpathroot >> $APICLIlogfilepath
+        chmod 775 $outputpathroot >> $APICLIlogfilepath
+    else
+        #set permissions we need
+        chmod 775 $outputpathroot >> $APICLIlogfilepath
+    fi
+    
+    #Now that outputroot is not in /home/ let's work on where we are working from
+    
+    export expandedpath=$(cd $outputpathroot ; pwd)
+    export outputpathroot=${expandedpath}
+    export dumppathroot=$outputpathroot/dump
+    export changelogpathroot=$outputpathroot/Change_Log
+    
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-22
+
+
+# -------------------------------------------------------------------------------------------------
+# ShowFinalOutputAndLogPaths - repeated proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2018-09-29D -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+ShowFinalOutputAndLogPaths () {
+    #
+    # repeated procedure description
+    #
+
+    #----------------------------------------------------------------------------------------
+    # Output and Log file and folder Information
+    #----------------------------------------------------------------------------------------
+    
+    if [ x"$SCRIPTVERBOSE" = x"true" ] ; then
+        # Verbose mode ON
+        
+        echo "Controls : " | tee -a -i $APICLIlogfilepath
+        echo ' $OutputRelLocalPath        : '"$OutputRelLocalPath" | tee -a -i $APICLIlogfilepath
+        echo ' $IgnoreInHome              : '"$IgnoreInHome" | tee -a -i $APICLIlogfilepath
+        echo ' $OutputToRoot              : '"$OutputToRoot" | tee -a -i $APICLIlogfilepath
+        echo ' $OutputToDump              : '"$OutputToDump" | tee -a -i $APICLIlogfilepath
+        echo ' $OutputToChangeLog         : '"$OutputToChangeLog" | tee -a -i $APICLIlogfilepath
+        echo ' $OutputToOther             : '"$OutputToOther" | tee -a -i $APICLIlogfilepath
+        echo ' $OtherOutputFolder         : '"$OtherOutputFolder" | tee -a -i $APICLIlogfilepath
+        echo ' OutputDATESubfolder        : '"$OutputDATESubfolder" | tee -a -i $APICLIlogfilepath
+        echo ' $OutputDTGSSubfolder       : '"$OutputDTGSSubfolder" | tee -a -i $APICLIlogfilepath
+        #echo ' $OutputSubfolderScriptName      : '"$OutputSubfolderScriptName" | tee -a -i $APICLIlogfilepath
+        #echo ' $OutputSubfolderScriptShortName : '"$OutputSubfolderScriptShortName" | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        
+        echo "Output and Log file, folder locations: " | tee -a -i $APICLIlogfilepath
+        echo ' $APICLIpathroot            : '"$APICLIpathroot" | tee -a -i $APICLIlogfilepath
+        echo ' $APICLIpathbase            : '"$APICLIpathbase" | tee -a -i $APICLIlogfilepath
+        echo ' $APICLIlogfilepath         : '"$APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
+        echo ' $customerpathroot          : '"$customerpathroot" | tee -a -i $APICLIlogfilepath
+        echo ' $customerworkpathroot      : '"$customerworkpathroot" | tee -a -i $APICLIlogfilepath
+        echo ' $dumppathroot              : '"$dumppathroot" | tee -a -i $APICLIlogfilepath
+        echo ' $changelogpathroot         : '"$changelogpathroot" | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        
+        read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+        echo
+        
+    else
+        # Verbose mode OFF
+        
+        echo "Output and Log file, folder locations: " | tee -a -i $APICLIlogfilepath
+        echo ' $APICLIpathbase       : '"$APICLIpathbase" | tee -a -i $APICLIlogfilepath
+        echo ' $APICLIlogfilepath    : '"$APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+    fi
+    
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-29
+
 
 # -------------------------------------------------------------------------------------------------
 # ConfigureRootPath - Configure root and base path
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-04 -
+# MODIFIED 2018-11-20 -
 
 ConfigureRootPath () {
+
+    # -------------------------------------------------------------------------------------------------
+    # Root Script Configuration
+    # -------------------------------------------------------------------------------------------------
+    
+    HandleRootScriptConfiguration "$@"
+    
+    
+    #----------------------------------------------------------------------------------------
+    # Setup root folder and path values
+    #----------------------------------------------------------------------------------------
+    
+    export alternatepathroot=$customerworkpathroot
+    
+    if ! $IgnoreInHome ; then
+        HandleLaunchInHomeFolder "$@"
+    fi
+    
 
     # ---------------------------------------------------------
     # Create the base path and directory structure for output
     # ---------------------------------------------------------
     
-    export APICLIpathroot=./dump
     if [ x"$CLIparm_outputpath" != x"" ] ; then
-        export APICLIpathroot=$CLIparm_outputpath
+        if $OutputRelLocalPath ; then
+            export APICLIpathroot=$CLIparm_outputpath
+        else
+            # need to expand this other path to ensure things work
+            export expandedpath=$(cd $CLIparm_outputpath ; pwd)
+            export APICLIpathroot=$expandedpath
+        fi
+        echo 'Set root output CLI parameter : $APICLIpathroot = '"$APICLIpathroot" >> $APICLIlogfilepath
     else
-        export APICLIpathroot=./dump
+        # CLI parameter for outputpath not set
+
+        if $OutputToRoot ; then
+            # output to outputpathroot
+            if $OutputRelLocalPath ; then
+                export APICLIpathroot=.
+            else
+                export APICLIpathroot=$outputpathroot
+            fi
+        
+            echo 'Set root output to Root : $APICLIpathroot = '"$APICLIpathroot" >> $APICLIlogfilepath
+
+        elif $OutputToDump ; then
+            # output to dump folder
+            if $OutputRelLocalPath ; then
+                export APICLIpathroot=./dump
+            else
+                export APICLIpathroot=$dumppathroot
+            fi
+
+            echo 'Set root output to Dump : $APICLIpathroot = '"$APICLIpathroot" >> $APICLIlogfilepath
+
+        elif $OutputToChangeLog ; then
+            # output to Change Log
+            if $OutputRelLocalPath ; then
+                export APICLIpathroot=./Change_Log
+            else
+                export APICLIpathroot=$changelogpathroot
+            fi
+
+            echo 'Set root output to Change Log : $APICLIpathroot = '"$APICLIpathroot" >> $APICLIlogfilepath
+
+        elif $OutputToOther ; then
+            # output to other folder that should be set in $OtherOutputFolder
+            if $OutputRelLocalPath ; then
+                export APICLIpathroot=./OtherOutputFolder
+            else
+                # need to expand this other path to ensure things work
+                export expandedpath=$(cd $OtherOutputFolder ; pwd)
+                export APICLIpathroot=$expandedpath
+            fi
+        
+            echo 'Set root output to Other : $APICLIpathroot = '"$APICLIpathroot" >> $APICLIlogfilepath
+
+        else
+            # Huh, what... this should have been set, well the use dump
+            # output to dumppathroot
+            if $OutputRelLocalPath ; then
+                export APICLIpathroot=./dump
+            else
+                export APICLIpathroot=$dumppathroot
+            fi
+
+            echo 'Set root output to default Dump : $APICLIpathroot = '"$APICLIpathroot" >> $APICLIlogfilepath
+
+        fi
+        
     fi
     
+    echo '$APICLIpathroot = '$APICLIpathroot >> $APICLIlogfilepath
+
     if [ ! -r $APICLIpathroot ] ; then
         mkdir -p -v $APICLIpathroot | tee -a -i $APICLIlogfilepath
+        chmod 775 $APICLIpathroot | tee -a -i $APICLIlogfilepath
+    else
+        chmod 775 $APICLIpathroot | tee -a -i $APICLIlogfilepath
     fi
-    
-    export APICLIpathbase=$APICLIpathroot/$DATE
-    
+        
+    if $OutputDTGSSubfolder ; then
+        # Use subfolder based on date-time group
+        # this shifts the base output folder down a level
+        export APICLIpathbase=$APICLIpathroot/$DATEDTGS
+    elif $OutputDATESubfolder ; then
+        export APICLIpathbase=$APICLIpathroot/$DATE
+    else
+        export APICLIpathbase=$APICLIpathroot
+    fi
+        
+    echo '$APICLIpathbase = '$APICLIpathbase >> $APICLIlogfilepath
+
     if [ ! -r $APICLIpathbase ] ; then
-        mkdir -p -v $APICLIpathbase | tee -a -i $APICLIlogfilepath
+        mkdir $APICLIpathbase | tee -a -i $APICLIlogfilepath
+        chmod 775 $APICLIpathbase | tee -a -i $APICLIlogfilepath
+    else
+        chmod 775 $APICLIpathbase | tee -a -i $APICLIlogfilepath
     fi
-    
+
+    # In the future we may add this naming extension
+    #if $OutputSubfolderScriptName ; then
+    #    # Add script name to the Subfolder name
+    #    export APICLIpathbase="$APICLIpathbase.$BASHScriptName"
+    #elif $OutputSubfolderScriptShortName ; then
+    #    # Add short script name to the Subfolder name
+    #    export APICLIpathbase="$APICLIpathbase.$BASHScriptShortName"
+    #fi
+    #
+    #echo '$APICLIpathbase = '$APICLIpathbase >> $APICLIlogfilepath
+    #
+    #if [ ! -r $APICLIpathbase ] ; then
+    #    mkdir $APICLIpathbase | tee -a -i $APICLIlogfilepath
+    #    chmod 775 $APICLIpathbase | tee -a -i $APICLIlogfilepath
+    #else
+    #    chmod 775 $APICLIpathbase | tee -a -i $APICLIlogfilepath
+    #fi
 }
 
 
@@ -1256,42 +1964,51 @@ ConfigureRootPath () {
 # ConfigureLogPath - Configure log file path and handle temporary log file
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-04 -
+# MODIFIED 2018-11-20 -
 
 ConfigureLogPath () {
 
     # ---------------------------------------------------------
     # Create the base path and directory structure for logging
-    # ---------------------------------------------------------
+    #----------------------------------------------------------------------------------------
     
-    if [ x"$CLIparm_logpath" != x"" ] ; then
-        export APICLIlogpathroot=$CLIparm_logpath
+    # Setup the log file fully qualified path based on final locations
+    #
+    if [ -z "$CLIparm_logpath" ]; then
+        # CLI parameter for logfile not set
+        export APICLIlogfilepathfinal=$APICLIpathbase/$ScriptName'_'$APIScriptVersion'_'$DATEDTGS.log
     else
-        export APICLIlogpathroot=$APICLIpathroot
+        # CLI parameter for logfile set
+        #export APICLIlogfilepathfinal=$CLIparm_logpath
+    
+        # need to expand this other path to ensure things work
+        export expandedpath=$(cd $CLIparm_logpath ; pwd)
+        export APICLIlogfilepathfinal=$expandedpath/$ScriptName'_'$APIScriptVersion'_'$DATEDTGS.log
     fi
     
-    if [ ! -r $APICLIlogpathroot ] ; then
-        mkdir -p -v $APICLIlogpathroot | tee -a -i $APICLIlogfilepath
+    # if we've been logging, move the temporary log to the final path
+    #
+    if [ -r $APICLIlogfilepath ]; then
+        mv $APICLIlogfilepath $APICLIlogfilepathfinal >> $APICLIlogfilepath
     fi
     
-    export APICLIlogpathbase=$APICLIlogpathroot/$DATE
+    # And then set the logfilepath value to the final one
+    #
+    export APICLIlogfilepath=$APICLIlogfilepathfinal
     
-    if [ ! -r $APICLIlogpathbase ] ; then
-        mkdir -p -v $APICLIlogpathbase | tee -a -i $APICLIlogfilepath
-    fi
+    #----------------------------------------------------------------------------------------
+    # Done setting log paths
+    #----------------------------------------------------------------------------------------
     
-    export APICLIlogfilepathtemp=$APICLIlogfilepath
-    export APICLIlogfilepath=$APICLIlogpathbase/$ScriptName'_'$APIScriptVersion'_'$DATEDTGS.log
-    
-    cat $APICLIlogfilepathtemp >> $APICLIlogfilepath
-    rm $APICLIlogfilepathtemp | tee -a -i $APICLIlogfilepath
-    
+    return 0
 }
 
 
 # -------------------------------------------------------------------------------------------------
 # ConfigureCommonCLIParameterValues - Configure Common CLI Parameter Values
 # -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2018-11-20 -
 
 ConfigureCommonCLIParameterValues () {
 
@@ -1303,6 +2020,9 @@ ConfigureCommonCLIParameterValues () {
 
     ConfigureLogPath
     
+    # ADDED 2018-11-20 -
+    ShowFinalOutputAndLogPaths
+
     return 0
 }
 
@@ -1460,27 +2180,6 @@ ConfigureSpecificCLIParameterValues
 # =================================================================================================
 
 
-# -------------------------------------------------------------------------------------------------
-# Set parameters for Main operations - Other Path Values
-# -------------------------------------------------------------------------------------------------
-
-if [ "$script_dump_csv" = "true" ] ; then
-    export APICLIdumppathcsv=$APICLICSVExportpathbase/csv
-fi
-
-if [ x"$script_dump_json" = x"true" ] ; then
-    export APICLIdumppathjson=$APICLICSVExportpathbase/json
-fi
-
-if [ x"$script_dump_full" = x"true" ] ; then
-    export APICLIdumppathjsonfull=$APICLIdumppathjson/full
-fi
-
-if [ x"$script_dump_standard" = x"true" ] ; then
-    export APICLIdumppathjsonstandard=$APICLIdumppathjson/standard
-fi
-
-
 # =================================================================================================
 # START:  Setup Login Parameters and Login to Mgmt_CLI
 # =================================================================================================
@@ -1524,6 +2223,33 @@ fi
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-10-27
+
+
+# =================================================================================================
+# END:  Setup Login Parameters and Login to Mgmt_CLI
+# =================================================================================================
+
+
+# -------------------------------------------------------------------------------------------------
+# Set parameters for Main operations - Other Path Values
+# -------------------------------------------------------------------------------------------------
+
+if [ "$script_dump_csv" = "true" ] ; then
+    export APICLIdumppathcsv=$APICLICSVExportpathbase/csv
+fi
+
+if [ x"$script_dump_json" = x"true" ] ; then
+    export APICLIdumppathjson=$APICLICSVExportpathbase/json
+fi
+
+if [ x"$script_dump_full" = x"true" ] ; then
+    export APICLIdumppathjsonfull=$APICLIdumppathjson/full
+fi
+
+if [ x"$script_dump_standard" = x"true" ] ; then
+    export APICLIdumppathjsonstandard=$APICLIdumppathjson/standard
+fi
+
 
 # =================================================================================================
 # START:  Export objects to JSON standard
@@ -1709,31 +2435,51 @@ if $UseR8XAPI ; then
 fi
 
 # -------------------------------------------------------------------------------------------------
-# Clean-up and exit
+# Clean-up according to CLI Parms and special requirements
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-01-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
-
-echo 'CLI Operations Completed' | tee -a -i $APICLIlogfilepath
 
 if [ x"$CLIparm_CLEANUPWIP" = x"true" ] ; then
     # Remove Work-In-Progress folder and files
 
     if [ -r $APICLICSVpathexportwip ] ; then
-        echo 'Remove CSV Work-In-Progress folder and files' | tee -a -i $APICLIlogfilepath
-        echo '   CSV WIP Folder : '$APICLICSVpathexportwip | tee -a -i $APICLIlogfilepath
+        if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+            echo 'Remove CSV Work-In-Progress folder and files' | tee -a -i $APICLIlogfilepath
+            echo '   CSV WIP Folder : '$APICLICSVpathexportwip | tee -a -i $APICLIlogfilepath
+        else
+            echo 'Remove CSV Work-In-Progress folder and files' >> $APICLIlogfilepath
+            echo '   CSV WIP Folder : '$APICLICSVpathexportwip >> $APICLIlogfilepath
+        fi
         rm -v -r $APICLICSVpathexportwip | tee -a -i $APICLIlogfilepath
     fi
     
     if [ -r $APICLIJSONpathexportwip ] ; then
-        echo 'Remove JSON Work-In-Progress folder and files' | tee -a -i $APICLIlogfilepath
-        echo '   JSON WIP Folder : '$APICLIJSONpathexportwip | tee -a -i $APICLIlogfilepath
+        if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+            echo 'Remove JSON Work-In-Progress folder and files' | tee -a -i $APICLIlogfilepath
+            echo '   JSON WIP Folder : '$APICLIJSONpathexportwip | tee -a -i $APICLIlogfilepath
+        else
+            echo 'Remove JSON Work-In-Progress folder and files' >> $APICLIlogfilepath
+            echo '   JSON WIP Folder : '$APICLIJSONpathexportwip >> $APICLIlogfilepath
+        fi
         rm -v -r $APICLIJSONpathexportwip | tee -a -i $APICLIlogfilepath
     fi
 
 fi
 
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-01-18
+
+
+# -------------------------------------------------------------------------------------------------
+# Clean-up and exit
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-01-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+echo 'CLI Operations Completed' | tee -a -i $APICLIlogfilepath
 
 if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
     # Verbose mode ON
@@ -1752,15 +2498,32 @@ if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
     echo "Files in >$APICLIpathbase<" | tee -a -i $APICLIlogfilepath
     ls -alhR $APICLIpathbase | tee -a -i $APICLIlogfilepath
     echo | tee -a -i $APICLIlogfilepath
+else
+    # Verbose mode OFF
+
+    echo >> $APICLIlogfilepath
+    #echo "Files in >$apiclipathroot<" >> $APICLIlogfilepath
+    #ls -alh $apiclipathroot >> $APICLIlogfilepath
+    #echo >> $APICLIlogfilepath
+
+    if [ "$APICLIlogpathbase" != "$APICLIpathbase" ] ; then
+        echo "Files in >$APICLIlogpathbase<" >> $APICLIlogfilepath
+        ls -alhR $APICLIpathbase >> $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
+    fi
+    
+    echo "Files in >$APICLIpathbase<" >> $APICLIlogfilepath
+    ls -alhR $APICLIpathbase >> $APICLIlogfilepath
+    echo >> $APICLIlogfilepath
 fi
 
 echo | tee -a -i $APICLIlogfilepath
-echo "Results in directory $APICLIpathbase" | tee -a -i $APICLIlogfilepath
-echo "Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
+echo 'Results in directory : '"$APICLIpathbase" | tee -a -i $APICLIlogfilepath
+echo 'Log output in file   : '"$APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
 echo | tee -a -i $APICLIlogfilepath
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-01-18
 
 
 # =================================================================================================

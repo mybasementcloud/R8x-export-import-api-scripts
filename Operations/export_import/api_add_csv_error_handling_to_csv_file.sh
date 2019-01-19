@@ -2,13 +2,21 @@
 #
 # SCRIPT test read operations
 #
-ScriptVersion=00.31.00
-ScriptDate=2018-10-27
+# (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
+#
+ScriptVersion=00.33.00
+ScriptRevision=000
+ScriptDate=2019-01-18
+TemplateVersion=00.33.00
+CommonScriptsVersion=00.33.00
+CommonScriptsRevision=005
 
 #
 
-export APIScriptVersion=v00x31x00
-ScriptNamecli_api_append_csv_error_handling_to_csv_file
+export APIScriptVersion=v${ScriptVersion//./x}
+export APIExpectedCommonScriptsVersion=v${CommonScriptsVersion//./x}
+export APIExpectedActionScriptsVersion=v${ScriptVersion//./x}
+ScriptName=cli_api_append_csv_error_handling_to_csv_file
 
 # =================================================================================================
 # =================================================================================================
