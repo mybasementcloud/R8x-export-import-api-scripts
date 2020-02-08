@@ -2,14 +2,23 @@
 #
 # SCRIPT Object export to JSON (standard details) file for API CLI Operations
 #
-# (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
+# (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
-ScriptVersion=00.33.00
+# ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
+# DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
+# RESULTS OF USING THESE SCRIPTS.  USING THESE SCRIPTS STIPULATES A CLEAR UNDERSTANDING OF RESPECTIVE
+# TECHNOLOGIES AND UNDERLYING PROGRAMMING CONCEPTS AND STRUCTURES AND IMPLIES CORRECT IMPLEMENTATION
+# OF RESPECTIVE BASELINE TECHNOLOGIES FOR PLATFORM UTILIZING THE SCRIPTS.  THIRD PARTY LIMITATIONS
+# APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
+# AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
+#
+#
+ScriptVersion=00.40.00
 ScriptRevision=000
-ScriptDate=2019-01-18
-TemplateVersion=00.33.00
-CommonScriptsVersion=00.33.00
-CommonScriptsRevision=005
+ScriptDate=2020-02-07
+TemplateVersion=00.40.00
+CommonScriptsVersion=00.40.00
+CommonScriptsRevision=006
 
 #
 
@@ -146,13 +155,17 @@ export script_uses_wip_json="false"
 export UseR8XAPI=true
 export UseJSONJQ=true
 
+# ADDED 2020-02-07 -
+export UseJSONJQ16=true
+
 # MODIFIED 2019-01-17 -
 # R80       version 1.0
 # R80.10    version 1.1
 # R80.20.M1 version 1.2
 # R80.20 GA version 1.3
 # R80.20.M2 version 1.4
-# R80.30    version 1.5 ???
+# R80.30    version 1.5
+# R80.40    version 1.6
 #
 # For common scripts minimum API version at 1.0 should suffice, otherwise get explicit
 #
@@ -219,11 +232,61 @@ export APIScriptCSVActionFilename=$APIScriptActionFilePrefix'_actions_to_csv'.sh
 # =================================================================================================
 # -------------------------------------------------------------------------------------------------
 
+# -------------------------------------------------------------------------------------------------
+# Announce what we are starting here...
+# -------------------------------------------------------------------------------------------------
+
 echo | tee -a -i $APICLIlogfilepath
+echo $0 | tee -a -i $APICLIlogfilepath
 echo 'Script:  '$ScriptName'  Script Version: '$ScriptVersion'  Revision: '$ScriptRevision | tee -a -i $APICLIlogfilepath
+echo | tee -a -i $APICLIlogfilepath
 
 # -------------------------------------------------------------------------------------------------
 # Handle important basics
+# -------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
+# Check that the API is actually running and up so we don't run into wierd problems
+# -------------------------------------------------------------------------------------------------
+
+echo | tee -a -i $APICLIlogfilepath
+echo '-------------------------------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+echo 'Check API Operational Status before starting' | tee -a -i $APICLIlogfilepath
+echo '-------------------------------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+echo | tee -a -i $APICLIlogfilepath
+
+export tempapichecklog=/var/log/tmp/apistatuscheck.$DATEDTGS.log
+
+# Execute the API check with api status to a temporary log file, since tee throws off the results of error checking
+api status >> $tempapichecklog
+errorresult=$?
+
+# Now dump the output from the temporary log file to the working log file, so we don't loose the results of the check, we can tee this to share
+cat $tempapichecklog | tee -a -i $APICLIlogfilepath
+
+# clean-up the temporary log file
+rm $tempapichecklog >> $APICLIlogfilepath
+
+echo | tee -a -i $APICLIlogfilepath
+echo 'API status check result ( 0 = OK ) : '$errorresult | tee -a -i $APICLIlogfilepath
+echo | tee -a -i $APICLIlogfilepath
+
+if [ $errorresult -ne 0 ] ; then
+    #api operations status NOT OK, so anything that is not a 0 result is a fail!
+    echo "API is noy operating as expected so API calls will probably fail!" | tee -a -i $APICLIlogfilepath
+    echo 'Critical Error - Exiting Script !!!!' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo "Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    exit 1
+    #Exit!
+else
+    #api operations status OK
+    echo "API is operating as expected so API calls should work!" | tee -a -i $APICLIlogfilepath
+fi
+echo '-------------------------------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+
+# -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------
@@ -369,14 +432,14 @@ GetScriptSourceFolder () {
 # ConfigureJQLocation - Configure the value of JQ based on installation
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-02-07 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
 # ConfigureJQLocation - Configure the value of JQ based on installation
 #
 
-# MODIFIED 2018-11-20 -
+# MODIFIED 2020-02-07 -
 ConfigureJQLocation () {
     #
     # Configure JQ variable value for JSON parsing
@@ -384,22 +447,68 @@ ConfigureJQLocation () {
     # variable JQ points to where jq is installed
     #
     # Apparently MDM, MDS, and Domains don't agree on who sets CPDIR, so better to check!
-
+    
     #export JQ=${CPDIR}/jq/jq
-
+    
+    
+    # =============================================================================
+    # JSON Query JQ and version specific JQ16 values
+    # =============================================================================
+    
+    export JQNotFound=true
+    export UseJSONJQ=false
+    
+    # JQ points to where the default jq is installed, probably version 1.4
     if [ -r ${CPDIR}/jq/jq ] ; then
         export JQ=${CPDIR}/jq/jq
+        export JQNotFound=false
+        export UseJSONJQ=true
     elif [ -r ${CPDIR_PATH}/jq/jq ] ; then
         export JQ=${CPDIR_PATH}/jq/jq
+        export JQNotFound=false
+        export UseJSONJQ=true
     elif [ -r ${MDS_CPDIR}/jq/jq ] ; then
         export JQ=${MDS_CPDIR}/jq/jq
-#    elif [ -r /opt/CPshrd-R80/jq/jq ] ; then
-#        export JQ=/opt/CPshrd-R80/jq/jq
-#    elif [ -r /opt/CPshrd-R80.10/jq/jq ] ; then
-#        export JQ=/opt/CPshrd-R80.10/jq/jq
-#    elif [ -r /opt/CPshrd-R80.20/jq/jq ] ; then
-#        export JQ=/opt/CPshrd-R80.20/jq/jq
+        export JQNotFound=false
+        export UseJSONJQ=true
     else
+        export JQ=
+        export JQNotFound=true
+        export UseJSONJQ=false
+    fi
+    
+    # JQ16 points to where jq 1.6 is installed, which is not generally part of Gaia, even R80.40EA (2020-01-20)
+    export JQ16NotFound=true
+    export UseJSONJQ16=false
+    
+    # As of template version v04.21.00 we also added jq version 1.6 to the mix and it lives in the customer path root /tools/JQ folder by default
+    export JQ16PATH=$customerpathroot/_tools/JQ
+    export JQ16FILE=jq-linux64
+    export JQ16FQFN=$JQ16PATH$JQ16FILE
+    
+    if [ -r $JQ16FQFN ] ; then
+        # OK we have the easy-button alternative
+        export JQ16=$JQ16FQFN
+        export JQ16NotFound=false
+        export UseJSONJQ16=true
+    elif [ -r "./_tools/JQ/$JQ16FILE" ] ; then
+        # OK we have the local folder alternative
+        export JQ16=./_tools/JQ/$JQ16FILE
+        export JQ16NotFound=false
+        export UseJSONJQ16=true
+    elif [ -r "../_tools/JQ/$JQ16FILE" ] ; then
+        # OK we have the parent folder alternative
+        export JQ16=../_tools/JQ/$JQ16FILE
+        export JQ16NotFound=false
+        export UseJSONJQ16=true
+    else
+        # nope, not part of the package, so clear the values
+        export JQ16=
+        export JQ16NotFound=true
+        export UseJSONJQ16=false
+    fi
+    
+    if $JQNotFound ; then
         echo "Missing jq, not found in ${CPDIR}/jq/jq, ${CPDIR_PATH}/jq/jq, or ${MDS_CPDIR}/jq/jq" | tee -a -i $APICLIlogfilepath
         echo 'Critical Error - Exiting Script !!!!' | tee -a -i $APICLIlogfilepath
         echo | tee -a -i $APICLIlogfilepath
@@ -412,7 +521,7 @@ ConfigureJQLocation () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-05-02
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-02-07
 
 # -------------------------------------------------------------------------------------------------
 # GaiaWebSSLPortCheck - Check local Gaia Web SSL Port configuration for local operations
@@ -617,6 +726,8 @@ ScriptAPIVersionCheck
 #
 # -o <output_path> | --output <output_path> | -o=<output_path> | --output=<output_path> 
 #
+# --NOWAIT
+#
 # -x <export_path> | --export <export_path> | -x=<export_path> | --export=<export_path> 
 # -i <import_path> | --import-path <import_path> | -i=<import_path> | --import-path=<import_path>'
 # -k <delete_path> | --delete-path <delete_path> | -k=<delete_path> | --delete-path=<delete_path>'
@@ -625,8 +736,6 @@ ScriptAPIVersionCheck
 #
 # --NSO | --no-system-objects
 # --SO | --system-objects
-#
-# --NOWAIT
 #
 # --CLEANUPWIP
 # --NODOMAINFOLDERS
@@ -647,6 +756,9 @@ export CLIparm_sessiontimeout=
 export CLIparm_logpath=
 
 export CLIparm_outputpath=
+
+export CLIparm_NOWAIT=
+
 export CLIparm_exportpath=
 export CLIparm_importpath=
 export CLIparm_deletepath=
@@ -657,7 +769,6 @@ export CLIparm_csvpath=
 #export CLIparm_NoSystemObjects=true
 export CLIparm_NoSystemObjects=false
 
-export CLIparm_NOWAIT=
 export CLIparm_CLEANUPWIP=
 export CLIparm_NODOMAINFOLDERS=
 export CLIparm_CSVEXPORTADDIGNOREERR=
@@ -1755,7 +1866,7 @@ HandleLaunchInHomeFolder () {
 # ShowFinalOutputAndLogPaths - repeated proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-29D -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-05-31 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ShowFinalOutputAndLogPaths () {
@@ -1788,6 +1899,9 @@ ShowFinalOutputAndLogPaths () {
         echo ' $APICLIpathroot            : '"$APICLIpathroot" | tee -a -i $APICLIlogfilepath
         echo ' $APICLIpathbase            : '"$APICLIpathbase" | tee -a -i $APICLIlogfilepath
         echo ' $APICLIlogfilepath         : '"$APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
+        echo ' $APICLIlogfilepathbase     : '"$APICLIlogfilepathbase" | tee -a -i $APICLIlogfilepath
+        echo ' $APICLIlogfilepathfirst    : '"$APICLIlogfilepathfirst" | tee -a -i $APICLIlogfilepath
+        echo ' $APICLIlogfilepathfinal    : '"$APICLIlogfilepathfinal" | tee -a -i $APICLIlogfilepath
         echo ' $customerpathroot          : '"$customerpathroot" | tee -a -i $APICLIlogfilepath
         echo ' $customerworkpathroot      : '"$customerworkpathroot" | tee -a -i $APICLIlogfilepath
         echo ' $dumppathroot              : '"$dumppathroot" | tee -a -i $APICLIlogfilepath
@@ -1810,7 +1924,7 @@ ShowFinalOutputAndLogPaths () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-29
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-05-31
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1964,7 +2078,7 @@ ConfigureRootPath () {
 # ConfigureLogPath - Configure log file path and handle temporary log file
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-11-20 -
+# MODIFIED 2019-01-19 -
 
 ConfigureLogPath () {
 
@@ -1972,20 +2086,25 @@ ConfigureLogPath () {
     # Create the base path and directory structure for logging
     #----------------------------------------------------------------------------------------
     
+    export APICLIlogfilepathbase=$APICLIpathbase
+    export APICLIlogfilepathfirst=$APICLIlogfilepath
+
     # Setup the log file fully qualified path based on final locations
     #
     if [ -z "$CLIparm_logpath" ]; then
         # CLI parameter for logfile not set
-        export APICLIlogfilepathfinal=$APICLIpathbase/$ScriptName'_'$APIScriptVersion'_'$DATEDTGS.log
+        export APICLIlogfilepathbase=$APICLIpathbase
     else
         # CLI parameter for logfile set
-        #export APICLIlogfilepathfinal=$CLIparm_logpath
+        #export APICLIlogfilepathbase=$CLIparm_logpath
     
         # need to expand this other path to ensure things work
         export expandedpath=$(cd $CLIparm_logpath ; pwd)
-        export APICLIlogfilepathfinal=$expandedpath/$ScriptName'_'$APIScriptVersion'_'$DATEDTGS.log
+        export APICLIlogfilepathbase=$expandedpath
     fi
     
+    export APICLIlogfilepathfinal=$APICLIlogfilepathbase/$ScriptName'_'$APIScriptVersion'_'$DATEDTGS.log
+
     # if we've been logging, move the temporary log to the final path
     #
     if [ -r $APICLIlogfilepath ]; then

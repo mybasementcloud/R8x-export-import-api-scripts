@@ -1,0 +1,96 @@
+{ simplex_objects : [ {
+	objectype : "host",
+	objectsype : "hosts",
+	name : "host",
+	name-plural : "hosts",
+	objectlimit : 500
+	sortparms : "'-f -t , -k 1,1'",
+	CSVFileHeader : "'"name","color","comments","ipv4-address","ipv6-address","nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.ipv4-address","nat-settings.ipv6-address","nat-settings.method"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["ipv4-address"], .["ipv6-address"], .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on", .["nat-settings"]["ipv4-address"], .["nat-settings"]["ipv6-address"], .["nat-settings"]["method"'"
+}, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "''",
+	CSVJQparms : "''"
+}, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "''",
+	CSVJQparms : "''"
+}, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "''",
+	CSVJQparms : "''"
+}, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "''",
+	CSVJQparms : "''"
+}, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "''",
+	CSVJQparms : "''"
+}, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "''",
+	CSVJQparms : "''"
+} ],
+complex_objects : [ {
+	objecttype : "group",
+	objectstype : "groups",
+	name : "group-member",
+	name-plural : "group-members",
+	objectlimit : 500
+	sortparms : "'-f -t , -k 1,2'",
+	CSVFileHeader : "'"name","members.add"'",
+	CSVJQparms : "'.["name"], .["members"]['$COUNTER']["name"]'"
+}, {
+	objectype : "host",
+	objectsype : "hosts",
+	name : "host-interface",
+	name-plural : "host-interfaces",
+	objectlimit : 500
+	sortparms : "'-f -t , -k 1,1'",
+	CSVFileHeader : "'"name","interfaces.add.name","interfaces.add.subnet4","interfaces.add.mask-length4","interfaces.add.subnet6","interfaces.add.mask-length6","interfaces.add.color","interfaces.add.comments"'",
+	CSVJQparms : "'.["name"], .["interfaces"]['$COUNTER']["name"], .["interfaces"]['$COUNTER']["subnet4"], .["interfaces"]['$COUNTER']["mask-length4"], .["interfaces"]['$COUNTER']["subnet6"], .["interfaces"]['$COUNTER']["mask-length6"], .["interfaces"]['$COUNTER']["color"], .["interfaces"]['$COUNTER']["comments"]'"
+} ]
+}
+
+
+, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "''",
+	CSVJQparms : "''"
+} 
