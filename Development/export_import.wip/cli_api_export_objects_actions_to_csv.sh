@@ -13,11 +13,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.40.00
-ScriptRevision=000
-ScriptDate=2020-02-07
-TemplateVersion=00.40.00
-CommonScriptsVersion=00.40.00
+ScriptVersion=00.50.00
+ScriptRevision=055
+ScriptDate=2020-09-10
+TemplateVersion=00.50.00
+CommonScriptsVersion=00.50.00
 CommonScriptsRevision=006
 
 #
@@ -678,6 +678,7 @@ GetNumberOfObjectsviaJQ () {
 
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -686,10 +687,12 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 export CSVFileHeader=$CSVFileHeader',"ipv4-address","ipv6-address"'
 export CSVFileHeader=$CSVFileHeader',"nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.ipv4-address","nat-settings.ipv6-address","nat-settings.method"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=$CSVJQparms', .["ipv4-address"], .["ipv6-address"]'
 export CSVJQparms=$CSVJQparms', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"]'
 export CSVJQparms=$CSVJQparms', .["nat-settings"]["ipv4-address"], .["nat-settings"]["ipv6-address"], .["nat-settings"]["method"]'
@@ -707,6 +710,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=network
 export APICLIobjectstype=networks
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -715,10 +719,12 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 export CSVFileHeader=$CSVFileHeader',"broadcast","subnet4","mask-length4","subnet6","mask-length6"'
 export CSVFileHeader=$CSVFileHeader',"nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.method"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=$CSVJQparms', .["broadcast"], .["subnet4"], .["mask-length4"], .["subnet6"], .["mask-length6"]'
 export CSVJQparms=$CSVJQparms', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"], .["nat-settings"]["method"]'
 
@@ -735,6 +741,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -743,8 +750,10 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 
 objectstotal_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_groups="$objectstotal_groups"
@@ -759,6 +768,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=group-with-exclusion
 export APICLIobjectstype=groups-with-exclusion
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -767,9 +777,11 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 export CSVFileHeader=$CSVFileHeader',"include","except"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=$CSVJQparms', .["include"]["name"], .["except"]["name"]'
 
 objectstotal_groupswithexclusion=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -785,6 +797,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=address-range
 export APICLIobjectstype=address-ranges
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -793,10 +806,12 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 export CSVFileHeader=$CSVFileHeader',"ipv4-address-first","ipv4-address-last"'
 export CSVFileHeader=$CSVFileHeader',"ipv6-address-first","ipv6-address-last"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=$CSVJQparms', .["ipv4-address-first"], .["ipv4-address-last"]'
 export CSVJQparms=$CSVJQparms', .["ipv6-address-first"], .["ipv6-address-last"]'
 
@@ -813,6 +828,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=multicast-address-range
 export APICLIobjectstype=multicast-address-ranges
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -821,10 +837,12 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 export CSVFileHeader=$CSVFileHeader',"ipv4-address-first","ipv4-address-last"'
 export CSVFileHeader=$CSVFileHeader',"ipv6-address-first","ipv6-address-last"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=$CSVJQparms', .["ipv4-address-first"], .["ipv4-address-last"]'
 export CSVJQparms=$CSVJQparms', .["ipv6-address-first"], .["ipv6-address-last"]'
 
@@ -841,6 +859,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=dns-domain
 export APICLIobjectstype=dns-domains
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -849,9 +868,11 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 export CSVFileHeader=$CSVFileHeader',"is-sub-domain"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=$CSVJQparms', .["is-sub-domain"]'
 
 objectstotal_dnsdomains=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -867,6 +888,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=security-zone
 export APICLIobjectstype=security-zones
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -875,9 +897,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_securityzones=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -896,6 +922,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=dynamic-object
 export APICLIobjectstype=dynamic-objects
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -904,9 +931,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_dynamicobjects=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -947,6 +978,7 @@ echo >> $APICLIlogfilepath
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -955,50 +987,15 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 export CSVFileHeader=$CSVFileHeader',"primary-category","risk","description","urls-defined-as-regular-expression"'
 export CSVFileHeader=$CSVFileHeader', "meta-info.creator","user-defined","read-only"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 export CSVJQparms=$CSVJQparms', .["primary-category"], .["risk"], .["description"], .["urls-defined-as-regular-expression"]'
-export CSVJQparms=$CSVJQparms', .["meta-info"]["creator"], .["user-defined"], .["read-only"]'
-
-objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
-export number_application_sites="$objectstotal_application_sites"
-export number_of_objects=$number_application_sites
-
-ExportObjectsToCSVviaJQ
-
-# -------------------------------------------------------------------------------------------------
-# application-sites objects - risk_data_export_only (well risk, primary category, description, creator
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=application-site
-export APICLIobjectstype=application-sites
-export APICLIexportnameaddon=risk_data_export_only
-
-#
-# APICLICSVsortparms can change due to the nature of the object
-#
-export APICLICSVsortparms='-f -t , -k 1,1'
-
-#export CSVFileHeader='"name","color","comments"'
-#export CSVFileHeader=$CSVFileHeader',"icon"'
-#export CSVFileHeader=$CSVFileHeader',"primary-category","risk","description"'
-#export CSVFileHeader=$CSVFileHeader',"user-defined","read-only", "meta-info.creator"'
-
-#export CSVJQparms='.["name"], .["color"], .["comments"]'
-#export CSVJQparms=$CSVJQparms', .["icon"]'
-#export CSVJQparms=$CSVJQparms', .["primary-category"], .["risk"], .["description"]'
-#export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
-
-export CSVFileHeader='"name"'
-export CSVFileHeader=$CSVFileHeader',"primary-category","risk","description"'
-export CSVFileHeader=$CSVFileHeader', "meta-info.creator","user-defined","read-only"'
-
-export CSVJQparms='.["name"]'
-export CSVJQparms=$CSVJQparms', .["primary-category"], .["risk"], .["description"]'
 export CSVJQparms=$CSVJQparms', .["meta-info"]["creator"], .["user-defined"], .["read-only"]'
 
 objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -1020,6 +1017,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=application-site-category
 export APICLIobjectstype=application-site-categories
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1028,10 +1026,12 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 export CSVFileHeader=$CSVFileHeader',"user-defined","read-only", "meta-info.creator"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
 
@@ -1054,6 +1054,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=application-site-group
 export APICLIobjectstype=application-site-groups
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1062,10 +1063,12 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 export CSVFileHeader=$CSVFileHeader',"user-defined","read-only", "meta-info.creator"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
 
@@ -1095,6 +1098,7 @@ echo
 
 export APICLIobjecttype=tags
 export APICLIobjectstype=tags
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1103,9 +1107,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_tags=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -1130,6 +1138,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=simple-gateway
 export APICLIobjectstype=simple-gateways
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1138,9 +1147,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_simplegateways=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -1156,6 +1169,7 @@ export number_of_objects=$number_simplegateways
 
 export APICLIobjecttype=time
 export APICLIobjectstype=times
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1164,9 +1178,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_times=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -1182,6 +1200,7 @@ export number_of_objects=$number_times
 
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1190,9 +1209,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_time_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -1208,6 +1231,7 @@ export number_of_objects=$number_time_groups
 
 export APICLIobjecttype=access-role
 export APICLIobjectstype=access-roles
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1216,9 +1240,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_access_roles=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -1234,6 +1262,7 @@ export number_of_objects=$number_access_roles
 
 export APICLIobjecttype=opsec-application
 export APICLIobjectstype=opsec-applications
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1242,9 +1271,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_opsec_applications=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -1273,6 +1306,7 @@ export number_of_objects=$number_opsec_applications
 
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1281,9 +1315,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_services_tcp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -1299,6 +1337,7 @@ export number_of_objects=$number_services_tcp
 
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1307,9 +1346,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_services_udp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -1325,6 +1368,7 @@ export number_of_objects=$number_services_udp
 
 export APICLIobjecttype=service-icmp
 export APICLIobjectstype=services-icmp
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1333,9 +1377,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_services_icmp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -1351,6 +1399,7 @@ export number_of_objects=$number_services_icmp
 
 export APICLIobjecttype=service-icmp6
 export APICLIobjectstype=services-icmp6
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1359,9 +1408,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_services_icmp6=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -1377,6 +1430,7 @@ export number_of_objects=$number_services_icmp6
 
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1385,9 +1439,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_services_sctp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -1403,6 +1461,7 @@ export number_of_objects=$number_services_sctp
 
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1411,9 +1470,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_services_other=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -1429,6 +1492,7 @@ export number_of_objects=$number_services_other
 
 export APICLIobjecttype=service-dce-rpc
 export APICLIobjectstype=services-dce-rpc
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1437,9 +1501,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_services_dce_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -1455,6 +1523,7 @@ export number_of_objects=$number_services_dce_rpc
 
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1463,9 +1532,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_services_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -1481,6 +1554,7 @@ export number_of_objects=$number_services_rpc
 
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -1489,9 +1563,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_service_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -1503,6 +1581,186 @@ export number_of_objects=$number_service_groups
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-08-28
+
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Users
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+echo
+echo 'Users'
+echo
+echo >> $APICLIlogfilepath
+echo 'Users' >> $APICLIlogfilepath
+echo >> $APICLIlogfilepath
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# users
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=users
+export APICLIobjectstype=users
+export APICLICSVobjecttype=$APICLIobjectstype
+export APICLIexportnameaddon=
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=$CSVFileHeader',"template","e-mail","phone-number"'
+export CSVFileHeader=$CSVFileHeader',"authentication-method","radius-server.name","tacacs-server.name"'
+export CSVFileHeader=$CSVFileHeader',"expiration-date"'
+export CSVFileHeader=$CSVFileHeader',"encryption.enable-ike", "encryption.enable-public-key", "encryption.enable-shared-secret"'
+#export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+export CSVJQparms=$CSVJQparms', .["template"], .["e-mail"], .["phone-number"]'
+export CSVJQparms=$CSVJQparms', .["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
+export CSVJQparms=$CSVJQparms', .["expiration-date"]["iso-8601"]'
+export CSVJQparms=$CSVJQparms', .["encryption"]["ike"], .["encryption"]["public-key"], .["encryption"]["shared-secret"]'
+#export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_users=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
+export number_users="$objectstotal_users"
+export number_of_objects=$number_users
+
+ExportObjectsToCSVviaJQ
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# user-groups
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=user-groups
+export APICLIobjectstype=user-groups
+export APICLICSVobjecttype=$APICLIobjectstype
+export APICLIexportnameaddon=
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=$CSVFileHeader',"email"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
+#export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+export CSVJQparms=$CSVJQparms', .["email"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
+#export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_user_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
+export number_user_groups="$objectstotal_user_groups"
+export number_of_objects=$number_user_groups
+
+ExportObjectsToCSVviaJQ
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# user-templates
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=user-templates
+export APICLIobjectstype=user-templates
+export APICLICSVobjecttype=$APICLIobjectstype
+export APICLIexportnameaddon=
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=$CSVFileHeader',"authentication-method","radius-server.name","tacacs-server.name"'
+export CSVFileHeader=$CSVFileHeader',"expiration-by-global-properties","expiration-date"'
+export CSVFileHeader=$CSVFileHeader',"encryption.enable-ike", "encryption.enable-public-key", "encryption.enable-shared-secret"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
+#export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+export CSVJQparms=$CSVJQparms', .["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
+export CSVJQparms=$CSVJQparms', .["expiration-by-global-properties"], .["expiration-date"]["iso-8601"]'
+export CSVJQparms=$CSVJQparms', .["encryption"]["ike"], .["encryption"]["public-key"], .["encryption"]["shared-secret"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
+#export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_user_templates=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
+export number_user_templates="$objectstotal_user_templates"
+export number_of_objects=$number_user_templates
+
+ExportObjectsToCSVviaJQ
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# identity-tags
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=identity-tags
+export APICLIobjectstype=identity-tags
+export APICLICSVobjecttype=$APICLIobjectstype
+export APICLIexportnameaddon=
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=$CSVFileHeader',"external-identifier"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
+#export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+export CSVJQparms=$CSVJQparms', .["external-identifier"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
+#export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_identity_tags=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
+export number_identity_tags="$objectstotal_identity_tags"
+export number_of_objects=$number_identity_tags
+
+ExportObjectsToCSVviaJQ
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1666,13 +1924,13 @@ FinalizeExportComplexObjectsToCSVviaJQ () {
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-05
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\  ADDED 2017-11-09
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # MODIFIED 2018-05-05 -
@@ -1685,6 +1943,7 @@ export APICLIobjecttype=group
 export APICLIobjectstype=groups
 export APICLIcomplexobjecttype=group-member
 export APICLIcomplexobjectstype=group-members
+export APICLICSVobjecttype=$APICLIcomplexobjectstype
 export APICLIexportnameaddon=
 
 # -------------------------------------------------------------------------------------------------
@@ -2034,6 +2293,7 @@ export APICLIobjecttype=host
 export APICLIobjectstype=hosts
 export APICLIcomplexobjecttype=host-interface
 export APICLIcomplexobjectstype=host-interfaces
+export APICLICSVobjecttype=$APICLIcomplexobjectstype
 export APICLIexportnameaddon=
 
 # -------------------------------------------------------------------------------------------------
@@ -2493,6 +2753,347 @@ fi
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-05
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2020-08-19 -
+
+# -------------------------------------------------------------------------------------------------
+# user-group members
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=user-group
+export APICLIobjectstype=user-groups
+export APICLIcomplexobjecttype=user-group-member
+export APICLIcomplexobjectstype=user-group-members
+export APICLICSVobjecttype=$APICLIcomplexobjectstype
+export APICLIexportnameaddon=
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
+# SetupGetUserGroupMembers proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# SetupGetUserGroupMembers
+
+SetupGetUserGroupMembers () {
+
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    export APICLICSVsortparms='-f -t , -k 1,2'
+    
+    export CSVFileHeader='"name","members.add"'
+    
+    SetupExportComplexObjectsToCSVviaJQ
+    
+    return 0
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
+
+    
+# -------------------------------------------------------------------------------------------------
+# FinalizeGetUserGroupMembers proceedure
+# -------------------------------------------------------------------------------------------------
+
+#
+# FinalizeGetUserGroupMembers
+
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+FinalizeGetUserGroupMembers () {
+
+    FinalizeExportComplexObjectsToCSVviaJQ
+    errorreturn=$?
+    if [ $errorreturn != 0 ] ; then
+        # Something went wrong, terminate
+        return $errorreturn
+    fi
+    
+    return 0
+}
+    
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
+
+
+# -------------------------------------------------------------------------------------------------
+# PopulateArrayOfUserGroupObjects proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# PopulateArrayOfUserGroupObjects generates an array of user-group objects for further processing.
+
+PopulateArrayOfUserGroupObjects () {
+    
+    # MODIFIED 2020-08-19 -
+    #
+    # This should work, but might need more tweeks if other data types use more values
+    #export notsystemobjectselector='select((."domain"."name" != "Check Point Data") and (."domain"."name" != "APPI Data") and (."domain"."name" != "IPS Data"))'
+    #
+    # Future alternative if more options to exclude are needed
+    export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
+    export notsystemobjectselector='select(."domain"."name" as $a | ['$systemobjectdomains'] | index($a) | not)'
+    
+    echo "  $APICLIobjectstype - Populate up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentusergroupoffset of $objectslefttoshow remaining!" | tee -a -i $APICLIlogfilepath
+
+    # MGMT_CLI_USER_GROUPS_STRING is a string with multiple lines. Each line contains a name of a group members.
+    # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
+    
+    #MGMT_CLI_USER_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentusergroupoffset details-level "standard" -s $APICLIsessionfile -f json | $JQ ".objects[].name | @sh" -r`"
+    
+    if [ x"$NoSystemObjects" = x"true" ] ; then
+        # Ignore System Objects
+        #MGMT_CLI_USER_GROUPS_STRING="`mgmt_cli show user-groups limit $APICLIObjectLimit offset $currentusergroupoffset details-level "full" -s $APICLIsessionfile -f json | $JQ ".objects[] | '"$notsystemobjectselector"' | .name | @sh" -r`"
+        MGMT_CLI_USER_GROUPS_STRING="`mgmt_cli show user-groups limit $APICLIObjectLimit offset $currentusergroupoffset details-level "full" -s $APICLIsessionfile -f json | $JQ '.objects[] | '"$notsystemobjectselector"' | .name | @sh' -r`"
+    else   
+        # Don't Ignore System Objects
+        MGMT_CLI_USER_GROUPS_STRING="`mgmt_cli show user-groups limit $APICLIObjectLimit offset $currentusergroupoffset details-level "standard" -s $APICLIsessionfile -f json | $JQ ".objects[].name | @sh" -r`"
+    fi
+    
+    # break the string into an array - each element of the array is a line in the original string
+    # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
+    
+    while read -r line; do
+        ALLUSERGROUPARR+=("$line")
+        echo -n '.'
+    done <<< "$MGMT_CLI_USER_GROUPS_STRING"
+    echo
+    
+    return 0
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
+
+
+# -------------------------------------------------------------------------------------------------
+# GetArrayOfUserGroupObjects proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# GetArrayOfUserGroupObjects generates an array of group objects for further processing.
+
+GetArrayOfUserGroupObjects () {
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Generate array of user groups' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    
+    ALLUSERGROUPARR=()
+
+    export MgmtCLI_Base_OpParms="-f json -s $APICLIsessionfile"
+    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
+    
+    export MgmtCLI_Show_OpParms="details-level \"$APICLIdetaillvl\" $MgmtCLI_Base_OpParms"
+    
+    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" $MgmtCLI_Base_OpParms | $JQ ".total")
+
+    objectstoshow=$objectstotal
+
+    echo "Processing $objectstoshow $APICLIobjecttype objects in $APICLIObjectLimit object chunks:" | tee -a -i $APICLIlogfilepath
+
+    objectslefttoshow=$objectstoshow
+
+    currentusergroupoffset=0
+    
+    while [ $objectslefttoshow -ge 1 ] ; do
+        # we have objects to process
+        echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentusergroupoffset of $objectslefttoshow remaining!" | tee -a -i $APICLIlogfilepath
+
+        PopulateArrayOfUserGroupObjects
+        errorreturn=$?
+        if [ $errorreturn != 0 ] ; then
+            # Something went wrong, terminate
+            return $errorreturn
+        fi
+
+        objectslefttoshow=`expr $objectslefttoshow - $APICLIObjectLimit`
+        currentusergroupoffset=`expr $currentusergroupoffset + $APICLIObjectLimit`
+    done
+
+    
+    return 0
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
+
+
+# -------------------------------------------------------------------------------------------------
+# DumpArrayOfUserGroupObjects proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# DumpArrayOfUserGroupObjects outputs the array of group objects.
+
+DumpArrayOfUserGroupObjects () {
+    
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+        # Verbose mode ON
+        # Output list of all groups found
+ 
+        # print the elements in the array
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'Dump user groups' | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        
+        for i in "${ALLUSERGROUPARR[@]}"
+        do
+            echo "$i, ${i//\'/}" | tee -a -i $APICLIlogfilepath
+        done
+        
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'Done dumping user groups' | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+    
+    fi
+    
+    return 0
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
+
+
+# -------------------------------------------------------------------------------------------------
+# CollectMembersInUserGroupObjects proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# CollectMembersInUserGroupObjects outputs the number of group members in a group in the array of group objects and collects them into the csv file.
+
+CollectMembersInUserGroupObjects () {
+    
+    #
+    # using bash variables in a jq expression
+    #
+    
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Use array of user groups to generate user group members CSV' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    
+    for i in "${ALLUSERGROUPARR[@]}"
+    do
+        echo | tee -a -i $APICLIlogfilepath
+        
+        MEMBERS_COUNT=$(mgmt_cli show $APICLIobjecttype name "${i//\'/}" -s $APICLIsessionfile -f json | $JQ ".members | length")
+        
+        NUM_USER_GROUP_MEMBERS=$MEMBERS_COUNT
+        
+        if [ $NUM_USER_GROUP_MEMBERS -gt 0 ]; then
+            # More than zero (0) members, something to process
+            echo 'User-Group '"${i//\'/}"' number of members = '"$NUM_USER_GROUP_MEMBERS" | tee -a -i $APICLIlogfilepath
+            
+            COUNTER=0
+            
+            while [ $COUNTER -lt $NUM_USER_GROUP_MEMBERS ]; do
+                
+                MEMBER_NAME=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ ".members[$COUNTER].name")
+                
+                if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                    # Verbose mode ON
+                    echo -n '.'
+                fi
+                
+                echo ${i//\'/},$MEMBER_NAME >> $APICLICSVfiledata
+                
+                let COUNTER=COUNTER+1
+                
+            done
+            
+        else
+            echo Group "${i//\'/}"' number of members = NONE (0 zero)'
+        fi
+        
+    done
+    
+    
+    return 0
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
+
+
+# -------------------------------------------------------------------------------------------------
+# GetUserGroupMembers proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# GetUserGroupMembers generate output of group members from existing group objects
+
+GetUserGroupMembers () {
+
+    SetupGetUserGroupMembers
+
+    GetArrayOfUserGroupObjects
+
+    DumpArrayOfUserGroupObjects
+
+    CollectMembersInUserGroupObjects
+
+    FinalizeGetUserGroupMembers
+
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
+
+    
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+objectstotal_user_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
+export number_user_groups="$objectstotal_user_groups"
+
+if [ $number_user_groups -le 0 ] ; then
+    # No user groups found
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'No user groups to generate members from!' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+else
+    GetUserGroupMembers
+fi
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------

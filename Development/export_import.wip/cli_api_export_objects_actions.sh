@@ -13,11 +13,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.40.00
-ScriptRevision=000
-ScriptDate=2020-02-07
-TemplateVersion=00.40.00
-CommonScriptsVersion=00.40.00
+ScriptVersion=00.50.00
+ScriptRevision=055
+ScriptDate=2020-09-10
+TemplateVersion=00.50.00
+CommonScriptsVersion=00.50.00
 CommonScriptsRevision=006
 
 #
@@ -474,6 +474,7 @@ ExportRAWObjectToJSON () {
 
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -485,6 +486,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=network
 export APICLIobjectstype=networks
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -496,6 +498,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -507,6 +510,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=group-with-exclusion
 export APICLIobjectstype=groups-with-exclusion
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -518,6 +522,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=address-range
 export APICLIobjectstype=address-ranges
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -529,6 +534,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=multicast-address-range
 export APICLIobjectstype=multicast-address-ranges
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -540,6 +546,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=dns-domain
 export APICLIobjectstype=dns-domains
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -551,6 +558,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=security-zone
 export APICLIobjectstype=security-zones
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -562,6 +570,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=dynamic-object
 export APICLIobjectstype=dynamic-objects
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -573,6 +582,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=simple-gateway
 export APICLIobjectstype=simple-gateways
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -584,6 +594,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=time
 export APICLIobjectstype=times
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -595,6 +606,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -606,6 +618,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=access-role
 export APICLIobjectstype=access-roles
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -617,6 +630,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=opsec-application
 export APICLIobjectstype=opsec-applications
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -634,6 +648,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=tag
 export APICLIobjectstype=tags
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -651,6 +666,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -662,6 +678,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -673,6 +690,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=service-icmp
 export APICLIobjectstype=services-icmp
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -684,6 +702,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=service-icmp6
 export APICLIobjectstype=services-icmp6
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -695,6 +714,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -706,6 +726,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -717,6 +738,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=service-dce-rpc
 export APICLIobjectstype=services-dce-rpc
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -728,6 +750,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -739,6 +762,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -750,6 +774,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -761,6 +786,7 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=application-site-category
 export APICLIobjectstype=application-site-categories
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
@@ -772,10 +798,128 @@ ExportRAWObjectToJSON
 
 export APICLIobjecttype=application-site-group
 export APICLIobjectstype=application-site-groups
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 ExportRAWObjectToJSON
 
+
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Users
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+echo
+echo 'Users'
+echo
+echo >> $APICLIlogfilepath
+echo 'Users' >> $APICLIlogfilepath
+echo >> $APICLIlogfilepath
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# users
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=users
+export APICLIobjectstype=users
+export APICLICSVobjecttype=$APICLIobjectstype
+export APICLICSVobjecttype=$APICLIobjectstype
+export APICLIexportnameaddon=
+
+ExportRAWObjectToJSON
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# user-groups
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=user-groups
+export APICLIobjectstype=user-groups
+export APICLICSVobjecttype=$APICLIobjectstype
+export APICLIexportnameaddon=
+
+ExportRAWObjectToJSON
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# user-templates
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=user-templates
+export APICLIobjectstype=user-templates
+export APICLICSVobjecttype=$APICLIobjectstype
+export APICLIexportnameaddon=
+
+ExportRAWObjectToJSON
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# identity-tags
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=identity-tags
+export APICLIobjectstype=identity-tags
+export APICLICSVobjecttype=$APICLIobjectstype
+export APICLIexportnameaddon=
+
+ExportRAWObjectToJSON
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# no more simple objects
+# -------------------------------------------------------------------------------------------------
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# handle complex objects
+# -------------------------------------------------------------------------------------------------
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# no more complex objects
+# -------------------------------------------------------------------------------------------------
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
 
 # -------------------------------------------------------------------------------------------------
 # no more objects

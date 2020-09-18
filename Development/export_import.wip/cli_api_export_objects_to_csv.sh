@@ -13,11 +13,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.40.00
-ScriptRevision=000
-ScriptDate=2020-02-07
-TemplateVersion=00.40.00
-CommonScriptsVersion=00.40.00
+ScriptVersion=00.50.00
+ScriptRevision=055
+ScriptDate=2020-09-10
+TemplateVersion=00.50.00
+CommonScriptsVersion=00.50.00
 CommonScriptsRevision=006
 
 #
@@ -166,10 +166,11 @@ export UseJSONJQ16=true
 # R80.20.M2 version 1.4
 # R80.30    version 1.5
 # R80.40    version 1.6
+# R80.40 JHF 78 version 1.6.1
 #
 # For common scripts minimum API version at 1.0 should suffice, otherwise get explicit
 #
-export MinAPIVersionRequired=1.0
+export MinAPIVersionRequired=1.6
 
 # If the API version needs to be enforced in commands set this to true
 # NOTE not currently used!
@@ -243,50 +244,6 @@ echo | tee -a -i $APICLIlogfilepath
 
 # -------------------------------------------------------------------------------------------------
 # Handle important basics
-# -------------------------------------------------------------------------------------------------
-
-# -------------------------------------------------------------------------------------------------
-# Check that the API is actually running and up so we don't run into wierd problems
-# -------------------------------------------------------------------------------------------------
-
-echo | tee -a -i $APICLIlogfilepath
-echo '-------------------------------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
-echo 'Check API Operational Status before starting' | tee -a -i $APICLIlogfilepath
-echo '-------------------------------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
-echo | tee -a -i $APICLIlogfilepath
-
-export tempapichecklog=/var/log/tmp/apistatuscheck.$DATEDTGS.log
-
-# Execute the API check with api status to a temporary log file, since tee throws off the results of error checking
-api status >> $tempapichecklog
-errorresult=$?
-
-# Now dump the output from the temporary log file to the working log file, so we don't loose the results of the check, we can tee this to share
-cat $tempapichecklog | tee -a -i $APICLIlogfilepath
-
-# clean-up the temporary log file
-rm $tempapichecklog >> $APICLIlogfilepath
-
-echo | tee -a -i $APICLIlogfilepath
-echo 'API status check result ( 0 = OK ) : '$errorresult | tee -a -i $APICLIlogfilepath
-echo | tee -a -i $APICLIlogfilepath
-
-if [ $errorresult -ne 0 ] ; then
-    #api operations status NOT OK, so anything that is not a 0 result is a fail!
-    echo "API is noy operating as expected so API calls will probably fail!" | tee -a -i $APICLIlogfilepath
-    echo 'Critical Error - Exiting Script !!!!' | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    echo "Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    exit 1
-    #Exit!
-else
-    #api operations status OK
-    echo "API is operating as expected so API calls should work!" | tee -a -i $APICLIlogfilepath
-fi
-echo '-------------------------------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
-
-# -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------
@@ -376,6 +333,129 @@ ForceShowTempLogFile () {
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CheckStatusOfAPI - repeated proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-09-02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# repeated procedure description
+#
+
+CheckStatusOfAPI () {
+    #
+    
+    # -------------------------------------------------------------------------------------------------
+    # Check that the API is actually running and up so we don't run into wierd problems
+    # -------------------------------------------------------------------------------------------------
+    
+    echo | tee -a -i $APICLIlogfilepath
+    echo '-------------------------------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+    echo 'Check API Operational Status before starting' | tee -a -i $APICLIlogfilepath
+    echo '-------------------------------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    
+    export tempapichecklog=/var/log/tmp/apistatuscheck.$DATEDTGS.log
+    
+    export pythonpath=$MDS_FWDIR/Python/bin/
+    export get_api_local_port=`$pythonpath/python $MDS_FWDIR/scripts/api_get_port.py -f json | $JQ '. | .external_port'`
+    export api_local_port=${get_api_local_port//\"/}
+    export currentapisslport=$api_local_port
+    
+    echo 'First make sure we do not have any issues:' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    
+    mgmt_cli -r true show version --port $currentapisslport >> $tempapichecklog
+    errorresult=$?
+    
+    echo | tee -a -i $APICLIlogfilepath
+    
+    # Now dump the output from the temporary log file to the working log file, so we don't loose the results of the check, we can tee this to share
+    cat $tempapichecklog | tee -a -i $APICLIlogfilepath
+    
+    echo | tee -a -i $APICLIlogfilepath
+    
+    if [ $errorresult -ne 0 ] ; then
+        #api operation NOT OK, so anything that is not a 0 result is a fail!
+        echo "API is not operating as expected so API calls will probably fail!" | tee -a -i $APICLIlogfilepath
+        echo 'Still executing api status for additional details' | tee -a -i $APICLIlogfilepath
+    else
+        #api operations status OK
+        echo "API is operating as expected so api status should work as expected!" | tee -a -i $APICLIlogfilepath
+    fi
+    
+    # Remove the previous temporary log file, so we start clean for api status
+    rm -fv $tempapichecklog >> $APICLIlogfilepath
+    
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Next check api status:' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    
+    # Execute the API check with api status to a temporary log file, since tee throws off the results of error checking
+    api status >> $tempapichecklog
+    errorresult=$?
+    
+    # Now dump the output from the temporary log file to the working log file, so we don't loose the results of the check, we can tee this to share
+    cat $tempapichecklog | tee -a -i $APICLIlogfilepath
+    
+    # clean-up the temporary log file
+    rm $tempapichecklog >> $APICLIlogfilepath
+    
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'API status check result ( 0 = OK ) : '$errorresult | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    
+    if [ $errorresult -ne 0 ] ; then
+        #api operations status NOT OK, so anything that is not a 0 result is a fail!
+        echo "API is not operating as expected so API calls will probably fail!" | tee -a -i $APICLIlogfilepath
+        echo 'Critical Error '$errorresult'- Exiting Script !!!!' | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        echo "Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        return $errorresult
+        #exit 1
+        #Exit!
+    else
+        #api operations status OK
+        echo "API is operating as expected so API calls should work!" | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        echo "Current Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+    fi
+    echo '-------------------------------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    return $errorresult
+}
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#CheckStatusOfAPI
+#errorresult=$?
+#if [ $errorresult -ne 0 ] ; then
+    #api operations status NOT OK, so anything that is not a 0 result is a fail!
+    #Do something based on it not being ready or working!
+    
+    #exit 1
+#else
+    #api operations status OK
+    #Do something based on it being ready and working!
+    
+#fi
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-02
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -618,7 +698,7 @@ ScriptAPIVersionCheck () {
 # CheckAPIScriptVerboseOutput - Check if verbose output is configured externally
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-18-01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-09 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -647,6 +727,27 @@ CheckAPIScriptVerboseOutput () {
         echo 'Script :  '$0 >> $APICLIlogfilepath
         echo 'Verbose mode enabled' >> $APICLIlogfilepath
         echo >> $APICLIlogfilepath
+    elif [ "$APISCRIPTVERBOSE" = "true" ] ; then
+        # Verbose mode set ON
+        export APISCRIPTVERBOSE=true
+        echo >> $APICLIlogfilepath
+        echo 'Script :  '$0 >> $APICLIlogfilepath
+        echo 'Verbose mode enabled' >> $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
+    elif [ "$APISCRIPTVERBOSE" = "true" ] ; then
+        # Verbose mode set ON
+        export APISCRIPTVERBOSE=true
+        echo >> $APICLIlogfilepath
+        echo 'Script :  '$0 >> $APICLIlogfilepath
+        echo 'Verbose mode enabled' >> $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
+    elif [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+        # Verbose mode set ON
+        export APISCRIPTVERBOSE=true
+        echo >> $APICLIlogfilepath
+        echo 'Script :  '$0 >> $APICLIlogfilepath
+        echo 'Verbose mode enabled' >> $APICLIlogfilepath
+        echo >> $APICLIlogfilepath
     else
         # Verbose mode set to wrong value from shell level
         echo "!! Verbose mode set to wrong value from shell level >"$APISCRIPTVERBOSE"<" >> $APICLIlogfilepath
@@ -662,12 +763,15 @@ CheckAPIScriptVerboseOutput () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18-01
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-09
 
 # -------------------------------------------------------------------------------------------------
 # End of procedures block
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-09-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 # We need the Script's actual source folder to find subscripts
 #
@@ -687,11 +791,8 @@ export JQ=${CPDIR_PATH}/jq/jq
 
 ConfigureJQLocation
 
-GaiaWebSSLPortCheck
-
-export CheckAPIVersion=
-
-ScriptAPIVersionCheck
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-02
 
 
 # -------------------------------------------------------------------------------------------------
@@ -705,7 +806,7 @@ ScriptAPIVersionCheck
 # START:  Command Line Parameter Handling and Help
 # =================================================================================================
 
-# MODIFIED 2019-01-17 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -718,6 +819,7 @@ ScriptAPIVersionCheck
 # -r | --root
 # -u <admin_name> | --user <admin_name> | -u=<admin_name> | --user=<admin_name>
 # -p <password> | --password <password> | -p=<password> | --password=<password>
+# --api-key "<api_key_value>" | --api-key="<api_key_value>" 
 # -m <server_IP> | --management <server_IP> | -m=<server_IP> | --management=<server_IP>
 # -d <domain> | --domain <domain> | -d=<domain> | --domain=<domain>
 # -s <session_file_filepath> | --session-file <session_file_filepath> | -s=<session_file_filepath> | --session-file=<session_file_filepath>
@@ -749,7 +851,7 @@ export CLIparm_websslport=
 export CLIparm_rootuser=false
 export CLIparm_user=
 export CLIparm_password=
-export CLIparm_mgmt=
+export CLIparm_user=
 export CLIparm_domain=
 export CLIparm_sessionidfile=
 export CLIparm_sessiontimeout=
@@ -772,6 +874,10 @@ export CLIparm_NoSystemObjects=false
 export CLIparm_CLEANUPWIP=
 export CLIparm_NODOMAINFOLDERS=
 export CLIparm_CSVEXPORTADDIGNOREERR=
+
+# ADDED 2020-08-19 -
+export CLIparm_api_key=
+export CLIparm_use_api_key=false
 
 # --NOWAIT
 #
@@ -840,7 +946,7 @@ fi
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-01-17
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
 
 
 # =================================================================================================
@@ -1029,6 +1135,38 @@ fi
 # =================================================================================================
 
 
+# MODIFIED 2020-09-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+CheckStatusOfAPI
+errorresult=$?
+if [ $errorresult -ne 0 ] ; then
+    #api operations status NOT OK, so anything that is not a 0 result is a fail!
+    #Do something based on it not being ready or working!
+    
+    echo "API Error!" | tee -a -i $APICLIlogfilepath
+    echo 'Critical Error - Exiting Script !!!!' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Log output in file   : '"$APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
+    
+    exit 1
+else
+    #api operations status OK
+    #Do something based on it being ready and working!
+    
+    echo "API OK, proceeding!" >> $APICLIlogfilepath
+fi
+
+GaiaWebSSLPortCheck
+
+export CheckAPIVersion=
+
+ScriptAPIVersionCheck
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-02
+
+
 # =================================================================================================
 # =================================================================================================
 # START:  Setup Standard Parameters
@@ -1180,7 +1318,7 @@ GetGaiaVersionAndInstallationType "$@"
 # HandleMgmtCLIPublish - publish changes if needed
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-02-2 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-09 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -1192,29 +1330,39 @@ HandleMgmtCLIPublish () {
     # HandleMgmtCLIPublish - publish changes if needed
     #
     
+    # APICLIsessionerrorfile is created at login
+    #export APICLIsessionerrorfile=id.`date +%Y%m%d-%H%M%S%Z`.err
+    echo > $APICLIsessionerrorfile
+    echo 'mgmt_cli publish operation' > $APICLIsessionerrorfile
+    echo > $APICLIsessionerrorfile
+    
     if [ x"$script_use_publish" = x"true" ] ; then
         echo | tee -a -i $APICLIlogfilepath
         echo 'Publish changes!' | tee -a -i $APICLIlogfilepath
         echo | tee -a -i $APICLIlogfilepath
-        mgmt_cli publish -s $APICLIsessionfile | tee -a -i $APICLIlogfilepath
+        mgmt_cli publish -s $APICLIsessionfile >> $APICLIlogfilepath 2>> $APICLIsessionerrorfile
+        EXITCODE=$?
+        cat $APICLIsessionerrorfile >> $APICLIlogfilepath
+        
         echo | tee -a -i $APICLIlogfilepath
     else
         echo | tee -a -i $APICLIlogfilepath
         echo 'Nothing to Publish!' | tee -a -i $APICLIlogfilepath
         echo | tee -a -i $APICLIlogfilepath
+        EXITCODE=0
     fi
     
-    return 0
+    return $EXITCODE
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-05-02-2
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-09
 
 # -------------------------------------------------------------------------------------------------
 # HandleMgmtCLILogout - Logout from mgmt_cli, also cleanup session file
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-02-2 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-09 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -1225,26 +1373,34 @@ HandleMgmtCLILogout () {
     #
     # HandleMgmtCLILogout - Logout from mgmt_cli, also cleanup session file
     #
-
+    
+    # APICLIsessionerrorfile is created at login
+    #export APICLIsessionerrorfile=id.`date +%Y%m%d-%H%M%S%Z`.err
+    echo > $APICLIsessionerrorfile
+    echo 'mgmt_cli logout operation' > $APICLIsessionerrorfile
+    echo > $APICLIsessionerrorfile
+    
     echo | tee -a -i $APICLIlogfilepath
     echo 'Logout of mgmt_cli!  Then remove session file : '$APICLIsessionfile | tee -a -i $APICLIlogfilepath
     echo | tee -a -i $APICLIlogfilepath
-    mgmt_cli logout -s $APICLIsessionfile | tee -a -i $APICLIlogfilepath
+    mgmt_cli logout -s $APICLIsessionfile >> $APICLIlogfilepath 2>> $APICLIsessionerrorfile
+    EXITCODE=$?
+    cat $APICLIsessionerrorfile >> $APICLIlogfilepath
     
     rm $APICLIsessionfile | tee -a -i $APICLIlogfilepath
     rm $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
     
-    return 0
+    return $EXITCODE
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-05-02-2
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-09
 
 # -------------------------------------------------------------------------------------------------
 # HandleMgmtCLILogin - Login to the API via mgmt_cli login
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-17 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-09 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -1255,14 +1411,18 @@ HandleMgmtCLILogin () {
     #
     # Login to the API via mgmt_cli login
     #
-
+    
     export loginstring=
     export loginparmstring=
     
-# MODIFIED 2018-05-04 -
+    # MODIFIED 2018-05-04 -
     export APICLIsessionerrorfile=id.`date +%Y%m%d-%H%M%S%Z`.err
-
-# MODIFIED 2018-05-03 -
+    echo 'API CLI Session Error File : '$APICLIsessionerrorfile > $APICLIsessionerrorfile
+    echo >> $APICLIsessionerrorfile
+    echo 'mgmt_cli login operation' >> $APICLIsessionerrorfile
+    echo >> $APICLIsessionerrorfile
+    
+    # MODIFIED 2018-05-03 -
     if [ ! -z "$CLIparm_sessionidfile" ] ; then
         # CLIparm_sessionidfile value is set so use it
         export APICLIsessionfile=$CLIparm_sessionidfile
@@ -1270,8 +1430,8 @@ HandleMgmtCLILogin () {
         # Updated to make session id file unique in case of multiple admins running script from same folder
         export APICLIsessionfile=id.`date +%Y%m%d-%H%M%S%Z`.txt
     fi
-
-# MODIFIED 2018-05-03 -
+    
+    # MODIFIED 2018-05-03 -
     export domainnamenospace=
     if [ ! -z "$domaintarget" ] ; then
         # Handle domain name that might include space if the value is set
@@ -1293,17 +1453,26 @@ HandleMgmtCLILogin () {
         fi
     fi
     
-    echo | tee -a -i $APICLIlogfilepath
-    echo 'APICLIwebsslport  :  '$APICLIwebsslport | tee -a -i $APICLIlogfilepath
-    echo 'APISessionTimeout :  '$APISessionTimeout | tee -a -i $APICLIlogfilepath
-    echo 'Domain Target     :  '$domaintarget | tee -a -i $APICLIlogfilepath
-    echo 'Domain no space   :  '$domainnamenospace | tee -a -i $APICLIlogfilepath
-    echo 'APICLIsessionfile :  '$APICLIsessionfile | tee -a -i $APICLIlogfilepath
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'APICLIwebsslport  :  '$APICLIwebsslport | tee -a -i $APICLIlogfilepath
+        echo 'APISessionTimeout :  '$APISessionTimeout | tee -a -i $APICLIlogfilepath
+        echo 'Domain Target     :  '$domaintarget | tee -a -i $APICLIlogfilepath
+        echo 'Domain no space   :  '$domainnamenospace | tee -a -i $APICLIlogfilepath
+        echo 'APICLIsessionfile :  '$APICLIsessionfile | tee -a -i $APICLIlogfilepath
+    else
+        echo >> $APICLIlogfilepath
+        echo 'APICLIwebsslport  :  '$APICLIwebsslport >> $APICLIlogfilepath
+        echo 'APISessionTimeout :  '$APISessionTimeout >> $APICLIlogfilepath
+        echo 'Domain Target     :  '$domaintarget >> $APICLIlogfilepath
+        echo 'Domain no space   :  '$domainnamenospace >> $APICLIlogfilepath
+        echo 'APICLIsessionfile :  '$APICLIsessionfile >> $APICLIlogfilepath
+    fi
     
     echo | tee -a -i $APICLIlogfilepath
     echo 'mgmt_cli Login!' | tee -a -i $APICLIlogfilepath
     echo | tee -a -i $APICLIlogfilepath
-
+    
     if [ x"$CLIparm_rootuser" = x"true" ] ; then
         # Handle if ROOT User -r true parameter
         
@@ -1318,40 +1487,121 @@ HandleMgmtCLILogin () {
             echo | tee -a -i $APICLIlogfilepath
             return 254
         fi
-    
-    	export loginparmstring=' -r true'
-    
+        
+        export loginparmstring=' -r true'
+        
         if [ x"$domaintarget" != x"" ] ; then
             # Handle domain parameter for login string
             export loginparmstring=$loginparmstring" domain \"$domaintarget\""
-    
+            
             #
             # Testing - Dump login string built from parameters
             #
             if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-                echo 'Execute login with loginparmstring '\"$loginparmstring\"' As Root with Domain' | tee -a -i $APICLIlogfilepath
+                echo 'Execute login with loginparmstring '\"$loginparmstring\"' As Root with Domain '\"$domaintarget\" | tee -a -i $APICLIlogfilepath
                 echo | tee -a -i $APICLIlogfilepath
+            else
+                echo 'Execute login with loginparmstring '\"$loginparmstring\"' As Root with Domain '\"$domaintarget\" >> $APICLIlogfilepath
+                echo >> $APICLIlogfilepath
             fi
             
-            mgmt_cli login -r true domain "$domaintarget" session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+            mgmt_cli login -r true domain "$domaintarget" session-timeout $APISessionTimeout --port $APICLIwebsslport -f json > $APICLIsessionfile 2>> $APICLIsessionerrorfile
             EXITCODE=$?
-            cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
+            cat $APICLIsessionerrorfile >> $APICLIlogfilepath
         else
             #
             # Testing - Dump login string built from parameters
             #
             if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-                echo 'Execute login with loginparmstring '\"$loginparmstring\"' As Root'
-                echo
+                echo 'Execute login with loginparmstring '\"$loginparmstring\"' As Root' | tee -a -i $APICLIlogfilepath
+                echo | tee -a -i $APICLIlogfilepath
+            else
+                echo 'Execute login with loginparmstring '\"$loginparmstring\"' As Root' >> $APICLIlogfilepath
+                echo >> $APICLIlogfilepath
             fi
             
-            mgmt_cli login -r true session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+            mgmt_cli login -r true session-timeout $APISessionTimeout --port $APICLIwebsslport -f json > $APICLIsessionfile 2>> $APICLIsessionerrorfile
             EXITCODE=$?
-            cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
+            cat $APICLIsessionerrorfile >> $APICLIlogfilepath
         fi
+    elif [ x"$CLIparm_api_key" != x"" ] ; then
+        # Handle if --api-key parameter set
+        
+        echo 'Login to mgmt_cli with API key '\"$CLIparm_api_key\"' and save to session file :  '$APICLIsessionfile | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        
+        if [ x"$domaintarget" != x"" ] ; then
+            # Handle domain parameter for login string
+            export loginparmstring=$loginparmstring" domain \"$domaintarget\""
+            
+            # Handle management server parameter for mgmt_cli parms
+            if [ x"$CLIparm_mgmt" != x"" ] ; then
+                export mgmttarget="-m \"$CLIparm_mgmt\""
+                
+                if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                    echo 'Execute login using API key' | tee -a -i $APICLIlogfilepath
+                    echo 'Execute operations with mgmttarget '\"$mgmttarget\"' to Domain '\"$domaintarget\" | tee -a -i $APICLIlogfilepath
+                    echo | tee -a -i $APICLIlogfilepath
+                else
+                    echo 'Execute login using API key' >> $APICLIlogfilepath
+                    echo 'Execute operations with mgmttarget '\"$mgmttarget\"' to Domain '\"$domaintarget\" >> $APICLIlogfilepath
+                    echo >> $APICLIlogfilepath
+                fi
+                
+                mgmt_cli login api-key "$CLIparm_api_key" domain "$domaintarget" -m "$CLIparm_mgmt" session-timeout $APISessionTimeout --port $APICLIwebsslport -f json > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                EXITCODE=$?
+                cat $APICLIsessionerrorfile >> $APICLIlogfilepath
+            else
+                
+                if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                    echo 'Execute login using API key to Domain '\"$domaintarget\" | tee -a -i $APICLIlogfilepath
+                    echo | tee -a -i $APICLIlogfilepath
+                else
+                    echo 'Execute login using API key to Domain '\"$domaintarget\" >> $APICLIlogfilepath
+                    echo >> $APICLIlogfilepath
+                fi
+                
+                mgmt_cli login api-key "$CLIparm_api_key" domain "$domaintarget" session-timeout $APISessionTimeout --port $APICLIwebsslport -f json > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                EXITCODE=$?
+                cat $APICLIsessionerrorfile >> $APICLIlogfilepath
+            fi
+        else
+            # Handle management server parameter for mgmt_cli parms
+            if [ x"$CLIparm_mgmt" != x"" ] ; then
+                export mgmttarget="-m \"$CLIparm_mgmt\""
+                
+                if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                    echo 'Execute login using API key' | tee -a -i $APICLIlogfilepath
+                    echo 'Execute operations with mgmttarget '\"$mgmttarget\" | tee -a -i $APICLIlogfilepath
+                    echo | tee -a -i $APICLIlogfilepath
+                else
+                    echo 'Execute login using API key' >> $APICLIlogfilepath
+                    echo 'Execute operations with mgmttarget '\"$mgmttarget\" >> $APICLIlogfilepath
+                    echo >> $APICLIlogfilepath
+                fi
+                
+                mgmt_cli login api-key "$CLIparm_api_key" -m "$CLIparm_mgmt" session-timeout $APISessionTimeout --port $APICLIwebsslport -f json > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                EXITCODE=$?
+                cat $APICLIsessionerrorfile >> $APICLIlogfilepath
+            else
+                
+                if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                    echo 'Execute login using API key' | tee -a -i $APICLIlogfilepath
+                    echo | tee -a -i $APICLIlogfilepath
+                else
+                    echo 'Execute login using API key' >> $APICLIlogfilepath
+                    echo >> $APICLIlogfilepath
+                fi
+                
+                mgmt_cli login api-key "$CLIparm_api_key" session-timeout $APISessionTimeout --port $APICLIwebsslport -f json > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                EXITCODE=$?
+                cat $APICLIsessionerrorfile >> $APICLIlogfilepath
+            fi
+        fi
+        
     else
         # Handle User
-    
+        
         echo 'Login to mgmt_cli as '$APICLIadmin' and save to session file :  '$APICLIsessionfile | tee -a -i $APICLIlogfilepath
         echo | tee -a -i $APICLIlogfilepath
         
@@ -1364,49 +1614,56 @@ HandleMgmtCLILogin () {
             echo | tee -a -i $APICLIlogfilepath
             return 254
         fi
-    
+        
         if [ x"$CLIparm_password" != x"" ] ; then
             # Handle password parameter
             export loginparmstring=$loginparmstring" password \"$CLIparm_password\""
-    
+            
             if [ x"$domaintarget" != x"" ] ; then
                 # Handle domain parameter for login string
                 export loginparmstring=$loginparmstring" domain \"$domaintarget\""
-          
+                
                 # Handle management server parameter for mgmt_cli parms
                 if [ x"$CLIparm_mgmt" != x"" ] ; then
                     export mgmttarget="-m \"$CLIparm_mgmt\""
-      
+                    
                     #
                     # Testing - Dump login string built from parameters
                     #
                     if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
                         echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User with Password and Domain and Management' | tee -a -i $APICLIlogfilepath
-                        echo 'Execute operations with mgmttarget '\"$mgmttarget\" | tee -a -i $APICLIlogfilepath
+                        echo 'Execute operations with mgmttarget '\"$mgmttarget\"' to Domain '\"$domaintarget\" | tee -a -i $APICLIlogfilepath
                         echo | tee -a -i $APICLIlogfilepath
+                    else
+                        echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User with Password and Domain and Management' >> $APICLIlogfilepath
+                        echo 'Execute operations with mgmttarget '\"$mgmttarget\"' to Domain '\"$domaintarget\" >> $APICLIlogfilepath
+                        echo >> $APICLIlogfilepath
                     fi
                     
-                    mgmt_cli login user $APICLIadmin password "$CLIparm_password" domain "$domaintarget" -m "$CLIparm_mgmt" session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                    mgmt_cli login user $APICLIadmin password "$CLIparm_password" domain "$domaintarget" -m "$CLIparm_mgmt" session-timeout $APISessionTimeout --port $APICLIwebsslport -f json > $APICLIsessionfile 2>> $APICLIsessionerrorfile
                     EXITCODE=$?
-                    cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
+                    cat $APICLIsessionerrorfile >> $APICLIlogfilepath
                 else
                     #
                     # Testing - Dump login string built from parameters
                     #
                     if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-                        echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User with Password and Domain' | tee -a -i $APICLIlogfilepath
+                        echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User with Password and Domain '\"$domaintarget\" | tee -a -i $APICLIlogfilepath
                         echo | tee -a -i $APICLIlogfilepath
+                    else
+                        echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User with Password and Domain '\"$domaintarget\" >> $APICLIlogfilepath
+                        echo >> $APICLIlogfilepath
                     fi
                     
-                    mgmt_cli login user $APICLIadmin password "$CLIparm_password" domain "$domaintarget" session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                    mgmt_cli login user $APICLIadmin password "$CLIparm_password" domain "$domaintarget" session-timeout $APISessionTimeout --port $APICLIwebsslport -f json > $APICLIsessionfile 2>> $APICLIsessionerrorfile
                     EXITCODE=$?
-                    cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
+                    cat $APICLIsessionerrorfile >> $APICLIlogfilepath
                 fi
             else
                 # Handle management server parameter for mgmt_cli parms
                 if [ x"$CLIparm_mgmt" != x"" ] ; then
                     export mgmttarget='-m \"$CLIparm_mgmt\"'
-      
+                    
                     #
                     # Testing - Dump login string built from parameters
                     #
@@ -1414,11 +1671,15 @@ HandleMgmtCLILogin () {
                         echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User with Password and Management' | tee -a -i $APICLIlogfilepath
                         echo 'Execute operations with mgmttarget '\"$mgmttarget\" | tee -a -i $APICLIlogfilepath
                         echo | tee -a -i $APICLIlogfilepath
+                    else
+                        echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User with Password and Management' >> $APICLIlogfilepath
+                        echo 'Execute operations with mgmttarget '\"$mgmttarget\" >> $APICLIlogfilepath
+                        echo >> $APICLIlogfilepath
                     fi
                     
-                    mgmt_cli login user $APICLIadmin password "$CLIparm_password" -m "$CLIparm_mgmt" session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                    mgmt_cli login user $APICLIadmin password "$CLIparm_password" -m "$CLIparm_mgmt" session-timeout $APISessionTimeout --port $APICLIwebsslport -f json > $APICLIsessionfile 2>> $APICLIsessionerrorfile
                     EXITCODE=$?
-                    cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
+                    cat $APICLIsessionerrorfile >> $APICLIlogfilepath
                 else
                     #
                     # Testing - Dump login string built from parameters
@@ -1426,54 +1687,64 @@ HandleMgmtCLILogin () {
                     if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
                         echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User with Password' | tee -a -i $APICLIlogfilepath
                         echo | tee -a -i $APICLIlogfilepath
+                    else
+                        echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User with Password' >> $APICLIlogfilepath
+                        echo >> $APICLIlogfilepath
                     fi
                     
-                    mgmt_cli login user $APICLIadmin password "$CLIparm_password" session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                    mgmt_cli login user $APICLIadmin password "$CLIparm_password" session-timeout $APISessionTimeout --port $APICLIwebsslport -f json > $APICLIsessionfile 2>> $APICLIsessionerrorfile
                     EXITCODE=$?
-                    cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
+                    cat $APICLIsessionerrorfile >> $APICLIlogfilepath
                 fi
             fi
         else
             # Handle NO password parameter
-    
+            
             if [ x"$domaintarget" != x"" ] ; then
                 # Handle domain parameter for login string
                 export loginparmstring=$loginparmstring" domain \"$domaintarget\""
-          
+                
                 # Handle management server parameter for mgmt_cli parms
                 if [ x"$CLIparm_mgmt" != x"" ] ; then
                     export mgmttarget="-m \"$CLIparm_mgmt\""
-      
+                    
                     #
                     # Testing - Dump login string built from parameters
                     #
                     if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
                         echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User with Domain and Management' | tee -a -i $APICLIlogfilepath
-                        echo 'Execute operations with mgmttarget '\"$mgmttarget\" | tee -a -i $APICLIlogfilepath
+                        echo 'Execute operations with mgmttarget '\"$mgmttarget\"' to Domain '\"$domaintarget\" | tee -a -i $APICLIlogfilepath
                         echo | tee -a -i $APICLIlogfilepath
+                    else
+                        echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User with Domain and Management' >> $APICLIlogfilepath
+                        echo 'Execute operations with mgmttarget '\"$mgmttarget\"' to Domain '\"$domaintarget\" >> $APICLIlogfilepath
+                        echo >> $APICLIlogfilepath
                     fi
                     
-                    mgmt_cli login user $APICLIadmin domain "$domaintarget" -m "$CLIparm_mgmt" session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                    mgmt_cli login user $APICLIadmin domain "$domaintarget" -m "$CLIparm_mgmt" session-timeout $APISessionTimeout --port $APICLIwebsslport -f json > $APICLIsessionfile 2>> $APICLIsessionerrorfile
                     EXITCODE=$?
-                    cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
+                    cat $APICLIsessionerrorfile >> $APICLIlogfilepath
                 else
                     #
                     # Testing - Dump login string built from parameters
                     #
                     if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
-                        echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User with Domain | tee -a -i $APICLIlogfilepath'
+                        echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User with Domain '\"$domaintarget\" | tee -a -i $APICLIlogfilepath
                         echo | tee -a -i $APICLIlogfilepath
+                    else
+                        echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User with Domain '\"$domaintarget\" >> $APICLIlogfilepath
+                        echo >> $APICLIlogfilepath
                     fi
                     
-                    mgmt_cli login user $APICLIadmin domain "$domaintarget" session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                    mgmt_cli login user $APICLIadmin domain "$domaintarget" session-timeout $APISessionTimeout --port $APICLIwebsslport -f json > $APICLIsessionfile 2>> $APICLIsessionerrorfile
                     EXITCODE=$?
-                    cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
+                    cat $APICLIsessionerrorfile >> $APICLIlogfilepath
                 fi
             else
                 # Handle management server parameter for mgmt_cli parms
                 if [ x"$CLIparm_mgmt" != x"" ] ; then
                     export mgmttarget='-m \"$CLIparm_mgmt\"'
-      
+                    
                     #
                     # Testing - Dump login string built from parameters
                     #
@@ -1481,11 +1752,15 @@ HandleMgmtCLILogin () {
                         echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User with Management' | tee -a -i $APICLIlogfilepath
                         echo 'Execute operations with mgmttarget '\"$mgmttarget\" | tee -a -i $APICLIlogfilepath
                         echo | tee -a -i $APICLIlogfilepath
+                    else
+                        echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User with Management' >> $APICLIlogfilepath
+                        echo 'Execute operations with mgmttarget '\"$mgmttarget\" >> $APICLIlogfilepath
+                        echo >> $APICLIlogfilepath
                     fi
                     
-                    mgmt_cli login user $APICLIadmin -m "$CLIparm_mgmt" session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                    mgmt_cli login user $APICLIadmin -m "$CLIparm_mgmt" session-timeout $APISessionTimeout --port $APICLIwebsslport -f json > $APICLIsessionfile 2>> $APICLIsessionerrorfile
                     EXITCODE=$?
-                    cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
+                    cat $APICLIsessionerrorfile >> $APICLIlogfilepath
                 else
                     #
                     # Testing - Dump login string built from parameters
@@ -1493,11 +1768,14 @@ HandleMgmtCLILogin () {
                     if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
                         echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User' | tee -a -i $APICLIlogfilepath
                         echo | tee -a -i $APICLIlogfilepath
+                    else
+                        echo 'Execute login with loginparmstring '\"$loginparmstring\"' As User' >> $APICLIlogfilepath
+                        echo >> $APICLIlogfilepath
                     fi
                     
-                    mgmt_cli login user $APICLIadmin session-timeout $APISessionTimeout --port $APICLIwebsslport > $APICLIsessionfile 2>> $APICLIsessionerrorfile
+                    mgmt_cli login user $APICLIadmin session-timeout $APISessionTimeout --port $APICLIwebsslport -f json > $APICLIsessionfile 2>> $APICLIsessionerrorfile
                     EXITCODE=$?
-                    cat $APICLIsessionerrorfile | tee -a -i $APICLIlogfilepath
+                    cat $APICLIsessionerrorfile >> $APICLIlogfilepath
                 fi
             fi
         fi
@@ -1506,12 +1784,12 @@ HandleMgmtCLILogin () {
     if [ "$EXITCODE" != "0" ] ; then
         
         echo | tee -a -i $APICLIlogfilepath
-        echo "mgmt_cli login error!" | tee -a -i $APICLIlogfilepath
+        echo 'mgmt_cli login error!  EXITCODE = '$EXITCODE | tee -a -i $APICLIlogfilepath
         echo | tee -a -i $APICLIlogfilepath
         cat $APICLIsessionfile | tee -a -i $APICLIlogfilepath
         echo | tee -a -i $APICLIlogfilepath
         return 255
-    
+        
     else
         
         echo "mgmt_cli login success!" | tee -a -i $APICLIlogfilepath
@@ -1520,18 +1798,18 @@ HandleMgmtCLILogin () {
         echo | tee -a -i $APICLIlogfilepath
         
     fi
-
+    
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-17
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-09
 
 # -------------------------------------------------------------------------------------------------
 # SetupLogin2MgmtCLI - Setup Login to Management CLI
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-17 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-09 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 SetupLogin2MgmtCLI () {
@@ -1540,14 +1818,14 @@ SetupLogin2MgmtCLI () {
     #
     
     #export APICLIwebsslport=$currentapisslport
-
+    
     if [ ! -z "$CLIparm_mgmt" ] ; then
         # working with remote management server
         if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
             echo 'Working with remote management server' | tee -a -i $APICLIlogfilepath
-        fi            
+        fi
         
-        # MODIFIED 2019-01-17 -
+        # MODIFIED 2020-09-09 -
         # Stipulate that if running on the actual management host, use it's web ssl-port value
         # unless we're running with the management server setting CLIparm_mgmt, then use the
         # passed parameter from the CLI or default to 443
@@ -1556,28 +1834,28 @@ SetupLogin2MgmtCLI () {
             echo | tee -a -i $APICLIlogfilepath
             echo 'Initial $APICLIwebsslport   = '$APICLIwebsslport | tee -a -i $APICLIlogfilepath
             echo 'Current $CLIparm_websslport = '$CLIparm_websslport | tee -a -i $APICLIlogfilepath
-        fi            
-    
+        fi
+        
         if [ ! -z "$CLIparm_websslport" ] ; then
             if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
                 echo 'Working with web ssl-port from CLI parms' | tee -a -i $APICLIlogfilepath
-            fi            
+            fi
             export APICLIwebsslport=$CLIparm_websslport
         else
             # Default back to expected SSL port, since we won't know what the remote management server configuration for web ssl-port is.
             # This may change once Gaia API is readily available and can be checked.
             if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
                 echo 'Remote management cannot currently be queried for web ssl-port, so defaulting to 443' | tee -a -i $APICLIlogfilepath
-            fi            
+            fi
             export APICLIwebsslport=443
         fi
     else
         # not working with remote management server
         if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
             echo 'Not working with remote management server' | tee -a -i $APICLIlogfilepath
-        fi            
+        fi
         
-        # MODIFIED 2019-01-17 -
+        # MODIFIED 2020-09-09 -
         # Stipulate that if running on the actual management host, use it's web ssl-port value
         # unless we're running with the management server setting CLIparm_mgmt, then use the
         # passed parameter from the CLI or default to 443
@@ -1587,41 +1865,41 @@ SetupLogin2MgmtCLI () {
             echo 'Initial $APICLIwebsslport   = '$APICLIwebsslport | tee -a -i $APICLIlogfilepath
             echo 'Current $CLIparm_websslport = '$CLIparm_websslport | tee -a -i $APICLIlogfilepath
             echo 'Current $currentapisslport  = '$currentapisslport | tee -a -i $APICLIlogfilepath
-        fi            
-    
+        fi
+        
         if [ ! -z "$CLIparm_websslport" ] ; then
             if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
                 echo 'Working with web ssl-port from CLI parms' | tee -a -i $APICLIlogfilepath
-            fi            
+            fi
             export APICLIwebsslport=$CLIparm_websslport
         else
             if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
                 echo 'Working with web ssl-port harvested from Gaia' | tee -a -i $APICLIlogfilepath
-            fi            
+            fi
             export APICLIwebsslport=$currentapisslport
         fi
     fi
-
+    
     if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
         echo 'Final $APICLIwebsslport     = '$APICLIwebsslport | tee -a -i $APICLIlogfilepath
         echo | tee -a -i $APICLIlogfilepath
-    fi            
-    # ADDED 2019-01-17 -
+    fi
+    # ADDED 2020-09-09 -
     # Handle login session-timeout parameter
     #
-
+    
     export APISessionTimeout=600
-
+    
     MinAPISessionTimeout=10
     MaxAPISessionTimeout=3600
     DefaultAPISessionTimeout=600
-
+    
     if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
         echo | tee -a -i $APICLIlogfilepath
         echo 'Initial $APISessionTimeout      = '$APISessionTimeout | tee -a -i $APICLIlogfilepath
         echo 'Current $CLIparm_sessiontimeout = '$CLIparm_sessiontimeout | tee -a -i $APICLIlogfilepath
-    fi            
-
+    fi
+    
     if [ ! -z $CLIparm_sessiontimeout ]; then
         # CLI Parameter for session-timeout was passed
         if [ $CLIparm_sessiontimeout -lt $MinAPISessionTimeout ] ||  [ $CLIparm_sessiontimeout -gt $MaxAPISessionTimeout ]; then
@@ -1637,14 +1915,14 @@ SetupLogin2MgmtCLI () {
         # CLI Parameter for session-timeout not set
         export APISessionTimeout=$DefaultAPISessionTimeout
     fi
-
+    
     if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
         echo | tee -a -i $APICLIlogfilepath
         echo 'Final $APISessionTimeout       = '$APISessionTimeout | tee -a -i $APICLIlogfilepath
     fi
-
+    
     # MODIFIED 2018-05-03 -
-
+    
     # ================================================================================================
     # NOTE:  APICLIadmin value must be set to operate this script, removing this varaiable will lead
     #        to logon failure with mgmt_cli logon.  Root User (-r) parameter is handled differently,
@@ -1674,20 +1952,20 @@ SetupLogin2MgmtCLI () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-17
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-09
 
 # -------------------------------------------------------------------------------------------------
 # Login2MgmtCLI - Process Login to Management CLI
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-04 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-09 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 Login2MgmtCLI () {
     #
     # Execute the mgmt_cli login and address results
     #
-
+    
     HandleMgmtCLILogin
     SUBEXITCODE=$?
     
@@ -1701,7 +1979,7 @@ Login2MgmtCLI () {
         echo "Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
         echo | tee -a -i $APICLIlogfilepath
         return $SUBEXITCODE
-    
+        
     else
         echo | tee -a -i $APICLIlogfilepath
     fi
@@ -1710,7 +1988,7 @@ Login2MgmtCLI () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-05-04
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-09
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -2928,6 +3206,7 @@ GetNumberOfObjectsviaJQ () {
 
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -2936,10 +3215,12 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 export CSVFileHeader=$CSVFileHeader',"ipv4-address","ipv6-address"'
 export CSVFileHeader=$CSVFileHeader',"nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.ipv4-address","nat-settings.ipv6-address","nat-settings.method"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=$CSVJQparms', .["ipv4-address"], .["ipv6-address"]'
 export CSVJQparms=$CSVJQparms', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"]'
 export CSVJQparms=$CSVJQparms', .["nat-settings"]["ipv4-address"], .["nat-settings"]["ipv6-address"], .["nat-settings"]["method"]'
@@ -2957,6 +3238,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=network
 export APICLIobjectstype=networks
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -2965,10 +3247,12 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 export CSVFileHeader=$CSVFileHeader',"broadcast","subnet4","mask-length4","subnet6","mask-length6"'
 export CSVFileHeader=$CSVFileHeader',"nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.method"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=$CSVJQparms', .["broadcast"], .["subnet4"], .["mask-length4"], .["subnet6"], .["mask-length6"]'
 export CSVJQparms=$CSVJQparms', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"], .["nat-settings"]["method"]'
 
@@ -2985,6 +3269,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -2993,8 +3278,10 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 
 objectstotal_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
 export number_groups="$objectstotal_groups"
@@ -3009,6 +3296,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=group-with-exclusion
 export APICLIobjectstype=groups-with-exclusion
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3017,9 +3305,11 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 export CSVFileHeader=$CSVFileHeader',"include","except"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=$CSVJQparms', .["include"]["name"], .["except"]["name"]'
 
 objectstotal_groupswithexclusion=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3035,6 +3325,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=address-range
 export APICLIobjectstype=address-ranges
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3043,10 +3334,12 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 export CSVFileHeader=$CSVFileHeader',"ipv4-address-first","ipv4-address-last"'
 export CSVFileHeader=$CSVFileHeader',"ipv6-address-first","ipv6-address-last"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=$CSVJQparms', .["ipv4-address-first"], .["ipv4-address-last"]'
 export CSVJQparms=$CSVJQparms', .["ipv6-address-first"], .["ipv6-address-last"]'
 
@@ -3063,6 +3356,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=multicast-address-range
 export APICLIobjectstype=multicast-address-ranges
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3071,10 +3365,12 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 export CSVFileHeader=$CSVFileHeader',"ipv4-address-first","ipv4-address-last"'
 export CSVFileHeader=$CSVFileHeader',"ipv6-address-first","ipv6-address-last"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=$CSVJQparms', .["ipv4-address-first"], .["ipv4-address-last"]'
 export CSVJQparms=$CSVJQparms', .["ipv6-address-first"], .["ipv6-address-last"]'
 
@@ -3091,6 +3387,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=dns-domain
 export APICLIobjectstype=dns-domains
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3099,9 +3396,11 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 export CSVFileHeader=$CSVFileHeader',"is-sub-domain"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=$CSVJQparms', .["is-sub-domain"]'
 
 objectstotal_dnsdomains=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3117,6 +3416,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=security-zone
 export APICLIobjectstype=security-zones
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3125,9 +3425,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_securityzones=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3146,6 +3450,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=dynamic-object
 export APICLIobjectstype=dynamic-objects
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3154,9 +3459,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_dynamicobjects=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3197,6 +3506,7 @@ echo >> $APICLIlogfilepath
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3205,50 +3515,15 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 export CSVFileHeader=$CSVFileHeader',"primary-category","risk","description","urls-defined-as-regular-expression"'
 export CSVFileHeader=$CSVFileHeader', "meta-info.creator","user-defined","read-only"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 export CSVJQparms=$CSVJQparms', .["primary-category"], .["risk"], .["description"], .["urls-defined-as-regular-expression"]'
-export CSVJQparms=$CSVJQparms', .["meta-info"]["creator"], .["user-defined"], .["read-only"]'
-
-objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
-export number_application_sites="$objectstotal_application_sites"
-export number_of_objects=$number_application_sites
-
-ExportObjectsToCSVviaJQ
-
-# -------------------------------------------------------------------------------------------------
-# application-sites objects - risk_data_export_only (well risk, primary category, description, creator
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=application-site
-export APICLIobjectstype=application-sites
-export APICLIexportnameaddon=risk_data_export_only
-
-#
-# APICLICSVsortparms can change due to the nature of the object
-#
-export APICLICSVsortparms='-f -t , -k 1,1'
-
-#export CSVFileHeader='"name","color","comments"'
-#export CSVFileHeader=$CSVFileHeader',"icon"'
-#export CSVFileHeader=$CSVFileHeader',"primary-category","risk","description"'
-#export CSVFileHeader=$CSVFileHeader',"user-defined","read-only", "meta-info.creator"'
-
-#export CSVJQparms='.["name"], .["color"], .["comments"]'
-#export CSVJQparms=$CSVJQparms', .["icon"]'
-#export CSVJQparms=$CSVJQparms', .["primary-category"], .["risk"], .["description"]'
-#export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
-
-export CSVFileHeader='"name"'
-export CSVFileHeader=$CSVFileHeader',"primary-category","risk","description"'
-export CSVFileHeader=$CSVFileHeader', "meta-info.creator","user-defined","read-only"'
-
-export CSVJQparms='.["name"]'
-export CSVJQparms=$CSVJQparms', .["primary-category"], .["risk"], .["description"]'
 export CSVJQparms=$CSVJQparms', .["meta-info"]["creator"], .["user-defined"], .["read-only"]'
 
 objectstotal_application_sites=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3270,6 +3545,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=application-site-category
 export APICLIobjectstype=application-site-categories
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3278,10 +3554,12 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 export CSVFileHeader=$CSVFileHeader',"user-defined","read-only", "meta-info.creator"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
 
@@ -3304,6 +3582,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=application-site-group
 export APICLIobjectstype=application-site-groups
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3312,10 +3591,12 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 export CSVFileHeader=$CSVFileHeader',"user-defined","read-only", "meta-info.creator"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 export CSVJQparms=$CSVJQparms', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
 
@@ -3345,6 +3626,7 @@ echo
 
 export APICLIobjecttype=tags
 export APICLIobjectstype=tags
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3353,9 +3635,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_tags=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3380,6 +3666,7 @@ ExportObjectsToCSVviaJQ
 
 export APICLIobjecttype=simple-gateway
 export APICLIobjectstype=simple-gateways
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3388,9 +3675,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_simplegateways=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3406,6 +3697,7 @@ export number_of_objects=$number_simplegateways
 
 export APICLIobjecttype=time
 export APICLIobjectstype=times
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3414,9 +3706,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_times=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3432,6 +3728,7 @@ export number_of_objects=$number_times
 
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3440,9 +3737,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_time_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3458,6 +3759,7 @@ export number_of_objects=$number_time_groups
 
 export APICLIobjecttype=access-role
 export APICLIobjectstype=access-roles
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3466,9 +3768,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_access_roles=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3484,6 +3790,7 @@ export number_of_objects=$number_access_roles
 
 export APICLIobjecttype=opsec-application
 export APICLIobjectstype=opsec-applications
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3492,9 +3799,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_opsec_applications=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3523,6 +3834,7 @@ export number_of_objects=$number_opsec_applications
 
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3531,9 +3843,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_services_tcp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3549,6 +3865,7 @@ export number_of_objects=$number_services_tcp
 
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3557,9 +3874,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_services_udp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3575,6 +3896,7 @@ export number_of_objects=$number_services_udp
 
 export APICLIobjecttype=service-icmp
 export APICLIobjectstype=services-icmp
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3583,9 +3905,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_services_icmp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3601,6 +3927,7 @@ export number_of_objects=$number_services_icmp
 
 export APICLIobjecttype=service-icmp6
 export APICLIobjectstype=services-icmp6
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3609,9 +3936,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_services_icmp6=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3627,6 +3958,7 @@ export number_of_objects=$number_services_icmp6
 
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3635,9 +3967,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_services_sctp=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3653,6 +3989,7 @@ export number_of_objects=$number_services_sctp
 
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3661,9 +3998,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_services_other=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3679,6 +4020,7 @@ export number_of_objects=$number_services_other
 
 export APICLIobjecttype=service-dce-rpc
 export APICLIobjectstype=services-dce-rpc
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3687,9 +4029,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_services_dce_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3705,6 +4051,7 @@ export number_of_objects=$number_services_dce_rpc
 
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3713,9 +4060,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_services_rpc=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3731,6 +4082,7 @@ export number_of_objects=$number_services_rpc
 
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
+export APICLICSVobjecttype=$APICLIobjectstype
 export APICLIexportnameaddon=
 
 #
@@ -3739,9 +4091,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
 #export CSVFileHeader=$CSVFileHeader',"icon"'
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
 #export CSVJQparms=$CSVJQparms', .["icon"]'
 
 objectstotal_service_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
@@ -3753,6 +4109,184 @@ export number_of_objects=$number_service_groups
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-08-28
+
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Users
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+echo
+echo 'Users'
+echo
+echo >> $APICLIlogfilepath
+echo 'Users' >> $APICLIlogfilepath
+echo >> $APICLIlogfilepath
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# users
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=users
+export APICLIobjectstype=users
+export APICLICSVobjecttype=$APICLIobjectstype
+export APICLIexportnameaddon=
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=$CSVFileHeader',"template","e-mail","phone-number"'
+export CSVFileHeader=$CSVFileHeader',"authentication-method","radius-server.name","tacacs-server.name"'
+export CSVFileHeader=$CSVFileHeader',"expiration-date"'
+export CSVFileHeader=$CSVFileHeader',"encryption.enable-ike", "encryption.enable-public-key", "encryption.enable-shared-secret"'
+#export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+export CSVJQparms=$CSVJQparms', .["template"], .["e-mail"], .["phone-number"]'
+export CSVJQparms=$CSVJQparms', .["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
+export CSVJQparms=$CSVJQparms', .["expiration-date"]["iso-8601"]'
+export CSVJQparms=$CSVJQparms', .["encryption"]["ike"], .["encryption"]["public-key"], .["encryption"]["shared-secret"]'
+#export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_users=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
+export number_users="$objectstotal_users"
+export number_of_objects=$number_users
+
+ExportObjectsToCSVviaJQ
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# user-groups
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=user-groups
+export APICLIobjectstype=user-groups
+export APICLICSVobjecttype=$APICLIobjectstype
+export APICLIexportnameaddon=
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=$CSVFileHeader',"email"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
+#export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+export CSVJQparms=$CSVJQparms', .["email"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
+#export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_user_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
+export number_user_groups="$objectstotal_user_groups"
+export number_of_objects=$number_user_groups
+
+ExportObjectsToCSVviaJQ
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# user-templates
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=user-templates
+export APICLIobjectstype=user-templates
+export APICLICSVobjecttype=$APICLIobjectstype
+export APICLIexportnameaddon=
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=$CSVFileHeader',"authentication-method","radius-server.name","tacacs-server.name"'
+export CSVFileHeader=$CSVFileHeader',"expiration-by-global-properties","expiration-date"'
+export CSVFileHeader=$CSVFileHeader',"encryption.enable-ike", "encryption.enable-public-key", "encryption.enable-shared-secret"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
+#export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+export CSVJQparms=$CSVJQparms', .["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
+export CSVJQparms=$CSVJQparms', .["expiration-by-global-properties"], .["expiration-date"]["iso-8601"]'
+export CSVJQparms=$CSVJQparms', .["encryption"]["ike"], .["encryption"]["public-key"], .["encryption"]["shared-secret"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
+#export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_user_templates=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
+export number_user_templates="$objectstotal_user_templates"
+export number_of_objects=$number_user_templates
+
+ExportObjectsToCSVviaJQ
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# identity-tags
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=identity-tags
+export APICLIobjectstype=identity-tags
+export APICLICSVobjecttype=$APICLIobjectstype
+export APICLIexportnameaddon=
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader='"name","color","comments"'
+export CSVFileHeader=$CSVFileHeader',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+#export CSVFileHeader=$CSVFileHeader',<<<OBJECT_PARAMETER_HEADERS>>>'
+#export CSVFileHeader=$CSVFileHeader',"icon"'
+
+export CSVJQparms='.["name"], .["color"], .["comments"]'
+export CSVJQparms=$CSVJQparms', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+#export CSVJQparms=$CSVJQparms', <<<OBJECT_PARAMETERS>>>'
+#export CSVJQparms=$CSVJQparms', .["icon"]'
+
+objectstotal_identity_tags=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
+export number_identity_tags="$objectstotal_identity_tags"
+export number_of_objects=$number_identity_tags
+
+ExportObjectsToCSVviaJQ
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3916,13 +4450,13 @@ FinalizeExportComplexObjectsToCSVviaJQ () {
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-05
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\  ADDED 2017-11-09
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # MODIFIED 2018-05-05 -
@@ -3935,6 +4469,7 @@ export APICLIobjecttype=group
 export APICLIobjectstype=groups
 export APICLIcomplexobjecttype=group-member
 export APICLIcomplexobjectstype=group-members
+export APICLICSVobjecttype=$APICLIcomplexobjectstype
 export APICLIexportnameaddon=
 
 # -------------------------------------------------------------------------------------------------
@@ -4284,6 +4819,7 @@ export APICLIobjecttype=host
 export APICLIobjectstype=hosts
 export APICLIcomplexobjecttype=host-interface
 export APICLIcomplexobjectstype=host-interfaces
+export APICLICSVobjecttype=$APICLIcomplexobjectstype
 export APICLIexportnameaddon=
 
 # -------------------------------------------------------------------------------------------------
@@ -4743,6 +5279,347 @@ fi
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-05
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2020-08-19 -
+
+# -------------------------------------------------------------------------------------------------
+# user-group members
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=user-group
+export APICLIobjectstype=user-groups
+export APICLIcomplexobjecttype=user-group-member
+export APICLIcomplexobjectstype=user-group-members
+export APICLICSVobjecttype=$APICLIcomplexobjectstype
+export APICLIexportnameaddon=
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
+# SetupGetUserGroupMembers proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# SetupGetUserGroupMembers
+
+SetupGetUserGroupMembers () {
+
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    export APICLICSVsortparms='-f -t , -k 1,2'
+    
+    export CSVFileHeader='"name","members.add"'
+    
+    SetupExportComplexObjectsToCSVviaJQ
+    
+    return 0
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
+
+    
+# -------------------------------------------------------------------------------------------------
+# FinalizeGetUserGroupMembers proceedure
+# -------------------------------------------------------------------------------------------------
+
+#
+# FinalizeGetUserGroupMembers
+
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+FinalizeGetUserGroupMembers () {
+
+    FinalizeExportComplexObjectsToCSVviaJQ
+    errorreturn=$?
+    if [ $errorreturn != 0 ] ; then
+        # Something went wrong, terminate
+        return $errorreturn
+    fi
+    
+    return 0
+}
+    
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
+
+
+# -------------------------------------------------------------------------------------------------
+# PopulateArrayOfUserGroupObjects proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# PopulateArrayOfUserGroupObjects generates an array of user-group objects for further processing.
+
+PopulateArrayOfUserGroupObjects () {
+    
+    # MODIFIED 2020-08-19 -
+    #
+    # This should work, but might need more tweeks if other data types use more values
+    #export notsystemobjectselector='select((."domain"."name" != "Check Point Data") and (."domain"."name" != "APPI Data") and (."domain"."name" != "IPS Data"))'
+    #
+    # Future alternative if more options to exclude are needed
+    export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
+    export notsystemobjectselector='select(."domain"."name" as $a | ['$systemobjectdomains'] | index($a) | not)'
+    
+    echo "  $APICLIobjectstype - Populate up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentusergroupoffset of $objectslefttoshow remaining!" | tee -a -i $APICLIlogfilepath
+
+    # MGMT_CLI_USER_GROUPS_STRING is a string with multiple lines. Each line contains a name of a group members.
+    # in this example the output of mgmt_cli is not sent to a file, instead it is passed to jq directly using a pipe.
+    
+    #MGMT_CLI_USER_GROUPS_STRING="`mgmt_cli show groups limit $APICLIObjectLimit offset $currentusergroupoffset details-level "standard" -s $APICLIsessionfile -f json | $JQ ".objects[].name | @sh" -r`"
+    
+    if [ x"$NoSystemObjects" = x"true" ] ; then
+        # Ignore System Objects
+        #MGMT_CLI_USER_GROUPS_STRING="`mgmt_cli show user-groups limit $APICLIObjectLimit offset $currentusergroupoffset details-level "full" -s $APICLIsessionfile -f json | $JQ ".objects[] | '"$notsystemobjectselector"' | .name | @sh" -r`"
+        MGMT_CLI_USER_GROUPS_STRING="`mgmt_cli show user-groups limit $APICLIObjectLimit offset $currentusergroupoffset details-level "full" -s $APICLIsessionfile -f json | $JQ '.objects[] | '"$notsystemobjectselector"' | .name | @sh' -r`"
+    else   
+        # Don't Ignore System Objects
+        MGMT_CLI_USER_GROUPS_STRING="`mgmt_cli show user-groups limit $APICLIObjectLimit offset $currentusergroupoffset details-level "standard" -s $APICLIsessionfile -f json | $JQ ".objects[].name | @sh" -r`"
+    fi
+    
+    # break the string into an array - each element of the array is a line in the original string
+    # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
+    
+    while read -r line; do
+        ALLUSERGROUPARR+=("$line")
+        echo -n '.'
+    done <<< "$MGMT_CLI_USER_GROUPS_STRING"
+    echo
+    
+    return 0
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
+
+
+# -------------------------------------------------------------------------------------------------
+# GetArrayOfUserGroupObjects proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# GetArrayOfUserGroupObjects generates an array of group objects for further processing.
+
+GetArrayOfUserGroupObjects () {
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Generate array of user groups' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    
+    ALLUSERGROUPARR=()
+
+    export MgmtCLI_Base_OpParms="-f json -s $APICLIsessionfile"
+    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
+    
+    export MgmtCLI_Show_OpParms="details-level \"$APICLIdetaillvl\" $MgmtCLI_Base_OpParms"
+    
+    objectstotal=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" $MgmtCLI_Base_OpParms | $JQ ".total")
+
+    objectstoshow=$objectstotal
+
+    echo "Processing $objectstoshow $APICLIobjecttype objects in $APICLIObjectLimit object chunks:" | tee -a -i $APICLIlogfilepath
+
+    objectslefttoshow=$objectstoshow
+
+    currentusergroupoffset=0
+    
+    while [ $objectslefttoshow -ge 1 ] ; do
+        # we have objects to process
+        echo "  Now processing up to next $APICLIObjectLimit $APICLIobjecttype objects starting with object $currentusergroupoffset of $objectslefttoshow remaining!" | tee -a -i $APICLIlogfilepath
+
+        PopulateArrayOfUserGroupObjects
+        errorreturn=$?
+        if [ $errorreturn != 0 ] ; then
+            # Something went wrong, terminate
+            return $errorreturn
+        fi
+
+        objectslefttoshow=`expr $objectslefttoshow - $APICLIObjectLimit`
+        currentusergroupoffset=`expr $currentusergroupoffset + $APICLIObjectLimit`
+    done
+
+    
+    return 0
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
+
+
+# -------------------------------------------------------------------------------------------------
+# DumpArrayOfUserGroupObjects proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# DumpArrayOfUserGroupObjects outputs the array of group objects.
+
+DumpArrayOfUserGroupObjects () {
+    
+    if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+        # Verbose mode ON
+        # Output list of all groups found
+ 
+        # print the elements in the array
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'Dump user groups' | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+        
+        for i in "${ALLUSERGROUPARR[@]}"
+        do
+            echo "$i, ${i//\'/}" | tee -a -i $APICLIlogfilepath
+        done
+        
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'Done dumping user groups' | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
+    
+    fi
+    
+    return 0
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
+
+
+# -------------------------------------------------------------------------------------------------
+# CollectMembersInUserGroupObjects proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# CollectMembersInUserGroupObjects outputs the number of group members in a group in the array of group objects and collects them into the csv file.
+
+CollectMembersInUserGroupObjects () {
+    
+    #
+    # using bash variables in a jq expression
+    #
+    
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Use array of user groups to generate user group members CSV' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    
+    for i in "${ALLUSERGROUPARR[@]}"
+    do
+        echo | tee -a -i $APICLIlogfilepath
+        
+        MEMBERS_COUNT=$(mgmt_cli show $APICLIobjecttype name "${i//\'/}" -s $APICLIsessionfile -f json | $JQ ".members | length")
+        
+        NUM_USER_GROUP_MEMBERS=$MEMBERS_COUNT
+        
+        if [ $NUM_USER_GROUP_MEMBERS -gt 0 ]; then
+            # More than zero (0) members, something to process
+            echo 'User-Group '"${i//\'/}"' number of members = '"$NUM_USER_GROUP_MEMBERS" | tee -a -i $APICLIlogfilepath
+            
+            COUNTER=0
+            
+            while [ $COUNTER -lt $NUM_USER_GROUP_MEMBERS ]; do
+                
+                MEMBER_NAME=$(mgmt_cli show $APICLIobjecttype name ${i//\'/} -s $APICLIsessionfile -f json | $JQ ".members[$COUNTER].name")
+                
+                if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
+                    # Verbose mode ON
+                    echo -n '.'
+                fi
+                
+                echo ${i//\'/},$MEMBER_NAME >> $APICLICSVfiledata
+                
+                let COUNTER=COUNTER+1
+                
+            done
+            
+        else
+            echo Group "${i//\'/}"' number of members = NONE (0 zero)'
+        fi
+        
+    done
+    
+    
+    return 0
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
+
+
+# -------------------------------------------------------------------------------------------------
+# GetUserGroupMembers proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# GetUserGroupMembers generate output of group members from existing group objects
+
+GetUserGroupMembers () {
+
+    SetupGetUserGroupMembers
+
+    GetArrayOfUserGroupObjects
+
+    DumpArrayOfUserGroupObjects
+
+    CollectMembersInUserGroupObjects
+
+    FinalizeGetUserGroupMembers
+
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
+
+    
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+objectstotal_user_groups=$(mgmt_cli show $APICLIobjectstype limit 1 offset 0 details-level "standard" -f json -s $APICLIsessionfile | $JQ ".total")
+export number_user_groups="$objectstotal_user_groups"
+
+if [ $number_user_groups -le 0 ] ; then
+    # No user groups found
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'No user groups to generate members from!' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+else
+    GetUserGroupMembers
+fi
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
