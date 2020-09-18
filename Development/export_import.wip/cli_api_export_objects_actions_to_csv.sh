@@ -13,12 +13,12 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.50.00
-ScriptRevision=055
+ScriptVersion=00.60.00
+ScriptRevision=000
 ScriptDate=2020-09-10
-TemplateVersion=00.50.00
-CommonScriptsVersion=00.50.00
-CommonScriptsRevision=006
+TemplateVersion=00.60.00
+APISubscriptsVersion=00.60.00
+APISubscriptsRevision=006
 
 #
 
@@ -82,25 +82,31 @@ export APICLIActionstemplogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_te
 # SetupTempLogFile - Setup Temporary Log File and clear any debris
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 SetupTempLogFile () {
     #
     # SetupTempLogFile - Setup Temporary Log File and clear any debris
     #
-
-    export APICLIActionstemplogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_temp_'$DATEDTGS.log
-
+    
+    if [ -z "$1" ]; then
+        # No explicit name passed for action
+        export APICLIActionstemplogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_temp_'$DATEDTGS.log
+    else
+        # explicit name passed for action
+        export APICLIActionstemplogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_temp_'$1'_'$DATEDTGS.log
+    fi
+    
     rm $APICLIActionstemplogfilepath >> $APICLIlogfilepath 2> $APICLIlogfilepath
-
+    
     touch $APICLIActionstemplogfilepath
-
+    
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-10
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -110,14 +116,14 @@ SetupTempLogFile () {
 # HandleShowTempLogFile - Handle Showing of Temporary Log File based on verbose setting
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 HandleShowTempLogFile () {
     #
     # HandleShowTempLogFile - Handle Showing of Temporary Log File based on verbose setting
     #
-
+    
     if [ "$APISCRIPTVERBOSE" = "true" ] ; then
         # verbose mode so show the logged results and copy to normal log file
         cat $APICLIActionstemplogfilepath | tee -a -i $APICLIlogfilepath
@@ -131,7 +137,7 @@ HandleShowTempLogFile () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-10
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -141,23 +147,23 @@ HandleShowTempLogFile () {
 # ForceShowTempLogFile - Handle Showing of Temporary Log File based forced display
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ForceShowTempLogFile () {
     #
     # ForceShowTempLogFile - Handle Showing of Temporary Log File based forced display
     #
-
+    
     cat $APICLIActionstemplogfilepath | tee -a -i $APICLIlogfilepath
     
     rm $APICLIActionstemplogfilepath >> $APICLIlogfilepath 2> $APICLIlogfilepath
-
+    
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-10
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------

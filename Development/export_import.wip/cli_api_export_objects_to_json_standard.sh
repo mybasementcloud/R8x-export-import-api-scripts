@@ -13,17 +13,17 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.50.00
-ScriptRevision=055
+ScriptVersion=00.60.00
+ScriptRevision=000
 ScriptDate=2020-09-10
-TemplateVersion=00.50.00
-CommonScriptsVersion=00.50.00
-CommonScriptsRevision=006
+TemplateVersion=00.60.00
+APISubscriptsVersion=00.60.00
+APISubscriptsRevision=006
 
 #
 
 export APIScriptVersion=v${ScriptVersion//./x}
-export APIExpectedCommonScriptsVersion=v${CommonScriptsVersion//./x}
+export APIExpectedAPISubscriptsVersion=v${APISubscriptsVersion//./x}
 export APIExpectedActionScriptsVersion=v${ScriptVersion//./x}
 ScriptName=cli_api_export_objects_to_json_standard
 
@@ -49,20 +49,64 @@ export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 
 export APICLIlogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_'$DATEDTGS.log
 
+# -------------------------------------------------------------------------------------------------
+# Configure location for api subscripts
+# -------------------------------------------------------------------------------------------------
+
+# ADDED 2020-09-09 -
+# Configure basic location for api subscripts
+export api_subscripts_default_root=..
+export api_subscripts_default_folder=_api_subscripts
+export api_subscripts_checkfile=api_subscripts_version.$APISubscriptsRevision.v$APISubscriptsVersion.version
+
+#
+# Check for whether the subscripts are present where expected, if not hard EXIT
+#
+if [ -r "$api_subscripts_default_root/$api_subscripts_default_folder/$api_subscripts_checkfile" ]; then
+    # OK, found the api subscripts in the default root
+    export api_subscripts_root=$api_subscripts_default_root
+elif [ -r "./$api_subscripts_default_folder/$api_subscripts_checkfile" ]; then
+    # OK, didn't find the api subscripts in the default root, instead found them in the working folder
+    export api_subscripts_root=.
+else
+    # OK, didn't find the api subscripts where we expect to find them, so this is bad!
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Missing critical api subscript files that are expected in the one of the following locations:' | tee -a -i $APICLIlogfilepath
+    echo ' PREFERRED Location :  '"$api_subscripts_default_root/$api_subscripts_default_folder/$api_subscripts_checkfile" | tee -a -i $APICLIlogfilepath
+    echo ' ALTERNATE Location :  '"./$api_subscripts_default_folder/$api_subscripts_checkfile" | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Unable to continue without these api subscript files, so exiting!!!' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Log File location : '"$APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    exit 1
+fi
+
+# MODIFIED 2020-09-09 -
 # Configure basic information for formation of file path for command line parameter handler script
 #
 # cli_api_cmdlineparm_handler_root - root path to command line parameter handler script
 # cli_api_cmdlineparm_handler_folder - folder for under root path to command line parameter handler script
 # cli_api_cmdlineparm_handler_file - filename, without path, for command line parameter handler script
 #
-export cli_api_cmdlineparm_handler_root=.
-export cli_api_cmdlineparm_handler_folder=common
-export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.action.common.$CommonScriptsRevision.v$CommonScriptsVersion.sh
 
-# ADDED 2018-09-21 -
-export gaia_version_handler_root=.
-export gaia_version_handler_folder=common
-export gaia_version_handler_file=identify_gaia_and_installation.action.common.$CommonScriptsRevision.v$CommonScriptsVersion.sh
+# MODIFIED 2020-09-09 -
+export cli_api_cmdlineparm_handler_root=$api_subscripts_root
+export cli_api_cmdlineparm_handler_folder=$api_subscripts_default_folder
+export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.action.common.$APISubscriptsRevision.v$APISubscriptsVersion.sh
+
+# MODIFIED 2020-09-09 -
+# Configure basic information for formation of file path for gaia version handler script
+#
+# gaia_version__handler_root - root path to gaia version handler script. Period (".") indicates root of script source folder
+# gaia_version__handler_folder - folder for under root path to gaia version handler script
+# gaia_version__handler_file - filename, without path, for gaia version handler script
+#
+
+# MODIFIED 2020-09-09 -
+export gaia_version_handler_root=$api_subscripts_root
+export gaia_version_handler_folder=$api_subscripts_default_folder
+export gaia_version_handler_file=identify_gaia_and_installation.action.common.$APISubscriptsRevision.v$APISubscriptsVersion.sh
 
 
 # -------------------------------------------------------------------------------------------------
@@ -257,25 +301,31 @@ export APICLItemplogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_temp_'$DA
 # SetupTempLogFile - Setup Temporary Log File and clear any debris
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 SetupTempLogFile () {
     #
     # SetupTempLogFile - Setup Temporary Log File and clear any debris
     #
-
-    export APICLItemplogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_temp_'$DATEDTGS.log
-
+    
+    if [ -z "$1" ]; then
+        # No explicit name passed for action
+        export APICLItemplogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_temp_'$DATEDTGS.log
+    else
+        # explicit name passed for action
+        export APICLItemplogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_temp_'$1'_'$DATEDTGS.log
+    fi
+    
     rm $APICLItemplogfilepath >> $APICLIlogfilepath 2> $APICLIlogfilepath
-
+    
     touch $APICLItemplogfilepath
-
+    
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-10
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -285,14 +335,14 @@ SetupTempLogFile () {
 # HandleShowTempLogFile - Handle Showing of Temporary Log File based on verbose setting
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 HandleShowTempLogFile () {
     #
     # HandleShowTempLogFile - Handle Showing of Temporary Log File based on verbose setting
     #
-
+    
     if [ "$APISCRIPTVERBOSE" = "true" ] ; then
         # verbose mode so show the logged results and copy to normal log file
         cat $APICLItemplogfilepath | tee -a -i $APICLIlogfilepath
@@ -306,7 +356,7 @@ HandleShowTempLogFile () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-10
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -316,23 +366,23 @@ HandleShowTempLogFile () {
 # ForceShowTempLogFile - Handle Showing of Temporary Log File based forced display
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ForceShowTempLogFile () {
     #
     # ForceShowTempLogFile - Handle Showing of Temporary Log File based forced display
     #
-
+    
     cat $APICLItemplogfilepath | tee -a -i $APICLIlogfilepath
     
     rm $APICLItemplogfilepath >> $APICLIlogfilepath 2> $APICLIlogfilepath
-
+    
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-10
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -342,7 +392,7 @@ ForceShowTempLogFile () {
 # CheckStatusOfAPI - repeated proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-09-02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -352,65 +402,53 @@ ForceShowTempLogFile () {
 CheckStatusOfAPI () {
     #
     
+    SetupTempLogFile CheckStatusOfApi
+    
     # -------------------------------------------------------------------------------------------------
     # Check that the API is actually running and up so we don't run into wierd problems
     # -------------------------------------------------------------------------------------------------
     
-    echo | tee -a -i $APICLIlogfilepath
-    echo '-------------------------------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
-    echo 'Check API Operational Status before starting' | tee -a -i $APICLIlogfilepath
-    echo '-------------------------------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    
-    export tempapichecklog=/var/log/tmp/apistatuscheck.$DATEDTGS.log
+    echo >> $APICLItemplogfilepath
+    echo '-------------------------------------------------------------------------------------------------' >> $APICLItemplogfilepath
+    echo 'Check API Operational Status before starting' >> $APICLItemplogfilepath
+    echo '-------------------------------------------------------------------------------------------------' >> $APICLItemplogfilepath
+    echo >> $APICLItemplogfilepath
     
     export pythonpath=$MDS_FWDIR/Python/bin/
     export get_api_local_port=`$pythonpath/python $MDS_FWDIR/scripts/api_get_port.py -f json | $JQ '. | .external_port'`
     export api_local_port=${get_api_local_port//\"/}
     export currentapisslport=$api_local_port
     
-    echo 'First make sure we do not have any issues:' | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
+    echo 'First make sure we do not have any issues:' >> $APICLItemplogfilepath
+    echo >> $APICLItemplogfilepath
     
-    mgmt_cli -r true show version --port $currentapisslport >> $tempapichecklog
+    mgmt_cli -r true show version --port $currentapisslport >> $APICLItemplogfilepath
     errorresult=$?
     
-    echo | tee -a -i $APICLIlogfilepath
-    
-    # Now dump the output from the temporary log file to the working log file, so we don't loose the results of the check, we can tee this to share
-    cat $tempapichecklog | tee -a -i $APICLIlogfilepath
-    
-    echo | tee -a -i $APICLIlogfilepath
+    echo >> $APICLItemplogfilepath
     
     if [ $errorresult -ne 0 ] ; then
         #api operation NOT OK, so anything that is not a 0 result is a fail!
-        echo "API is not operating as expected so API calls will probably fail!" | tee -a -i $APICLIlogfilepath
-        echo 'Still executing api status for additional details' | tee -a -i $APICLIlogfilepath
+        echo "API is not operating as expected so API calls will probably fail!" >> $APICLItemplogfilepath
+        echo 'Still executing api status for additional details' >> $APICLItemplogfilepath
     else
         #api operations status OK
-        echo "API is operating as expected so api status should work as expected!" | tee -a -i $APICLIlogfilepath
+        echo "API is operating as expected so api status should work as expected!" >> $APICLItemplogfilepath
     fi
     
-    # Remove the previous temporary log file, so we start clean for api status
-    rm -fv $tempapichecklog >> $APICLIlogfilepath
-    
-    echo | tee -a -i $APICLIlogfilepath
-    echo 'Next check api status:' | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
+    echo >> $APICLItemplogfilepath
+    echo 'Next check api status:' >> $APICLItemplogfilepath
+    echo >> $APICLItemplogfilepath
     
     # Execute the API check with api status to a temporary log file, since tee throws off the results of error checking
-    api status >> $tempapichecklog
+    api status >> $APICLItemplogfilepath
     errorresult=$?
     
-    # Now dump the output from the temporary log file to the working log file, so we don't loose the results of the check, we can tee this to share
-    cat $tempapichecklog | tee -a -i $APICLIlogfilepath
+    echo >> $APICLItemplogfilepath
+    echo 'API status check result ( 0 = OK ) : '$errorresult >> $APICLItemplogfilepath
+    echo >> $APICLItemplogfilepath
     
-    # clean-up the temporary log file
-    rm $tempapichecklog >> $APICLIlogfilepath
-    
-    echo | tee -a -i $APICLIlogfilepath
-    echo 'API status check result ( 0 = OK ) : '$errorresult | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
+    HandleShowTempLogFile
     
     if [ $errorresult -ne 0 ] ; then
         #api operations status NOT OK, so anything that is not a 0 result is a fail!
@@ -419,7 +457,7 @@ CheckStatusOfAPI () {
         echo | tee -a -i $APICLIlogfilepath
         echo "Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
         echo | tee -a -i $APICLIlogfilepath
-        return $errorresult
+        #return $errorresult
         #exit 1
         #Exit!
     else
@@ -455,7 +493,7 @@ CheckStatusOfAPI () {
 #fi
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-02
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-10
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -954,7 +992,7 @@ export REMAINS=
 # START:  Local Help display proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-10 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Show local help information.  Add script specific information here to show when help requested
@@ -967,20 +1005,20 @@ doshowlocalhelp () {
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     echo
     echo 'Local Help Information : '
-
+    
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     echo
     
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-
+    
     echo
     return 1
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-10
 
 # -------------------------------------------------------------------------------------------------
 # END:  Local Help display proceedure
@@ -1015,19 +1053,18 @@ CommandLineParameterHandler () {
         echo >> $APICLIlogfilepath
     fi
     
-    
     . $cli_api_cmdlineparm_handler "$@"
     
     if [ "$APISCRIPTVERBOSE" = "true" ] ; then
         echo | tee -a -i $APICLIlogfilepath
         echo "Returned from external Command Line Paramenter Handling Script" | tee -a -i $APICLIlogfilepath
         echo | tee -a -i $APICLIlogfilepath
-
+        
         if [ "$NOWAIT" != "true" ] ; then
             echo
             read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
         fi
-
+        
         echo | tee -a -i $APICLIlogfilepath
         echo "Continueing local execution" | tee -a -i $APICLIlogfilepath
         echo | tee -a -i $APICLIlogfilepath

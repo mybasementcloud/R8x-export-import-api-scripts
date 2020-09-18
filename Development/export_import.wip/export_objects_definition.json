@@ -1,0 +1,215 @@
+{ simplex_objects : [ {
+	objectype : "host",
+	objectsype : "hosts",
+	name : "host",
+	name-plural : "hosts",
+	objectlimit : 500
+	sortparms : "'-f -t , -k 1,1'",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","ipv4-address","ipv6-address","nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.ipv4-address","nat-settings.ipv6-address","nat-settings.method"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["ipv4-address"], .["ipv6-address"], .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on", .["nat-settings"]["ipv4-address"], .["nat-settings"]["ipv6-address"], .["nat-settings"]["method"'"
+}, {
+	objectype : "network",
+	objectsype : "networks",
+	name : "network",
+	name-plural : "networks",
+	objectlimit : 500
+	sortparms : "'-f -t , -k 1,1'",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","broadcast","subnet4","mask-length4","subnet6","mask-length6","nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.method"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["broadcast"], .["subnet4"], .["mask-length4"], .["subnet6"], .["mask-length6"], .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"], .["nat-settings"]["method"]'"
+}, {
+	objectype : "group",
+	objectsype : "groups",
+	name : "group",
+	name-plural : "groups",
+	objectlimit : 500
+	sortparms : "'-f -t , -k 1,1'",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+}, {
+	objectype : "group-with-exclusion",
+	objectsype : "groups-with-exclusion",
+	name : "group-with-exclusion",
+	name-plural : "groups-with-exclusion",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","include","except"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["include"]["name"], .["except"]["name"]'"
+}, {
+	objectype : "address-range",
+	objectsype : "address-ranges",
+	name : "address-range",
+	name-plural : "address-ranges",
+	objectlimit : 500
+	sortparms : "'-f -t , -k 1,1'",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","ipv4-address-first","ipv4-address-last","ipv6-address-first","ipv6-address-last"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["ipv4-address-first"], .["ipv4-address-last"], .["ipv6-address-first"], .["ipv6-address-last"]'"
+}, {
+	objectype : "multicast-address-range",
+	objectsype : "multicast-address-ranges",
+	name : "multicast-address-range",
+	name-plural : "multicast-address-ranges",
+	objectlimit : 500
+	sortparms : "'-f -t , -k 1,1'",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","ipv4-address-first","ipv4-address-last","ipv6-address-first","ipv6-address-last"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["ipv4-address-first"], .["ipv4-address-last"], .["ipv6-address-first"], .["ipv6-address-last"]'"
+}, {
+	objectype : "dns-domain",
+	objectsype : "dns-domains",
+	name : "dns-domain",
+	name-plural : "dns-domains",
+	objectlimit : 500
+	sortparms : "'-f -t , -k 1,1'",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","is-sub-domain"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["is-sub-domain"]'"
+}, {
+	objectype : "security-zone",
+	objectsype : "security-zones",
+	name : "security-zone",
+	name-plural : "security-zones",
+	objectlimit : 500
+	sortparms : "'-f -t , -k 1,1'",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+}, {
+	objectype : "dynamic-object",
+	objectsype : "dynamic-objects",
+	name : "dynamic-object",
+	name-plural : "dynamic-objects",
+	objectlimit : 500
+	sortparms : "'-f -t , -k 1,1'",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+}, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+}, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+}, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+}, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+}, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+}, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+}, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+}, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+}, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+}, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+} ],
+complex_objects : [ {
+	objecttype : "group",
+	objectstype : "groups",
+	name : "group-member",
+	name-plural : "group-members",
+	objectlimit : 500
+	sortparms : "'-f -t , -k 1,2'",
+	CSVFileHeader : "'"name","members.add"'",
+	CSVJQparms : "'.["name"], .["members"]['$COUNTER']["name"]'"
+}, {
+	objectype : "host",
+	objectsype : "hosts",
+	name : "host-interface",
+	name-plural : "host-interfaces",
+	objectlimit : 500
+	sortparms : "'-f -t , -k 1,1'",
+	CSVFileHeader : "'"name","interfaces.add.name","interfaces.add.subnet4","interfaces.add.mask-length4","interfaces.add.subnet6","interfaces.add.mask-length6","interfaces.add.color","interfaces.add.comments"'",
+	CSVJQparms : "'.["name"], .["interfaces"]['$COUNTER']["name"], .["interfaces"]['$COUNTER']["subnet4"], .["interfaces"]['$COUNTER']["mask-length4"], .["interfaces"]['$COUNTER']["subnet6"], .["interfaces"]['$COUNTER']["mask-length6"], .["interfaces"]['$COUNTER']["color"], .["interfaces"]['$COUNTER']["comments"]'"
+} ]
+}
+
+
+, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
+	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+}
+
+, {
+	objectype : "",
+	objectsype : "",
+	name : "",
+	name-plural : "",
+	objectlimit : 500
+	sortparms : "''",
+	CSVFileHeader : "''",
+	CSVJQparms : "''"
+} 

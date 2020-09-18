@@ -13,17 +13,17 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.50.00
-ScriptRevision=055
+ScriptVersion=00.60.00
+ScriptRevision=000
 ScriptDate=2020-09-10
-TemplateVersion=00.50.00
-CommonScriptsVersion=00.50.00
-CommonScriptsRevision=006
+TemplateVersion=00.60.00
+APISubscriptsVersion=00.60.00
+APISubscriptsRevision=006
 
 #
 
 export APIScriptVersion=v${ScriptVersion//./x}
-export APIExpectedCommonScriptsVersion=v${CommonScriptsVersion//./x}
+export APIExpectedAPISubscriptsVersion=v${APISubscriptsVersion//./x}
 export APIExpectedActionScriptsVersion=v${ScriptVersion//./x}
 ScriptName=cli_api_append_csv_error_handling_to_csv_file
 
