@@ -13,8 +13,8 @@
 #
 #
 ScriptVersion=04.60.00
-ScriptRevision=000
-ScriptDate=2020-09-10
+ScriptRevision=025
+ScriptDate=2020-11-18
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -22,17 +22,25 @@ APISubscriptsRevision=006
 
 #
 
-export APIScriptVersion=v${ScriptVersion//./x}
+export APIScriptVersion=v${ScriptVersion}
+export APIScriptTemplateVersion=v${TemplateVersion}
 
-export APIScriptTemplateVersion=v${TemplateVersion//./x}
+export APIScriptVersionX=v${ScriptVersion//./x}
+export APIScriptTemplateVersionX=v${TemplateVersion//./x}
 
-export APIExpectedActionScriptsVersion=v${ScriptVersion//./x}
+export APIActionsScriptVersion=v${ScriptVersion}
+export APIActionScriptTemplateVersion=v${TemplateVersion}
+export APIExpectedActionScriptsVersion=v${ScriptVersion}
 
-export APIActionsScriptVersion=v${ScriptVersion//./x}
-export APIActionScriptTemplateVersion=v${TemplateVersion//./x}
+export APIActionsScriptVersionX=v${ScriptVersion//./x}
+export APIActionScriptTemplateVersionX=v${TemplateVersion//./x}
+export APIExpectedActionScriptsVersionX=v${ScriptVersion//./x}
 
-export APIExpectedAPISubscriptsVersion=v${APISubscriptsVersion//./x}
+export APISubscriptsScriptVersion=v${ScriptVersion}
+export APISubscriptsScriptTemplateVersion=v${TemplateVersion}
+export APIExpectedAPISubscriptsVersion=v${APISubscriptsVersion}
 
-export APISubscriptsActionsScriptVersion=v${ScriptVersion//./x}
-export APISubscriptsActionScriptTemplateVersion=v${TemplateVersion//./x}
+export APISubscriptsScriptVersionX=v${ScriptVersion//./x}
+export APISubscriptsScriptTemplateVersionX=v${TemplateVersion//./x}
+export APIExpectedAPISubscriptsVersionX=v${APISubscriptsVersion//./x}
 

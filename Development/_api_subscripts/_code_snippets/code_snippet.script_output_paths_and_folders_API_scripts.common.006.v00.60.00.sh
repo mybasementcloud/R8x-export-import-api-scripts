@@ -1,5 +1,5 @@
 #
-# SCRIPTS Code Snippet API Subscripts - Identify Gaia Version and Installation Type operations
+# SCRIPTS Code Snippet API Subscripts - Configure Script Output Paths and Fodlers for API Scripts Handler operations
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
@@ -62,17 +62,17 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 # MODIFIED 2020-11-16 -
-# Configure basic information for formation of file path for gaia version handler script
+# Configure basic information for formation of file path for Script Output Paths and Folders for API scripts handler script
 #
-# gaia_version__handler_root - root path to gaia version handler script. Period (".") indicates root of script source folder
-# gaia_version__handler_folder - folder for under root path to gaia version handler script
-# gaia_version__handler_file - filename, without path, for gaia version handler script
+# script_output_paths_API_handler_root - root path to Script Output Paths and Folders for API scripts handler script. Period (".") indicates root of script source folder
+# script_output_paths_API_handler_folder - folder for under root path to Script Output Paths and Folders for API scripts handler script
+# script_output_paths_API_handler_file - filename, without path, for Script Output Paths and Folders for API scripts handler script
 #
 
 # MODIFIED 2020-11-16 -
-export gaia_version_handler_root=${api_subscripts_root}
-export gaia_version_handler_folder=${api_subscripts_default_folder}
-export gaia_version_handler_file=identify_gaia_and_installation.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}.sh
+export script_output_paths_API_handler_root=..
+export script_output_paths_API_handler_folder=_api_subscripts
+export script_output_paths_API_handler_file=script_output_paths_and_folders_API_scripts.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}.sh
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -83,39 +83,44 @@ export gaia_version_handler_file=identify_gaia_and_installation.subscript.common
 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 
 
+# =================================================================================================
+# =================================================================================================
+# START:  Script Output Paths and Folders for API scripts
+# =================================================================================================
+
 # -------------------------------------------------------------------------------------------------
-# GetGaiaVersionAndInstallationType - Gaia version and installation type Handler calling routine
+# ScriptOutputPathsforAPIScripts - Script Output Paths and Folders for API scripts Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-11-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-GetGaiaVersionAndInstallationType () {
+ScriptOutputPathsforAPIScripts () {
     #
-    # GetGaiaVersionAndInstallationType - Gaia version and installation type Handler calling routine
+    # ScriptOutputPathsforAPIScripts - Script Output Paths and Folders for API scripts Handler calling routine
     #
     
     if ${APISCRIPTVERBOSE} ; then
         echo | tee -a -i ${logfilepath}
         echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
         echo | tee -a -i ${logfilepath}
-        echo "Calling external Gaia version and installation type Handling Script" | tee -a -i ${logfilepath}
-        echo " - External Script : "${gaia_version_handler} | tee -a -i ${logfilepath}
+        echo "Calling external Script Output Paths and Folders for API scripts Handler Script" | tee -a -i ${logfilepath}
+        echo " - External Script : "${script_output_paths_API_handler} | tee -a -i ${logfilepath}
         echo | tee -a -i ${logfilepath}
     else
         echo >> ${logfilepath}
         echo '--------------------------------------------------------------------------' >> ${logfilepath}
         echo >> ${logfilepath}
-        echo "Calling external Gaia version and installation type Handling Script" >> ${logfilepath}
-        echo " - External Script : "${gaia_version_handler} >> ${logfilepath}
+        echo "Calling Script Output Paths and Folders for API scripts Handler Script" >> ${logfilepath}
+        echo " - External Script : "${script_output_paths_API_handler} >> ${logfilepath}
         echo >> ${logfilepath}
     fi
     
-    . ${gaia_version_handler} "$@"
+    . ${script_output_paths_API_handler} "$@"
     
     if ${APISCRIPTVERBOSE} ; then
         echo | tee -a -i ${logfilepath}
-        echo "Returned from external Gaia version and installation type Handling Script" | tee -a -i ${logfilepath}
+        echo "Returned from external Script Output Paths and Folders for API scripts Handler Script" | tee -a -i ${logfilepath}
         echo | tee -a -i ${logfilepath}
         
         if ! ${NOWAIT} ; then
@@ -130,30 +135,30 @@ GetGaiaVersionAndInstallationType () {
         echo | tee -a -i ${logfilepath}
     else
         echo >> ${logfilepath}
-        echo "Returned from external Gaia version and installation type Handling Script" >> ${logfilepath}
+        echo "Returned from external Script Output Paths and Folders for API scripts Handler Script" >> ${logfilepath}
         echo >> ${logfilepath}
         echo "Continueing local execution" >> ${logfilepath}
         echo >> ${logfilepath}
         echo '--------------------------------------------------------------------------' >> ${logfilepath}
         echo >> ${logfilepath}
     fi
-
+    
+    return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-16
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------
-# Call Gaia version and installation type Handler action script
+# Call Script Output Paths and Folders for API scripts Handler action script
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+# MODIFIED 2020-11-16 -
 
-export configured_handler_root=${gaia_version_handler_root}
+export configured_handler_root=${script_output_paths_API_handler_root}
 export actual_handler_root=${configured_handler_root}
 
 if [ "${configured_handler_root}" == "." ] ; then
@@ -170,24 +175,24 @@ else
     export actual_handler_root=${configured_handler_root}
 fi
 
-export gaia_version_handler_path=${actual_handler_root}/${gaia_version_handler_folder}
-export gaia_version_handler=${gaia_version_handler_path}/${gaia_version_handler_file}
+export script_output_paths_API_handler_path=${actual_handler_root}/${script_output_paths_API_handler_folder}
+export script_output_paths_API_handler=${script_output_paths_API_handler_path}/${script_output_paths_API_handler_file}
 
-# Check that we can finde the command line parameter handler file
+# Check that we can finde the Script Output Paths and Folders for API scripts Handler file
 #
-if [ ! -r ${gaia_version_handler} ] ; then
+if [ ! -r ${script_output_paths_API_handler} ] ; then
     # no file found, that is a problem
     echo | tee -a -i ${logfilepath}
-    echo ' Gaia version and installation type handler script file missing' | tee -a -i ${logfilepath}
-    echo '  File not found : '${gaia_version_handler} | tee -a -i ${logfilepath}
+    echo 'Script Output Paths and Folders for API scripts handler script file missing' | tee -a -i ${logfilepath}
+    echo '  File not found : '${script_output_paths_API_handler} | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     echo 'Other parameter elements : ' | tee -a -i ${logfilepath}
     echo '  Configured Root path    : '${configured_handler_root} | tee -a -i ${logfilepath}
     echo '  Actual Script Root path : '${actual_handler_root} | tee -a -i ${logfilepath}
-    echo '  Root of folder path : '${gaia_version_handler_root} | tee -a -i ${logfilepath}
-    echo '  Folder in Root path : '${gaia_version_handler_folder} | tee -a -i ${logfilepath}
-    echo '  Folder Root path    : '${gaia_version_handler_path} | tee -a -i ${logfilepath}
-    echo '  Script Filename     : '${gaia_version_handler_file} | tee -a -i ${logfilepath}
+    echo '  Root of folder path : '${script_output_paths_API_handler_root} | tee -a -i ${logfilepath}
+    echo '  Folder in Root path : '${script_output_paths_API_handler_folder} | tee -a -i ${logfilepath}
+    echo '  Folder Root path    : '${script_output_paths_API_handler_path} | tee -a -i ${logfilepath}
+    echo '  Script Filename     : '${script_output_paths_API_handler_file} | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
@@ -197,14 +202,22 @@ if [ ! -r ${gaia_version_handler} ] ; then
     exit 251
 fi
 
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
-GetGaiaVersionAndInstallationType "$@"
+
+# MODIFIED 2020-11-16 -
+
+ScriptOutputPathsforAPIScripts "$@"
+
+
+# =================================================================================================
+# END:  Script Output Paths and Folders for API scripts
+# =================================================================================================
+# =================================================================================================
 
 
 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-
 

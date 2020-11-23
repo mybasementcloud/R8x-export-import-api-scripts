@@ -1,15 +1,24 @@
 @ECHO OFF
 REM
-REM CODESNIPET :  Code Snipet Open File Types in Text File Editor
-REM Version    :  02.05.00
-REM Date       :  2020-01-11
+REM Script :  Code Snipet Open File Types in Text File Editor
 REM
+REM # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/
+REM #
+REM # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
+REM # DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
+REM # RESULTS OF USING THESE SCRIPTS.  USING THESE SCRIPTS STIPULATES A CLEAR UNDERSTANDING OF RESPECTIVE
+REM # TECHNOLOGIES AND UNDERLYING PROGRAMMING CONCEPTS AND STRUCTURES AND IMPLIES CORRECT IMPLEMENTATION
+REM # OF RESPECTIVE BASELINE TECHNOLOGIES FOR PLATFORM UTILIZING THE SCRIPTS.  THIRD PARTY LIMITATIONS
+REM # APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
+REM # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
+REM #
+REM #
 
-SET _LOCALSCRIPTNAME=OpenFileTypesInTextFileEditor.bash
-SET _LOCALSCRIPTDATE=2020-01-11
-SET _LOCALSCRIPTTIME=1115CST
-SET _LOCALSCRIPTVERSION=02.05.00
-SET _LOCALSCRIPTREVISION=001
+SET _LOCALSCRIPTNAME=zzOpenFileTypesInTextFileEditor.bash
+SET _LOCALSCRIPTDATE=2020-11-17
+SET _LOCALSCRIPTTIME=1300CDT
+SET _LOCALSCRIPTVERSION=03.00.00
+SET _LOCALSCRIPTREVISION=000
 
 
 @ECHO.
@@ -520,31 +529,50 @@ SET "_localWORKFOLDER="
 
 SET "_localWORKFOLDER=%~1"
 
-ECHO. >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-ECHO Subroutine sub_ProcessWORKFolder Start >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-REM ECHO. >> "%_scriptLOGFQPN%"
-
 REM Check if WORK folders to ignore
-IF "%_localWORKFOLDER%"=="_SYNCAPP" GOTO :SKIPWORKACTION
-IF "%_localWORKFOLDER%"=="_fixes" GOTO :SKIPWORKACTION
-IF "%_localWORKFOLDER%"=="_tools" GOTO :SKIPWORKACTION
-IF "%_localWORKFOLDER%"=="Code_Snipets" GOTO :SKIPWORKACTION
-IF "%_localWORKFOLDER%"=="_research_scripts" GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"=="." GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"==".." GOTO :SKIPWORKACTION
+REM IF /I "%_localWORKFOLDER%"=="%_localROOTFOLDER%" GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"=="__folder_template" GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"=="__history" GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"=="__scripting_tools" GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"=="__Updates" GOTO :SKIPWORKACTION
+REM IF /I "%_localWORKFOLDER%"=="_code_snippets" GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"=="_Deprecated Scripts" GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"=="_fixes" GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"=="_research_scripts" GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"=="_scripting_tools" GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"=="_SYNCAPP" GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"=="_tools" GOTO :SKIPWORKACTION
+REM IF /I "%_localWORKFOLDER%"=="Code_Snipets" GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"=="dump" GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"=="delete.csv" GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"=="import.csv" GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"=="sample_data" GOTO :SKIPWORKACTION
+IF /I "%_localWORKFOLDER%"=="test" GOTO :SKIPWORKACTION
+
+@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: Subroutine sub_ProcessWORKFolder Start : folder = %_localWORKFOLDER% >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+REM ECHO. >> "%_scriptLOGFQPN%"
 
 @ECHO: WORK FOLDER = "%_localWORKFOLDER%" >> "%_scriptLOGFQPN%"
 
 PUSHD %_localWORKFOLDER% >> "%_scriptLOGFQPN%"
 REM PWD >> "%_scriptLOGFQPN%"
-@ECHO: HANDLE THIS DIRECTORYS FILES :  %CD% >> "%_scriptLOGFQPN%"
+@ECHO: HANDLE THIS WORK DIRECTORYS FILES (%_localWORKFOLDER%) :  %CD% >> "%_scriptLOGFQPN%"
+@ECHO: HANDLE THIS WORK DIRECTORYS FILES (%_localWORKFOLDER%) :  %CD%
 
 REM IF NOT "%TARGETEXTENSION1%"=="" FOR %%I IN (%TARGETEXTENSION1%) DO (CALL :sub_ProcessFolderFile "%CD%\%%I")
 REM IF NOT "%TARGETEXTENSION2%"=="" FOR %%I IN (%TARGETEXTENSION2%) DO (CALL :sub_ProcessFolderFile "%CD%\%%I")
 REM IF NOT "%TARGETEXTENSION3%"=="" FOR %%I IN (%TARGETEXTENSION3%) DO (CALL :sub_ProcessFolderFile "%CD%\%%I")
+REM IF NOT "%TARGETEXTENSION4%"=="" FOR %%I IN (%TARGETEXTENSION4%) DO (CALL :sub_ProcessFolderFile "%CD%\%%I")
 IF NOT "%TARGETEXTENSION1%"=="" FOR %%I IN (%TARGETEXTENSION1%) DO (CALL :sub_ProcessFolderFile "%%I")
 IF NOT "%TARGETEXTENSION2%"=="" FOR %%I IN (%TARGETEXTENSION2%) DO (CALL :sub_ProcessFolderFile "%%I")
 IF NOT "%TARGETEXTENSION3%"=="" FOR %%I IN (%TARGETEXTENSION3%) DO (CALL :sub_ProcessFolderFile "%%I")
+IF NOT "%TARGETEXTENSION4%"=="" FOR %%I IN (%TARGETEXTENSION4%) DO (CALL :sub_ProcessFolderFile "%%I")
 
 @ECHO: >> "%_scriptLOGFQPN%"
 
@@ -552,22 +580,22 @@ POPD >> "%_scriptLOGFQPN%"
 REM PWD >> "%_scriptLOGFQPN%"
 @ECHO: RETURN DIRECTORY :  %CD% >> "%_scriptLOGFQPN%"
 
+REM ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: Subroutine sub_ProcessWORKFolder Finished : folder = %_localWORKFOLDER% >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
+
 GOTO :ENDWORKACTION
 
 :SKIPWORKACTION
 
-@ECHO: SKIPPING FOLDER = "%_localROOTFOLDER%" >> "%_scriptLOGFQPN%"
-@ECHO: SKIPPING FOLDER = "%_localROOTFOLDER%"
+@ECHO: SKIPPING FOLDER = "%_localWORKFOLDER%" >> "%_scriptLOGFQPN%"
+@ECHO: SKIPPING FOLDER = "%_localWORKFOLDER%"
 
 :ENDWORKACTION
 REM @ECHO: >> "%_scriptLOGFQPN%"
-
-
-REM ECHO. >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-ECHO Subroutine sub_ProcessWORKFolder Finished >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-ECHO. >> "%_scriptLOGFQPN%"
 
 REM -------------------------------------------------------------------------------------
 
@@ -602,17 +630,32 @@ SET "_localROOTFOLDER="
 
 SET "_localROOTFOLDER=%~1"
 
-ECHO. >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-ECHO Subroutine sub_ProcessROOTFolder Start >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-REM ECHO. >> "%_scriptLOGFQPN%"
-
 REM Check if folders to ignore
-IF "%_localROOTFOLDER%"=="_SYNCAPP" GOTO :SKIPACTION
-IF "%_localROOTFOLDER%"=="_fixes" GOTO :SKIPACTION
-IF "%_localROOTFOLDER%"=="_tools" GOTO :SKIPACTION
-IF "%_localROOTFOLDER%"=="Session_Cleanup" GOTO :SKIPACTION
+IF /I "%_localROOTFOLDER%"=="__folder_template" GOTO :SKIPACTION
+IF /I "%_localROOTFOLDER%"=="__history" GOTO :SKIPACTION
+IF /I "%_localROOTFOLDER%"=="__scripting_tools" GOTO :SKIPACTION
+IF /I "%_localROOTFOLDER%"=="__Updates" GOTO :SKIPACTION
+REM IF /I "%_localROOTFOLDER%"=="_code_snippets" GOTO :SKIPACTION
+IF /I "%_localROOTFOLDER%"=="_Deprecated Scripts" GOTO :SKIPACTION
+IF /I "%_localROOTFOLDER%"=="_fixes" GOTO :SKIPACTION
+IF /I "%_localROOTFOLDER%"=="_research_scripts" GOTO :SKIPACTION
+IF /I "%_localROOTFOLDER%"=="_scripting_tools" GOTO :SKIPACTION
+IF /I "%_localROOTFOLDER%"=="_SYNCAPP" GOTO :SKIPACTION
+IF /I "%_localROOTFOLDER%"=="_tools" GOTO :SKIPACTION
+REM IF /I "%_localROOTFOLDER%"=="Code_Snipets" GOTO :SKIPACTION
+IF /I "%_localROOTFOLDER%"=="dump" GOTO :SKIPACTION
+IF /I "%_localROOTFOLDER%"=="delete.csv" GOTO :SKIPACTION
+IF /I "%_localROOTFOLDER%"=="import.csv" GOTO :SKIPACTION
+IF /I "%_localROOTFOLDER%"=="sample_data" GOTO :SKIPACTION
+IF /I "%_localROOTFOLDER%"=="test" GOTO :SKIPACTION
+REM IF /I "%_localROOTFOLDER%"=="Session_Cleanup" GOTO :SKIPACTION
+
+@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO: =============================================================================== >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: Subroutine sub_ProcessROOTFolder Start : folder = %_localROOTFOLDER% >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+REM ECHO. >> "%_scriptLOGFQPN%"
 
 REM Not a folders to ignore
 @ECHO: ROOT FOLDER = "%_localROOTFOLDER%" >> "%_scriptLOGFQPN%"
@@ -625,9 +668,11 @@ REM PWD >> "%_scriptLOGFQPN%"
 REM IF NOT "%TARGETEXTENSION1%"=="" FOR %%I IN (%TARGETEXTENSION1%) DO (CALL :sub_ProcessFolderFile "%CD%\%%I")
 REM IF NOT "%TARGETEXTENSION2%"=="" FOR %%I IN (%TARGETEXTENSION2%) DO (CALL :sub_ProcessFolderFile "%CD%\%%I")
 REM IF NOT "%TARGETEXTENSION3%"=="" FOR %%I IN (%TARGETEXTENSION3%) DO (CALL :sub_ProcessFolderFile "%CD%\%%I")
+REM IF NOT "%TARGETEXTENSION4%"=="" FOR %%I IN (%TARGETEXTENSION4%) DO (CALL :sub_ProcessFolderFile "%CD%\%%I")
 IF NOT "%TARGETEXTENSION1%"=="" FOR %%I IN (%TARGETEXTENSION1%) DO (CALL :sub_ProcessFolderFile "%%I")
 IF NOT "%TARGETEXTENSION2%"=="" FOR %%I IN (%TARGETEXTENSION2%) DO (CALL :sub_ProcessFolderFile "%%I")
 IF NOT "%TARGETEXTENSION3%"=="" FOR %%I IN (%TARGETEXTENSION3%) DO (CALL :sub_ProcessFolderFile "%%I")
+IF NOT "%TARGETEXTENSION4%"=="" FOR %%I IN (%TARGETEXTENSION4%) DO (CALL :sub_ProcessFolderFile "%%I")
 
 @ECHO: >> "%_scriptLOGFQPN%"
 
@@ -636,15 +681,15 @@ SET FILESORTWORKDIR=%TEMP%\_tempWORKDIRSORT.TXT
 DIR /A:D /B | SORT > "%FILESORTWORKDIR%"
 
 @ECHO: >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 @ECHO: WORK DIRECTORIES SORTED : >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 TYPE "%FILESORTWORKDIR%" >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 @ECHO: >> "%_scriptLOGFQPN%"
 
 REM FOR /F "tokens=*" %%I IN ('DIR /A:D /B | SORT') DO (CALL :sub_ProcessWORKFolder %%H)
-FOR /F %%H IN (%FILESORTWORKDIR%) DO (CALL :sub_ProcessWORKFolder %%H)
+FOR /F "delims=" %%H IN (%FILESORTWORKDIR%) DO (CALL :sub_ProcessWORKFolder "%%H")
 
 DEL "%FILESORTWORKDIR%" >> "%_scriptLOGFQPN%"
 
@@ -652,6 +697,13 @@ DEL "%FILESORTWORKDIR%" >> "%_scriptLOGFQPN%"
 POPD >> "%_scriptLOGFQPN%"
 REM PWD >> "%_scriptLOGFQPN%"
 @ECHO: RETURN DIRECTORY :  %CD% >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: Subroutine sub_ProcessROOTFolder Finished : folder = %_localROOTFOLDER% >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: =============================================================================== >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO:
+
 GOTO :ENDACTION
 
 :SKIPACTION
@@ -662,11 +714,6 @@ GOTO :ENDACTION
 :ENDACTION
 REM @ECHO: >> "%_scriptLOGFQPN%"
 
-
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-ECHO Subroutine sub_ProcessROOTFolder Finished >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-ECHO. >> "%_scriptLOGFQPN%"
 
 REM -------------------------------------------------------------------------------------
 
@@ -707,6 +754,10 @@ REM SET xFILEFQPN=%~f1
 REM SET xFILEPATH=%~p1
 REM SET xFILENAMEWEXT=%~nx1
 REM SET xFILEDRIVE=%~d1
+
+
+@ECHO: Log File                        :  "%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%"
+@ECHO: Log File                        :  "%_scriptLOGFQPN%"
 
 SET SCRIPTFQPN=%~f0
 
@@ -766,7 +817,7 @@ SET "TARGETEXTENSION2=*.%RAWEXTENSION2%"
 IF "%TARGETEXTENSION2%"=="" GOTO :ENDOFSCRIPT
 
 SET "RAWEXTENSION3="
-IF "%~4"=="" SET "RAWEXTENSION3=HELP"
+IF "%~4"=="" SET "RAWEXTENSION3=JSON"
 IF NOT "%~4"=="" SET "RAWEXTENSION3=%4"
 
 SET "TARGETEXTENSION3=*.%RAWEXTENSION3%"
@@ -776,45 +827,58 @@ SET "TARGETEXTENSION3=*.%RAWEXTENSION3%"
 
 IF "%TARGETEXTENSION3%"=="" GOTO :ENDOFSCRIPT
 
+SET "RAWEXTENSION4="
+IF "%~5"=="" SET "RAWEXTENSION4=HELP"
+IF NOT "%~5"=="" SET "RAWEXTENSION4=%5"
+
+SET "TARGETEXTENSION4=*.%RAWEXTENSION4%"
+
+@ECHO: Target Extension 4 for Action   :  "%TARGETEXTENSION4%" >> "%_scriptLOGFQPN%"
+@ECHO: Target Extension 4 for Action   :  "%TARGETEXTENSION4%"
+
+IF "%TARGETEXTENSION4%"=="" GOTO :ENDOFSCRIPT
+
 @ECHO: >> "%_scriptLOGFQPN%"
+
+PAUSE
 
 PUSHD "%TARGETFOLDER%" >> "%_scriptLOGFQPN%"
 
 @ECHO: >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 @ECHO: CURRENT DIRECTORY :  %CD% >> "%_scriptLOGFQPN%"
 @ECHO: >> "%_scriptLOGFQPN%"
 @ECHO: CURRENT DIRECTORY :  %CD%
 @ECHO:
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
 CALL :sub_ProcessWORKFolder "%CD%"
 
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
 SET FILESORTROOTDIR=%TEMP%\_tempROOTDIRSORT.TXT
 
 DIR /A:D /B | SORT > "%FILESORTROOTDIR%"
 
 @ECHO: >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: =============================================================================== >> "%_scriptLOGFQPN%"
+@ECHO: =============================================================================== >> "%_scriptLOGFQPN%"
 @ECHO: ROOT DIRECTORIES SORTED : >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 TYPE "%FILESORTROOTDIR%" >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 @ECHO: >> "%_scriptLOGFQPN%"
 
-FOR /F %%G IN (%FILESORTROOTDIR%) DO (CALL :sub_ProcessROOTFolder %%G)
+FOR /F "delims=" %%G IN (%FILESORTROOTDIR%) DO (CALL :sub_ProcessROOTFolder "%%G")
 
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
 DEL "%FILESORTROOTDIR%" >> "%_scriptLOGFQPN%"
 
 @ECHO: CURRENT DIRECTORY :  %CD% >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: =============================================================================== >> "%_scriptLOGFQPN%"
+@ECHO: =============================================================================== >> "%_scriptLOGFQPN%"
 @ECHO: >> "%_scriptLOGFQPN%"
 
 POPD >> "%_scriptLOGFQPN%"
@@ -897,6 +961,8 @@ REM ============================================================================
 REM ALL DONE, EXIT BEFORE ERROR HANDLING
 REM =====================================================================================
 REM *************************************************************************************
+
+PAUSE
 
 EXIT /b %ERRORLEVEL%
 

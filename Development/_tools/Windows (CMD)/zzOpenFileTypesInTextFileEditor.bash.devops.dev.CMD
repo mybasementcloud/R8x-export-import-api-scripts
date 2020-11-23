@@ -14,7 +14,7 @@ REM # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY
 REM #
 REM #
 
-SET _LOCALSCRIPTNAME=zzOpenFileTypesInTextFileEditor.bash
+SET _LOCALSCRIPTNAME=zzOpenFileTypesInTextFileEditor.bash.devops.dev
 SET _LOCALSCRIPTDATE=2020-11-17
 SET _LOCALSCRIPTTIME=1300CDT
 SET _LOCALSCRIPTVERSION=03.00.00
@@ -853,7 +853,10 @@ PUSHD "%TARGETFOLDER%" >> "%_scriptLOGFQPN%"
 @ECHO:
 @ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
-CALL :sub_ProcessWORKFolder "%CD%"
+REM We want these opened in a specific order and only these specific folders
+REM Not opening scripts in root
+
+REM CALL :sub_ProcessWORKFolder "%CD%"
 
 @ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
@@ -870,7 +873,14 @@ TYPE "%FILESORTROOTDIR%" >> "%_scriptLOGFQPN%"
 @ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 @ECHO: >> "%_scriptLOGFQPN%"
 
-FOR /F "delims=" %%G IN (%FILESORTROOTDIR%) DO (CALL :sub_ProcessROOTFolder "%%G")
+REM FOR /F "delims=" %%G IN (%FILESORTROOTDIR%) DO (CALL :sub_ProcessROOTFolder "%%G")
+
+REM We want these opened in a specific order and only these specific folders
+
+CALL :sub_ProcessROOTFolder "_templates.wip"
+CALL :sub_ProcessROOTFolder "_api_subscripts"
+CALL :sub_ProcessROOTFolder "export_import.wip"
+CALL :sub_ProcessROOTFolder "Session_Cleanup.wip"
 
 @ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 

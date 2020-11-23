@@ -1,215 +1,517 @@
-{ simplex_objects : [ {
-	objectype : "host",
-	objectsype : "hosts",
-	name : "host",
-	name-plural : "hosts",
-	objectlimit : 500
-	sortparms : "'-f -t , -k 1,1'",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","ipv4-address","ipv6-address","nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.ipv4-address","nat-settings.ipv6-address","nat-settings.method"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["ipv4-address"], .["ipv6-address"], .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on", .["nat-settings"]["ipv4-address"], .["nat-settings"]["ipv6-address"], .["nat-settings"]["method"'"
+{ "file_meta_info" : {
+	"fileversion" : "0.60.0",
+	"filerevision" : "005",
+	"filedate" : "2020-10-05"
+}, 
+"default_csv_export_elements" : [ {
+	"name" : "common",
+	"CSVFileHeader" : "\"name\",\"color\",\"comments\"",
+	"CSVJQparms" : ".[\"name\"], .[\"color\"], .[\"comments\"]"
 }, {
-	objectype : "network",
-	objectsype : "networks",
-	name : "network",
-	name-plural : "networks",
-	objectlimit : 500
-	sortparms : "'-f -t , -k 1,1'",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","broadcast","subnet4","mask-length4","subnet6","mask-length6","nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.method"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["broadcast"], .["subnet4"], .["mask-length4"], .["subnet6"], .["mask-length6"], .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"], .["nat-settings"]["method"]'"
+	"name" : "tags",
+	"CSVFileHeader" : "\"tags.0.name\",\"tags.1.name\",\"tags.2.name\",\"tags.3.name\",\"tags.4.name\",\"tags.5.name\",\"tags.6.name\"",
+	"CSVJQparms" : ".[\"tags\"][0][\"name\"], .[\"tags\"][1][\"name\"], .[\"tags\"][2][\"name\"], .[\"tags\"][3][\"name\"], .[\"tags\"][4][\"name\"], .[\"tags\"][5][\"name\"], .[\"tags\"][6][\"name\"]"
 }, {
-	objectype : "group",
-	objectsype : "groups",
-	name : "group",
-	name-plural : "groups",
-	objectlimit : 500
-	sortparms : "'-f -t , -k 1,1'",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+	"name" : "domain",
+	"CSVFileHeader" : "\"uid\",\"domain.name\",\"domain.domain-type\"",
+	"CSVJQparms" : ".[\"uid\"], .[\"domain\"][\"name\"], .[\"domain\"][\"domain-type\"]"
 }, {
-	objectype : "group-with-exclusion",
-	objectsype : "groups-with-exclusion",
-	name : "group-with-exclusion",
-	name-plural : "groups-with-exclusion",
-	objectlimit : 500
-	sortparms : "''",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","include","except"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["include"]["name"], .["except"]["name"]'"
+	"name" : "meta-info",
+	"CSVFileHeader" : "\"meta-info.creator\",\"meta-info.creation-time.iso-8601\",\"meta-info.last-modifier\",\"meta-info.last-modify-time.iso-8601\"",
+	"CSVJQparms" : ".[\"meta-info\"][\"creator\"], .[\"meta-info\"][\"creation-time\"][\"iso-8601\"], .[\"meta-info\"][\"last-modifier\"], .[\"meta-info\"][\"last-modify-time\"][\"iso-8601\"]"
+} ], 
+"simplex_objects" : [ {
+	"name" : "host",
+	"name-plural" : "hosts",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "host",
+	"objectsype" : "hosts",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"ipv4-address\",\"ipv6-address\",\"nat-settings.auto-rule\",\"nat-settings.hide-behind\",\"nat-settings.install-on\",\"nat-settings.ipv4-address\",\"nat-settings.ipv6-address\",\"nat-settings.method\"",
+	"CSVJQparms" : ".[\"ipv4-address\"], .[\"ipv6-address\"], .[\"nat-settings\"][\"auto-rule\"], .[\"nat-settings\"][\"hide-behind\"], .[\"nat-settings\"][\"install-on\", .[\"nat-settings\"][\"ipv4-address\"], .[\"nat-settings\"][\"ipv6-address\"], .[\"nat-settings\"][\"method\""
 }, {
-	objectype : "address-range",
-	objectsype : "address-ranges",
-	name : "address-range",
-	name-plural : "address-ranges",
-	objectlimit : 500
-	sortparms : "'-f -t , -k 1,1'",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","ipv4-address-first","ipv4-address-last","ipv6-address-first","ipv6-address-last"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["ipv4-address-first"], .["ipv4-address-last"], .["ipv6-address-first"], .["ipv6-address-last"]'"
+	"name" : "network",
+	"name-plural" : "networks",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "network",
+	"objectsype" : "networks",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"broadcast\",\"subnet4\",\"mask-length4\",\"subnet6\",\"mask-length6\",\"nat-settings.auto-rule\",\"nat-settings.hide-behind\",\"nat-settings.install-on\",\"nat-settings.method\"",
+	"CSVJQparms" : ".[\"broadcast\"], .[\"subnet4\"], .[\"mask-length4\"], .[\"subnet6\"], .[\"mask-length6\"], .[\"nat-settings\"][\"auto-rule\"], .[\"nat-settings\"][\"hide-behind\"], .[\"nat-settings\"][\"install-on\"], .[\"nat-settings\"][\"method\"]"
 }, {
-	objectype : "multicast-address-range",
-	objectsype : "multicast-address-ranges",
-	name : "multicast-address-range",
-	name-plural : "multicast-address-ranges",
-	objectlimit : 500
-	sortparms : "'-f -t , -k 1,1'",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","ipv4-address-first","ipv4-address-last","ipv6-address-first","ipv6-address-last"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["ipv4-address-first"], .["ipv4-address-last"], .["ipv6-address-first"], .["ipv6-address-last"]'"
+	"name" : "wildcard",
+	"name-plural" : "wildcards",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.2",
+	"objectype" : "wildcard",
+	"objectsype" : "wildcards",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"ipv4-address\",\"ipv4-mask-wildcard\",\"ipv6-address\",\"ipv6-mask-wildcard\"",
+	"CSVJQparms" : ".[\"ipv4-address\"], .[\"ipv4-mask-wildcard\"], .[\"ipv6-address\"], .[\"ipv6-mask-wildcard\"]"
 }, {
-	objectype : "dns-domain",
-	objectsype : "dns-domains",
-	name : "dns-domain",
-	name-plural : "dns-domains",
-	objectlimit : 500
-	sortparms : "'-f -t , -k 1,1'",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","is-sub-domain"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["is-sub-domain"]'"
+	"name" : "group",
+	"name-plural" : "groups",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "group",
+	"objectsype" : "groups",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
 }, {
-	objectype : "security-zone",
-	objectsype : "security-zones",
-	name : "security-zone",
-	name-plural : "security-zones",
-	objectlimit : 500
-	sortparms : "'-f -t , -k 1,1'",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+	"name" : "group with exclusion",
+	"name-plural" : "groups with exclusion",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "group-with-exclusion",
+	"objectsype" : "groups-with-exclusion",
+	"objectlimit" : 500,
+	"sortparms" : "",
+	"CSVFileHeader" : "\"include\",\"except\"",
+	"CSVJQparms" : ".[\"include\"][\"name\"], .[\"except\"][\"name\"]"
 }, {
-	objectype : "dynamic-object",
-	objectsype : "dynamic-objects",
-	name : "dynamic-object",
-	name-plural : "dynamic-objects",
-	objectlimit : 500
-	sortparms : "'-f -t , -k 1,1'",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+	"name" : "address range",
+	"name-plural" : "address ranges",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "address-range",
+	"objectsype" : "address-ranges",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"ipv4-address-first\",\"ipv4-address-last\",\"ipv6-address-first\",\"ipv6-address-last\"",
+	"CSVJQparms" : ".[\"ipv4-address-first\"], .[\"ipv4-address-last\"], .[\"ipv6-address-first\"], .[\"ipv6-address-last\"]"
 }, {
-	objectype : "",
-	objectsype : "",
-	name : "",
-	name-plural : "",
-	objectlimit : 500
-	sortparms : "''",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+	"name" : "multicast address range",
+	"name-plural" : "multicast address ranges",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "multicast-address-range",
+	"objectsype" : "multicast-address-ranges",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"ipv4-address-first\",\"ipv4-address-last\",\"ipv6-address-first\",\"ipv6-address-last\"",
+	"CSVJQparms" : ".[\"ipv4-address-first\"], .[\"ipv4-address-last\"], .[\"ipv6-address-first\"], .[\"ipv6-address-last\"]"
 }, {
-	objectype : "",
-	objectsype : "",
-	name : "",
-	name-plural : "",
-	objectlimit : 500
-	sortparms : "''",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+	"name" : "dns domain",
+	"name-plural" : "dns domains",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "dns-domain",
+	"objectsype" : "dns-domains",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"is-sub-domain\"",
+	"CSVJQparms" : ".[\"is-sub-domain\"]"
 }, {
-	objectype : "",
-	objectsype : "",
-	name : "",
-	name-plural : "",
-	objectlimit : 500
-	sortparms : "''",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+	"name" : "security zone",
+	"name-plural" : "security zones",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "security-zone",
+	"objectsype" : "security-zones",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
 }, {
-	objectype : "",
-	objectsype : "",
-	name : "",
-	name-plural : "",
-	objectlimit : 500
-	sortparms : "''",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+	"name" : "dynamic object",
+	"name-plural" : "dynamic objects",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "dynamic-object",
+	"objectsype" : "dynamic-objects",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
 }, {
-	objectype : "",
-	objectsype : "",
-	name : "",
-	name-plural : "",
-	objectlimit : 500
-	sortparms : "''",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+	"name" : "tag",
+	"name-plural" : "tags",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "tag",
+	"objectsype" : "tags",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
 }, {
-	objectype : "",
-	objectsype : "",
-	name : "",
-	name-plural : "",
-	objectlimit : 500
-	sortparms : "''",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+	"name" : "simple gateway",
+	"name-plural" : "simple gateways",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "simple-gateway",
+	"objectsype" : "simple-gateways",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
 }, {
-	objectype : "",
-	objectsype : "",
-	name : "",
-	name-plural : "",
-	objectlimit : 500
-	sortparms : "''",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+	"name" : "simple cluster",
+	"name-plural" : "simple clusters",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.6",
+	"objectype" : "simple-cluster",
+	"objectsype" : "simple-clusters",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
 }, {
-	objectype : "",
-	objectsype : "",
-	name : "",
-	name-plural : "",
-	objectlimit : 500
-	sortparms : "''",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+	"name" : "Check Point host",
+	"name-plural" : "checkpoint hosts",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.6.1",
+	"objectype" : "checkpoint-host",
+	"objectsype" : "checkpoint-hosts",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
 }, {
-	objectype : "",
-	objectsype : "",
-	name : "",
-	name-plural : "",
-	objectlimit : 500
-	sortparms : "''",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
+	"name" : "time",
+	"name-plural" : "times",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "time",
+	"objectsype" : "times",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"start.date\",\"start.time\",\"start.iso-8601\",\"start.posix\",\"start-now\",\"end.date\",\"end.time\",\"end.iso-8601\",\"end.posix\",\"end-never\",\"recurrence.pattern\"",
+	"CSVJQparms" : ".[\"start\"][\"date\"], .[\"start\"][\"time\"], .[\"start\"][\"iso-8601\"], .[\"start\"][\"posix\"], .[\"start-now\"], .[\"end\"][\"date\"], .[\"end\"][\"time\"], .[\"end\"][\"iso-8601\"], .[\"end\"][\"posix\"], .[\"end-never\"], .[\"recurrence\"][\"pattern\"]"
 }, {
-	objectype : "",
-	objectsype : "",
-	name : "",
-	name-plural : "",
-	objectlimit : 500
-	sortparms : "''",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
-} ],
-complex_objects : [ {
-	objecttype : "group",
-	objectstype : "groups",
-	name : "group-member",
-	name-plural : "group-members",
-	objectlimit : 500
-	sortparms : "'-f -t , -k 1,2'",
-	CSVFileHeader : "'"name","members.add"'",
-	CSVJQparms : "'.["name"], .["members"]['$COUNTER']["name"]'"
+	"name" : "time group",
+	"name-plural" : "time groups",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "time-group",
+	"objectsype" : "time-groups",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
 }, {
-	objectype : "host",
-	objectsype : "hosts",
-	name : "host-interface",
-	name-plural : "host-interfaces",
-	objectlimit : 500
-	sortparms : "'-f -t , -k 1,1'",
-	CSVFileHeader : "'"name","interfaces.add.name","interfaces.add.subnet4","interfaces.add.mask-length4","interfaces.add.subnet6","interfaces.add.mask-length6","interfaces.add.color","interfaces.add.comments"'",
-	CSVJQparms : "'.["name"], .["interfaces"]['$COUNTER']["name"], .["interfaces"]['$COUNTER']["subnet4"], .["interfaces"]['$COUNTER']["mask-length4"], .["interfaces"]['$COUNTER']["subnet6"], .["interfaces"]['$COUNTER']["mask-length6"], .["interfaces"]['$COUNTER']["color"], .["interfaces"]['$COUNTER']["comments"]'"
+	"name" : "access role",
+	"name-plural" : "access roles",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "access-role",
+	"objectsype" : "access-roles",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "OPSEC application",
+	"name-plural" : "OPSEC applications",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "opsec-application",
+	"objectsype" : "opsec-applications",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"type\",\"cpmi.enabled\",\"cpmi.administrator-profile\",\"cpmi.use-administrator-credentials\",\"lea.enabled\",\"lea.access-permissions\",\"lea.administrator-profile\"",
+	"CSVJQparms" : ".[\"type\"], .[\"cpmi\"][\"enabled\"], .[\"cpmi\"][\"administrator-profile\"], .[\"cpmi\"][\"use-administrator-credentials\"], .[\"lea\"][\"enabled\"], .[\"lea\"][\"access-permissions\"], .[\"lea\"][\"administrator-profile\"]"
+}, {
+	"name" : "trusted client",
+	"name-plural" : "trusted clients",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "trusted-client",
+	"objectsype" : "trusted-clients",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "LSV profile",
+	"name-plural" : "LSV profiles",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.6",
+	"objectype" : "lsv-profile",
+	"objectsype" : "lsv-profiles",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "GSN handover group",
+	"name-plural" : "GSN handover groups",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.6.1",
+	"objectype" : "gsn-handover-group",
+	"objectsype" : "gsn-handover-groups",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "access point name",
+	"name-plural" : "access point names",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "access-point-name",
+	"objectsype" : "access-point-names",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "service TCP",
+	"name-plural" : "services TCP",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.1",
+	"objectype" : "service-tcp",
+	"objectsype" : "services-tcp",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "service UDP",
+	"name-plural" : "services UDP",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.1",
+	"objectype" : "service-udp",
+	"objectsype" : "services-udp",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "service ICMP",
+	"name-plural" : "services ICMP",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.1",
+	"objectype" : "service-icmp",
+	"objectsype" : "services-icmp",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "service ICMP6",
+	"name-plural" : "services ICMP6",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.1",
+	"objectype" : "service-icmp6",
+	"objectsype" : "services-icmp6",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "service sctp",
+	"name-plural" : "services sctp",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.1",
+	"objectype" : "service-sctp",
+	"objectsype" : "services-sctp",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "service other",
+	"name-plural" : "services other",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.1",
+	"objectype" : "service-other",
+	"objectsype" : "services-other",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "service dce rpc",
+	"name-plural" : "services dce rpc",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.1",
+	"objectype" : "service-dce-rpc",
+	"objectsype" : "services-dce-rpc",
+	"objectlimit" : 500,
+	"sortparms" : "",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "service rpc",
+	"name-plural" : "services rpc",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.1",
+	"objectype" : "service-rpc",
+	"objectsype" : "services-rpc",
+	"objectlimit" : 500,
+	"sortparms" : "",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "service citrix tcp",
+	"name-plural" : "services citrix tcp",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.6.1",
+	"objectype" : "service-citrix-tcp",
+	"objectsype" : "services-citrix-tcp",
+	"objectlimit" : 500,
+	"sortparms" : "",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "service compound tcp",
+	"name-plural" : "services-compound-tcp",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.6.1",
+	"objectype" : "service-compound-tcp",
+	"objectsype" : "services-compound-tcp",
+	"objectlimit" : 500,
+	"sortparms" : "",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "service group",
+	"name-plural" : "service groups",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.1",
+	"objectype" : "service-group",
+	"objectsype" : "service-groups",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "application",
+	"name-plural" : "applications",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.1",
+	"objectype" : "application-site",
+	"objectsype" : "application-sites",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"primary-category\",\"risk\",\"description\",\"urls-defined-as-regular-expression\", \"meta-info.creator\",\"user-defined\",\"read-only\"",
+	"CSVJQparms" : ".[\"primary-category\"], .[\"risk\"], .[\"description\"], .[\"urls-defined-as-regular-expression\"], .[\"meta-info\"][\"creator\"], .[\"user-defined\"], .[\"read-only\"]"
+}, {
+	"name" : "application category",
+	"name-plural" : "application categories",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.1",
+	"objectype" : "application-site-category",
+	"objectsype" : "application-site-categories",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"user-defined\",\"read-only\", \"meta-info.creator\"",
+	"CSVJQparms" : ".[\"user-defined\"], .[\"read-only\"], .[\"meta-info\"][\"creator\"]"
+}, {
+	"name" : "application groups",
+	"name-plural" : "application groups",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.1",
+	"objectype" : "application-site-group",
+	"objectsype" : "application-site-groups",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"user-defined\",\"read-only\", \"meta-info.creator\"",
+	"CSVJQparms" : ".[\"user-defined\"], .[\"read-only\"], .[\"meta-info\"][\"creator\"]"
+}, {
+	"name" : "user",
+	"name-plural" : "users",
+	"objectgroup" : "Users",
+	"api-version" : "1.6.1",
+	"objectype" : "user",
+	"objectsype" : "users",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"template\",\"e-mail\",\"phone-number\",\"authentication-method\",\"radius-server.name\",\"tacacs-server.name\",\"expiration-date\",\"encryption.enable-ike\", \"encryption.enable-public-key\", \"encryption.enable-shared-secret\"",
+	"CSVJQparms" : ".[\"template\"], .[\"e-mail\"], .[\"phone-number\"], .[\"authentication-method\"], .[\"radius-server\"][\"name\"], .[\"tacacs-server\"][\"name\"], .[\"expiration-date\"][\"iso-8601\"], .[\"encryption\"][\"ike\"], .[\"encryption\"][\"public-key\"], .[\"encryption\"][\"shared-secret\"]"
+}, {
+	"name" : "user group",
+	"name-plural" : "user groups",
+	"objectgroup" : "Users",
+	"api-version" : "1.6.1",
+	"objectype" : "user-group",
+	"objectsype" : "user-groups",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"email\"",
+	"CSVJQparms" : ".[\"email\"]"
+}, {
+	"name" : "user template",
+	"name-plural" : "user templates",
+	"objectgroup" : "Users",
+	"api-version" : "1.6.1",
+	"objectype" : "user-template",
+	"objectsype" : "user-templates",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"authentication-method\",\"radius-server.name\",\"tacacs-server.name\",\"expiration-by-global-properties\",\"expiration-date\",\"encryption.enable-ike\", \"encryption.enable-public-key\", \"encryption.enable-shared-secret\"",
+	"CSVJQparms" : ".[\"authentication-method\"], .[\"radius-server\"][\"name\"], .[\"tacacs-server\"][\"name\"], .[\"expiration-by-global-properties\"], .[\"expiration-date\"][\"iso-8601\"], .[\"encryption\"][\"ike\"], .[\"encryption\"][\"public-key\"], .[\"encryption\"][\"shared-secret\"]"
+}, {
+	"name" : "identity tag",
+	"name-plural" : "identity tags",
+	"objectgroup" : "Users",
+	"api-version" : "1.6.1",
+	"objectype" : "identity-tag",
+	"objectsype" : "identity-tags",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+} ], 
+"complex_objects" : [ {
+	"name" : "group member",
+	"name-plural" : "group members",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objecttype" : "group",
+	"objectstype" : "groups",
+	"complexobjecttype" : "group-member",
+	"complexobjectstype" : "group-members",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,2'",
+	"CSVFileHeader" : "\"name\",\"members.add\"",
+	"CSVJQparms" : ".[\"name\"], .[\"members\"]['$COUNTER'][\"name\"]"
+}, {
+	"name" : "host interface",
+	"name-plural" : "host interfaces",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "host",
+	"objectsype" : "hosts",
+	"complexobjecttype" : "host-interface",
+	"complexobjectstype" : "host-interfaces",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"name\",\"interfaces.add.name\",\"interfaces.add.subnet4\",\"interfaces.add.mask-length4\",\"interfaces.add.subnet6\",\"interfaces.add.mask-length6\",\"interfaces.add.color\",\"interfaces.add.comments\"",
+	"CSVJQparms" : ".[\"name\"], .[\"interfaces\"]['$COUNTER'][\"name\"], .[\"interfaces\"]['$COUNTER'][\"subnet4\"], .[\"interfaces\"]['$COUNTER'][\"mask-length4\"], .[\"interfaces\"]['$COUNTER'][\"subnet6\"], .[\"interfaces\"]['$COUNTER'][\"mask-length6\"], .[\"interfaces\"]['$COUNTER'][\"color\"], .[\"interfaces\"]['$COUNTER'][\"comments\"]"
+}, {
+	"name" : "service group member",
+	"name-plural" : "service  group members",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.1",
+	"objecttype" : "service-group",
+	"objectstype" : "service-groups",
+	"complexobjecttype" : "service-group-member",
+	"complexobjectstype" : "service-group-members",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,2'",
+	"CSVFileHeader" : "\"name\",\"members.add\"",
+	"CSVJQparms" : ".[\"name\"], .[\"members\"]['$COUNTER'][\"name\"]"
+}, {
+	"name" : "user group member",
+	"name-plural" : "user group members",
+	"objectgroup" : "Users",
+	"api-version" : "1.6.1",
+	"objecttype" : "user-group",
+	"objectstype" : "user-groups",
+	"complexobjecttype" : "user-group-member",
+	"complexobjectstype" : "user-group-members",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,2'",
+	"CSVFileHeader" : "\"name\",\"members.add\"",
+	"CSVJQparms" : ".[\"name\"], .[\"members\"]['$COUNTER'][\"name\"]"
 } ]
 }
-
-
-, {
-	objectype : "",
-	objectsype : "",
-	name : "",
-	name-plural : "",
-	objectlimit : 500
-	sortparms : "''",
-	CSVFileHeader : "'"name","color","comments","tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name"'",
-	CSVJQparms : "'.["name"], .["color"], .["comments"], .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"]'"
-}
-
-, {
-	objectype : "",
-	objectsype : "",
-	name : "",
-	name-plural : "",
-	objectlimit : 500
-	sortparms : "''",
-	CSVFileHeader : "''",
-	CSVJQparms : "''"
-} 

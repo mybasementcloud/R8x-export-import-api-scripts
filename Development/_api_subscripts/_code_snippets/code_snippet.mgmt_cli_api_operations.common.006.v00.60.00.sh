@@ -1,5 +1,5 @@
 #
-# SCRIPTS Code Snippet API Subscripts - Identify Gaia Version and Installation Type operations
+# SCRIPTS Code Snippet API Subscripts - management CLI API operations Handler operations
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
@@ -62,17 +62,17 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 # MODIFIED 2020-11-16 -
-# Configure basic information for formation of file path for gaia version handler script
+# Configure basic information for formation of file path for basic script setup API Scripts handler script
 #
-# gaia_version__handler_root - root path to gaia version handler script. Period (".") indicates root of script source folder
-# gaia_version__handler_folder - folder for under root path to gaia version handler script
-# gaia_version__handler_file - filename, without path, for gaia version handler script
+# mgmt_cli_API_operations_handler_root - root path to basic script setup API Scripts handler script. Period (".") indicates root of script source folder
+# mgmt_cli_API_operations_handler_folder - folder for under root path to basic script setup API Scripts handler script
+# mgmt_cli_API_operations_handler_file - filename, without path, for basic script setup API Scripts handler script
 #
 
 # MODIFIED 2020-11-16 -
-export gaia_version_handler_root=${api_subscripts_root}
-export gaia_version_handler_folder=${api_subscripts_default_folder}
-export gaia_version_handler_file=identify_gaia_and_installation.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}.sh
+export mgmt_cli_API_operations_handler_root=..
+export mgmt_cli_API_operations_handler_folder=_api_subscripts
+export mgmt_cli_API_operations_handler_file=mgmt_cli_api_operations.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}.sh
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -83,39 +83,48 @@ export gaia_version_handler_file=identify_gaia_and_installation.subscript.common
 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 
 
+# =================================================================================================
+# =================================================================================================
+# START:  Management CLI API Operations Handling
+# =================================================================================================
+
 # -------------------------------------------------------------------------------------------------
-# GetGaiaVersionAndInstallationType - Gaia version and installation type Handler calling routine
+# CheckMgmtCLIAPIOperationsHandler - Management CLI API Operations Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-11-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-GetGaiaVersionAndInstallationType () {
+CheckMgmtCLIAPIOperationsHandler () {
     #
-    # GetGaiaVersionAndInstallationType - Gaia version and installation type Handler calling routine
+    # CheckMgmtCLIAPIOperationsHandler - Management CLI API Operations Handler calling routine
     #
+    
+    errorresult=0
     
     if ${APISCRIPTVERBOSE} ; then
         echo | tee -a -i ${logfilepath}
         echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
         echo | tee -a -i ${logfilepath}
-        echo "Calling external Gaia version and installation type Handling Script" | tee -a -i ${logfilepath}
-        echo " - External Script : "${gaia_version_handler} | tee -a -i ${logfilepath}
+        echo "Calling external Management CLI API Operations Handler Script" | tee -a -i ${logfilepath}
+        echo " - External Script : "${mgmt_cli_API_operations_handler} | tee -a -i ${logfilepath}
         echo | tee -a -i ${logfilepath}
     else
         echo >> ${logfilepath}
         echo '--------------------------------------------------------------------------' >> ${logfilepath}
         echo >> ${logfilepath}
-        echo "Calling external Gaia version and installation type Handling Script" >> ${logfilepath}
-        echo " - External Script : "${gaia_version_handler} >> ${logfilepath}
+        echo "Calling external Management CLI API Operations Handler Script" >> ${logfilepath}
+        echo " - External Script : "${mgmt_cli_API_operations_handler} >> ${logfilepath}
         echo >> ${logfilepath}
     fi
     
-    . ${gaia_version_handler} "$@"
+    . ${mgmt_cli_API_operations_handler} CHECK "$@"
+    errorresult=$?
     
     if ${APISCRIPTVERBOSE} ; then
         echo | tee -a -i ${logfilepath}
-        echo "Returned from external Gaia version and installation type Handling Script" | tee -a -i ${logfilepath}
+        echo "Returned from external Management CLI API Operations Handler Script" | tee -a -i ${logfilepath}
+        echo 'Error Return Code = '${errorresult} | tee -a -i ${logfilepath}
         echo | tee -a -i ${logfilepath}
         
         if ! ${NOWAIT} ; then
@@ -130,30 +139,31 @@ GetGaiaVersionAndInstallationType () {
         echo | tee -a -i ${logfilepath}
     else
         echo >> ${logfilepath}
-        echo "Returned from external Gaia version and installation type Handling Script" >> ${logfilepath}
+        echo "Returned from external Management CLI API Operations Handler Script" >> ${logfilepath}
+        echo 'Error Return Code = '${errorresult} >> ${logfilepath}
         echo >> ${logfilepath}
         echo "Continueing local execution" >> ${logfilepath}
         echo >> ${logfilepath}
         echo '--------------------------------------------------------------------------' >> ${logfilepath}
         echo >> ${logfilepath}
     fi
-
+    
+    return  ${errorresult}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-16
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------
-# Call Gaia version and installation type Handler action script
+# Call Basic Script Setup for API Scripts Handler action script
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+# MODIFIED 2020-11-16 -
 
-export configured_handler_root=${gaia_version_handler_root}
+export configured_handler_root=${mgmt_cli_API_operations_handler_root}
 export actual_handler_root=${configured_handler_root}
 
 if [ "${configured_handler_root}" == "." ] ; then
@@ -170,24 +180,24 @@ else
     export actual_handler_root=${configured_handler_root}
 fi
 
-export gaia_version_handler_path=${actual_handler_root}/${gaia_version_handler_folder}
-export gaia_version_handler=${gaia_version_handler_path}/${gaia_version_handler_file}
+export mgmt_cli_API_operations_handler_path=${actual_handler_root}/${mgmt_cli_API_operations_handler_folder}
+export mgmt_cli_API_operations_handler=${mgmt_cli_API_operations_handler_path}/${mgmt_cli_API_operations_handler_file}
 
-# Check that we can finde the command line parameter handler file
+# Check that we can finde the Basic Script Setup for API Scripts Handler file
 #
-if [ ! -r ${gaia_version_handler} ] ; then
+if [ ! -r ${mgmt_cli_API_operations_handler} ] ; then
     # no file found, that is a problem
     echo | tee -a -i ${logfilepath}
-    echo ' Gaia version and installation type handler script file missing' | tee -a -i ${logfilepath}
-    echo '  File not found : '${gaia_version_handler} | tee -a -i ${logfilepath}
+    echo 'Basic script setup API Scripts handler script file missing' | tee -a -i ${logfilepath}
+    echo '  File not found : '${mgmt_cli_API_operations_handler} | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     echo 'Other parameter elements : ' | tee -a -i ${logfilepath}
     echo '  Configured Root path    : '${configured_handler_root} | tee -a -i ${logfilepath}
     echo '  Actual Script Root path : '${actual_handler_root} | tee -a -i ${logfilepath}
-    echo '  Root of folder path : '${gaia_version_handler_root} | tee -a -i ${logfilepath}
-    echo '  Folder in Root path : '${gaia_version_handler_folder} | tee -a -i ${logfilepath}
-    echo '  Folder Root path    : '${gaia_version_handler_path} | tee -a -i ${logfilepath}
-    echo '  Script Filename     : '${gaia_version_handler_file} | tee -a -i ${logfilepath}
+    echo '  Root of folder path : '${mgmt_cli_API_operations_handler_root} | tee -a -i ${logfilepath}
+    echo '  Folder in Root path : '${mgmt_cli_API_operations_handler_folder} | tee -a -i ${logfilepath}
+    echo '  Folder Root path    : '${mgmt_cli_API_operations_handler_path} | tee -a -i ${logfilepath}
+    echo '  Script Filename     : '${mgmt_cli_API_operations_handler_file} | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
@@ -197,14 +207,47 @@ if [ ! -r ${gaia_version_handler} ] ; then
     exit 251
 fi
 
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
-GetGaiaVersionAndInstallationType "$@"
+
+# MODIFIED 2020-11-16 -
+
+# Commands to execute specific actions in this script:
+# CHECK |INIT - Initialize the API operations with checks of wether API is running, get port, API minimum version
+# SETUPLOGIN  - Execute setup of API login based on CLI parameters passed and processed previously
+# LOGIN       - Execute API login based on CLI parameters passed and processed previously
+# PUBLISH     - Execute API publish based on previous login and session file
+# LOGOUT      - Execute API logout based on previous login and session file
+# APISTATUS   - Execute just the API Status check
+
+SUBEXITCODE=0
+
+CheckMgmtCLIAPIOperationsHandler "$@"
+SUBEXITCODE=$?
+
+if [ "${SUBEXITCODE}" != "0" ] ; then
+    echo | tee -a -i ${logfilepath}
+    echo "Terminating script..." | tee -a -i ${logfilepath}
+    echo "Exitcode ${SUBEXITCODE}" | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    
+    exit ${SUBEXITCODE}
+else
+    echo | tee -a -i ${logfilepath}
+fi
+
+
+# =================================================================================================
+# END:  Management CLI API Operations Handling
+# =================================================================================================
+# =================================================================================================
 
 
 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-
 

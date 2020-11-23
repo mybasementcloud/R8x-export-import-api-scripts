@@ -13,8 +13,8 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=000
-ScriptDate=2020-09-10
+ScriptRevision=030
+ScriptDate=2020-11-19
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -35,41 +35,47 @@ APISubscriptsRevision=006
 # Configure basic location for api subscripts
 export api_subscripts_default_root=..
 export api_subscripts_default_folder=_api_subscripts
-export api_subscripts_checkfile=api_subscripts_version.$APISubscriptsRevision.v$APISubscriptsVersion.version
+export api_subscripts_checkfile=api_subscripts_version.${APISubscriptsRevision}.v${APISubscriptsVersion}.version
 
 #
 # Check for whether the subscripts are present where expected, if not hard EXIT
 #
-if [ -r "$api_subscripts_default_root/$api_subscripts_default_folder/$api_subscripts_checkfile" ]; then
+if [ -r "${api_subscripts_default_root}/${api_subscripts_default_folder}/${api_subscripts_checkfile}" ]; then
     # OK, found the api subscripts in the default root
-    export api_subscripts_root=$api_subscripts_default_root
-elif [ -r "./$api_subscripts_default_folder/$api_subscripts_checkfile" ]; then
+    export api_subscripts_root=${api_subscripts_default_root}
+elif [ -r "./${api_subscripts_default_folder}/${api_subscripts_checkfile}" ]; then
     # OK, didn't find the api subscripts in the default root, instead found them in the working folder
     export api_subscripts_root=.
 else
     # OK, didn't find the api subscripts where we expect to find them, so this is bad!
     echo
     echo 'Missing critical api subscript files that are expected in the one of the following locations:'
-    echo ' PREFERRED Location :  '"$api_subscripts_default_root/$api_subscripts_default_folder/$api_subscripts_checkfile"
-    echo ' ALTERNATE Location :  '"./$api_subscripts_default_folder/$api_subscripts_checkfile"
+    echo ' PREFERRED Location :  '"${api_subscripts_default_root}/${api_subscripts_default_folder}/${api_subscripts_checkfile}"
+    echo ' ALTERNATE Location :  '"./${api_subscripts_default_folder}/${api_subscripts_checkfile}"
     echo
     echo 'Unable to continue without these api subscript files, so exiting!!!'
     echo
     exit 1
 fi
 
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
 # MODIFIED 2020-09-09 -
 # Configure basic information for formation of file path for command line parameter handler script
 #
-# cli_api_cmdlineparm_handler_root - root path to command line parameter handler script. Period (".") indicates root of script source folder
+# cli_api_cmdlineparm_handler_root - root path to command line parameter handler script
 # cli_api_cmdlineparm_handler_folder - folder for under root path to command line parameter handler script
 # cli_api_cmdlineparm_handler_file - filename, without path, for command line parameter handler script
 #
 
 # MODIFIED 2020-09-09 -
-export cli_api_cmdlineparm_handler_root=..
-export cli_api_cmdlineparm_handler_folder=_api_subscripts
-export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.action.common.$APISubscriptsRevision.v$APISubscriptsVersion.sh
+export cli_api_cmdlineparm_handler_root=${api_subscripts_root}
+export cli_api_cmdlineparm_handler_folder=${api_subscripts_default_folder}
+export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}.sh
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -82,7 +88,13 @@ export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.action.commo
 # START:  Command Line Parameter Handling and Help
 # =================================================================================================
 
-# MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+
+# -------------------------------------------------------------------------------------------------
+# START Define command line parameters and set appropriate values
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -91,6 +103,9 @@ export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.action.commo
 #
 # -? | --help
 # -v | --verbose
+#
+# --NOWAIT
+#
 # -P <web-ssl-port> | --port <web-ssl-port> | -P=<web-ssl-port> | --port=<web-ssl-port>
 # -r | --root
 # -u <admin_name> | --user <admin_name> | -u=<admin_name> | --user=<admin_name>
@@ -103,14 +118,66 @@ export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.action.commo
 # -l <log_path> | --log-path <log_path> | -l=<log_path> | --log-path=<log_path>'
 #
 # -o <output_path> | --output <output_path> | -o=<output_path> | --output=<output_path> 
+# -c <csv_path> | --csv <csv_path> | -c=<csv_path> | --csv=<csv_path>'
 #
+
+# MODIFIED 2020-09-30
+export REMAINS=
+
+export SHOWHELP=false
+export CLIparm_NOWAIT=
+
+# MODIFIED 2018-09-21 -
+#export CLIparm_websslport=443
+export CLIparm_websslport=
+
+export CLIparm_rootuser=false
+export CLIparm_user=
+export CLIparm_password=
+# ADDED 2020-08-19 -
+export CLIparm_api_key=
+export CLIparm_use_api_key=false
+
+export CLIparm_domain=
+export CLIparm_sessionidfile=
+
+export CLIparm_sessiontimeout=
+export CLIparm_logpath=
+
+export CLIparm_outputpath=
+export CLIparm_csvpath=
+
 # --NOWAIT
+#
+if [ -z "${NOWAIT}" ]; then
+    # NOWAIT mode not set from shell level
+    export CLIparm_NOWAIT=false
+    export NOWAIT=false
+elif [ x"`echo "${NOWAIT}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    # NOWAIT mode set OFF from shell level
+    export CLIparm_NOWAIT=false
+    export NOWAIT=false
+elif [ x"`echo "${NOWAIT}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # NOWAIT mode set ON from shell level
+    export CLIparm_NOWAIT=true
+    export NOWAIT=true
+else
+    # NOWAIT mode set to wrong value from shell level
+    export CLIparm_NOWAIT=false
+    export NOWAIT=false
+fi
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
+# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# Specific Scripts Command Line Parameters
 #
 # -x <export_path> | --export <export_path> | -x=<export_path> | --export=<export_path> 
 # -i <import_path> | --import-path <import_path> | -i=<import_path> | --import-path=<import_path>'
 # -k <delete_path> | --delete-path <delete_path> | -k=<delete_path> | --delete-path=<delete_path>'
-#
-# -c <csv_path> | --csv <csv_path> | -c=<csv_path> | --csv=<csv_path>'
 #
 # --NSO | --no-system-objects
 # --SO | --system-objects
@@ -119,29 +186,14 @@ export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.action.commo
 # --NODOMAINFOLDERS
 # --CSVEXPORTADDIGNOREERR
 #
-
-export SHOWHELP=false
-# MODIFIED 2018-09-21 -
-#export CLIparm_websslport=443
-export CLIparm_websslport=
-export CLIparm_rootuser=false
-export CLIparm_user=
-export CLIparm_password=
-export CLIparm_user=
-export CLIparm_domain=
-export CLIparm_sessionidfile=
-export CLIparm_sessiontimeout=
-export CLIparm_logpath=
-
-export CLIparm_outputpath=
-
-export CLIparm_NOWAIT=
+# --CSVEXPORTDATADOMAIN
+# --CSVEXPORTDATACREATOR
+# --CSVEXPORTDATAALL
+#
 
 export CLIparm_exportpath=
 export CLIparm_importpath=
 export CLIparm_deletepath=
-
-export CLIparm_csvpath=
 
 # MODIFIED 2018-06-24 -
 #export CLIparm_NoSystemObjects=true
@@ -151,86 +203,344 @@ export CLIparm_CLEANUPWIP=
 export CLIparm_NODOMAINFOLDERS=
 export CLIparm_CSVEXPORTADDIGNOREERR=
 
-# ADDED 2020-08-19 -
-export CLIparm_api_key=
-export CLIparm_use_api_key=false
-
-# --NOWAIT
-#
-if [ -z "$NOWAIT" ]; then
-    # NOWAIT mode not set from shell level
-    export CLIparm_NOWAIT=false
-elif [ x"`echo "$NOWAIT" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
-    # NOWAIT mode set OFF from shell level
-    export CLIparm_NOWAIT=false
-elif [ x"`echo "$NOWAIT" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
-    # NOWAIT mode set ON from shell level
-    export CLIparm_NOWAIT=true
-else
-    # NOWAIT mode set to wrong value from shell level
-    export CLIparm_NOWAIT=false
-fi
-
 # --CLEANUPWIP
 #
-if [ -z "$CLEANUPWIP" ]; then
+if [ -z "${CLEANUPWIP}" ]; then
     # CLEANUPWIP mode not set from shell level
     export CLIparm_CLEANUPWIP=false
-elif [ x"`echo "$CLEANUPWIP" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    export CLEANUPWIP=false
+elif [ x"`echo "${CLEANUPWIP}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
     # CLEANUPWIP mode set OFF from shell level
     export CLIparm_CLEANUPWIP=false
-elif [ x"`echo "$CLEANUPWIP" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    export CLEANUPWIP=false
+elif [ x"`echo "${CLEANUPWIP}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
     # CLEANUPWIP mode set ON from shell level
     export CLIparm_CLEANUPWIP=true
+    export CLEANUPWIP=true
 else
     # CLEANUPWIP mode set to wrong value from shell level
     export CLIparm_CLEANUPWIP=false
+    export CLEANUPWIP=false
 fi
 
 # --NODOMAINFOLDERS
 #
-if [ -z "$NODOMAINFOLDERS" ]; then
+if [ -z "${NODOMAINFOLDERS}" ]; then
     # NODOMAINFOLDERS mode not set from shell level
     export CLIparm_NODOMAINFOLDERS=false
-elif [ x"`echo "$NODOMAINFOLDERS" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    export NODOMAINFOLDERS=false
+elif [ x"`echo "${NODOMAINFOLDERS}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
     # NODOMAINFOLDERS mode set OFF from shell level
     export CLIparm_NODOMAINFOLDERS=false
-elif [ x"`echo "$NODOMAINFOLDERS" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    export NODOMAINFOLDERS=false
+elif [ x"`echo "${NODOMAINFOLDERS}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
     # NODOMAINFOLDERS mode set ON from shell level
     export CLIparm_NODOMAINFOLDERS=true
+    export NODOMAINFOLDERS=true
 else
     # NODOMAINFOLDERS mode set to wrong value from shell level
     export CLIparm_NODOMAINFOLDERS=false
+    export NODOMAINFOLDERS=false
 fi
 
 # --CSVEXPORTADDIGNOREERR
 #
-if [ -z "$CSVEXPORTADDIGNOREERR" ]; then
+if [ -z "${CSVEXPORTADDIGNOREERR}" ]; then
     # CSVEXPORTADDIGNOREERR mode not set from shell level
     export CLIparm_CSVEXPORTADDIGNOREERR=false
-elif [ x"`echo "$CSVEXPORTADDIGNOREERR" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    export CSVEXPORTADDIGNOREERR=false
+elif [ x"`echo "${CSVEXPORTADDIGNOREERR}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
     # CSVEXPORTADDIGNOREERR mode set OFF from shell level
     export CLIparm_CSVEXPORTADDIGNOREERR=false
-elif [ x"`echo "$CSVEXPORTADDIGNOREERR" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    export CSVEXPORTADDIGNOREERR=false
+elif [ x"`echo "${CSVEXPORTADDIGNOREERR}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
     # CSVEXPORTADDIGNOREERR mode set ON from shell level
     export CLIparm_CSVEXPORTADDIGNOREERR=true
+    export CSVEXPORTADDIGNOREERR=true
 else
     # CLEANUPWIP mode set to wrong value from shell level
     export CLIparm_CSVEXPORTADDIGNOREERR=false
+    export CSVEXPORTADDIGNOREERR=false
 fi
 
-export REMAINS=
+# ADDED 2020-09-30 -
+# --CSVEXPORTDATADOMAIN :  Export Data Domain information to CSV
+# --CSVEXPORTDATACREATOR :  Export Data Creator and other MetaData to CSV
+# --CSVEXPORTDATAALL :  Export Data Domain and Data Creator and other MetaData to CSV
+
+export CLIparm_CSVEXPORTDATADOMAIN=false
+export CLIparm_CSVEXPORTDATACREATOR=false
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-08-19
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
 
+
+# -------------------------------------------------------------------------------------------------
+# END Define command line parameters and set appropriate values
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# =================================================================================================
+# -------------------------------------------------------------------------------------------------
+# START:  Local CLI parameter processing proceedures
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# Define local command line parameter CLIparm values
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# Set the value of localCLIparms to true to utilize and execute on script local command line parameters
+#
+export localCLIparms=false
+#export localCLIparms=true
+
+#export CLIparm_local1=
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# processcliremains - Local command line parameter processor
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+processcliremains () {
+    #
+    
+    # -------------------------------------------------------------------------------------------------
+    # Process command line parameters from the REMAINS returned from the standard handler
+    # -------------------------------------------------------------------------------------------------
+    
+    while [ -n "$1" ]; do
+        # Copy so we can modify it (can't modify $1)
+        OPT="$1"
+        
+        # testing
+        echo 'OPT = '${OPT}
+        #
+            
+        # Detect argument termination
+        if [ x"${OPT}" = x"--" ]; then
+            
+            shift
+            for OPT ; do
+                # MODIFIED 2019-03-08
+                #LOCALREMAINS="${LOCALREMAINS} \"${OPT}\""
+                LOCALREMAINS="${LOCALREMAINS} ${OPT}"
+            done
+            break
+        fi
+        # Parse current opt
+        while [ x"${OPT}" != x"-" ] ; do
+            case "${OPT}" in
+                # Help and Standard Operations
+                '-?' | --help )
+                    SHOWHELP=true
+                    ;;
+                # Handle --flag=value opts like this
+                -q=* | --qlocal1=* )
+                    CLIparm_local1="${OPT#*=}"
+                    #shift
+                    ;;
+                # and --flag value opts like this
+                -q* | --qlocal1 )
+                    CLIparm_local1="$2"
+                    shift
+                    ;;
+                # Anything unknown is recorded for later
+                * )
+                    # MODIFIED 2019-03-08
+                    #LOCALREMAINS="${LOCALREMAINS} \"${OPT}\""
+                    LOCALREMAINS="${LOCALREMAINS} ${OPT}"
+                    break
+                    ;;
+            esac
+            # Check for multiple short options
+            # NOTICE: be sure to update this pattern to match valid options
+            # Remove any characters matching "-", and then the values between []'s
+            #NEXTOPT="${OPT#-[upmdsor?]}" # try removing single short opt
+            NEXTOPT="${OPT#-[vrf?]}" # try removing single short opt
+            if [ x"${OPT}" != x"${NEXTOPT}" ] ; then
+                OPT="-${NEXTOPT}"  # multiple short opts, keep going
+            else
+                break  # long form, exit inner loop
+            fi
+        done
+        # Done with that param. move to next
+        shift
+    done
+    # Set the non-parameters back into the positional parameters ($1 $2 ..)
+    eval set -- ${LOCALREMAINS}
+    
+    export CLIparm_local1=${CLIparm_local1}
+
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# dumpcliparmparselocalresults
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+dumpcliparmparselocalresults () {
+    
+    #
+    # Testing - Dump acquired local values
+    #
+    #
+    workoutputfile=/var/tmp/workoutputfile.2.${DATEDTGS}.txt
+    echo > ${workoutputfile}
+    
+    # Screen width template for sizing, default width of 80 characters assumed
+    #
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+    
+    echo 'Local CLI Parameters :' >> ${workoutputfile}
+    echo >> ${workoutputfile}
+    
+    #echo 'CLIparm_local1          = '${CLIparm_local1} >> ${workoutputfile}
+    #echo 'CLIparm_local2          = '$CLIparm_local2 >> ${workoutputfile}
+    
+    #                  1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #       01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+    
+    echo  >> ${workoutputfile}
+    echo 'LOCALREMAINS            = '${LOCALREMAINS} >> ${workoutputfile}
+    
+    if ${APISCRIPTVERBOSE} ; then
+        # Verbose mode ON
+        
+        echo | tee -a -i ${logfilepath}
+        cat ${workoutputfile} | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
+        for i ; do echo - $i | tee -a -i ${logfilepath} ; done
+        echo | tee -a -i ${logfilepath}
+        echo 'CLI parms - number :  '"$#"' parms :  >'"$@"'<' | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
+        
+        if ! ${NOWAIT} ; then
+            read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
+            echo
+        fi
+        
+        echo | tee -a -i ${logfilepath}
+        echo "End of local execution" | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
+        echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
+    
+    else
+        # Verbose mode OFF
+        
+        echo >> ${logfilepath}
+        cat ${workoutputfile} >> ${logfilepath}
+        echo >> ${logfilepath}
+        for i ; do echo - $i >> ${logfilepath} ; done
+        echo >> ${logfilepath}
+        echo 'CLI parms - number :  '"$#"' parms :  >'"$@"'<' >> ${logfilepath}
+        echo >> ${logfilepath}
+        
+    fi
+    
+    rm ${workoutputfile}
+}
+
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# dumprawcliremains
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+dumprawcliremains () {
+    #
+    if ${APISCRIPTVERBOSE} ; then
+        # Verbose mode ON
+        
+        echo | tee -a -i ${logfilepath}
+        echo "Command line parameters remains : " | tee -a -i ${logfilepath}
+        echo 'Number parms :  '"$#" | tee -a -i ${logfilepath}
+        echo "remains raw : \> $@ \<" | tee -a -i ${logfilepath}
+        
+        parmnum=0
+        for k ; do
+            echo -e "${parmnum} \t ${k}" | tee -a -i ${logfilepath}
+            parmnum=`expr ${parmnum} + 1`
+        done
+        
+        echo | tee -a -i ${logfilepath}
+        
+    else
+        # Verbose mode OFF
+        
+        echo >> ${logfilepath}
+        echo "Command line parameters remains : " >> ${logfilepath}
+        echo 'Number parms :  '"$#" >> ${logfilepath}
+        echo "remains raw : \> $@ \<" >> ${logfilepath}
+        
+        parmnum=0
+        for k ; do
+            echo -e "${parmnum} \t ${k}" >> ${logfilepath}
+            parmnum=`expr ${parmnum} + 1`
+        done
+        
+        echo >> ${logfilepath}
+        
+    fi
+
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
+# END:  Local CLI parameter processing proceedures
+# -------------------------------------------------------------------------------------------------
+# =================================================================================================
 
 # =================================================================================================
 # -------------------------------------------------------------------------------------------------
 # START:  Local Help display proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-09-10 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Show local help information.  Add script specific information here to show when help requested
@@ -242,7 +552,7 @@ doshowlocalhelp () {
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     echo
-    echo 'Local Help Information : '
+    echo 'Local Script Specific Help Information : '
     
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
@@ -256,12 +566,13 @@ doshowlocalhelp () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-10
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
 
 # -------------------------------------------------------------------------------------------------
 # END:  Local Help display proceedure
 # -------------------------------------------------------------------------------------------------
 # =================================================================================================
+
 
 # -------------------------------------------------------------------------------------------------
 # CommandLineParameterHandler - Command Line Parameter Handler calling routine
@@ -275,49 +586,76 @@ CommandLineParameterHandler () {
     # CommandLineParameterHandler - Command Line Parameter Handler calling routine
     #
     
-    if [ "$APISCRIPTVERBOSE" = "true" ] ; then
-        echo | tee -a -i $APICLIlogfilepath
-        echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
-        echo | tee -a -i $APICLIlogfilepath
-        echo "Calling external Command Line Paramenter Handling Script" | tee -a -i $APICLIlogfilepath
-        echo " - External Script : "$cli_api_cmdlineparm_handler | tee -a -i $APICLIlogfilepath
-        echo | tee -a -i $APICLIlogfilepath
+    if ${APISCRIPTVERBOSE} ; then
+        echo | tee -a -i ${logfilepath}
+        echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
+        echo "Calling external Command Line Paramenter Handling Script" | tee -a -i ${logfilepath}
+        echo " - External Script : "${cli_api_cmdlineparm_handler} | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
     else
-        echo >> $APICLIlogfilepath
-        echo '--------------------------------------------------------------------------' >> $APICLIlogfilepath
-        echo >> $APICLIlogfilepath
-        echo "Calling external Command Line Paramenter Handling Script" >> $APICLIlogfilepath
-        echo " - External Script : "$cli_api_cmdlineparm_handler >> $APICLIlogfilepath
-        echo >> $APICLIlogfilepath
+        echo >> ${logfilepath}
+        echo '--------------------------------------------------------------------------' >> ${logfilepath}
+        echo >> ${logfilepath}
+        echo "Calling external Command Line Paramenter Handling Script" >> ${logfilepath}
+        echo " - External Script : "${cli_api_cmdlineparm_handler} >> ${logfilepath}
+        echo >> ${logfilepath}
     fi
     
-    . $cli_api_cmdlineparm_handler "$@"
+    . ${cli_api_cmdlineparm_handler} "$@"
     
-    if [ "$APISCRIPTVERBOSE" = "true" ] ; then
-        echo | tee -a -i $APICLIlogfilepath
-        echo "Returned from external Command Line Paramenter Handling Script" | tee -a -i $APICLIlogfilepath
-        echo | tee -a -i $APICLIlogfilepath
+    if ${APISCRIPTVERBOSE} ; then
+        echo | tee -a -i ${logfilepath}
+        echo "Returned from external Command Line Paramenter Handling Script" | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
         
-        if [ "$NOWAIT" != "true" ] ; then
+        if ! ${NOWAIT} ; then
+            read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
             echo
-            read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
         fi
         
-        echo | tee -a -i $APICLIlogfilepath
-        echo "Continueing local execution" | tee -a -i $APICLIlogfilepath
-        echo | tee -a -i $APICLIlogfilepath
-        echo '--------------------------------------------------------------------------' | tee -a -i $APICLIlogfilepath
-        echo | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i ${logfilepath}
+        echo "Continueing local execution" | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
+        echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
     else
-        echo >> $APICLIlogfilepath
-        echo "Returned from external Command Line Paramenter Handling Script" >> $APICLIlogfilepath
-        echo >> $APICLIlogfilepath
-        echo "Continueing local execution" >> $APICLIlogfilepath
-        echo >> $APICLIlogfilepath
-        echo '--------------------------------------------------------------------------' >> $APICLIlogfilepath
-        echo >> $APICLIlogfilepath
+        echo >> ${logfilepath}
+        echo "Returned from external Command Line Paramenter Handling Script" >> ${logfilepath}
+        echo >> ${logfilepath}
+        echo "Continueing local execution" >> ${logfilepath}
+        echo >> ${logfilepath}
+        echo '--------------------------------------------------------------------------' >> ${logfilepath}
+        echo >> ${logfilepath}
     fi
-
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    #
+    
+    # -------------------------------------------------------------------------------------------------
+    # Handle locally defined command line parameters
+    # -------------------------------------------------------------------------------------------------
+    
+    # Check if we have left over parameters that might be handled locally
+    #
+    if ${localCLIparms}; then
+        # Local CLII Parameters are defined
+        if [ -n "${REMAINS}" ]; then
+             
+            dumprawcliremains ${REMAINS}
+            
+            processcliremains ${REMAINS}
+            
+            dumpcliparmparselocalresults ${REMAINS}
+        fi
+    fi
+    
+    #
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
+    
 }
 
 #
@@ -332,47 +670,47 @@ CommandLineParameterHandler () {
 
 # MODIFIED 2018-05-03-3 -
 
-export configured_handler_root=$cli_api_cmdlineparm_handler_root
-export actual_handler_root=$configured_handler_root
+export configured_handler_root=${cli_api_cmdlineparm_handler_root}
+export actual_handler_root=${configured_handler_root}
 
-if [ "$configured_handler_root" == "." ] ; then
-    if [ $ScriptSourceFolder != $localdotpath ] ; then
+if [ "${configured_handler_root}" == "." ] ; then
+    if [ ${ScriptSourceFolder} != ${localdotpath} ] ; then
         # Script is not running from it's source folder, might be linked, so since we expect the handler folder
         # to be relative to the script source folder, use the identified script source folder instead
-        export actual_handler_root=$ScriptSourceFolder
+        export actual_handler_root=${ScriptSourceFolder}
     else
         # Script is running from it's source folder
-        export actual_handler_root=$configured_handler_root
+        export actual_handler_root=${configured_handler_root}
     fi
 else
     # handler root path is not period (.), so stipulating fully qualified path
-    export actual_handler_root=$configured_handler_root
+    export actual_handler_root=${configured_handler_root}
 fi
 
-export cli_api_cmdlineparm_handler_path=$actual_handler_root/$cli_api_cmdlineparm_handler_folder
-export cli_api_cmdlineparm_handler=$cli_api_cmdlineparm_handler_path/$cli_api_cmdlineparm_handler_file
+export cli_api_cmdlineparm_handler_path=${actual_handler_root}/${cli_api_cmdlineparm_handler_folder}
+export cli_api_cmdlineparm_handler=${cli_api_cmdlineparm_handler_path}/${cli_api_cmdlineparm_handler_file}
 
 # Check that we can finde the command line parameter handler file
 #
-if [ ! -r $cli_api_cmdlineparm_handler ] ; then
+if [ ! -r ${cli_api_cmdlineparm_handler} ] ; then
     # no file found, that is a problem
-    echo | tee -a -i $APICLIlogfilepath
-    echo 'Command Line Parameter handler script file missing' | tee -a -i $APICLIlogfilepath
-    echo '  File not found : '$cli_api_cmdlineparm_handler | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    echo 'Other parameter elements : ' | tee -a -i $APICLIlogfilepath
-    echo '  Configured Root path    : '$configured_handler_root | tee -a -i $APICLIlogfilepath
-    echo '  Actual Script Root path : '$actual_handler_root | tee -a -i $APICLIlogfilepath
-    echo '  Root of folder path : '$cli_api_cmdlineparm_handler_root | tee -a -i $APICLIlogfilepath
-    echo '  Folder in Root path : '$cli_api_cmdlineparm_handler_folder | tee -a -i $APICLIlogfilepath
-    echo '  Folder Root path    : '$cli_api_cmdlineparm_handler_path | tee -a -i $APICLIlogfilepath
-    echo '  Script Filename     : '$cli_api_cmdlineparm_handler_file | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    echo 'Critical Error - Exiting Script !!!!' | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    echo "Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-
+    echo | tee -a -i ${logfilepath}
+    echo 'Command Line Parameter handler script file missing' | tee -a -i ${logfilepath}
+    echo '  File not found : '${cli_api_cmdlineparm_handler} | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    echo 'Other parameter elements : ' | tee -a -i ${logfilepath}
+    echo '  Configured Root path    : '${configured_handler_root} | tee -a -i ${logfilepath}
+    echo '  Actual Script Root path : '${actual_handler_root} | tee -a -i ${logfilepath}
+    echo '  Root of folder path : '${cli_api_cmdlineparm_handler_root} | tee -a -i ${logfilepath}
+    echo '  Folder in Root path : '${cli_api_cmdlineparm_handler_folder} | tee -a -i ${logfilepath}
+    echo '  Folder Root path    : '${cli_api_cmdlineparm_handler_path} | tee -a -i ${logfilepath}
+    echo '  Script Filename     : '${cli_api_cmdlineparm_handler_file} | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    
     exit 251
 fi
 
@@ -382,23 +720,29 @@ CommandLineParameterHandler "$@"
 
 
 # -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
 # Local Handle request for help and return
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
 # Was help requested, if so show local content and return
 #
-if [ x"$SHOWHELP" = x"true" ] ; then
+if ${SHOWHELP} ; then
     # Show Local Help
-    doshowlocalhelp
+    if ${localCLIparms}; then
+        doshowlocalhelp
+    fi
     exit 255 
 fi
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------

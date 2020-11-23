@@ -13,12 +13,13 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.00
-ScriptRevision=030
-ScriptDate=2020-11-19
+ScriptVersion=04.60.00
+ScriptRevision=025
+ScriptDate=2020-11-18
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
+
 
 #
 
@@ -34,7 +35,7 @@ export APIExpectedAPISubscriptsVersion=v${APISubscriptsVersion}
 export APIExpectedActionScriptsVersionX=v${ScriptVersion//./x}
 export APIExpectedAPISubscriptsVersionX=v${APISubscriptsVersion//./x}
 
-ScriptName=api_mgmt_cli_shell_template_with_cmd_line_parameters_script.template.v${ScriptVersion}
+ScriptName=show_zerolocks_web_api_sessions.v${ScriptVersion}
 
 # =================================================================================================
 # =================================================================================================
@@ -144,22 +145,22 @@ export APISCRIPTVERBOSE=false
 export DefaultMgmtAdmin=administrator
 
 
-# 2018-05-02 - script type - template - test it all
+# 2018-11-20 - script type - Session Reporting and Clean-up
 
-export script_use_publish="true"
+export script_use_publish="false"
 
-export script_use_export="true"
-export script_use_import="true"
-export script_use_delete="true"
-export script_use_csvfile="true"
+export script_use_export="false"
+export script_use_import="false"
+export script_use_delete="false"
+export script_use_csvfile="false"
 
-export script_dump_csv="true"
-export script_dump_json="true"
-export script_dump_standard="true"
-export script_dump_full="true"
+export script_dump_csv="false"
+export script_dump_json="false"
+export script_dump_standard="false"
+export script_dump_full="false"
 
-export script_uses_wip="true"
-export script_uses_wip_json="true"
+export script_uses_wip="false"
+export script_uses_wip_json="false"
 
 # ADDED 2018-10-27 -
 export UseR8XAPI=true
@@ -330,25 +331,12 @@ export WorkAPIObjectLimit=${MaxAPIObjectLimit}
 # Handle important basics
 # -------------------------------------------------------------------------------------------------
 
-
-# =================================================================================================
-# START:  Local Variables
-# =================================================================================================
-
-
-export templogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_temp_'${DATEDTGS}.log
-
-
-# =================================================================================================
-# START:  Local Proceedures
-# =================================================================================================
-
-
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # Start of procedures block
 # -------------------------------------------------------------------------------------------------
 
+export templogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_temp_'${DATEDTGS}.log
 
 # -------------------------------------------------------------------------------------------------
 # SetupTempLogFile - Setup Temporary Log File and clear any debris
@@ -521,12 +509,6 @@ GetScriptSourceFolder () {
 # End of procedures block
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
-
-
-# =================================================================================================
-# END:  Local Proceedures
-# =================================================================================================
-
 
 # MODIFIED 2020-11-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
@@ -1917,6 +1899,11 @@ fi
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-16
 
 
+# =================================================================================================
+# END:  Setup Login Parameters and Login to Mgmt_CLI
+# =================================================================================================
+
+
 # -------------------------------------------------------------------------------------------------
 # Set parameters for Main operations - Other Path Values
 # -------------------------------------------------------------------------------------------------
@@ -1939,11 +1926,6 @@ fi
 
 
 # =================================================================================================
-# END:  Setup Login Parameters and Login to Mgmt_CLI
-# =================================================================================================
-
-
-# =================================================================================================
 # START:  Main operations
 # =================================================================================================
 
@@ -1952,47 +1934,26 @@ fi
 # Start executing Main operations
 # -------------------------------------------------------------------------------------------------
 
-#
-# shell meat
-#
+
+export deletefile=${APICLIpathbase}/sessions_to_delete_uid.${DATEDTGS}.csv
+export dumpfile=${APICLIpathbase}/delete_session.${DATEDTGS}.json
 
 
-# meat START
+echo | tee -a -i ${logfilepath}
+echo 'Show zero locks sessions' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
 
-echo Do something...
-echo
+echo 'Zero locks sessions' >> ${dumpfile}
+echo >> ${dumpfile}
 
-#export MgmtCLI_Base_OpParms="-f json -s ${APICLIsessionfile}"
-#export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
-#
-#export MgmtCLI_Show_OpParms="details-level \"${APICLIdetaillvl}\" ${MgmtCLI_Base_OpParms}"
-#
-#if [ $(expr ${CurrentAPIVersion} '>=' 1.1 ) ] ; then
-#    export MgmtCLI_Add_OpParms="set-if-exists true $MgmtCLI_IgnoreErr_OpParms ${MgmtCLI_Base_OpParms}"
-#else
-#    export MgmtCLI_Add_OpParms="$MgmtCLI_IgnoreErr_OpParms ${MgmtCLI_Base_OpParms}"
-#fi
-#
-#export MgmtCLI_Set_OpParms="$MgmtCLI_IgnoreErr_OpParms ${MgmtCLI_Base_OpParms}"
-#
-#export MgmtCLI_Delete_OpParms="details-level \"${APICLIdetaillvl}\" $MgmtCLI_IgnoreErr_OpParms ${MgmtCLI_Base_OpParms}"
-#
-#mgmt_cli delete ${APICLIobjecttype} --batch $APICLIDeleteCSVfile $MgmtCLI_Delete_OpParms > $OutputPath
-#mgmt_cli show ${APICLIobjecttype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
-#mgmt_cli add ${APICLIobjecttype} --batch $APICLIImportCSVfile $MgmtCLI_Add_OpParms > $OutputPath
-#mgmt_cli set ${APICLIobjecttype} --batch $APICLIImportCSVfile ignore-warnings true ignore-errors true --ignore-errors true -f json -s ${APICLIsessionfile} > $OutputPath
+echo '.uid, .locks, .changes, .expired-session, username' >> ${dumpfile}
+#mgmt_cli -s ${APICLIsessionfile} show sessions details-level full --format json | jq -r '.objects[] | (.uid + ", " + (.locks|tostring) + ", " + (.changes|tostring) + ", " + (."expired-session"|tostring) + ", " + ."user-name")' >> ${dumpfile}
+mgmt_cli -s ${APICLIsessionfile} show sessions details-level full --format json | jq -r '.objects[] | select((."user-name"=="WEB_API")) | (.uid + ", " + (.locks|tostring) + ", " + (.changes|tostring) + ", " + (."expired-session"|tostring) + ", " + ."user-name")' >> ${dumpfile}
+echo >> ${dumpfile}
 
+cat ${dumpfile} | tee -a -i ${logfilepath}
 
-#
-# Examples
-#
-#mgmt_cli show hosts details-level "standard" -f json -s ${APICLIsessionfile} > dump/${DATE}/hosts_dump_standard_$DATE.txt
-#mgmt_cli show hosts details-level "full" -f json -s ${APICLIsessionfile} > dump/${DATE}/hosts_dump_full_$DATE.txt
-#mgmt_cli add host --batch "$APICLICSVImportpathbase" ignore-warnings true ignore-errors true details-level "full" --ignore-errors true -f json -s ${APICLIsessionfile} > dump/${DATE}/hosts_dump_full_$DATE.txt
-#mgmt_cli set network --batch "$APICLICSVImportpathbase" ignore-warnings true ignore-errors true details-level "full" --ignore-errors true -f json -s ${APICLIsessionfile} > dump/${DATE}/hosts_dump_full_$DATE.txt
-#
-
-# meat END
+echo | tee -a -i ${logfilepath}
 
 
 # =================================================================================================

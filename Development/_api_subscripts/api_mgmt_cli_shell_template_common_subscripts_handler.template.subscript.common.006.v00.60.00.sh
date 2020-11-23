@@ -14,57 +14,70 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=000
-ScriptDate=2020-09-10
+ScriptRevision=030
+ScriptDate=2020-11-19
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
 
 #
 
-export APISubscriptsActionsScriptVersion=v${ScriptVersion//./x}
-export APISubscriptsActionScriptTemplateVersion=v${TemplateVersion//./x}
-ActionScriptName=api_mgmt_cli_shell_template_common_action_handler.template.action.common.$APISubscriptsRevision.v$ScriptVersion
+export APISubscriptsScriptVersion=v${ScriptVersion}
+export APISubscriptsScriptTemplateVersion=v${TemplateVersion}
+
+export APISubscriptsScriptVersionX=v${ScriptVersion//./x}
+export APISubscriptsScriptTemplateVersionX=v${TemplateVersion//./x}
+
+APISubScriptName=api_mgmt_cli_shell_template_common_action_handler.template.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}
+
 
 # =================================================================================================
-# Validate Common Actions Script version is correct for caller
+# =================================================================================================
+# START subscript:  X
 # =================================================================================================
 
 
-if [ x"$APIExpectedAPISubscriptsVersion" = x"$APISubscriptsActionsScriptVersion" ] ; then
-    # Script and Common Actions Script versions match, go ahead
-    echo >> $APICLIlogfilepath
-    echo 'Verify Common Actions Scripts Version - OK' >> $APICLIlogfilepath
-    echo >> $APICLIlogfilepath
+if ${SCRIPTVERBOSE} ; then
+    echo | tee -a -i ${logfilepath}
+    echo 'APISubScriptName:  '${APISubScriptName}'  Script Version: '${ScriptVersion}'  Revision:  '${ScriptRevision} | tee -a -i ${logfilepath}
 else
-    # Script and Actions Script versions don't match, ALL STOP!
-    echo | tee -a -i $APICLIlogfilepath
-    echo 'Verify Common Actions Scripts Version - Missmatch' | tee -a -i $APICLIlogfilepath
-    echo 'Expected Common Script version : '$APIExpectedAPISubscriptsVersion | tee -a -i $APICLIlogfilepath
-    echo 'Current  Common Script version : '$APISubscriptsActionsScriptVersion | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    echo 'Critical Error - Exiting Script !!!!' | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    echo "Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
+    echo >> ${logfilepath}
+    echo 'APISubScriptName:  '${APISubScriptName}'  Script Version: '${ScriptVersion}'  Revision:  '${ScriptRevision} >> ${logfilepath}
+fi
 
+
+# =================================================================================================
+# Validate Common Subscripts  Script version is correct for caller
+# =================================================================================================
+
+
+# MODIFIED 2020-11-17 -
+
+if [ x"${APIExpectedAPISubscriptsVersion}" = x"${APISubscriptsScriptVersion}" ] ; then
+    # Script and Common Subscripts Script versions match, go ahead
+    echo >> ${logfilepath}
+    echo 'Verify Common Subscripts Scripts Version - OK' >> ${logfilepath}
+    echo >> ${logfilepath}
+else
+    # Script and Subscripts Script versions don't match, ALL STOP!
+    echo | tee -a -i ${logfilepath}
+    echo 'Raw Script name        : '$0 | tee -a -i ${logfilepath}
+    echo 'Subscript version name : '${APISubscriptsScriptVersion}' '${APISubScriptName} | tee -a -i ${logfilepath}
+    echo 'Calling Script version : '${APIScriptVersion} | tee -a -i ${logfilepath}
+    echo 'Verify Common Subscripts Scripts Version - Missmatch' | tee -a -i ${logfilepath}
+    echo 'Expected Common Subscripts Script version : '${APIExpectedAPISubscriptsVersion} | tee -a -i ${logfilepath}
+    echo 'Current  Common Subscripts Script version : '${APISubscriptsScriptVersion} | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    
     exit 250
 fi
 
-
-# =================================================================================================
-# =================================================================================================
-# START common action script:  X
-# =================================================================================================
-
-
-if [ "$APISCRIPTVERBOSE" = "true" ] ; then
-    echo | tee -a -i $APICLIlogfilepath
-    echo 'ActionScriptName:  '$ActionScriptName'  Script Version: '$ScriptVersion'  Revision:  '$ScriptRevision | tee -a -i $APICLIlogfilepath
-else
-    echo >> $APICLIlogfilepath
-    echo 'ActionScriptName:  '$ActionScriptName'  Script Version: '$ScriptVersion'  Revision:  '$ScriptRevision >> $APICLIlogfilepath
-fi
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
@@ -90,11 +103,11 @@ fi
 # =================================================================================================
 
 
-export APICLIActionstemplogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_temp_'$DATEDTGS.log
+export subscriptstemplogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_temp_'${DATEDTGS}.log
 
 
 # =================================================================================================
-# START:  Local Proceedures
+# START Procedures:  Local Proceedures - 
 # =================================================================================================
 
 
@@ -102,7 +115,8 @@ export APICLIActionstemplogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_te
 # SetupTempLogFile - Setup Temporary Log File and clear any debris
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-09-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+
+# MODIFIED 2020-11-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 SetupTempLogFile () {
@@ -112,21 +126,24 @@ SetupTempLogFile () {
     
     if [ -z "$1" ]; then
         # No explicit name passed for action
-        export APICLIActionstemplogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_temp_'$DATEDTGS.log
+        export subscriptstemplogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_temp_'${DATEDTGS}.log
     else
         # explicit name passed for action
-        export APICLIActionstemplogfilepath=/var/tmp/$ScriptName'_'$APIScriptVersion'_temp_'$1'_'$DATEDTGS.log
+        export subscriptstemplogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_temp_'$1'_'${DATEDTGS}.log
     fi
     
-    rm $APICLIActionstemplogfilepath >> $APICLIlogfilepath 2> $APICLIlogfilepath
+    if [ -w ${subscriptstemplogfilepath} ] ; then
+        rm ${subscriptstemplogfilepath} >> ${logfilepath} 2>&1
+    fi
     
-    touch $APICLIActionstemplogfilepath
+    touch ${subscriptstemplogfilepath}
     
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-10
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-19
+
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -136,7 +153,8 @@ SetupTempLogFile () {
 # HandleShowTempLogFile - Handle Showing of Temporary Log File based on verbose setting
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-09-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+
+# MODIFIED 2020-11-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 HandleShowTempLogFile () {
@@ -144,20 +162,21 @@ HandleShowTempLogFile () {
     # HandleShowTempLogFile - Handle Showing of Temporary Log File based on verbose setting
     #
     
-    if [ "$APISCRIPTVERBOSE" = "true" ] ; then
+    if ${APISCRIPTVERBOSE} ; then
         # verbose mode so show the logged results and copy to normal log file
-        cat $APICLIActionstemplogfilepath | tee -a -i $APICLIlogfilepath
+        cat ${subscriptstemplogfilepath} | tee -a -i ${logfilepath}
     else
         # NOT verbose mode so push logged results to normal log file
-        cat $APICLIActionstemplogfilepath >> $APICLIlogfilepath
+        cat ${subscriptstemplogfilepath} >> ${logfilepath}
     fi
     
-    rm $APICLIActionstemplogfilepath >> $APICLIlogfilepath 2> $APICLIlogfilepath
+    rm ${subscriptstemplogfilepath} >> ${logfilepath} 2>&1
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-10
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-19
+
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -167,7 +186,8 @@ HandleShowTempLogFile () {
 # ForceShowTempLogFile - Handle Showing of Temporary Log File based forced display
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-09-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+
+# MODIFIED 2020-11-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ForceShowTempLogFile () {
@@ -175,22 +195,44 @@ ForceShowTempLogFile () {
     # ForceShowTempLogFile - Handle Showing of Temporary Log File based forced display
     #
     
-    cat $APICLIActionstemplogfilepath | tee -a -i $APICLIlogfilepath
+    cat ${subscriptstemplogfilepath} | tee -a -i ${logfilepath}
     
-    rm $APICLIActionstemplogfilepath >> $APICLIlogfilepath 2> $APICLIlogfilepath
+    rm ${subscriptstemplogfilepath} >> ${logfilepath} 2>&1
     
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-10
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-19
 
 
 # -------------------------------------------------------------------------------------------------
-# 
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# procedure_name - procedure description
+# -------------------------------------------------------------------------------------------------
+
+
+procedure_name () {
+    #
+    # procedure description
+    #
+    
+    return 0
+}
+
+
+# -------------------------------------------------------------------------------------------------
+# procedure_name - Procedure Call Example
+# -------------------------------------------------------------------------------------------------
+
+#procedure_name ${parameter1} ${parameter2}
+
+
+# -------------------------------------------------------------------------------------------------
+# END:  procedure_name - 
 # -------------------------------------------------------------------------------------------------
 
 
@@ -199,7 +241,7 @@ ForceShowTempLogFile () {
 
 
 # =================================================================================================
-# END:  Local Proceedures
+# END Procedures:  Local Proceedures - 
 # =================================================================================================
 
 
@@ -222,8 +264,20 @@ ForceShowTempLogFile () {
 # =================================================================================================
 
 
+if ${APISCRIPTVERBOSE} ; then
+    echo | tee -a -i ${logfilepath}
+    echo 'API Subscript Completed :  '${APISubScriptName} | tee -a -i ${logfilepath}
+else
+    echo >> ${logfilepath}
+    echo 'API Subscript Completed :  '${APISubScriptName} >> ${logfilepath}
+fi
+
+
+return 0
+
+
 # =================================================================================================
-# END common action script:  X
+# END subscript:  X
 # =================================================================================================
 # =================================================================================================
 

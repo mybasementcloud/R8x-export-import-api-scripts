@@ -14,43 +14,21 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=000
-ScriptDate=2020-09-10
+ScriptRevision=030
+ScriptDate=2020-11-19
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
 
 #
 
-export APIActionsScriptVersion=v${ScriptVersion//./x}
-export APIActionScriptTemplateVersion=v${TemplateVersion//./x}
-ActionScriptName=api_mgmt_cli_shell_template_action_handler.template.$APISubscriptsRevision.v$ScriptVersion
+export APIActionsScriptVersion=v${ScriptVersion}
+export APIActionScriptTemplateVersion=v${TemplateVersion}
 
-# =================================================================================================
-# Validate Actions Script version is correct for caller
-# =================================================================================================
+export APIActionsScriptVersionX=v${ScriptVersion//./x}
+export APIActionScriptTemplateVersionX=v${TemplateVersion//./x}
 
-
-if [ x"$APIExpectedActionScriptsVersion" = x"$APIActionsScriptVersion" ] ; then
-    # Script and Actions Script versions match, go ahead
-    echo >> $APICLIlogfilepath
-    echo 'Verify Actions Scripts Version - OK' >> $APICLIlogfilepath
-    echo >> $APICLIlogfilepath
-else
-    # Script and Actions Script versions don't match, ALL STOP!
-    echo | tee -a -i $APICLIlogfilepath
-    echo 'Verify Actions Scripts Version - Missmatch' | tee -a -i $APICLIlogfilepath
-    echo 'Expected Action Script version : '$APIExpectedActionScriptsVersion | tee -a -i $APICLIlogfilepath
-    echo 'Current  Action Script version : '$APIActionsScriptVersion | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    echo 'Critical Error - Exiting Script !!!!' | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-    echo "Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
-    echo | tee -a -i $APICLIlogfilepath
-
-    exit 250
-fi
-
+ActionScriptName=api_mgmt_cli_shell_template_action_handler.template.${APISubscriptsRevision}.v${ScriptVersion}
 
 # =================================================================================================
 # =================================================================================================
@@ -58,8 +36,46 @@ fi
 # =================================================================================================
 
 
-echo | tee -a -i $APICLIlogfilepath
-echo 'Action Script:  '$ActionScriptName'  Script Version: '$ScriptVersion'  Revision: '$ScriptRevision | tee -a -i $APICLIlogfilepath
+if ${APISCRIPTVERBOSE} ; then
+    echo | tee -a -i ${logfilepath}
+    echo 'ActionScriptName:  '${ActionScriptName}'  Script Version: '${ScriptVersion}'  Revision:  '${ScriptRevision} | tee -a -i ${logfilepath}
+else
+    echo >> ${logfilepath}
+    echo 'ActionScriptName:  '${ActionScriptName}'  Script Version: '${ScriptVersion}'  Revision:  '${ScriptRevision} >> ${logfilepath}
+fi
+
+
+# =================================================================================================
+# Validate Actions Script version is correct for caller
+# =================================================================================================
+
+
+if [ x"${APIExpectedActionScriptsVersion}" = x"${APIActionsScriptVersion}" ] ; then
+    # Script and Actions Script versions match, go ahead
+    echo >> ${logfilepath}
+    echo 'Verify Actions Scripts Version - OK' >> ${logfilepath}
+    echo >> ${logfilepath}
+else
+    # Script and Actions Script versions don't match, ALL STOP!
+    echo | tee -a -i ${logfilepath}
+    echo 'Raw Script name        : '$0 | tee -a -i ${logfilepath}
+    echo 'Subscript version name : '${APIActionsScriptVersion}' '${ActionScriptName} | tee -a -i ${logfilepath}
+    echo 'Calling Script version : '${APIScriptVersion} | tee -a -i ${logfilepath}
+    echo 'Verify Actions Scripts Version - Missmatch' | tee -a -i ${logfilepath}
+    echo 'Expected Action Script version : '${APIExpectedActionScriptsVersion} | tee -a -i ${logfilepath}
+    echo 'Current  Action Script version : '${APIActionsScriptVersion} | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    
+    exit 250
+fi
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
 
 # -------------------------------------------------------------------------------------------------
 # Handle important basics
@@ -109,7 +125,7 @@ echo 'Action Script:  '$ActionScriptName'  Script Version: '$ScriptVersion'  Rev
 # 
 # -------------------------------------------------------------------------------------------------
 
-echo | tee -a -i $APICLIlogfilepath
+echo | tee -a -i ${logfilepath}
 
 return 0
 

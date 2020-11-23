@@ -37,41 +37,55 @@ REM Initial variables
 REM ----------------------------------------------------------------
 
 SET CURDIR=%CD%
-SET NEXTOP=:FIRST
 
-GOTO %NEXTOP%
+GOTO :FIRST
+
+REM ----------------------------------------------------------------
+REM ----------------------------------------------------------------
+REM ----------------------------------------------------------------
 
 REM ----------------------------------------------------------------
 REM Touch Directory
 REM ----------------------------------------------------------------
-:TOUCHDIR
+:sub_TOUCHDIR
+
+SET "TARGETDIR=%~1"
 
 ECHO Touch "%TARGETDIR%"
-CD /D "%TARGETDIR%"
+
+REM CD /D "%TARGETDIR%"
+PUSHD "%TARGETDIR%"
+
 REM FOR %%I IN (*.CMD) DO "%PATHTOUCH%" "%%I" >> "%TEMP%\TouchDir.log"
 REM FOR %%I IN (v*.) DO "%PATHTOUCH%" "%%I" >> "%TEMP%\TouchDir.log"
 FOR %%I IN (*.version) DO "%PATHTOUCH%" "%%I" >> "%TEMP%\TouchDir.log"
 FOR %%I IN (*.sh) DO "%PATHTOUCH%" "%%I" >> "%TEMP%\TouchDir.log"
 FOR %%I IN (*.json) DO "%PATHTOUCH%" "%%I" >> "%TEMP%\TouchDir.log"
-CD /D "%CURDIR%"
 
-GOTO %NEXTOP%
+REM CD /D "%CURDIR%"
+POPD
+
+EXIT /B 0
+REM GOTO EOF
 REM ----------------------------------------------------------------
 REM ----------------------------------------------------------------
 
 
 REM ----------------------------------------------------------------
+REM ----------------------------------------------------------------
+REM ----------------------------------------------------------------
+
 :FIRST
-SET TARGETDIR=%CURDIR%
-SET NEXTOP=:SECOND
-GOTO :TOUCHDIR
+
+REM CALL :sub_TOUCHDIR "%CURDIR%"
+CALL :sub_TOUCHDIR "_api_subscripts"
+CALL :sub_TOUCHDIR "_templates.wip"
+CALL :sub_TOUCHDIR "export_import.wip"
+CALL :sub_TOUCHDIR "Session_Cleanup.wip"
+
 
 REM ----------------------------------------------------------------
-:SECOND
-
-
-REM ----------------------------------------------------------------
-goto :DONE
+GOTO :DONE
 
 REM *****************************************************************
 REM *****************************************************************
@@ -98,7 +112,7 @@ ECHO.
 ECHO No TOUCH.EXE Found
 ECHO.
 
-goto :DONE
+GOTO :DONE
 
 REM *****************************************************************
 REM *****************************************************************
