@@ -13,19 +13,51 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.50.00
-ScriptRevision=055
-ScriptDate=2020-09-10
-TemplateVersion=00.50.00
-CommonScriptsVersion=00.50.00
-CommonScriptsRevision=006
+ScriptVersion=00.60.00
+ScriptRevision=030
+ScriptDate=2020-11-19
+TemplateVersion=00.60.00
+APISubscriptsVersion=00.60.00
+APISubscriptsRevision=006
 
 #
 
-export APIScriptVersion=v${ScriptVersion//./x}
-export APIExpectedCommonScriptsVersion=v${CommonScriptsVersion//./x}
-export APIExpectedActionScriptsVersion=v${ScriptVersion//./x}
+export APIScriptVersion=v${ScriptVersion}
+export APIScriptTemplateVersion=v${TemplateVersion}
+
+export APIScriptVersionX=v${ScriptVersion//./x}
+export APIScriptTemplateVersionX=v${TemplateVersion//./x}
+
+export APIExpectedActionScriptsVersion=v${ScriptVersion}
+export APIExpectedAPISubscriptsVersion=v${APISubscriptsVersion}
+
+export APIExpectedActionScriptsVersionX=v${ScriptVersion//./x}
+export APIExpectedAPISubscriptsVersionX=v${APISubscriptsVersion//./x}
+
 ScriptName=cli_api_append_csv_error_handling_to_csv_file
+
+
+# -------------------------------------------------------------------------------------------------
+# Logging variables
+# -------------------------------------------------------------------------------------------------
+
+
+# Logging to nirvana
+logfilepath=/dev/null
+
+
+# -------------------------------------------------------------------------------------------------
+# Announce what we are starting here...
+# -------------------------------------------------------------------------------------------------
+
+echo | tee -a -i ${logfilepath}
+echo 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision} | tee -a -i ${logfilepath}
+echo 'Script original call name :  '$0 | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
 
 # =================================================================================================
 # =================================================================================================
@@ -35,14 +67,14 @@ ScriptName=cli_api_append_csv_error_handling_to_csv_file
 
 
 export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
-export fileresults=api_add_csv_error_handling_to_csv_file_results_$DATEDTGS.txt
+export fileresults=api_add_csv_error_handling_to_csv_file_results_${DATEDTGS}.txt
 #export fileimport=hosts_1.csv
 export fileimport=$1
 export filerefactor=$1.refactor.csv
 
 FILELINEARR=()
 
-#read -r -a $FILELINEARR -u $fileimport
+#read -r -a ${FILELINEARR} -u ${fileimport}
 
 echo
 echo 'Collect File into array :'
@@ -51,7 +83,7 @@ echo
 while read -r line; do
     FILELINEARR+=("$line")
     echo -n '.'
-done < $fileimport
+done < ${fileimport}
 
 echo
 echo 'Dump file array and refactor lines :'
@@ -60,29 +92,29 @@ echo
 COUNTER=0
 
 for i in "${FILELINEARR[@]}"; do
-    echo "$COUNTER >>$i<<" | tee -a -i $fileresults
-    if [ $COUNTER -eq 0 ]; then
+    echo "${COUNTER} >>$i<<" | tee -a -i ${fileresults}
+    if [ ${COUNTER} -eq 0 ]; then
         # Line 0 is the header
-        echo "$i"',"ignore-warnings","ignore-errors","set-if-exists"' > $filerefactor
+        echo "$i"',"ignore-warnings","ignore-errors","set-if-exists"' > ${filerefactor}
     else
         # Lines 1+ are the data
-        echo "$i"',true,true,true' >> $filerefactor
+        echo "$i"',true,true,true' >> ${filerefactor}
     fi
     let COUNTER=COUNTER+1
 done
 
-echo | tee -a -i $fileresults
+echo | tee -a -i ${fileresults}
 
-echo "Refactored file:" | tee -a -i $fileresults
-echo | tee -a -i $fileresults
-cat $filerefactor | tee -a -i $fileresults
-echo | tee -a -i $fileresults
+echo "Refactored file:" | tee -a -i ${fileresults}
+echo | tee -a -i ${fileresults}
+cat ${filerefactor} | tee -a -i ${fileresults}
+echo | tee -a -i ${fileresults}
 
 echo
 echo 'Done!'
 echo
 
-echo 'Input File      :  '$fileimport
-echo 'Refactored File :  '$filerefactor
-echo 'Operations log  :  '$fileresults
+echo 'Input File      :  '${fileimport}
+echo 'Refactored File :  '${filerefactor}
+echo 'Operations log  :  '${fileresults}
 echo
