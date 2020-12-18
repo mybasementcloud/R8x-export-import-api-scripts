@@ -7,7 +7,7 @@ For a complete overview, review the PDF - TBD
 
 As of v00.60.00.045 the approach to shared scripts has changed to focus only on the current work in progress under devops.dev folder.
 
-Well functioning sets of scripts shall be packaged into releases that can be downloaded as a set for quick deployment and implementation.  Future effort to create an installation and update solution, similar to other scripting solutions targetting Check Point Software Technologies will be analyzed, pending method of providing sustainable locations for such downloads.
+Well functioning sets of scripts shall be packaged into releases that can be downloaded as a set for quick deployment and implementation.  Future effort to create an installation and update solution, similar to other scripting solutions targeting Check Point Software Technologies will be analyzed, pending method of providing sustainable locations for such downloads.
 
 
 # Overview
@@ -25,7 +25,7 @@ These scripts show examples of:
 - MDM script to document domains and output to a domains_list.txt file for reference in calls to other scripts
 - Session Cleanup scripts to show and also remove zero lock sessions that may accumulate.
 
-For direct questions, hit me up at ericb(at)checkpoint.com 
+For direct questions, hit me up at ericb(at)checkpoint.com
     or lookup information on https://community.checkpoint.com CheckMates community.
 
 NOTE:  As of version 00.60.00.000 all scripts require the "_api_subscripts" folder in the parent folder of the script's operating folder!  Don't forget to copy this folder also.
@@ -43,9 +43,8 @@ The script packages are:
 - Export, Import, Set, Delete Object :  export_import.all.v00.50.00.055.tgz
 - session cleanup handlers           :  Session_Cleanup.v04.50.00.templatev00.50.00.055.tgz
 - template for script development    :  _templates.v00.50.00.055tgz
-    - script templates with command line parameter handling for the API from bash 
- 
+    - script templates with command line parameter handling for the API from bash
+
 The approach to provided compressed packages was changed to facilitate quicker implementation on the management hosts.
 
 Packages contain the Operations folder structure, where the key working folders are not "*.wip" incarnations.
-
