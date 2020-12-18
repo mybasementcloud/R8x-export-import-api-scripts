@@ -1,7 +1,0 @@
-"name","color","comments","broadcast","subnet4","mask-length4","subnet6","mask-length6","nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.method","tags"
-"netw_test_LAN_01","pink","test network LAN 01","allow","10.230.0.0",24,,,true,"gateway","All","hide","test_data_please_remove"
-"netw_test_LAN_02","pink","test network LAN 02","allow","10.231.0.0",24,,,true,"gateway","All","hide","test_data_please_remove"
-"netw_test_LAN_03","pink","test network LAN 03","allow","10.232.0.0",24,,,true,"gateway","All","hide","test_data_please_remove"
-"netw_test_LAN_04","pink","test network LAN 04","allow","10.233.0.0",24,,,true,"gateway","All","hide","test_data_please_remove"
-"netw_test_LAN_05","pink","test network LAN 05","allow","10.234.0.0",24,,,true,"gateway","All","hide","test_data_please_remove"
-"CP_default_Office_Mode_addresses_pool","pink","Used as a default for Office Mode. If deleted, it must be specified for each gateway individually (in the VPN Clients page Advanced section)","allow","10.133.184.0",24,,,true,"gateway","All","hide","test_data_please_remove"
