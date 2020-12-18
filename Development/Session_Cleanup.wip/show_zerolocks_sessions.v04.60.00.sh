@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT Base Template for API CLI Operations with command line parameters script utilization
+# SCRIPT Show zerolocks sessions all users
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=04.60.00
-ScriptRevision=025
-ScriptDate=2020-11-18
+ScriptRevision=045
+ScriptDate=2020-12-17
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -36,6 +36,10 @@ export APIExpectedActionScriptsVersionX=v${ScriptVersion//./x}
 export APIExpectedAPISubscriptsVersionX=v${APISubscriptsVersion//./x}
 
 ScriptName=show_zerolocks_sessions.v${ScriptVersion}
+export APIScriptFileNameRoot=show_zerolocks_sessions
+export APIScriptShortName=show_zerolocks_sessions
+export APIScriptnohupName=${APIScriptShortName}
+export APIScriptDescription="Show zerolocks sessions all users"
 
 # =================================================================================================
 # =================================================================================================
@@ -111,8 +115,8 @@ export OtherOutputFolder=Specify_The_Folder_Here
 #
 export OutputDATESubfolder=true
 export OutputDTGSSubfolder=false
-#export OutputSubfolderScriptName=false
-#export OutputSubfolderScriptShortName=false
+export OutputSubfolderScriptName=false
+export OutputSubfolderScriptShortName=true
 
 export notthispath=/home/
 export startpathroot=.
@@ -748,27 +752,56 @@ fi
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
-# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-11-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
 # Specific Scripts Command Line Parameters
 #
+# -f <format[all|csv|json]> | --format <format[all|csv|json]> | -f=<format[all|csv|json]> | --format=<format[all|csv|json]> 
+#
+# --details <level[all|full|standard]> | --DETAILSLEVEL <level[all|full|standard]> | --details=<level[all|full|standard]> | --DETAILSLEVEL=<level[all|full|standard]> 
+#
+# --DEVOPSRESULTS | --RESULTS
+# --DEVOPSRESULTSPATH <results_path> | --RESULTSPATH <results_path> | --DEVOPSRESULTSPATH=<results_path> | --RESULTSPATH=<results_path> 
+#
 # -x <export_path> | --export <export_path> | -x=<export_path> | --export=<export_path> 
-# -i <import_path> | --import-path <import_path> | -i=<import_path> | --import-path=<import_path>'
-# -k <delete_path> | --delete-path <delete_path> | -k=<delete_path> | --delete-path=<delete_path>'
+# -i <import_path> | --import-path <import_path> | -i=<import_path> | --import-path=<import_path> 
+# -k <delete_path> | --delete-path <delete_path> | -k=<delete_path> | --delete-path=<delete_path> 
 #
 # --NSO | --no-system-objects
 # --SO | --system-objects
 #
 # --CLEANUPWIP
 # --NODOMAINFOLDERS
-# --CSVEXPORTADDIGNOREERR
+# --CSVADDEXPERRHANDLE
 #
 # --CSVEXPORTDATADOMAIN
 # --CSVEXPORTDATACREATOR
 # --CSVEXPORTDATAALL
 #
+
+# ADDED 2020-11-23 -
+# Define output format from all, csv, or json
+
+export CLIparm_format=all
+export CLIparm_formatall=true
+export CLIparm_formatcsv=true
+export CLIparm_formatjson=true
+
+# ADDED 2020-11-23 -
+# Define output details level from all, full, or standard for json format output
+# Default output details level for json format output is all
+export CLIparm_detailslevel=all
+export CLIparm_detailslevelall=true
+export CLIparm_detailslevelfull=true
+export CLIparm_detailslevelstandard=true
+# ADDED 2020-11-23 -
+# Determine utilization of devops.results folder in parent folder
+
+export CLIparm_UseDevOpsResults=false
+export UseDevOpsResults=false
+export CLIparm_resultspath=
 
 export CLIparm_exportpath=
 export CLIparm_importpath=
@@ -780,7 +813,7 @@ export CLIparm_NoSystemObjects=false
 
 export CLIparm_CLEANUPWIP=
 export CLIparm_NODOMAINFOLDERS=
-export CLIparm_CSVEXPORTADDIGNOREERR=
+export CLIparm_CSVADDEXPERRHANDLE=
 
 # --CLEANUPWIP
 #
@@ -822,24 +855,24 @@ else
     export NODOMAINFOLDERS=false
 fi
 
-# --CSVEXPORTADDIGNOREERR
+# --CSVADDEXPERRHANDLE
 #
-if [ -z "${CSVEXPORTADDIGNOREERR}" ]; then
-    # CSVEXPORTADDIGNOREERR mode not set from shell level
-    export CLIparm_CSVEXPORTADDIGNOREERR=false
-    export CSVEXPORTADDIGNOREERR=false
-elif [ x"`echo "${CSVEXPORTADDIGNOREERR}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
-    # CSVEXPORTADDIGNOREERR mode set OFF from shell level
-    export CLIparm_CSVEXPORTADDIGNOREERR=false
-    export CSVEXPORTADDIGNOREERR=false
-elif [ x"`echo "${CSVEXPORTADDIGNOREERR}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
-    # CSVEXPORTADDIGNOREERR mode set ON from shell level
-    export CLIparm_CSVEXPORTADDIGNOREERR=true
-    export CSVEXPORTADDIGNOREERR=true
+if [ -z "${CSVADDEXPERRHANDLE}" ]; then
+    # CSVADDEXPERRHANDLE mode not set from shell level
+    export CLIparm_CSVADDEXPERRHANDLE=false
+    export CSVADDEXPERRHANDLE=false
+elif [ x"`echo "${CSVADDEXPERRHANDLE}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    # CSVADDEXPERRHANDLE mode set OFF from shell level
+    export CLIparm_CSVADDEXPERRHANDLE=false
+    export CSVADDEXPERRHANDLE=false
+elif [ x"`echo "${CSVADDEXPERRHANDLE}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # CSVADDEXPERRHANDLE mode set ON from shell level
+    export CLIparm_CSVADDEXPERRHANDLE=true
+    export CSVADDEXPERRHANDLE=true
 else
     # CLEANUPWIP mode set to wrong value from shell level
-    export CLIparm_CSVEXPORTADDIGNOREERR=false
-    export CSVEXPORTADDIGNOREERR=false
+    export CLIparm_CSVADDEXPERRHANDLE=false
+    export CSVADDEXPERRHANDLE=false
 fi
 
 # ADDED 2020-09-30 -
@@ -851,7 +884,7 @@ export CLIparm_CSVEXPORTDATADOMAIN=false
 export CLIparm_CSVEXPORTDATACREATOR=false
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-23
 
 
 # -------------------------------------------------------------------------------------------------

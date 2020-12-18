@@ -1,6 +1,6 @@
-"name","color","comments","tags"
-"Test-Zone-01","pink","Test Zone 01","test_data_please_remove"
-"Test-Zone-02","pink","Test Zone 02","test_data_please_remove"
-"Test-Zone-03","pink","Test Zone 03","test_data_please_remove"
-"Test-Zone-04","pink","Test Zone 04","test_data_please_remove"
-"Test-Zone-05","pink","Test Zone 05","test_data_please_remove"
+"name","color","comments","tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"
+"Test-Zone-01","pink","Test Zone 01","test_data_please_remove",,,,,,
+"Test-Zone-02","pink","Test Zone 02","test_data_please_remove","tag_one","tag_two","tag_three","tag_four","tag_five","tag_six"
+"Test-Zone-03","pink","Test Zone 03","test_data_please_remove",,,,,,
+"Test-Zone-04","pink","Test Zone 04","test_data_please_remove","tag_one","tag_two","tag_three",,,
+"Test-Zone-05","pink","Test Zone 05","test_data_please_remove","tag_one",,,,,

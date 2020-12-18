@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=030
-ScriptDate=2020-11-19
+ScriptRevision=045
+ScriptDate=2020-12-17
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -35,6 +35,10 @@ export APIExpectedActionScriptsVersionX=v${ScriptVersion//./x}
 export APIExpectedAPISubscriptsVersionX=v${APISubscriptsVersion//./x}
 
 ScriptName=cli_api_export_all_domains_objects
+export APIScriptFileNameRoot=cli_api_export_all_domains_objects
+export APIScriptShortName=export_all_domains_objects
+export APIScriptnohupName=${APIScriptShortName}
+export APIScriptDescription="Export objects from all domains, object export to JSON (standard and full details), and CSV file for API CLI Operations"
 
 # =================================================================================================
 # =================================================================================================
@@ -110,8 +114,8 @@ export OtherOutputFolder=Specify_The_Folder_Here
 #
 export OutputDATESubfolder=true
 export OutputDTGSSubfolder=false
-#export OutputSubfolderScriptName=false
-#export OutputSubfolderScriptShortName=false
+export OutputSubfolderScriptName=false
+export OutputSubfolderScriptShortName=true
 
 export notthispath=/home/
 export startpathroot=.
@@ -785,27 +789,56 @@ fi
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
-# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-11-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
 # Specific Scripts Command Line Parameters
 #
+# -f <format[all|csv|json]> | --format <format[all|csv|json]> | -f=<format[all|csv|json]> | --format=<format[all|csv|json]> 
+#
+# --details <level[all|full|standard]> | --DETAILSLEVEL <level[all|full|standard]> | --details=<level[all|full|standard]> | --DETAILSLEVEL=<level[all|full|standard]> 
+#
+# --DEVOPSRESULTS | --RESULTS
+# --DEVOPSRESULTSPATH <results_path> | --RESULTSPATH <results_path> | --DEVOPSRESULTSPATH=<results_path> | --RESULTSPATH=<results_path> 
+#
 # -x <export_path> | --export <export_path> | -x=<export_path> | --export=<export_path> 
-# -i <import_path> | --import-path <import_path> | -i=<import_path> | --import-path=<import_path>'
-# -k <delete_path> | --delete-path <delete_path> | -k=<delete_path> | --delete-path=<delete_path>'
+# -i <import_path> | --import-path <import_path> | -i=<import_path> | --import-path=<import_path> 
+# -k <delete_path> | --delete-path <delete_path> | -k=<delete_path> | --delete-path=<delete_path> 
 #
 # --NSO | --no-system-objects
 # --SO | --system-objects
 #
 # --CLEANUPWIP
 # --NODOMAINFOLDERS
-# --CSVEXPORTADDIGNOREERR
+# --CSVADDEXPERRHANDLE
 #
 # --CSVEXPORTDATADOMAIN
 # --CSVEXPORTDATACREATOR
 # --CSVEXPORTDATAALL
 #
+
+# ADDED 2020-11-23 -
+# Define output format from all, csv, or json
+
+export CLIparm_format=all
+export CLIparm_formatall=true
+export CLIparm_formatcsv=true
+export CLIparm_formatjson=true
+
+# ADDED 2020-11-23 -
+# Define output details level from all, full, or standard for json format output
+# Default output details level for json format output is all
+export CLIparm_detailslevel=all
+export CLIparm_detailslevelall=true
+export CLIparm_detailslevelfull=true
+export CLIparm_detailslevelstandard=true
+# ADDED 2020-11-23 -
+# Determine utilization of devops.results folder in parent folder
+
+export CLIparm_UseDevOpsResults=false
+export UseDevOpsResults=false
+export CLIparm_resultspath=
 
 export CLIparm_exportpath=
 export CLIparm_importpath=
@@ -817,7 +850,7 @@ export CLIparm_NoSystemObjects=false
 
 export CLIparm_CLEANUPWIP=
 export CLIparm_NODOMAINFOLDERS=
-export CLIparm_CSVEXPORTADDIGNOREERR=
+export CLIparm_CSVADDEXPERRHANDLE=
 
 # --CLEANUPWIP
 #
@@ -859,24 +892,24 @@ else
     export NODOMAINFOLDERS=false
 fi
 
-# --CSVEXPORTADDIGNOREERR
+# --CSVADDEXPERRHANDLE
 #
-if [ -z "${CSVEXPORTADDIGNOREERR}" ]; then
-    # CSVEXPORTADDIGNOREERR mode not set from shell level
-    export CLIparm_CSVEXPORTADDIGNOREERR=false
-    export CSVEXPORTADDIGNOREERR=false
-elif [ x"`echo "${CSVEXPORTADDIGNOREERR}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
-    # CSVEXPORTADDIGNOREERR mode set OFF from shell level
-    export CLIparm_CSVEXPORTADDIGNOREERR=false
-    export CSVEXPORTADDIGNOREERR=false
-elif [ x"`echo "${CSVEXPORTADDIGNOREERR}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
-    # CSVEXPORTADDIGNOREERR mode set ON from shell level
-    export CLIparm_CSVEXPORTADDIGNOREERR=true
-    export CSVEXPORTADDIGNOREERR=true
+if [ -z "${CSVADDEXPERRHANDLE}" ]; then
+    # CSVADDEXPERRHANDLE mode not set from shell level
+    export CLIparm_CSVADDEXPERRHANDLE=false
+    export CSVADDEXPERRHANDLE=false
+elif [ x"`echo "${CSVADDEXPERRHANDLE}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    # CSVADDEXPERRHANDLE mode set OFF from shell level
+    export CLIparm_CSVADDEXPERRHANDLE=false
+    export CSVADDEXPERRHANDLE=false
+elif [ x"`echo "${CSVADDEXPERRHANDLE}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # CSVADDEXPERRHANDLE mode set ON from shell level
+    export CLIparm_CSVADDEXPERRHANDLE=true
+    export CSVADDEXPERRHANDLE=true
 else
     # CLEANUPWIP mode set to wrong value from shell level
-    export CLIparm_CSVEXPORTADDIGNOREERR=false
-    export CSVEXPORTADDIGNOREERR=false
+    export CLIparm_CSVADDEXPERRHANDLE=false
+    export CSVADDEXPERRHANDLE=false
 fi
 
 # ADDED 2020-09-30 -
@@ -888,7 +921,7 @@ export CLIparm_CSVEXPORTDATADOMAIN=false
 export CLIparm_CSVEXPORTDATACREATOR=false
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-23
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2005,53 +2038,69 @@ MainExportDumpOperations () {
     # Start executing Main Dump operations - json Standard, json Full, CSV
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2018-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    # MODIFIED 2020-11-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
-    if [ x"${script_dump_json}" = x"true" ] ; then
+    if ${script_dump_json} ; then
+        # Script supports json output for results
         
         export primarytargetoutputformat=${FileExtJSON}
         
-        if [ x"${script_dump_standard}" = x"true" ] ; then
-            export APICLIdetaillvl=standard
+        if ${CLIparm_formatjson} ; then
+            # CLI parameters enabled or did not disable json output for results
+            if ${script_dump_standard} ; then
+                # Script supports json standard output for results
+                export APICLIdetaillvl=standard
+                if ${CLIparm_detailslevelstandard} ; then
+                    # CLI parameters enabled or did not disable json standard output for results
+                    
+                    echo | tee -a -i ${logfilepath}
+                    echo 'Now dumping "'${APICLIdetaillvl}'" details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
+                    echo 'Calling Action File : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                    
+                    . ${APIScriptJSONActionFile} "$@"
+                fi
+            fi
             
-            echo | tee -a -i ${logfilepath}
-            echo 'Now dumping "'${APICLIdetaillvl}'" details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
-            echo 'Calling Action File : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
-            echo | tee -a -i ${logfilepath}
-            
-            . ${APIScriptJSONActionFile} "$@"
-        fi
-        
-        if [ x"${script_dump_full}" = x"true" ] ; then
-            export APICLIdetaillvl=full
-            
-            echo | tee -a -i ${logfilepath}
-            echo 'Now dumping "'${APICLIdetaillvl}'" details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
-            echo 'Calling Action File : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
-            echo | tee -a -i ${logfilepath}
-            
-            . ${APIScriptJSONActionFile} "$@"
+            if ${script_dump_full} ; then
+                # Script supports json full output for results
+                export APICLIdetaillvl=full
+                if ${CLIparm_detailslevelfull} ; then
+                    # CLI parameters enabled or did not disable json full output for results
+                    
+                    echo | tee -a -i ${logfilepath}
+                    echo 'Now dumping "'${APICLIdetaillvl}'" details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
+                    echo 'Calling Action File : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                    
+                    . ${APIScriptJSONActionFile} "$@"
+                fi
+            fi
         fi
         
     fi
     
-    if [ x"${script_dump_csv}" = x"true" ] ; then
+    if ${script_dump_csv} ; then
+        # Script supports csv output for results
         
         export primarytargetoutputformat=${FileExtCSV}
         
         export APICLIdetaillvl=full
         
-        echo | tee -a -i ${logfilepath}
-        echo 'Now dumping "'${APICLIdetaillvl}'" details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
-        echo 'Calling Action File : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        
-        . ${APIScriptCSVActionFile} "$@"
+        if ${CLIparm_formatcsv} ; then
+            # CLI parameters enabled or did not disable csv output for results
+            echo | tee -a -i ${logfilepath}
+            echo 'Now dumping "'${APICLIdetaillvl}'" details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
+            echo 'Calling Action File : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
+            echo | tee -a -i ${logfilepath}
+            
+            . ${APIScriptCSVActionFile} "$@"
+        fi
     fi
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-23
     
     echo
     return 0

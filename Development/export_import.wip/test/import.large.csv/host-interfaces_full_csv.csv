@@ -1,4 +1,4 @@
-name,interfaces.add.name,interfaces.add.subnet4,interfaces.add.mask-length4,interfaces.add.subnet6,interfaces.add.mask-length6,interfaces.add.color,interfaces.add.comments
+"name","interfaces.add.name","interfaces.add.subnet4","interfaces.add.mask-length4","interfaces.add.subnet6","interfaces.add.mask-length6","interfaces.add.color","interfaces.add.comments"
 TEST-HOST-01,lan,10.129.0.1,20,null,null,crete blue,
 TEST-HOST-01,wlan,10.129.20.1,20,null,null,crete blue,
 TEST-HOST-02,lan1,10.129.0.2,20,null,null,crete blue,

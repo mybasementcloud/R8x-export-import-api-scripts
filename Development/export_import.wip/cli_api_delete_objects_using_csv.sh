@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=030
-ScriptDate=2020-11-19
+ScriptRevision=045
+ScriptDate=2020-12-17
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -35,6 +35,10 @@ export APIExpectedActionScriptsVersionX=v${ScriptVersion//./x}
 export APIExpectedAPISubscriptsVersionX=v${APISubscriptsVersion//./x}
 
 ScriptName=cli_api_delete_objects_using_csv
+export APIScriptFileNameRoot=cli_api_delete_objects_using_csv
+export APIScriptShortName=delete_objects_using_csv
+export APIScriptnohupName=${APIScriptShortName}
+export APIScriptDescription="Object delete using object-names csv files for API CLI Operations"
 
 # =================================================================================================
 # =================================================================================================
@@ -110,8 +114,8 @@ export OtherOutputFolder=Specify_The_Folder_Here
 #
 export OutputDATESubfolder=true
 export OutputDTGSSubfolder=false
-#export OutputSubfolderScriptName=false
-#export OutputSubfolderScriptShortName=false
+export OutputSubfolderScriptName=false
+export OutputSubfolderScriptShortName=true
 
 export notthispath=/home/
 export startpathroot=.
@@ -785,27 +789,56 @@ fi
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
-# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-11-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
 # Specific Scripts Command Line Parameters
 #
+# -f <format[all|csv|json]> | --format <format[all|csv|json]> | -f=<format[all|csv|json]> | --format=<format[all|csv|json]> 
+#
+# --details <level[all|full|standard]> | --DETAILSLEVEL <level[all|full|standard]> | --details=<level[all|full|standard]> | --DETAILSLEVEL=<level[all|full|standard]> 
+#
+# --DEVOPSRESULTS | --RESULTS
+# --DEVOPSRESULTSPATH <results_path> | --RESULTSPATH <results_path> | --DEVOPSRESULTSPATH=<results_path> | --RESULTSPATH=<results_path> 
+#
 # -x <export_path> | --export <export_path> | -x=<export_path> | --export=<export_path> 
-# -i <import_path> | --import-path <import_path> | -i=<import_path> | --import-path=<import_path>'
-# -k <delete_path> | --delete-path <delete_path> | -k=<delete_path> | --delete-path=<delete_path>'
+# -i <import_path> | --import-path <import_path> | -i=<import_path> | --import-path=<import_path> 
+# -k <delete_path> | --delete-path <delete_path> | -k=<delete_path> | --delete-path=<delete_path> 
 #
 # --NSO | --no-system-objects
 # --SO | --system-objects
 #
 # --CLEANUPWIP
 # --NODOMAINFOLDERS
-# --CSVEXPORTADDIGNOREERR
+# --CSVADDEXPERRHANDLE
 #
 # --CSVEXPORTDATADOMAIN
 # --CSVEXPORTDATACREATOR
 # --CSVEXPORTDATAALL
 #
+
+# ADDED 2020-11-23 -
+# Define output format from all, csv, or json
+
+export CLIparm_format=all
+export CLIparm_formatall=true
+export CLIparm_formatcsv=true
+export CLIparm_formatjson=true
+
+# ADDED 2020-11-23 -
+# Define output details level from all, full, or standard for json format output
+# Default output details level for json format output is all
+export CLIparm_detailslevel=all
+export CLIparm_detailslevelall=true
+export CLIparm_detailslevelfull=true
+export CLIparm_detailslevelstandard=true
+# ADDED 2020-11-23 -
+# Determine utilization of devops.results folder in parent folder
+
+export CLIparm_UseDevOpsResults=false
+export UseDevOpsResults=false
+export CLIparm_resultspath=
 
 export CLIparm_exportpath=
 export CLIparm_importpath=
@@ -817,7 +850,7 @@ export CLIparm_NoSystemObjects=false
 
 export CLIparm_CLEANUPWIP=
 export CLIparm_NODOMAINFOLDERS=
-export CLIparm_CSVEXPORTADDIGNOREERR=
+export CLIparm_CSVADDEXPERRHANDLE=
 
 # --CLEANUPWIP
 #
@@ -859,24 +892,24 @@ else
     export NODOMAINFOLDERS=false
 fi
 
-# --CSVEXPORTADDIGNOREERR
+# --CSVADDEXPERRHANDLE
 #
-if [ -z "${CSVEXPORTADDIGNOREERR}" ]; then
-    # CSVEXPORTADDIGNOREERR mode not set from shell level
-    export CLIparm_CSVEXPORTADDIGNOREERR=false
-    export CSVEXPORTADDIGNOREERR=false
-elif [ x"`echo "${CSVEXPORTADDIGNOREERR}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
-    # CSVEXPORTADDIGNOREERR mode set OFF from shell level
-    export CLIparm_CSVEXPORTADDIGNOREERR=false
-    export CSVEXPORTADDIGNOREERR=false
-elif [ x"`echo "${CSVEXPORTADDIGNOREERR}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
-    # CSVEXPORTADDIGNOREERR mode set ON from shell level
-    export CLIparm_CSVEXPORTADDIGNOREERR=true
-    export CSVEXPORTADDIGNOREERR=true
+if [ -z "${CSVADDEXPERRHANDLE}" ]; then
+    # CSVADDEXPERRHANDLE mode not set from shell level
+    export CLIparm_CSVADDEXPERRHANDLE=false
+    export CSVADDEXPERRHANDLE=false
+elif [ x"`echo "${CSVADDEXPERRHANDLE}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    # CSVADDEXPERRHANDLE mode set OFF from shell level
+    export CLIparm_CSVADDEXPERRHANDLE=false
+    export CSVADDEXPERRHANDLE=false
+elif [ x"`echo "${CSVADDEXPERRHANDLE}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # CSVADDEXPERRHANDLE mode set ON from shell level
+    export CLIparm_CSVADDEXPERRHANDLE=true
+    export CSVADDEXPERRHANDLE=true
 else
     # CLEANUPWIP mode set to wrong value from shell level
-    export CLIparm_CSVEXPORTADDIGNOREERR=false
-    export CSVEXPORTADDIGNOREERR=false
+    export CLIparm_CSVADDEXPERRHANDLE=false
+    export CSVADDEXPERRHANDLE=false
 fi
 
 # ADDED 2020-09-30 -
@@ -888,7 +921,7 @@ export CLIparm_CSVEXPORTDATADOMAIN=false
 export CLIparm_CSVEXPORTDATACREATOR=false
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-23
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2188,9 +2221,6 @@ DeleteSimpleObjects () {
     #
     # Screen width template for sizing, default width of 80 characters assumed
     #
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-    
     export APICLIfilename=${APICLICSVobjecttype}
     if [ x"${APICLIexportnameaddon}" != x"" ] ; then
         export APICLIfilename=${APICLIfilename}'_'${APICLIexportnameaddon}
@@ -2202,10 +2232,10 @@ DeleteSimpleObjects () {
     
     export OutputPath=${APICLIpathexport}/${APICLIfileexportpre}'delete_'${APICLIobjecttype}'_'${APICLIfileexportext}
     
-    if [ ! -r $APICLIDeleteCSVfile ] ; then
+    if [ ! -r ${APICLIDeleteCSVfile} ] ; then
         # no CSV file for this type of object
         echo | tee -a -i ${logfilepath}
-        echo 'CSV file for object '${APICLIobjecttype}' missing : '$APICLIDeleteCSVfile | tee -a -i ${logfilepath}
+        echo 'CSV file for object '${APICLIobjecttype}' missing : '${APICLIDeleteCSVfile} | tee -a -i ${logfilepath}
         echo 'Skipping!' | tee -a -i ${logfilepath}
         echo | tee -a -i ${logfilepath}
         return 0
@@ -2213,15 +2243,15 @@ DeleteSimpleObjects () {
     
     export MgmtCLI_Base_OpParms="-f json -s ${APICLIsessionfile}"
     export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
-    export MgmtCLI_Delete_OpParms="details-level \"${APICLIdetaillvl}\" $MgmtCLI_IgnoreErr_OpParms ${MgmtCLI_Base_OpParms}"
+    export MgmtCLI_Delete_OpParms="details-level \"${APICLIdetaillvl}\" ${MgmtCLI_IgnoreErr_OpParms} ${MgmtCLI_Base_OpParms}"
     
     echo | tee -a -i ${logfilepath}
-    echo "Delete ${APICLIobjecttype} using CSV File : $APICLIDeleteCSVfile" | tee -a -i ${logfilepath}
+    echo "Delete ${APICLIobjecttype} using CSV File : ${APICLIDeleteCSVfile}" | tee -a -i ${logfilepath}
     echo "  mgmt_cli parameters : $MgmtCLI_Delete_OpParms" | tee -a -i ${logfilepath}
     echo "  and dump to $OutputPath" | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     
-    mgmt_cli delete ${APICLIobjecttype} --batch $APICLIDeleteCSVfile $MgmtCLI_Delete_OpParms > $OutputPath
+    mgmt_cli delete ${APICLIobjecttype} --batch ${APICLIDeleteCSVfile} $MgmtCLI_Delete_OpParms > $OutputPath
     
     echo | tee -a -i ${logfilepath}
     tail $OutputPath | tee -a -i ${logfilepath}
@@ -2229,12 +2259,14 @@ DeleteSimpleObjects () {
     echo | tee -a -i ${logfilepath}
     
     echo | tee -a -i ${logfilepath}
-    echo 'Publish ${APICLIobjecttype} object changes!  This could take a while...' | tee -a -i ${logfilepath}
+    echo 'Publish '${APICLIobjecttype}' object changes!  This could take a while...' | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
-    mgmt_cli publish -s ${APICLIsessionfile} | tee -a -i ${logfilepath}
+    
+    . ${mgmt_cli_API_operations_handler} PUBLISH "$@"
+    errorreturn=$?
     
     echo | tee -a -i ${logfilepath}
-    echo "Done with Deleting ${APICLIobjecttype} using CSV File : $APICLIDeleteCSVfile" | tee -a -i ${logfilepath}
+    echo "Done with Deleting ${APICLIobjecttype} using CSV File : ${APICLIDeleteCSVfile}" | tee -a -i ${logfilepath}
     
     echo | tee -a -i ${logfilepath}
     return 0
@@ -2931,17 +2963,17 @@ CheckAPIVersionAndExecuteOperation
 # no more simple objects
 # -------------------------------------------------------------------------------------------------
 
-echo
-echo ${APICLIdetaillvl}' CSV delete - simple objects - Complete!'
-echo
-
-echo
-echo ${APICLIdetaillvl}' CSV delete - Completed!'
-echo
-
+echo | tee -a -i ${logfilepath}
+echo 'CSV delete - simple objects - Complete!' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
+
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2964,9 +2996,9 @@ echo
 # no more objects
 # -------------------------------------------------------------------------------------------------
 
-echo
-echo 'Delete Completed!'
-echo
+echo | tee -a -i ${logfilepath}
+echo 'Delete Completed!' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
 
 
 # =================================================================================================

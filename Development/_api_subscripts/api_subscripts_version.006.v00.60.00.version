@@ -13,8 +13,8 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=030
-ScriptDate=2020-11-19
+ScriptRevision=045
+ScriptDate=2020-12-17
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006

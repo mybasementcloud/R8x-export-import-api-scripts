@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=030
-ScriptDate=2020-11-19
+ScriptRevision=045
+ScriptDate=2020-12-17
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -29,6 +29,10 @@ export APIActionsScriptVersionX=v${ScriptVersion//./x}
 export APIActionScriptTemplateVersionX=v${TemplateVersion//./x}
 
 ActionScriptName=cli_api_export_objects_actions_to_csv
+export APIActionScriptFileNameRoot=cli_api_export_objects_actions_to_csv
+export APIActionScriptShortName=export_objects_actions_to_csv
+export APIActionScriptnohupName=${APIActionScriptShortName}
+export APIActionScriptDescription="Object dump to CSV action operations for API CLI Operations"
 
 # =================================================================================================
 # =================================================================================================
@@ -685,7 +689,7 @@ GetNumberOfObjectsviaJQ () {
 # CheckAPIVersionAndExecuteOperation :  Check the API Version running where we're logged in and if good execute operation
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-10-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-12-14 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CheckAPIVersionAndExecuteOperation () {
@@ -702,7 +706,7 @@ CheckAPIVersionAndExecuteOperation () {
     
     echo | tee -a -i ${logfilepath}
     echo 'Required minimum API version for object : '${APICLIobjectstype}' is API version = '${APIobjectminversion} | tee -a -i ${logfilepath}
-    echo 'Logged in management server API version = '${CurrentAPIVersion} | tee -a -i ${logfilepath}
+    echo 'Logged in management server API version = '${CurrentAPIVersion}' Check version : "'${CheckAPIVersion}'"' | tee -a -i ${logfilepath}
     
     if [ $(expr ${APIobjectminversion} '<=' ${CurrentAPIVersion}) ] ; then
         # API is sufficient version
@@ -724,7 +728,7 @@ CheckAPIVersionAndExecuteOperation () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-10-02
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-12-14
 
 
 # -------------------------------------------------------------------------------------------------
@@ -784,9 +788,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 export CSVFileHeader=${CSVFileHeader}',"ipv4-address","ipv6-address"'
 export CSVFileHeader=${CSVFileHeader}',"nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.ipv4-address","nat-settings.ipv6-address","nat-settings.method"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -799,6 +806,9 @@ export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .[
 export CSVJQparms=${CSVJQparms}', .["ipv4-address"], .["ipv6-address"]'
 export CSVJQparms=${CSVJQparms}', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"]'
 export CSVJQparms=${CSVJQparms}', .["nat-settings"]["ipv4-address"], .["nat-settings"]["ipv6-address"], .["nat-settings"]["method"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_hosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_hosts="${objectstotal_hosts}"
@@ -829,9 +839,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 export CSVFileHeader=${CSVFileHeader}',"broadcast","subnet4","mask-length4","subnet6","mask-length6"'
 export CSVFileHeader=${CSVFileHeader}',"nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.method"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -843,6 +856,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=${CSVJQparms}', .["broadcast"], .["subnet4"], .["mask-length4"], .["subnet6"], .["mask-length6"]'
 export CSVJQparms=${CSVJQparms}', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"], .["nat-settings"]["method"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_networks=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_networks="$objectstotal_networks"
@@ -873,8 +889,11 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 export CSVFileHeader=${CSVFileHeader}',"ipv4-address","ipv4-mask-wildcard","ipv6-address","ipv6-mask-wildcard"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -885,6 +904,9 @@ if ${CLIparm_CSVEXPORTDATACREATOR} ; then
 fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=${CSVJQparms}', .["ipv4-address"], .["ipv4-mask-wildcard"], .["ipv6-address"], .["ipv6-mask-wildcard"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_wildcards=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_wildcards="${objectstotal_wildcards}"
@@ -915,7 +937,10 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -925,6 +950,9 @@ if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVJQparms=${CSVJQparms}', .["meta-info"]["creator"], .["meta-info"]["creation-time"]["iso-8601"], .["meta-info"]["last-modifier"], .["meta-info"]["last-modify-time"]["iso-8601"]'
 fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_groups="${objectstotal_groups}"
@@ -955,8 +983,11 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 export CSVFileHeader=${CSVFileHeader}',"include","except"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -967,6 +998,9 @@ if ${CLIparm_CSVEXPORTDATACREATOR} ; then
 fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=${CSVJQparms}', .["include"]["name"], .["except"]["name"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_groupswithexclusion=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_groupswithexclusion="${objectstotal_groupswithexclusion}"
@@ -997,9 +1031,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 export CSVFileHeader=${CSVFileHeader}',"ipv4-address-first","ipv4-address-last"'
 export CSVFileHeader=${CSVFileHeader}',"ipv6-address-first","ipv6-address-last"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1011,6 +1048,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=${CSVJQparms}', .["ipv4-address-first"], .["ipv4-address-last"]'
 export CSVJQparms=${CSVJQparms}', .["ipv6-address-first"], .["ipv6-address-last"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_addressranges=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_addressranges="${objectstotal_addressranges}"
@@ -1041,9 +1081,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 export CSVFileHeader=${CSVFileHeader}',"ipv4-address-first","ipv4-address-last"'
 export CSVFileHeader=${CSVFileHeader}',"ipv6-address-first","ipv6-address-last"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1055,6 +1098,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=${CSVJQparms}', .["ipv4-address-first"], .["ipv4-address-last"]'
 export CSVJQparms=${CSVJQparms}', .["ipv6-address-first"], .["ipv6-address-last"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_multicastaddressranges=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_multicastaddressranges="${objectstotal_multicastaddressranges}"
@@ -1085,8 +1131,11 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 export CSVFileHeader=${CSVFileHeader}',"is-sub-domain"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1097,6 +1146,9 @@ if ${CLIparm_CSVEXPORTDATACREATOR} ; then
 fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 export CSVJQparms=${CSVJQparms}', .["is-sub-domain"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_dnsdomains=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_dnsdomains="${objectstotal_dnsdomains}"
@@ -1127,9 +1179,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1141,6 +1196,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_securityzones=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_securityzones="${objectstotal_securityzones}"
@@ -1171,9 +1229,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1185,6 +1246,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_dynamicobjects=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_dynamicobjects="${objectstotal_dynamicobjects}"
@@ -1215,9 +1279,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1229,6 +1296,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_tags=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_tags="${objectstotal_tags}"
@@ -1259,9 +1329,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1273,6 +1346,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_simplegateways=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_simplegateways="${objectstotal_simplegateways}"
@@ -1303,9 +1379,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1317,6 +1396,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_simpleclusters=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_simpleclusters="${objectstotal_simpleclusters}"
@@ -1347,9 +1429,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1361,6 +1446,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_checkpointhosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_checkpointhosts="${objectstotal_checkpointhosts}"
@@ -1391,12 +1479,15 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 export CSVFileHeader=${CSVFileHeader}',"start.date","start.time","start.iso-8601","start.posix","start-now"'
 export CSVFileHeader=${CSVFileHeader}',"end.date","end.time","end.iso-8601","end.posix","end-never"'
 export CSVFileHeader=${CSVFileHeader}',"recurrence.pattern"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1410,6 +1501,9 @@ export CSVJQparms=${CSVJQparms}', .["start"]["date"], .["start"]["time"], .["sta
 export CSVJQparms=${CSVJQparms}', .["end"]["date"], .["end"]["time"], .["end"]["iso-8601"], .["end"]["posix"], .["end-never"]'
 export CSVJQparms=${CSVJQparms}', .["recurrence"]["pattern"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_times=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_times="${objectstotal_times}"
@@ -1440,9 +1534,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1454,6 +1551,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_time_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_time_groups="${objectstotal_time_groups}"
@@ -1484,9 +1584,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1498,6 +1601,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_access_roles=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_access_roles="${objectstotal_access_roles}"
@@ -1528,12 +1634,15 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 export CSVFileHeader=${CSVFileHeader}',"type"'
 export CSVFileHeader=${CSVFileHeader}',"cpmi.enabled","cpmi.administrator-profile","cpmi.use-administrator-credentials"'
 export CSVFileHeader=${CSVFileHeader}',"lea.enabled","lea.access-permissions","lea.administrator-profile"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1549,6 +1658,9 @@ export CSVJQparms=${CSVJQparms}', .["cpmi"]["enabled"], .["cpmi"]["administrator
 export CSVJQparms=${CSVJQparms}', .["lea"]["enabled"], .["lea"]["access-permissions"], .["lea"]["administrator-profile"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_opsec_applications=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_opsec_applications="${objectstotal_opsec_applications}"
@@ -1579,9 +1691,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1593,6 +1708,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_trustedclients=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_trustedclients="${objectstotal_trustedclients}"
@@ -1623,9 +1741,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1637,6 +1758,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_lsvprofiles=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_lsvprofiles="${objectstotal_lsvprofiles}"
@@ -1667,9 +1791,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1681,6 +1808,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_gsnhandovergroups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_gsnhandovergroups="${objectstotal_gsnhandovergroups}"
@@ -1711,9 +1841,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1725,6 +1858,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_accesspointnames=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_accesspointnames="${objectstotal_accesspointnames}"
@@ -1770,9 +1906,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1784,6 +1923,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_services_tcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_tcp="${objectstotal_services_tcp}"
@@ -1814,9 +1956,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1828,6 +1973,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_services_udp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_udp="${objectstotal_services_udp}"
@@ -1858,9 +2006,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1872,6 +2023,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_services_icmp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_icmp="${objectstotal_services_icmp}"
@@ -1902,9 +2056,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1916,6 +2073,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_services_icmp6=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_icmp6="${objectstotal_services_icmp6}"
@@ -1946,9 +2106,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -1960,6 +2123,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_services_sctp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_sctp="${objectstotal_services_sctp}"
@@ -1990,9 +2156,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -2004,6 +2173,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_services_other=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_other="${objectstotal_services_other}"
@@ -2034,9 +2206,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -2048,6 +2223,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_services_dce_rpc=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_dce_rpc="${objectstotal_services_dce_rpc}"
@@ -2078,9 +2256,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -2092,6 +2273,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_services_rpc=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_rpc="${objectstotal_services_rpc}"
@@ -2122,9 +2306,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -2136,6 +2323,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_servicescitrixtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_servicescitrixtcp="${objectstotal_servicescitrixtcp}"
@@ -2166,9 +2356,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -2180,6 +2373,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_servicescompoundtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_servicescompoundtcp="${objectstotal_servicescompoundtcp}"
@@ -2210,9 +2406,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -2224,6 +2423,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_service_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_service_groups="${objectstotal_service_groups}"
@@ -2259,10 +2461,13 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 export CSVFileHeader=${CSVFileHeader}',"primary-category","risk","description","urls-defined-as-regular-expression"'
 export CSVFileHeader=${CSVFileHeader}', "meta-info.creator","user-defined","read-only"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -2275,6 +2480,9 @@ export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .[
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 export CSVJQparms=${CSVJQparms}', .["primary-category"], .["risk"], .["description"], .["urls-defined-as-regular-expression"]'
 export CSVJQparms=${CSVJQparms}', .["meta-info"]["creator"], .["user-defined"], .["read-only"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_application_sites=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_application_sites="${objectstotal_application_sites}"
@@ -2310,9 +2518,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 export CSVFileHeader=${CSVFileHeader}',"user-defined","read-only", "meta-info.creator"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -2324,6 +2535,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 export CSVJQparms=${CSVJQparms}', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_application_site_categories=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_application_site_categories="${objectstotal_application_site_categories}"
@@ -2359,9 +2573,12 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 export CSVFileHeader=${CSVFileHeader}',"user-defined","read-only", "meta-info.creator"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -2373,6 +2590,9 @@ fi
 export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .["tags"][2]["name"], .["tags"][3]["name"], .["tags"][4]["name"], .["tags"][5]["name"], .["tags"][6]["name"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 export CSVJQparms=${CSVJQparms}', .["user-defined"], .["read-only"], .["meta-info"]["creator"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_application_site_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_application_site_groups="${objectstotal_application_site_groups}"
@@ -2430,12 +2650,15 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 export CSVFileHeader=${CSVFileHeader}',"template","e-mail","phone-number"'
 export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server.name","tacacs-server.name"'
 export CSVFileHeader=${CSVFileHeader}',"expiration-date"'
 export CSVFileHeader=${CSVFileHeader}',"encryption.enable-ike", "encryption.enable-public-key", "encryption.enable-shared-secret"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -2450,6 +2673,9 @@ export CSVJQparms=${CSVJQparms}', .["authentication-method"], .["radius-server"]
 export CSVJQparms=${CSVJQparms}', .["expiration-date"]["iso-8601"]'
 export CSVJQparms=${CSVJQparms}', .["encryption"]["ike"], .["encryption"]["public-key"], .["encryption"]["shared-secret"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_users=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_users="${objectstotal_users}"
@@ -2485,10 +2711,13 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 export CSVFileHeader=${CSVFileHeader}',"email"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -2501,6 +2730,9 @@ export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .[
 export CSVJQparms=${CSVJQparms}', .["email"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_user_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_user_groups="${objectstotal_user_groups}"
@@ -2536,12 +2768,15 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server.name","tacacs-server.name"'
 export CSVFileHeader=${CSVFileHeader}',"expiration-by-global-properties","expiration-date"'
 export CSVFileHeader=${CSVFileHeader}',"encryption.enable-ike", "encryption.enable-public-key", "encryption.enable-shared-secret"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -2556,6 +2791,9 @@ export CSVJQparms=${CSVJQparms}', .["expiration-by-global-properties"], .["expir
 export CSVJQparms=${CSVJQparms}', .["encryption"]["ike"], .["encryption"]["public-key"], .["encryption"]["shared-secret"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_user_templates=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_user_templates="${objectstotal_user_templates}"
@@ -2591,10 +2829,13 @@ fi
 if ${CLIparm_CSVEXPORTDATACREATOR} ; then
     export CSVFileHeader=${CSVFileHeader}',"meta-info.creator","meta-info.creation-time.iso-8601","meta-info.last-modifier","meta-info.last-modify-time.iso-8601"'
 fi
-export CSVFileHeader=${CSVFileHeader}',"tags.0.name","tags.1.name","tags.2.name","tags.3.name","tags.4.name","tags.5.name","tags.6.name"'
+export CSVFileHeader=${CSVFileHeader}',"tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"'
 export CSVFileHeader=${CSVFileHeader}',"external-identifier"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+fi
 
 export CSVJQparms='.["name"], .["color"], .["comments"]'
 if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -2607,6 +2848,9 @@ export CSVJQparms=${CSVJQparms}', .["tags"][0]["name"], .["tags"][1]["name"], .[
 export CSVJQparms=${CSVJQparms}', .["external-identifier"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_identity_tags=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_identity_tags="${objectstotal_identity_tags}"
@@ -3120,6 +3364,9 @@ GetGroupMembers () {
 
 # MODIFIED 2018-05-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_groups="${objectstotal_groups}"
@@ -3595,6 +3842,9 @@ GetHostInterfaces () {
 
 # MODIFIED 2018-05-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_hosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_hosts="${objectstotal_hosts}"
@@ -3937,6 +4187,9 @@ GetUserGroupMembers () {
 
 # MODIFIED 2020-08-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
+if ${CSVADDEXPERRHANDLE} ; then
+    export CSVJQparms=${CSVJQparms}', true, true'
+fi
 
 objectstotal_user_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_user_groups="${objectstotal_user_groups}"

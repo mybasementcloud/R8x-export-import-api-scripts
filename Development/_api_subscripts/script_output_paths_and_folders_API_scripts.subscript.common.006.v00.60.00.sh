@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=030
-ScriptDate=2020-11-19
+ScriptRevision=045
+ScriptDate=2020-12-17
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -29,6 +29,10 @@ export APISubscriptsScriptVersionX=v${ScriptVersion//./x}
 export APISubscriptsScriptTemplateVersionX=v${TemplateVersion//./x}
 
 APISubScriptName=script_output_paths_and_folders_API_scripts.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}
+export APISubScriptFileNameRoot=script_output_paths_and_folders_API_scripts.subscript.common
+export APISubScriptShortName=script_output_paths_and_folders_API_scripts
+export APISubScriptnohupName=${APISubScriptShortName}
+export APISubScriptDescription="Configure Script Output Paths and Fodlers for API Scripts common action handling"
 
 # =================================================================================================
 # =================================================================================================
@@ -214,7 +218,7 @@ ForceShowTempLogFile () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-11-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-11-26 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 localrootscriptconfiguration () {
@@ -224,7 +228,7 @@ localrootscriptconfiguration () {
     
     # WAITTIME in seconds for read -t commands, but check if it's already set
     if [ -z ${WAITTIME} ]; then
-        export WAITTIME=60
+        export WAITTIME=15
     fi
     
     export customerpathroot=/var/log/__customer
@@ -240,14 +244,16 @@ localrootscriptconfiguration () {
     
     export customerapipathroot=${customerpathroot}/devops
     export customerapiwippathroot=${customerpathroot}/devops.dev
+    
+    export customerdevopspathroot=${customerpathroot}/devops
+    export customerdevopsdevpathroot=${customerpathroot}/devops.dev
     export customerdevopsresultspathroot=${customerpathroot}/devops.results
     
-    echo
     return 0
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-16
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-26
 
 
 # -------------------------------------------------------------------------------------------------
@@ -258,7 +264,8 @@ localrootscriptconfiguration () {
 # HandleRootScriptConfiguration - Root Script Configuration
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-10-06 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+
+# MODIFIED 2020-11-26 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 HandleRootScriptConfiguration () {
@@ -274,11 +281,23 @@ HandleRootScriptConfiguration () {
         # Found the Root Script Configuration File in the folder for scripts
         # So let's call that script to configure what we need
         
+        if ${APISCRIPTVERBOSE} ; then
+            echo 'Root Script Config in scripts folder :  '${scriptspathroot}/${rootscriptconfigfile} | tee -a -i ${logfilepath}
+        else
+            echo 'Root Script Config in scripts folder :  '${scriptspathroot}/${rootscriptconfigfile} >> ${logfilepath}
+        fi
+        
         . ${scriptspathroot}/${rootscriptconfigfile} "$@"
         errorreturn=$?
     elif [ -r "../${rootscriptconfigfile}" ] ; then
         # Found the Root Script Configuration File in the folder above the executiong script
         # So let's call that script to configure what we need
+        
+        if ${APISCRIPTVERBOSE} ; then
+            echo 'Root Script Config in folder above :  ../'${rootscriptconfigfile} | tee -a -i ${logfilepath}
+        else
+            echo 'Root Script Config in folder above :  ../'${rootscriptconfigfile} >> ${logfilepath}
+        fi
         
         . ../${rootscriptconfigfile} "$@"
         errorreturn=$?
@@ -286,14 +305,55 @@ HandleRootScriptConfiguration () {
         # Found the Root Script Configuration File in the folder with the executiong script
         # So let's call that script to configure what we need
         
+        if ${APISCRIPTVERBOSE} ; then
+            echo 'Root Script Config in current folder :  '${rootscriptconfigfile} | tee -a -i ${logfilepath}
+        else
+            echo 'Root Script Config in current folder :  '${rootscriptconfigfile} >> ${logfilepath}
+        fi
+        
         . ${rootscriptconfigfile} "$@"
         errorreturn=$?
     else
         # Did not the Root Script Configuration File
         # So let's call local configuration
         
+        if ${APISCRIPTVERBOSE} ; then
+            echo 'Root Script Config NOT found, using local procedure!' | tee -a -i ${logfilepath}
+        else
+            echo 'Root Script Config NOT found, using local procedure!' >> ${logfilepath}
+        fi
+        
         localrootscriptconfiguration "$@"
         errorreturn=$?
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    # Check for critical configuration values
+    # -------------------------------------------------------------------------------------------------
+    
+    if [ x"${customerdevopspathroot}" == x"" ] ; then
+        export customerdevopspathroot=${customerpathroot}/devops
+        if ${APISCRIPTVERBOSE} ; then
+            echo 'Root Script Config missing parameter:  customerdevopspathroot='${customerdevopspathroot} | tee -a -i ${logfilepath}
+        else
+            echo 'Root Script Config missing parameter:  customerdevopspathroot='${customerdevopspathroot} >> ${logfilepath}
+        fi
+    fi
+    if [ x"${customerdevopsdevpathroot}" == x"" ] ; then
+        export customerdevopsdevpathroot=${customerpathroot}/devops.dev
+        if ${APISCRIPTVERBOSE} ; then
+            echo 'Root Script Config missing parameter:  customerdevopsdevpathroot='${customerdevopsdevpathroot} | tee -a -i ${logfilepath}
+        else
+            echo 'Root Script Config missing parameter:  customerdevopsdevpathroot='${customerdevopsdevpathroot} >> ${logfilepath}
+        fi
+    fi
+    if [ x"${customerdevopsresultspathroot}" == x"" ] ; then
+        export customerdevopsresultspathroot=${customerpathroot}/devops.results
+        if ${APISCRIPTVERBOSE} ; then
+            echo 'Root Script Config missing parameter:  customerdevopsresultspathroot='${customerdevopsresultspathroot} | tee -a -i ${logfilepath}
+        else
+            echo 'Root Script Config missing parameter:  customerdevopsresultspathroot='${customerdevopsresultspathroot} >> ${logfilepath}
+        fi
     fi
     
     # -------------------------------------------------------------------------------------------------
@@ -304,7 +364,7 @@ HandleRootScriptConfiguration () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-10-06
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-26
 
 
 # -------------------------------------------------------------------------------------------------
@@ -315,7 +375,8 @@ HandleRootScriptConfiguration () {
 # HandleLaunchInHomeFolder - Handle if folder where this was launched is the $HOME Folder
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-22 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+
+# MODIFIED 2020-11-26 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 HandleLaunchInHomeFolder () {
@@ -344,7 +405,7 @@ HandleLaunchInHomeFolder () {
         #not where we're expecting to be, since ${outputpathroot} is missing here
         #maybe this hasn't been run here yet.
         #OK, so make the expected folder and set permissions we need
-        mkdir ${outputpathroot} >> ${logfilepath}
+        mkdir -p -v ${outputpathroot} >> ${logfilepath}
         chmod 775 ${outputpathroot} >> ${logfilepath}
     else
         #set permissions we need
@@ -362,7 +423,7 @@ HandleLaunchInHomeFolder () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-22
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-26
 
 
 # -------------------------------------------------------------------------------------------------
@@ -373,7 +434,8 @@ HandleLaunchInHomeFolder () {
 # ShowFinalOutputAndLogPaths - repeated proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-11-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+
+# MODIFIED 2020-11-26 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ShowFinalOutputAndLogPaths () {
@@ -389,30 +451,31 @@ ShowFinalOutputAndLogPaths () {
         # Verbose mode ON
         
         echo "Controls : " | tee -a -i ${logfilepath}
-        echo ' OutputRelLocalPath        : '"${OutputRelLocalPath}" | tee -a -i ${logfilepath}
-        echo ' IgnoreInHome              : '"${IgnoreInHome}" | tee -a -i ${logfilepath}
-        echo ' OutputToRoot              : '"${OutputToRoot}" | tee -a -i ${logfilepath}
-        echo ' OutputToDump              : '"${OutputToDump}" | tee -a -i ${logfilepath}
-        echo ' OutputToChangeLog         : '"$OutputToChangeLog" | tee -a -i ${logfilepath}
-        echo ' OutputToOther             : '"${OutputToOther}" | tee -a -i ${logfilepath}
-        echo ' OtherOutputFolder         : '"${OtherOutputFolder}" | tee -a -i ${logfilepath}
-        echo ' OutputDATESubfolder       : '"${OutputDATESubfolder}" | tee -a -i ${logfilepath}
-        echo ' OutputDTGSSubfolder       : '"${OutputDTGSSubfolder}" | tee -a -i ${logfilepath}
-        #echo ' OutputSubfolderScriptName      : '"${OutputSubfolderScriptName}" | tee -a -i ${logfilepath}
-        #echo ' OutputSubfolderScriptShortName : '"${OutputSubfolderScriptShortName}" | tee -a -i ${logfilepath}
+        echo ' UseDevOpsResults               : '"${UseDevOpsResults}" | tee -a -i ${logfilepath}
+        echo ' OutputRelLocalPath             : '"${OutputRelLocalPath}" | tee -a -i ${logfilepath}
+        echo ' IgnoreInHome                   : '"${IgnoreInHome}" | tee -a -i ${logfilepath}
+        echo ' OutputToRoot                   : '"${OutputToRoot}" | tee -a -i ${logfilepath}
+        echo ' OutputToDump                   : '"${OutputToDump}" | tee -a -i ${logfilepath}
+        echo ' OutputToChangeLog              : '"$OutputToChangeLog" | tee -a -i ${logfilepath}
+        echo ' OutputToOther                  : '"${OutputToOther}" | tee -a -i ${logfilepath}
+        echo ' OtherOutputFolder              : '"${OtherOutputFolder}" | tee -a -i ${logfilepath}
+        echo ' OutputDATESubfolder            : '"${OutputDATESubfolder}" | tee -a -i ${logfilepath}
+        echo ' OutputDTGSSubfolder            : '"${OutputDTGSSubfolder}" | tee -a -i ${logfilepath}
+        echo ' OutputSubfolderScriptName      : '"${OutputSubfolderScriptName}" | tee -a -i ${logfilepath}
+        echo ' OutputSubfolderScriptShortName : '"${OutputSubfolderScriptShortName}" | tee -a -i ${logfilepath}
         echo | tee -a -i ${logfilepath}
         
         echo "Output and Log file, folder locations: " | tee -a -i ${logfilepath}
-        echo ' APICLIpathroot            : '"${APICLIpathroot}" | tee -a -i ${logfilepath}
-        echo ' APICLIpathbase            : '"${APICLIpathbase}" | tee -a -i ${logfilepath}
-        echo ' logfilepath               : '"${logfilepath}" | tee -a -i ${logfilepath}
-        echo ' logfilepathbase           : '"${logfilepathbase}" | tee -a -i ${logfilepath}
-        echo ' logfilepathfirst          : '"${logfilepathfirst}" | tee -a -i ${logfilepath}
-        echo ' logfilepathfinal          : '"${logfilepathfinal}" | tee -a -i ${logfilepath}
-        echo ' customerpathroot          : '"${customerpathroot}" | tee -a -i ${logfilepath}
-        echo ' customerworkpathroot      : '"${customerworkpathroot}" | tee -a -i ${logfilepath}
-        echo ' dumppathroot              : '"${dumppathroot}" | tee -a -i ${logfilepath}
-        echo ' changelogpathroot         : '"${changelogpathroot}" | tee -a -i ${logfilepath}
+        echo ' APICLIpathroot                 : '"${APICLIpathroot}" | tee -a -i ${logfilepath}
+        echo ' APICLIpathbase                 : '"${APICLIpathbase}" | tee -a -i ${logfilepath}
+        echo ' logfilepath                    : '"${logfilepath}" | tee -a -i ${logfilepath}
+        echo ' logfilepathbase                : '"${logfilepathbase}" | tee -a -i ${logfilepath}
+        echo ' logfilepathfirst               : '"${logfilepathfirst}" | tee -a -i ${logfilepath}
+        echo ' logfilepathfinal               : '"${logfilepathfinal}" | tee -a -i ${logfilepath}
+        echo ' customerpathroot               : '"${customerpathroot}" | tee -a -i ${logfilepath}
+        echo ' customerworkpathroot           : '"${customerworkpathroot}" | tee -a -i ${logfilepath}
+        echo ' dumppathroot                   : '"${dumppathroot}" | tee -a -i ${logfilepath}
+        echo ' changelogpathroot              : '"${changelogpathroot}" | tee -a -i ${logfilepath}
         echo | tee -a -i ${logfilepath}
         
         if ! ${NOWAIT} ; then
@@ -423,9 +486,32 @@ ShowFinalOutputAndLogPaths () {
     else
         # Verbose mode OFF
         
+        echo "Controls : " >> ${logfilepath}
+        echo ' UseDevOpsResults               : '"${UseDevOpsResults}" >> ${logfilepath}
+        echo ' OutputRelLocalPath             : '"${OutputRelLocalPath}" >> ${logfilepath}
+        echo ' IgnoreInHome                   : '"${IgnoreInHome}" >> ${logfilepath}
+        echo ' OutputToRoot                   : '"${OutputToRoot}" >> ${logfilepath}
+        echo ' OutputToDump                   : '"${OutputToDump}" >> ${logfilepath}
+        echo ' OutputToChangeLog              : '"$OutputToChangeLog" >> ${logfilepath}
+        echo ' OutputToOther                  : '"${OutputToOther}" >> ${logfilepath}
+        echo ' OtherOutputFolder              : '"${OtherOutputFolder}" >> ${logfilepath}
+        echo ' OutputDATESubfolder            : '"${OutputDATESubfolder}" >> ${logfilepath}
+        echo ' OutputDTGSSubfolder            : '"${OutputDTGSSubfolder}" >> ${logfilepath}
+        echo ' OutputSubfolderScriptName      : '"${OutputSubfolderScriptName}" >> ${logfilepath}
+        echo ' OutputSubfolderScriptShortName : '"${OutputSubfolderScriptShortName}" >> ${logfilepath}
+        echo >> ${logfilepath}
+        
         echo "Output and Log file, folder locations: " | tee -a -i ${logfilepath}
-        echo ' APICLIpathbase        : '"${APICLIpathbase}" | tee -a -i ${logfilepath}
-        echo ' logfilepath           : '"${logfilepath}" | tee -a -i ${logfilepath}
+        echo ' APICLIpathroot                 : '"${APICLIpathroot}" >> ${logfilepath}
+        echo ' APICLIpathbase                 : '"${APICLIpathbase}" | tee -a -i ${logfilepath}
+        echo ' logfilepath                    : '"${logfilepath}" | tee -a -i ${logfilepath}
+        echo ' logfilepathbase                : '"${logfilepathbase}" >> ${logfilepath}
+        echo ' logfilepathfirst               : '"${logfilepathfirst}" >> ${logfilepath}
+        echo ' logfilepathfinal               : '"${logfilepathfinal}" >> ${logfilepath}
+        echo ' customerpathroot               : '"${customerpathroot}" >> ${logfilepath}
+        echo ' customerworkpathroot           : '"${customerworkpathroot}" >> ${logfilepath}
+        echo ' dumppathroot                   : '"${dumppathroot}" >> ${logfilepath}
+        echo ' changelogpathroot              : '"${changelogpathroot}" >> ${logfilepath}
         echo | tee -a -i ${logfilepath}
     fi
     
@@ -434,7 +520,8 @@ ShowFinalOutputAndLogPaths () {
 
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-16
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-26
+
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -444,33 +531,43 @@ ShowFinalOutputAndLogPaths () {
 # ConfigureRootPath - Configure root and base path
 # -------------------------------------------------------------------------------------------------
 
+
 # MODIFIED 2020-11-16 -
 
 ConfigureRootPath () {
-    
-    # -------------------------------------------------------------------------------------------------
-    # Root Script Configuration
-    # -------------------------------------------------------------------------------------------------
-    
-    HandleRootScriptConfiguration "$@"
-    
-    
-    #----------------------------------------------------------------------------------------
-    # Setup root folder and path values
-    #----------------------------------------------------------------------------------------
-    
-    export alternatepathroot=${customerworkpathroot}
-    
-    if ! ${IgnoreInHome} ; then
-        HandleLaunchInHomeFolder "$@"
-    fi
-    
     
     # ---------------------------------------------------------
     # Create the base path and directory structure for output
     # ---------------------------------------------------------
     
-    if [ x"${CLIparm_outputpath}" != x"" ] ; then
+    if ${UseDevOpsResults} ; then
+        # CLI parameter indicates to use the devops.results folder
+        if [ x"${CLIparm_resultspath}" != x"" ] ; then
+            # CLI parameter indicates to use the devops.results folder and a path was supplied so use it
+            if ${OutputRelLocalPath} ; then
+                export APICLIpathroot=${CLIparm_resultspath}
+            else
+                # need to expand this other path to ensure things work
+                export expandedpath=$(cd ${CLIparm_resultspath} ; pwd)
+                export APICLIpathroot=${expandedpath}
+            fi
+            echo 'Set root output CLI parameter : APICLIpathroot = '"${APICLIpathroot}" >> ${logfilepath}
+        else
+            # CLI parameter indicates to use the devops.results folder but no path was supplied so use default
+            if [ -z ${customerdevopsresultspathroot} ] ; then
+                # Uh Oh, missing critical parameter set
+                echo 'Missing required RESULTS locaton :  '${customerdevopsresultspathroot} | tee -a -i ${logfilepath}
+                echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
+                echo | tee -a -i ${logfilepath}
+                echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+                echo | tee -a -i ${logfilepath}
+                
+                exit 250
+            fi
+            export APICLIpathroot=${customerdevopsresultspathroot}
+        fi
+        
+    elif [ x"${CLIparm_outputpath}" != x"" ] ; then
         if ${OutputRelLocalPath} ; then
             export APICLIpathroot=${CLIparm_outputpath}
         else
@@ -560,30 +657,26 @@ ConfigureRootPath () {
     
     echo '${APICLIpathbase} = '${APICLIpathbase} >> ${logfilepath}
     
+    # 2020-11-23 activated
+    # In the future we may add this naming extension
+    if ${OutputSubfolderScriptName} ; then
+        # Add script name to the Subfolder name
+        export APICLIpathbase=${APICLIpathbase}.${APIScriptFileNameRoot}
+    elif ${OutputSubfolderScriptShortName} ; then
+        # Add short script name to the Subfolder name
+        export APICLIpathbase=${APICLIpathbase}.${APIScriptShortName}
+    else
+        export APICLIpathbase=${APICLIpathbase}
+    fi
+    
+    echo '${APICLIpathbase} = '${APICLIpathbase} >> ${logfilepath}
+    
     if [ ! -r ${APICLIpathbase} ] ; then
-        mkdir ${APICLIpathbase} | tee -a -i ${logfilepath}
+        mkdir -p -v ${APICLIpathbase} | tee -a -i ${logfilepath}
         chmod 775 ${APICLIpathbase} | tee -a -i ${logfilepath}
     else
         chmod 775 ${APICLIpathbase} | tee -a -i ${logfilepath}
     fi
-    
-    # In the future we may add this naming extension
-    #if ${OutputSubfolderScriptName} ; then
-    #    # Add script name to the Subfolder name
-    #    export APICLIpathbase="${APICLIpathbase}.${BASHScriptName}"
-    #elif ${OutputSubfolderScriptShortName} ; then
-    #    # Add short script name to the Subfolder name
-    #    export APICLIpathbase="${APICLIpathbase}.${BASHScriptShortName}"
-    #fi
-    #
-    #echo '${APICLIpathbase} = '${APICLIpathbase} >> ${logfilepath}
-    #
-    #if [ ! -r ${APICLIpathbase} ] ; then
-    #    mkdir ${APICLIpathbase} | tee -a -i ${logfilepath}
-    #    chmod 775 ${APICLIpathbase} | tee -a -i ${logfilepath}
-    #else
-    #    chmod 775 ${APICLIpathbase} | tee -a -i ${logfilepath}
-    #fi
 }
 
 
@@ -594,6 +687,7 @@ ConfigureRootPath () {
 # -------------------------------------------------------------------------------------------------
 # ConfigureLogPath - Configure log file path and handle temporary log file
 # -------------------------------------------------------------------------------------------------
+
 
 # MODIFIED 2020-11-16 -
 
@@ -659,11 +753,12 @@ ConfigureLogPath () {
 # ConfigureOtherCLIParameterPaths - Configure other path and folder values based on CLI parameters
 # -------------------------------------------------------------------------------------------------
 
+
 # MODIFIED 2020-11-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ConfigureOtherCLIParameterPaths () {
-
+    
     # ---------------------------------------------------------
     # Setup other paths we may need - but these should not create folders (yet)
     # Configure other path and folder values based on CLI parameters
@@ -720,6 +815,7 @@ ConfigureOtherCLIParameterPaths () {
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-16
 
+
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
@@ -729,7 +825,7 @@ ConfigureOtherCLIParameterPaths () {
 # -------------------------------------------------------------------------------------------------
 
 ConfigureOtherCLIParameterValues () {
-
+    
     # ---------------------------------------------------------
     # Setup other variables based on CLI parameters
     # ---------------------------------------------------------
@@ -763,11 +859,34 @@ ConfigureOtherCLIParameterValues () {
 # ExecuteScriptOutputPathsforAPIScripts - Execute Script Output Paths and Folders for API scripts
 # -------------------------------------------------------------------------------------------------
 
+
 # MODIFIED 2020-11-16 -
 
 ExecuteScriptOutputPathsforAPIScripts () {
-
-    #
+    
+    # -------------------------------------------------------------------------------------------------
+    # Root Script Configuration
+    # -------------------------------------------------------------------------------------------------
+    
+    
+    HandleRootScriptConfiguration "$@"
+    
+    
+    #----------------------------------------------------------------------------------------
+    # Setup root folder and path values
+    #----------------------------------------------------------------------------------------
+    
+    
+    export alternatepathroot=${customerworkpathroot}
+    
+    if ! ${IgnoreInHome} ; then
+        HandleLaunchInHomeFolder "$@"
+    fi
+    
+    
+    #----------------------------------------------------------------------------------------
+    # working folder, path, and log file values
+    #----------------------------------------------------------------------------------------
     # Configure Common CLI Parameter Values
     # Formerly
     #ConfigureCommonCLIParameterValues
@@ -779,7 +898,9 @@ ExecuteScriptOutputPathsforAPIScripts () {
     
     ShowFinalOutputAndLogPaths "$@"
     
-    #
+    #----------------------------------------------------------------------------------------
+    # other path and folder values
+    #----------------------------------------------------------------------------------------
     # Configure Specific CLI Parameter Values
     # Formerly
     #ConfigureSpecificCLIParameterValues

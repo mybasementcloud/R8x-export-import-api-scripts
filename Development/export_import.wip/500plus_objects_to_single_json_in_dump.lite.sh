@@ -34,8 +34,8 @@ export APIExpectedAPISubscriptsVersion=v${APISubscriptsVersion}
 export APIExpectedActionScriptsVersionX=v${ScriptVersion//./x}
 export APIExpectedAPISubscriptsVersionX=v${APISubscriptsVersion//./x}
 
-ScriptName=500plus_objects_to_json_dump.lite
-export APIScriptFileNameRoot=500plus_objects_to_json_dump
+ScriptName=500plus_objects_to_single_json_in_dump.lite
+export APIScriptFileNameRoot=500plus_objects_to_single_json_in_dump
 export APIScriptShortName=500plus_objects_1_json
 export APIScriptnohupName=${APIScriptShortName}
 export APIScriptDescription="500 PLUS OBJECTS dump to json handler"
@@ -277,9 +277,6 @@ case "${OPT}" in
 esac
 
 
-COMMAND="mgmt_cli -r true show ${OBJECTSTYPE}"
-LIMIT="500"
-OFFSET="0"
 if [ -z "$2" ]; then
     DETAILSSET=full
 elif [ "$2" == "full" ]; then
@@ -289,6 +286,24 @@ elif [ "$2" == "standard" ]; then
 else
     DETAILSSET=full
 fi
+
+
+COMMAND="mgmt_cli -r true show ${OBJECTSTYPE}"
+LIMIT="500"
+OFFSET="0"
+
+
+export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
+export OUTPUTFOLDER=./dump/${DATEDTGS}.${OBJECTSTYPE}'_1-json'
+export OUTPUTFILEPREFIX=test.${OBJECTSTYPE}.${DETAILSSET}
+
+if [ ! -r ${OUTPUTFOLDER} ] ; then
+    mkdir -p -v ${OUTPUTFOLDER} | tee -a -i ${logfilepath}
+    chmod 775 ${OUTPUTFOLDER} | tee -a -i ${logfilepath}
+else
+    chmod 775 ${OUTPUTFOLDER} | tee -a -i ${logfilepath}
+fi
+
 
 #Get Total number of items
 echo "Running ${COMMAND}"
@@ -300,25 +315,33 @@ echo
 
 #Loop through and get the data
 while [ ${OFFSET} -lt ${TOTAL} ]; do
-    OUTPUTFILE=test.${OBJECTSTYPE}.${DETAILSSET}'_'${OFFSET}.json
+    OUTPUTFILE=${OUTPUTFOLDER}/${OUTPUTFILEPREFIX}.`printf "%05d" ${OFFSET}`.json
+    
     echo "Getting data with offset of ${OFFSET}" to ${OUTPUTFILE}
+    
     GETDATA=`${COMMAND} limit ${LIMIT} offset ${OFFSET} details-level "${DETAILSSET}" --format json | jq '.'`
     DATA=`echo ${GETDATA} | jq '.objects[]'`
+    
     echo ${DATA} > ${OUTPUTFILE}
+    
     OFFSET=`echo ${GETDATA} | jq '.to'`
 done
 
 echo 
 
-ls -alh test.${OBJECTSTYPE}.${DETAILSSET}'_'*.json
+export OUTPUTFILEUGLY=${OUTPUTFOLDER}/${OUTPUTFILEPREFIX}.ugly.json
+export SEARCHFILEUGLY=${OUTPUTFILEPREFIX}.*.json
+
+ls -alh ${OUTPUTFOLDER}/${SEARCHFILEUGLY}
 
 echo 
 
-jq -s '.' test.${OBJECTSTYPE}.${DETAILSSET}'_'*.json > total.${OBJECTSTYPE}.${DETAILSSET}.json
+jq -s '.' ${SEARCHFILEUGLY} > ${OUTPUTFILEUGLY}
 #rm -rf test*.json
 
-OUTPUT_TOTAL=`cat total.${OBJECTSTYPE}.${DETAILSSET}.json | jq '.[].uid' | sort -u | wc -l`
-echo "Data output to total.json with ${OUTPUT_TOTAL} elements"
+OUTPUT_TOTAL=`cat ${OUTPUTFILEUGLY} | jq '.[].uid' | sort -u | wc -l`
+echo "Data output to total.ugly.json with ${OUTPUT_TOTAL} elements"
+echo "Total elements from first query is ${TOTAL} elements"
 
 # Make it pretty again
 
@@ -326,14 +349,14 @@ echo
 echo "Make it pretty"
 echo
 
-#echo '[' > total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
-#echo '  { ' >> total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
-#echo -n '    "objects": ' >> total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
-echo '{ ' > total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
-echo -n '  "objects": ' >> total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
+export OUTPUTFILETOTALPREFIX=total.${OBJECTSTYPE}.${DETAILSSET}
+
+export OUTPUTFILEPRETTY=${OUTPUTFOLDER}/${OUTPUTFILETOTALPREFIX}.pretty.json
+
+echo '{ ' > ${OUTPUTFILEPRETTY}
+echo -n '  "objects": ' >> ${OUTPUTFILEPRETTY}
 
 # need a way to read lines and dump them out
-#cat total.${OBJECTSTYPE}.${DETAILSSET}.json >> total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
 
 COUNTER=0
 
@@ -343,41 +366,58 @@ while read -r line; do
         echo -n 'Start:.'
     else
         # Lines 1+ are the data
-        echo >> total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
+        echo >> ${OUTPUTFILEPRETTY}
         #echo -n '.'
     fi
-
+    
     #Write the line, but not the carriage return
-    echo -n "${line}" >> total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
+    echo -n "${line}" >> ${OUTPUTFILEPRETTY}
     let COUNTER=COUNTER+1
-done < total.${OBJECTSTYPE}.${DETAILSSET}.json
+done < ${OUTPUTFILEUGLY}
 
 echo
 
 #Write the last comma after the original json file that is not pretty
-echo ',' >> total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
-#echo '    "from": 0,' >> total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
-#echo '    "to": '${OUTPUT_TOTAL}',' >> total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
-#echo '    "total": '${OUTPUT_TOTAL} >> total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
-#echo '  }' >> total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
-#echo ']' >> total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
-echo '  "from": 0,' >> total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
-echo '  "to": '${OUTPUT_TOTAL}',' >> total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
-echo '  "total": '${OUTPUT_TOTAL} >> total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
-echo '}' >> total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
+echo ',' >> ${OUTPUTFILEPRETTY}
+echo '  "from": 0,' >> ${OUTPUTFILEPRETTY}
+echo '  "to": '${OUTPUT_TOTAL}',' >> ${OUTPUTFILEPRETTY}
+echo '  "total": '${OUTPUT_TOTAL} >> ${OUTPUTFILEPRETTY}
+echo '}' >> ${OUTPUTFILEPRETTY}
 
 echo 
-head -n 10 total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json; echo '...'; tail -n 10 total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
+#head -n 10 total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json; echo '...'; tail -n 10 total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
+head -n 10 ${OUTPUTFILEPRETTY}
+echo '...'
+tail -n 10 ${OUTPUTFILEPRETTY}
 echo 
 
 echo
 echo "Now make it really pretty"
 echo
-jq -s '.[]' total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json > total.${OBJECTSTYPE}.${DETAILSSET}.reallypretty.json
+
+export OUTPUTFILEREALLYPRETTY=${OUTPUTFOLDER}/${OUTPUTFILETOTALPREFIX}.reallypretty.json
+
+jq -s '.[]' ${OUTPUTFILEPRETTY} > ${OUTPUTFILEREALLYPRETTY}
 
 echo 
-head -n 10 total.${OBJECTSTYPE}.${DETAILSSET}.reallypretty.json; echo '...'; tail -n 10 total.${OBJECTSTYPE}.${DETAILSSET}.reallypretty.json
+head -n 10 ${OUTPUTFILEREALLYPRETTY}
+echo '...'
+tail -n 10 ${OUTPUTFILEREALLYPRETTY}
 echo 
 
-ls -alh total*.json
+export OUTPUTFILEFINAL=${OUTPUTFOLDER}/${OUTPUTFILETOTALPREFIX}.json
+
+cp ${OUTPUTFILEREALLYPRETTY} ${OUTPUTFILEFINAL}
+
+echo 
+head -n 10 ${OUTPUTFILEFINAL}
+echo '...'
+tail -n 10 ${OUTPUTFILEFINAL}
+echo 
+
+ls -alh ${OUTPUTFOLDER}/
+
+echo
+echo 'Final output file :  '${OUTPUTFILEFINAL}
+echo
 

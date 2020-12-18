@@ -1,7 +1,7 @@
 { "file_meta_info" : {
 	"fileversion" : "0.60.0",
-	"filerevision" : "005",
-	"filedate" : "2020-10-05"
+	"filerevision" : "045",
+	"filedate" : "2020-12-17"
 }, 
 "default_csv_export_elements" : [ {
 	"name" : "common",
@@ -9,7 +9,7 @@
 	"CSVJQparms" : ".[\"name\"], .[\"color\"], .[\"comments\"]"
 }, {
 	"name" : "tags",
-	"CSVFileHeader" : "\"tags.0.name\",\"tags.1.name\",\"tags.2.name\",\"tags.3.name\",\"tags.4.name\",\"tags.5.name\",\"tags.6.name\"",
+	"CSVFileHeader" : "\"tags.0\",\"tags.1\",\"tags.2\",\"tags.3\",\"tags.4\",\"tags.5\",\"tags.6\"",
 	"CSVJQparms" : ".[\"tags\"][0][\"name\"], .[\"tags\"][1][\"name\"], .[\"tags\"][2][\"name\"], .[\"tags\"][3][\"name\"], .[\"tags\"][4][\"name\"], .[\"tags\"][5][\"name\"], .[\"tags\"][6][\"name\"]"
 }, {
 	"name" : "domain",
@@ -19,6 +19,10 @@
 	"name" : "meta-info",
 	"CSVFileHeader" : "\"meta-info.creator\",\"meta-info.creation-time.iso-8601\",\"meta-info.last-modifier\",\"meta-info.last-modify-time.iso-8601\"",
 	"CSVJQparms" : ".[\"meta-info\"][\"creator\"], .[\"meta-info\"][\"creation-time\"][\"iso-8601\"], .[\"meta-info\"][\"last-modifier\"], .[\"meta-info\"][\"last-modify-time\"][\"iso-8601\"]"
+}, {
+	"name" : "errorhandling",
+	"CSVFileHeader" : "\"ignore-warnings\",\"ignore-errors\"",
+	"CSVJQparms" : "true, true"
 } ], 
 "simplex_objects" : [ {
 	"name" : "host",

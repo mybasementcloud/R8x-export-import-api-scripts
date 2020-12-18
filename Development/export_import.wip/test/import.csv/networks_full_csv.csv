@@ -1,6 +1,6 @@
-"name","color","comments","broadcast","subnet4","mask-length4","subnet6","mask-length6","nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.method","tags"
-"netw_test_LAN_01","blue","test network LAN 01","allow","10.230.0.0",24,,,true,"gateway","All","hide","test_data_please_remove"
-"netw_test_LAN_02","blue","test network LAN 02","allow","10.231.0.0",24,,,true,"gateway","All","hide","test_data_please_remove"
-"netw_test_LAN_03","blue","test network LAN 03","allow","10.232.0.0",24,,,true,"gateway","All","hide","test_data_please_remove"
-"netw_test_LAN_04","blue","test network LAN 04","allow","10.233.0.0",24,,,true,"gateway","All","hide","test_data_please_remove"
-"netw_test_LAN_05","blue","test network LAN 05","allow","10.234.0.0",24,,,true,"gateway","All","hide","test_data_please_remove"
+"name","color","comments","broadcast","subnet4","mask-length4","subnet6","mask-length6","nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.method","tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"
+"netw_test_LAN_01","blue","test network LAN 01","allow","10.230.0.0",24,,,true,"gateway","All","hide","test_data_please_remove","tag_one","tag_two","tag_three","tag_four","tag_five","tag_six"
+"netw_test_LAN_02","blue","test network LAN 02","allow","10.231.0.0",24,,,true,"gateway","All","hide","test_data_please_remove","tag_one",,,,,
+"netw_test_LAN_03","blue","test network LAN 03","allow","10.232.0.0",24,,,true,"gateway","All","hide","test_data_please_remove",,,,,,
+"netw_test_LAN_04","blue","test network LAN 04","allow","10.233.0.0",24,,,true,"gateway","All","hide","test_data_please_remove","tag_one","tag_two","tag_three",,,
+"netw_test_LAN_05","blue","test network LAN 05","allow","10.234.0.0",24,,,true,"gateway","All","hide","test_data_please_remove",,,,,,

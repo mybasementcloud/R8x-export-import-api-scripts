@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT Object dump action operations for API CLI Operations
+# SCRIPT Object dump to JSON action operations for API CLI Operations
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=030
-ScriptDate=2020-11-19
+ScriptRevision=045
+ScriptDate=2020-12-17
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -29,6 +29,10 @@ export APIActionsScriptVersionX=v${ScriptVersion//./x}
 export APIActionScriptTemplateVersionX=v${TemplateVersion//./x}
 
 ActionScriptName=cli_api_export_objects_actions
+export APIActionScriptFileNameRoot=cli_api_export_objects_actions
+export APIActionScriptShortName=export_objects_actions
+export APIActionScriptnohupName=${APIActionScriptShortName}
+export APIActionScriptDescription="Object dump to JSON action operations for API CLI Operations"
 
 # =================================================================================================
 # =================================================================================================
@@ -490,7 +494,7 @@ ExportRAWObjectToJSON () {
 # CheckAPIVersionAndExecuteOperation :  Check the API Version running where we're logged in and if good execute operation
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-10-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-12-14 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CheckAPIVersionAndExecuteOperation () {
@@ -507,7 +511,7 @@ CheckAPIVersionAndExecuteOperation () {
     
     echo | tee -a -i ${logfilepath}
     echo 'Required minimum API version for object : '${APICLIobjectstype}' is API version = '${APIobjectminversion} | tee -a -i ${logfilepath}
-    echo 'Logged in management server API version = '${CurrentAPIVersion} | tee -a -i ${logfilepath}
+    echo 'Logged in management server API version = '${CurrentAPIVersion}' Check version : "'${CheckAPIVersion}'"' | tee -a -i ${logfilepath}
     
     if [ $(expr ${APIobjectminversion} '<=' ${CurrentAPIVersion}) ] ; then
         # API is sufficient version
@@ -529,7 +533,7 @@ CheckAPIVersionAndExecuteOperation () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-10-02
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-12-14
 
 
 # -------------------------------------------------------------------------------------------------

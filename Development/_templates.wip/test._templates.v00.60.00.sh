@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=030
-ScriptDate=2020-11-19
+ScriptRevision=045
+ScriptDate=2020-12-17
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -35,6 +35,10 @@ export APIExpectedActionScriptsVersionX=v${ScriptVersion//./x}
 export APIExpectedAPISubscriptsVersionX=v${APISubscriptsVersion//./x}
 
 ScriptName=test._templates.v${ScriptVersion}
+export APIScriptFileNameRoot=test._templates
+export APIScriptShortName=test._templates
+export APIScriptnohupName=${APIScriptShortName}
+export APIScriptDescription="Base Template testing script for automated execution of standard tests"
 
 # =================================================================================================
 # =================================================================================================
@@ -104,8 +108,8 @@ export OtherOutputFolder=Specify_The_Folder_Here
 #
 export OutputDATESubfolder=true
 export OutputDTGSSubfolder=false
-#export OutputSubfolderScriptName=false
-#export OutputSubfolderScriptShortName=false
+export OutputSubfolderScriptName=false
+export OutputSubfolderScriptShortName=true
 
 export notthispath=/home/
 export startpathroot=.
@@ -447,7 +451,7 @@ ResetExternalParameters () {
     export NOWAIT=
     export CLEANUPWIP=
     export NODOMAINFOLDERS=
-    export CSVEXPORTADDIGNOREERR=
+    export CSVADDEXPERRHANDLE=
     
 }
 
@@ -492,7 +496,7 @@ ResetExternalParameters () {
 #
 # --CLEANUPWIP
 # --NODOMAINFOLDERS
-# --CSVEXPORTADDIGNOREERR
+# --CSVADDEXPERRHANDLE
 #
 
 # MODIFIED 2018-05-04 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -536,9 +540,9 @@ HandleScriptTesting_CLIParms () {
         if [ x"$script_test_template" = x"true" ] ; then
             # testing templates, so work the full set of parameters
             
-            . $Script2TestFilepath -v --port ${TestSSLport} --NOWAIT -r --CLEANUPWIP --NODOMAINFOLDERS --CSVEXPORTADDIGNOREERR
-            . $Script2TestFilepath -v --port ${TestSSLport} --NOWAIT -r --CLEANUPWIP --NODOMAINFOLDERS --CSVEXPORTADDIGNOREERR --SO
-            . $Script2TestFilepath -v --port ${TestSSLport} --NOWAIT -r --CLEANUPWIP --NODOMAINFOLDERS --CSVEXPORTADDIGNOREERR --NSO
+            . $Script2TestFilepath -v --port ${TestSSLport} --NOWAIT -r --CLEANUPWIP --NODOMAINFOLDERS --CSVADDEXPERRHANDLE
+            . $Script2TestFilepath -v --port ${TestSSLport} --NOWAIT -r --CLEANUPWIP --NODOMAINFOLDERS --CSVADDEXPERRHANDLE --SO
+            . $Script2TestFilepath -v --port ${TestSSLport} --NOWAIT -r --CLEANUPWIP --NODOMAINFOLDERS --CSVADDEXPERRHANDLE --NSO
             
             ResetExternalParameters
             
@@ -546,8 +550,8 @@ HandleScriptTesting_CLIParms () {
             
             . $Script2TestFilepath -v --port ${TestSSLport} --NOWAIT -r -l ${Testinglogfilebase} -c ${Testinglogfilebase}/example_csv.csv
             
-            . $Script2TestFilepath -v --port ${TestSSLport} --NOWAIT -u _apiadmin -p Cpwins1! --CLEANUPWIP --NODOMAINFOLDERS --CSVEXPORTADDIGNOREERR
-            . $Script2TestFilepath -v --port ${TestSSLport} --NOWAIT -u _apiadmin -p Cpwins1! --CLEANUPWIP --NODOMAINFOLDERS --CSVEXPORTADDIGNOREERR --SO
+            . $Script2TestFilepath -v --port ${TestSSLport} --NOWAIT -u _apiadmin -p Cpwins1! --CLEANUPWIP --NODOMAINFOLDERS --CSVADDEXPERRHANDLE
+            . $Script2TestFilepath -v --port ${TestSSLport} --NOWAIT -u _apiadmin -p Cpwins1! --CLEANUPWIP --NODOMAINFOLDERS --CSVADDEXPERRHANDLE --SO
             
         fi
         

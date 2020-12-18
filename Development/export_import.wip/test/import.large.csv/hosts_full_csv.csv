@@ -1,4 +1,4 @@
-name,color,comments,ipv4-address,tags
+"name","color","comments","ipv4-address","tags"
 TEST-HOST-01,burly wood 4,test_data_please_remove,10.129.0.1,test_data_please_remove
 TEST-HOST-02,burly wood 4,test_data_please_remove,10.129.0.2,test_data_please_remove
 TEST-HOST-03,burly wood 4,test_data_please_remove,10.129.0.3,test_data_please_remove

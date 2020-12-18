@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT test read operations
+# SCRIPT Append CSV Error Handling to CSV files
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=030
-ScriptDate=2020-11-19
+ScriptRevision=045
+ScriptDate=2020-12-17
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -35,6 +35,10 @@ export APIExpectedActionScriptsVersionX=v${ScriptVersion//./x}
 export APIExpectedAPISubscriptsVersionX=v${APISubscriptsVersion//./x}
 
 ScriptName=cli_api_append_csv_error_handling_to_csv_file
+export APIScriptFileNameRoot=cli_api_append_csv_error_handling_to_csv_file
+export APIScriptShortName=append_csv_error_handling
+export APIScriptnohupName=${APIScriptShortName}
+export APIScriptDescription="Append CSV Error Handling to CSV files"
 
 
 # -------------------------------------------------------------------------------------------------

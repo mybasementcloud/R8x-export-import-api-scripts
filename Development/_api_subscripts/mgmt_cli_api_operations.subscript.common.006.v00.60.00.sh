@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=030
-ScriptDate=2020-11-19
+ScriptRevision=045
+ScriptDate=2020-12-17
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -29,6 +29,10 @@ export APISubscriptsScriptVersionX=v${ScriptVersion//./x}
 export APISubscriptsScriptTemplateVersionX=v${TemplateVersion//./x}
 
 APISubScriptName=mgmt_cli_api_operations.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}
+export APISubScriptFileNameRoot=mgmt_cli_api_operations.subscript.common
+export APISubScriptShortName=mgmt_cli_api_operations
+export APISubScriptnohupName=${APISubScriptShortName}
+export APISubScriptDescription="subscript for CLI Operations for management CLI API operations handling"
 
 
 # =================================================================================================
@@ -470,9 +474,9 @@ subHandleMgmtCLIPublish () {
     
     # APICLIsessionerrorfile is created at login
     #export APICLIsessionerrorfile=id.`date +%Y%m%d-%H%M%S%Z`.err
-    echo > ${APICLIsessionerrorfile}
-    echo 'mgmt_cli publish operation' > ${APICLIsessionerrorfile}
-    echo > ${APICLIsessionerrorfile}
+    echo >> ${APICLIsessionerrorfile}
+    echo 'mgmt_cli publish operation' >> ${APICLIsessionerrorfile}
+    echo >> ${APICLIsessionerrorfile}
     
     if [ x"$script_use_publish" = x"true" ] ; then
         echo | tee -a -i ${logfilepath}
@@ -520,9 +524,9 @@ subHandleMgmtCLILogout () {
     
     # APICLIsessionerrorfile is created at login
     #export APICLIsessionerrorfile=id.`date +%Y%m%d-%H%M%S%Z`.err
-    echo > ${APICLIsessionerrorfile}
-    echo 'mgmt_cli logout operation' > ${APICLIsessionerrorfile}
-    echo > ${APICLIsessionerrorfile}
+    echo >> ${APICLIsessionerrorfile}
+    echo 'mgmt_cli logout operation' >> ${APICLIsessionerrorfile}
+    echo >> ${APICLIsessionerrorfile}
     
     echo | tee -a -i ${logfilepath}
     echo 'Logout of mgmt_cli!  Then remove session file : '${APICLIsessionfile} | tee -a -i ${logfilepath}
@@ -539,6 +543,535 @@ subHandleMgmtCLILogout () {
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-16
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# HandleMgmtCLI_ROOT_Login - Login to the API via mgmt_cli login using ROOT credentials
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2020-12-14 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+HandleMgmtCLI_ROOT_Login () {
+    #
+    # Login to the API via mgmt_cli login using ROOT credentials
+    #
+    
+    # Handle if ROOT User -r true parameter
+    
+    EXITCODE=0
+    
+    echo 'Login to mgmt_cli as root user -r true and save to session file :  '${APICLIsessionfile} | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    
+    # Handle management server parameter error if combined with ROOT User
+    if [ x"${CLIparm_mgmt}" != x"" ] ; then
+        echo | tee -a -i ${logfilepath}
+        echo 'mgmt_cli parameter error!!!!' | tee -a -i ${logfilepath}
+        echo 'ROOT User (-r true) parameter can not be combined with -m <Management_Server>!!!' | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
+        return 254
+    fi
+    
+    export loginparmstring=' -r true'
+    
+    if [ x"${domaintarget}" != x"" ] ; then
+        # Handle domain parameter for login string
+        export loginparmstring=${loginparmstring}" domain \"${domaintarget}\""
+        
+        if ${APISCRIPTVERBOSE} ; then
+            echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As Root with Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
+            echo | tee -a -i ${logfilepath}
+        else
+            echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As Root with Domain '\"${domaintarget}\" >> ${logfilepath}
+            echo >> ${logfilepath}
+        fi
+        
+        mgmt_cli login -r true domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+        EXITCODE=$?
+        cat ${APICLIsessionerrorfile} >> ${logfilepath}
+    else
+        if ${APISCRIPTVERBOSE} ; then
+            echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As Root' | tee -a -i ${logfilepath}
+            echo | tee -a -i ${logfilepath}
+        else
+            echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As Root' >> ${logfilepath}
+            echo >> ${logfilepath}
+        fi
+        
+        mgmt_cli login -r true session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+        EXITCODE=$?
+        cat ${APICLIsessionerrorfile} >> ${logfilepath}
+    fi
+    
+    return ${EXITCODE}
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-12-14
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# HandleMgmtCLI_API_KEY_Login - Login to the API via mgmt_cli login using api-key credentials
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2020-12-14 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+HandleMgmtCLI_API_KEY_Login () {
+    #
+    # Login to the API via mgmt_cli login using api-key credentials
+    #
+    
+    # Handle if --api-key parameter set
+    
+    EXITCODE=0
+    
+    echo 'Login to mgmt_cli with API key '\"${CLIparm_api_key}\"' and save to session file :  '${APICLIsessionfile} | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    
+    if [ x"${domaintarget}" != x"" ] ; then
+        # Handle domain parameter for login string
+        export loginparmstring=${loginparmstring}" domain \"${domaintarget}\""
+        
+        # Handle management server parameter for mgmt_cli parms
+        if [ x"${CLIparm_mgmt}" != x"" ] ; then
+            export mgmttarget="-m \"${CLIparm_mgmt}\""
+            
+            if ${APISCRIPTVERBOSE} ; then
+                echo 'Execute login using API key' | tee -a -i ${logfilepath}
+                echo 'Execute operations with mgmttarget '\"${mgmttarget}\"' to Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
+                echo | tee -a -i ${logfilepath}
+            else
+                echo 'Execute login using API key' >> ${logfilepath}
+                echo 'Execute operations with mgmttarget '\"${mgmttarget}\"' to Domain '\"${domaintarget}\" >> ${logfilepath}
+                echo >> ${logfilepath}
+            fi
+            
+            mgmt_cli login api-key "${CLIparm_api_key}" domain "${domaintarget}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+            EXITCODE=$?
+            cat ${APICLIsessionerrorfile} >> ${logfilepath}
+        else
+            
+            if ${APISCRIPTVERBOSE} ; then
+                echo 'Execute login using API key to Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
+                echo | tee -a -i ${logfilepath}
+            else
+                echo 'Execute login using API key to Domain '\"${domaintarget}\" >> ${logfilepath}
+                echo >> ${logfilepath}
+            fi
+            
+            mgmt_cli login api-key "${CLIparm_api_key}" domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+            EXITCODE=$?
+            cat ${APICLIsessionerrorfile} >> ${logfilepath}
+        fi
+    else
+        # Handle management server parameter for mgmt_cli parms
+        if [ x"${CLIparm_mgmt}" != x"" ] ; then
+            export mgmttarget="-m \"${CLIparm_mgmt}\""
+            
+            if ${APISCRIPTVERBOSE} ; then
+                echo 'Execute login using API key' | tee -a -i ${logfilepath}
+                echo 'Execute operations with mgmttarget '\"${mgmttarget}\" | tee -a -i ${logfilepath}
+                echo | tee -a -i ${logfilepath}
+            else
+                echo 'Execute login using API key' >> ${logfilepath}
+                echo 'Execute operations with mgmttarget '\"${mgmttarget}\" >> ${logfilepath}
+                echo >> ${logfilepath}
+            fi
+            
+            mgmt_cli login api-key "${CLIparm_api_key}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+            EXITCODE=$?
+            cat ${APICLIsessionerrorfile} >> ${logfilepath}
+        else
+            
+            if ${APISCRIPTVERBOSE} ; then
+                echo 'Execute login using API key' | tee -a -i ${logfilepath}
+                echo | tee -a -i ${logfilepath}
+            else
+                echo 'Execute login using API key' >> ${logfilepath}
+                echo >> ${logfilepath}
+            fi
+            
+            mgmt_cli login api-key "${CLIparm_api_key}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+            EXITCODE=$?
+            cat ${APICLIsessionerrorfile} >> ${logfilepath}
+        fi
+    fi
+    
+    return ${EXITCODE}
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-12-14
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# HandleMgmtCLI_User_Login - Login to the API via mgmt_cli login using User credentials
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2020-12-14 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+HandleMgmtCLI_User_Login () {
+    #
+    # Login to the API via mgmt_cli login using User credentials
+    #
+    EXITCODE=0
+    
+    echo 'Login to mgmt_cli and save to session file :  '${APICLIsessionfile} | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    
+    if [ x"${CLIparm_password}" != x"" ] ; then
+        # Handle password parameter
+        export loginparmstring=${loginparmstring}" password \"${CLIparm_password}\""
+        
+        if [ x"${domaintarget}" != x"" ] ; then
+            # Handle domain parameter for login string
+            export loginparmstring=${loginparmstring}" domain \"${domaintarget}\""
+            
+            # Handle management server parameter for mgmt_cli parms
+            if [ x"${CLIparm_mgmt}" != x"" ] ; then
+                export mgmttarget="-m \"${CLIparm_mgmt}\""
+                
+                if ${APISCRIPTVERBOSE} ; then
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Domain and Management' | tee -a -i ${logfilepath}
+                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\"' to Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                else
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Domain and Management' >> ${logfilepath}
+                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\"' to Domain '\"${domaintarget}\" >> ${logfilepath}
+                    echo >> ${logfilepath}
+                fi
+                
+                read -p "Username: " APICLIusername
+                mgmt_cli login user ${APICLIusername} password "${CLIparm_password}" domain "${domaintarget}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                EXITCODE=$?
+                cat ${APICLIsessionerrorfile} >> ${logfilepath}
+            else
+                if ${APISCRIPTVERBOSE} ; then
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                else
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Domain '\"${domaintarget}\" >> ${logfilepath}
+                    echo >> ${logfilepath}
+                fi
+                
+                read -p "Username: " APICLIusername
+                mgmt_cli login user ${APICLIusername} password "${CLIparm_password}" domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                EXITCODE=$?
+                cat ${APICLIsessionerrorfile} >> ${logfilepath}
+            fi
+        else
+            # Handle management server parameter for mgmt_cli parms
+            if [ x"${CLIparm_mgmt}" != x"" ] ; then
+                export mgmttarget='-m \"${CLIparm_mgmt}\"'
+                
+                if ${APISCRIPTVERBOSE} ; then
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Management' | tee -a -i ${logfilepath}
+                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\" | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                else
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Management' >> ${logfilepath}
+                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\" >> ${logfilepath}
+                    echo >> ${logfilepath}
+                fi
+                
+                read -p "Username: " APICLIusername
+                mgmt_cli login user ${APICLIusername} password "${CLIparm_password}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                EXITCODE=$?
+                cat ${APICLIsessionerrorfile} >> ${logfilepath}
+            else
+                if ${APISCRIPTVERBOSE} ; then
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password' | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                else
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password' >> ${logfilepath}
+                    echo >> ${logfilepath}
+                fi
+                
+                read -p "Username: " APICLIusername
+                mgmt_cli login user ${APICLIusername} password "${CLIparm_password}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                EXITCODE=$?
+                cat ${APICLIsessionerrorfile} >> ${logfilepath}
+            fi
+        fi
+    else
+        # Handle NO password parameter
+        
+        if [ x"${domaintarget}" != x"" ] ; then
+            # Handle domain parameter for login string
+            export loginparmstring=${loginparmstring}" domain \"${domaintarget}\""
+            
+            # Handle management server parameter for mgmt_cli parms
+            if [ x"${CLIparm_mgmt}" != x"" ] ; then
+                export mgmttarget="-m \"${CLIparm_mgmt}\""
+                
+                if ${APISCRIPTVERBOSE} ; then
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Domain and Management' | tee -a -i ${logfilepath}
+                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\"' to Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                else
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Domain and Management' >> ${logfilepath}
+                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\"' to Domain '\"${domaintarget}\" >> ${logfilepath}
+                    echo >> ${logfilepath}
+                fi
+                
+                read -p "Username: " APICLIusername
+                mgmt_cli login user ${APICLIusername} domain "${domaintarget}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                EXITCODE=$?
+                cat ${APICLIsessionerrorfile} >> ${logfilepath}
+            else
+                if ${APISCRIPTVERBOSE} ; then
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                else
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Domain '\"${domaintarget}\" >> ${logfilepath}
+                    echo >> ${logfilepath}
+                fi
+                
+                read -p "Username: " APICLIusername
+                mgmt_cli login user ${APICLIusername} domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                EXITCODE=$?
+                cat ${APICLIsessionerrorfile} >> ${logfilepath}
+            fi
+        else
+            # Handle management server parameter for mgmt_cli parms
+            if [ x"${CLIparm_mgmt}" != x"" ] ; then
+                export mgmttarget='-m \"${CLIparm_mgmt}\"'
+                
+                if ${APISCRIPTVERBOSE} ; then
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Management' | tee -a -i ${logfilepath}
+                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\" | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                else
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Management' >> ${logfilepath}
+                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\" >> ${logfilepath}
+                    echo >> ${logfilepath}
+                fi
+                
+                read -p "Username: " APICLIusername
+                mgmt_cli login user ${APICLIusername} -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                EXITCODE=$?
+                cat ${APICLIsessionerrorfile} >> ${logfilepath}
+            else
+                if ${APISCRIPTVERBOSE} ; then
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User' | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                else
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User' >> ${logfilepath}
+                    echo >> ${logfilepath}
+                fi
+                
+                read -p "Username: " APICLIusername
+                mgmt_cli login user ${APICLIusername} session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                EXITCODE=$?
+                cat ${APICLIsessionerrorfile} >> ${logfilepath}
+            fi
+        fi
+    fi
+    
+    return ${EXITCODE}
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-12-14
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# HandleMgmtCLI_Admin_User_Login - Login to the API via mgmt_cli login using Admin user credentials
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2020-12-14 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+HandleMgmtCLI_Admin_User_Login () {
+    #
+    # Login to the API via mgmt_cli login using Admin user credentials
+    #
+    # Handle Admin User
+    
+    EXITCODE=0
+    
+    echo 'Login to mgmt_cli as '${APICLIadmin}' and save to session file :  '${APICLIsessionfile} | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    
+    if [ x"${APICLIadmin}" != x"" ] ; then
+        export loginparmstring=${loginparmstring}" user ${APICLIadmin}"
+    else
+        echo | tee -a -i ${logfilepath}
+        echo 'mgmt_cli parameter error!!!!' | tee -a -i ${logfilepath}
+        echo 'Admin User variable not set!!!' | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
+        return 254
+    fi
+    
+    if [ x"${CLIparm_password}" != x"" ] ; then
+        # Handle password parameter
+        export loginparmstring=${loginparmstring}" password \"${CLIparm_password}\""
+        
+        if [ x"${domaintarget}" != x"" ] ; then
+            # Handle domain parameter for login string
+            export loginparmstring=${loginparmstring}" domain \"${domaintarget}\""
+            
+            # Handle management server parameter for mgmt_cli parms
+            if [ x"${CLIparm_mgmt}" != x"" ] ; then
+                export mgmttarget="-m \"${CLIparm_mgmt}\""
+                
+                if ${APISCRIPTVERBOSE} ; then
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Domain and Management' | tee -a -i ${logfilepath}
+                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\"' to Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                else
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Domain and Management' >> ${logfilepath}
+                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\"' to Domain '\"${domaintarget}\" >> ${logfilepath}
+                    echo >> ${logfilepath}
+                fi
+                
+                mgmt_cli login user ${APICLIadmin} password "${CLIparm_password}" domain "${domaintarget}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                EXITCODE=$?
+                cat ${APICLIsessionerrorfile} >> ${logfilepath}
+            else
+                if ${APISCRIPTVERBOSE} ; then
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                else
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Domain '\"${domaintarget}\" >> ${logfilepath}
+                    echo >> ${logfilepath}
+                fi
+                
+                mgmt_cli login user ${APICLIadmin} password "${CLIparm_password}" domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                EXITCODE=$?
+                cat ${APICLIsessionerrorfile} >> ${logfilepath}
+            fi
+        else
+            # Handle management server parameter for mgmt_cli parms
+            if [ x"${CLIparm_mgmt}" != x"" ] ; then
+                export mgmttarget='-m \"${CLIparm_mgmt}\"'
+                
+                if ${APISCRIPTVERBOSE} ; then
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Management' | tee -a -i ${logfilepath}
+                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\" | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                else
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Management' >> ${logfilepath}
+                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\" >> ${logfilepath}
+                    echo >> ${logfilepath}
+                fi
+                
+                mgmt_cli login user ${APICLIadmin} password "${CLIparm_password}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                EXITCODE=$?
+                cat ${APICLIsessionerrorfile} >> ${logfilepath}
+            else
+                if ${APISCRIPTVERBOSE} ; then
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password' | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                else
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password' >> ${logfilepath}
+                    echo >> ${logfilepath}
+                fi
+                
+                mgmt_cli login user ${APICLIadmin} password "${CLIparm_password}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                EXITCODE=$?
+                cat ${APICLIsessionerrorfile} >> ${logfilepath}
+            fi
+        fi
+    else
+        # Handle NO password parameter
+        
+        if [ x"${domaintarget}" != x"" ] ; then
+            # Handle domain parameter for login string
+            export loginparmstring=${loginparmstring}" domain \"${domaintarget}\""
+            
+            # Handle management server parameter for mgmt_cli parms
+            if [ x"${CLIparm_mgmt}" != x"" ] ; then
+                export mgmttarget="-m \"${CLIparm_mgmt}\""
+                
+                if ${APISCRIPTVERBOSE} ; then
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Domain and Management' | tee -a -i ${logfilepath}
+                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\"' to Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                else
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Domain and Management' >> ${logfilepath}
+                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\"' to Domain '\"${domaintarget}\" >> ${logfilepath}
+                    echo >> ${logfilepath}
+                fi
+                
+                mgmt_cli login user ${APICLIadmin} domain "${domaintarget}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                EXITCODE=$?
+                cat ${APICLIsessionerrorfile} >> ${logfilepath}
+            else
+                if ${APISCRIPTVERBOSE} ; then
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                else
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Domain '\"${domaintarget}\" >> ${logfilepath}
+                    echo >> ${logfilepath}
+                fi
+                
+                mgmt_cli login user ${APICLIadmin} domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                EXITCODE=$?
+                cat ${APICLIsessionerrorfile} >> ${logfilepath}
+            fi
+        else
+            # Handle management server parameter for mgmt_cli parms
+            if [ x"${CLIparm_mgmt}" != x"" ] ; then
+                export mgmttarget='-m \"${CLIparm_mgmt}\"'
+                
+                if ${APISCRIPTVERBOSE} ; then
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Management' | tee -a -i ${logfilepath}
+                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\" | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                else
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Management' >> ${logfilepath}
+                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\" >> ${logfilepath}
+                    echo >> ${logfilepath}
+                fi
+                
+                mgmt_cli login user ${APICLIadmin} -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                EXITCODE=$?
+                cat ${APICLIsessionerrorfile} >> ${logfilepath}
+            else
+                if ${APISCRIPTVERBOSE} ; then
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User' | tee -a -i ${logfilepath}
+                    echo | tee -a -i ${logfilepath}
+                else
+                    echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User' >> ${logfilepath}
+                    echo >> ${logfilepath}
+                fi
+                
+                mgmt_cli login user ${APICLIadmin} session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                EXITCODE=$?
+                cat ${APICLIsessionerrorfile} >> ${logfilepath}
+            fi
+        fi
+    fi
+    
+    return ${EXITCODE}
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-12-14
 
 
 # -------------------------------------------------------------------------------------------------
@@ -569,7 +1102,7 @@ HandleMgmtCLILogin () {
     
     # MODIFIED 2018-05-04 -
     export APICLIsessionerrorfile=id.`date +%Y%m%d-%H%M%S%Z`.err
-    echo 'API CLI Session Error File : '${APICLIsessionerrorfile} > ${APICLIsessionerrorfile}
+    echo 'API CLI Session Error File : '${APICLIsessionerrorfile} >> ${APICLIsessionerrorfile}
     echo >> ${APICLIsessionerrorfile}
     echo 'mgmt_cli login operation' >> ${APICLIsessionerrorfile}
     echo >> ${APICLIsessionerrorfile}
@@ -628,309 +1161,35 @@ HandleMgmtCLILogin () {
     if [ x"${CLIparm_rootuser}" = x"true" ] ; then
         # Handle if ROOT User -r true parameter
         
-        echo 'Login to mgmt_cli as root user -r true and save to session file :  '${APICLIsessionfile} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        HandleMgmtCLI_ROOT_Login
+        EXITCODE=$?
         
-        # Handle management server parameter error if combined with ROOT User
-        if [ x"${CLIparm_mgmt}" != x"" ] ; then
-            echo | tee -a -i ${logfilepath}
-            echo 'mgmt_cli parameter error!!!!' | tee -a -i ${logfilepath}
-            echo 'ROOT User (-r true) parameter can not be combined with -m <Management_Server>!!!' | tee -a -i ${logfilepath}
-            echo | tee -a -i ${logfilepath}
-            return 254
-        fi
+        echo 'mgmt_cli login with ROOT credentials result : EXITCODE = '${EXITCODE} | tee -a -i ${logfilepath}
         
-        export loginparmstring=' -r true'
-        
-        if [ x"${domaintarget}" != x"" ] ; then
-            # Handle domain parameter for login string
-            export loginparmstring=${loginparmstring}" domain \"${domaintarget}\""
-            
-            #
-            # Testing - Dump login string built from parameters
-            #
-            if ${APISCRIPTVERBOSE} ; then
-                echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As Root with Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
-                echo | tee -a -i ${logfilepath}
-            else
-                echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As Root with Domain '\"${domaintarget}\" >> ${logfilepath}
-                echo >> ${logfilepath}
-            fi
-            
-            mgmt_cli login -r true domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
-            EXITCODE=$?
-            cat ${APICLIsessionerrorfile} >> ${logfilepath}
-        else
-            #
-            # Testing - Dump login string built from parameters
-            #
-            if ${APISCRIPTVERBOSE} ; then
-                echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As Root' | tee -a -i ${logfilepath}
-                echo | tee -a -i ${logfilepath}
-            else
-                echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As Root' >> ${logfilepath}
-                echo >> ${logfilepath}
-            fi
-            
-            mgmt_cli login -r true session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
-            EXITCODE=$?
-            cat ${APICLIsessionerrorfile} >> ${logfilepath}
-        fi
     elif [ x"${CLIparm_api_key}" != x"" ] ; then
         # Handle if --api-key parameter set
         
-        echo 'Login to mgmt_cli with API key '\"${CLIparm_api_key}\"' and save to session file :  '${APICLIsessionfile} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        HandleMgmtCLI_API_KEY_Login
+        EXITCODE=$?
         
-        if [ x"${domaintarget}" != x"" ] ; then
-            # Handle domain parameter for login string
-            export loginparmstring=${loginparmstring}" domain \"${domaintarget}\""
-            
-            # Handle management server parameter for mgmt_cli parms
-            if [ x"${CLIparm_mgmt}" != x"" ] ; then
-                export mgmttarget="-m \"${CLIparm_mgmt}\""
-                
-                if ${APISCRIPTVERBOSE} ; then
-                    echo 'Execute login using API key' | tee -a -i ${logfilepath}
-                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\"' to Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
-                    echo | tee -a -i ${logfilepath}
-                else
-                    echo 'Execute login using API key' >> ${logfilepath}
-                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\"' to Domain '\"${domaintarget}\" >> ${logfilepath}
-                    echo >> ${logfilepath}
-                fi
-                
-                mgmt_cli login api-key "${CLIparm_api_key}" domain "${domaintarget}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
-                EXITCODE=$?
-                cat ${APICLIsessionerrorfile} >> ${logfilepath}
-            else
-                
-                if ${APISCRIPTVERBOSE} ; then
-                    echo 'Execute login using API key to Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
-                    echo | tee -a -i ${logfilepath}
-                else
-                    echo 'Execute login using API key to Domain '\"${domaintarget}\" >> ${logfilepath}
-                    echo >> ${logfilepath}
-                fi
-                
-                mgmt_cli login api-key "${CLIparm_api_key}" domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
-                EXITCODE=$?
-                cat ${APICLIsessionerrorfile} >> ${logfilepath}
-            fi
-        else
-            # Handle management server parameter for mgmt_cli parms
-            if [ x"${CLIparm_mgmt}" != x"" ] ; then
-                export mgmttarget="-m \"${CLIparm_mgmt}\""
-                
-                if ${APISCRIPTVERBOSE} ; then
-                    echo 'Execute login using API key' | tee -a -i ${logfilepath}
-                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\" | tee -a -i ${logfilepath}
-                    echo | tee -a -i ${logfilepath}
-                else
-                    echo 'Execute login using API key' >> ${logfilepath}
-                    echo 'Execute operations with mgmttarget '\"${mgmttarget}\" >> ${logfilepath}
-                    echo >> ${logfilepath}
-                fi
-                
-                mgmt_cli login api-key "${CLIparm_api_key}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
-                EXITCODE=$?
-                cat ${APICLIsessionerrorfile} >> ${logfilepath}
-            else
-                
-                if ${APISCRIPTVERBOSE} ; then
-                    echo 'Execute login using API key' | tee -a -i ${logfilepath}
-                    echo | tee -a -i ${logfilepath}
-                else
-                    echo 'Execute login using API key' >> ${logfilepath}
-                    echo >> ${logfilepath}
-                fi
-                
-                mgmt_cli login api-key "${CLIparm_api_key}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
-                EXITCODE=$?
-                cat ${APICLIsessionerrorfile} >> ${logfilepath}
-            fi
-        fi
+        echo 'mgmt_cli login with api-key credentials result : EXITCODE = '${EXITCODE} | tee -a -i ${logfilepath}
+        
+    elif [ x"${APICLIadmin}" != x"" ] ; then
+        # Handle Admin User
+        
+        HandleMgmtCLI_Admin_User_Login
+        EXITCODE=$?
+        
+        echo 'mgmt_cli login with Admin User credentials result : EXITCODE = '${EXITCODE} | tee -a -i ${logfilepath}
         
     else
         # Handle User
         
-        echo 'Login to mgmt_cli as '${APICLIadmin}' and save to session file :  '${APICLIsessionfile} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        HandleMgmtCLI_User_Login
+        EXITCODE=$?
         
-        if [ x"${APICLIadmin}" != x"" ] ; then
-            export loginparmstring=${loginparmstring}" user ${APICLIadmin}"
-        else
-            echo | tee -a -i ${logfilepath}
-            echo 'mgmt_cli parameter error!!!!' | tee -a -i ${logfilepath}
-            echo 'Admin User variable not set!!!' | tee -a -i ${logfilepath}
-            echo | tee -a -i ${logfilepath}
-            return 254
-        fi
+        echo 'mgmt_cli login with User credentials result : EXITCODE = '${EXITCODE} | tee -a -i ${logfilepath}
         
-        if [ x"${CLIparm_password}" != x"" ] ; then
-            # Handle password parameter
-            export loginparmstring=${loginparmstring}" password \"${CLIparm_password}\""
-            
-            if [ x"${domaintarget}" != x"" ] ; then
-                # Handle domain parameter for login string
-                export loginparmstring=${loginparmstring}" domain \"${domaintarget}\""
-                
-                # Handle management server parameter for mgmt_cli parms
-                if [ x"${CLIparm_mgmt}" != x"" ] ; then
-                    export mgmttarget="-m \"${CLIparm_mgmt}\""
-                    
-                    #
-                    # Testing - Dump login string built from parameters
-                    #
-                    if ${APISCRIPTVERBOSE} ; then
-                        echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Domain and Management' | tee -a -i ${logfilepath}
-                        echo 'Execute operations with mgmttarget '\"${mgmttarget}\"' to Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
-                        echo | tee -a -i ${logfilepath}
-                    else
-                        echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Domain and Management' >> ${logfilepath}
-                        echo 'Execute operations with mgmttarget '\"${mgmttarget}\"' to Domain '\"${domaintarget}\" >> ${logfilepath}
-                        echo >> ${logfilepath}
-                    fi
-                    
-                    mgmt_cli login user ${APICLIadmin} password "${CLIparm_password}" domain "${domaintarget}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
-                    EXITCODE=$?
-                    cat ${APICLIsessionerrorfile} >> ${logfilepath}
-                else
-                    #
-                    # Testing - Dump login string built from parameters
-                    #
-                    if ${APISCRIPTVERBOSE} ; then
-                        echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
-                        echo | tee -a -i ${logfilepath}
-                    else
-                        echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Domain '\"${domaintarget}\" >> ${logfilepath}
-                        echo >> ${logfilepath}
-                    fi
-                    
-                    mgmt_cli login user ${APICLIadmin} password "${CLIparm_password}" domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
-                    EXITCODE=$?
-                    cat ${APICLIsessionerrorfile} >> ${logfilepath}
-                fi
-            else
-                # Handle management server parameter for mgmt_cli parms
-                if [ x"${CLIparm_mgmt}" != x"" ] ; then
-                    export mgmttarget='-m \"${CLIparm_mgmt}\"'
-                    
-                    #
-                    # Testing - Dump login string built from parameters
-                    #
-                    if ${APISCRIPTVERBOSE} ; then
-                        echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Management' | tee -a -i ${logfilepath}
-                        echo 'Execute operations with mgmttarget '\"${mgmttarget}\" | tee -a -i ${logfilepath}
-                        echo | tee -a -i ${logfilepath}
-                    else
-                        echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password and Management' >> ${logfilepath}
-                        echo 'Execute operations with mgmttarget '\"${mgmttarget}\" >> ${logfilepath}
-                        echo >> ${logfilepath}
-                    fi
-                    
-                    mgmt_cli login user ${APICLIadmin} password "${CLIparm_password}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
-                    EXITCODE=$?
-                    cat ${APICLIsessionerrorfile} >> ${logfilepath}
-                else
-                    #
-                    # Testing - Dump login string built from parameters
-                    #
-                    if ${APISCRIPTVERBOSE} ; then
-                        echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password' | tee -a -i ${logfilepath}
-                        echo | tee -a -i ${logfilepath}
-                    else
-                        echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Password' >> ${logfilepath}
-                        echo >> ${logfilepath}
-                    fi
-                    
-                    mgmt_cli login user ${APICLIadmin} password "${CLIparm_password}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
-                    EXITCODE=$?
-                    cat ${APICLIsessionerrorfile} >> ${logfilepath}
-                fi
-            fi
-        else
-            # Handle NO password parameter
-            
-            if [ x"${domaintarget}" != x"" ] ; then
-                # Handle domain parameter for login string
-                export loginparmstring=${loginparmstring}" domain \"${domaintarget}\""
-                
-                # Handle management server parameter for mgmt_cli parms
-                if [ x"${CLIparm_mgmt}" != x"" ] ; then
-                    export mgmttarget="-m \"${CLIparm_mgmt}\""
-                    
-                    #
-                    # Testing - Dump login string built from parameters
-                    #
-                    if ${APISCRIPTVERBOSE} ; then
-                        echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Domain and Management' | tee -a -i ${logfilepath}
-                        echo 'Execute operations with mgmttarget '\"${mgmttarget}\"' to Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
-                        echo | tee -a -i ${logfilepath}
-                    else
-                        echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Domain and Management' >> ${logfilepath}
-                        echo 'Execute operations with mgmttarget '\"${mgmttarget}\"' to Domain '\"${domaintarget}\" >> ${logfilepath}
-                        echo >> ${logfilepath}
-                    fi
-                    
-                    mgmt_cli login user ${APICLIadmin} domain "${domaintarget}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
-                    EXITCODE=$?
-                    cat ${APICLIsessionerrorfile} >> ${logfilepath}
-                else
-                    #
-                    # Testing - Dump login string built from parameters
-                    #
-                    if ${APISCRIPTVERBOSE} ; then
-                        echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Domain '\"${domaintarget}\" | tee -a -i ${logfilepath}
-                        echo | tee -a -i ${logfilepath}
-                    else
-                        echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Domain '\"${domaintarget}\" >> ${logfilepath}
-                        echo >> ${logfilepath}
-                    fi
-                    
-                    mgmt_cli login user ${APICLIadmin} domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
-                    EXITCODE=$?
-                    cat ${APICLIsessionerrorfile} >> ${logfilepath}
-                fi
-            else
-                # Handle management server parameter for mgmt_cli parms
-                if [ x"${CLIparm_mgmt}" != x"" ] ; then
-                    export mgmttarget='-m \"${CLIparm_mgmt}\"'
-                    
-                    #
-                    # Testing - Dump login string built from parameters
-                    #
-                    if ${APISCRIPTVERBOSE} ; then
-                        echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Management' | tee -a -i ${logfilepath}
-                        echo 'Execute operations with mgmttarget '\"${mgmttarget}\" | tee -a -i ${logfilepath}
-                        echo | tee -a -i ${logfilepath}
-                    else
-                        echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User with Management' >> ${logfilepath}
-                        echo 'Execute operations with mgmttarget '\"${mgmttarget}\" >> ${logfilepath}
-                        echo >> ${logfilepath}
-                    fi
-                    
-                    mgmt_cli login user ${APICLIadmin} -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
-                    EXITCODE=$?
-                    cat ${APICLIsessionerrorfile} >> ${logfilepath}
-                else
-                    #
-                    # Testing - Dump login string built from parameters
-                    #
-                    if ${APISCRIPTVERBOSE} ; then
-                        echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User' | tee -a -i ${logfilepath}
-                        echo | tee -a -i ${logfilepath}
-                    else
-                        echo 'Execute login with loginparmstring '\"${loginparmstring}\"' As User' >> ${logfilepath}
-                        echo >> ${logfilepath}
-                    fi
-                    
-                    mgmt_cli login user ${APICLIadmin} session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
-                    EXITCODE=$?
-                    cat ${APICLIsessionerrorfile} >> ${logfilepath}
-                fi
-            fi
-        fi
     fi
     
     if [ "${EXITCODE}" != "0" ] ; then
@@ -990,18 +1249,28 @@ subSetupLogin2MgmtCLI () {
             echo | tee -a -i ${logfilepath}
             echo 'Initial ${APICLIwebsslport}   = '${APICLIwebsslport} | tee -a -i ${logfilepath}
             echo 'Current ${CLIparm_websslport} = '${CLIparm_websslport} | tee -a -i ${logfilepath}
+        else
+            echo >> ${logfilepath}
+            echo 'Initial ${APICLIwebsslport}   = '${APICLIwebsslport} >> ${logfilepath}
+            echo 'Current ${CLIparm_websslport} = '${CLIparm_websslport} >> ${logfilepath}
         fi
         
         if [ ! -z "${CLIparm_websslport}" ] ; then
             if ${APISCRIPTVERBOSE} ; then
                 echo 'Working with web ssl-port from CLI parms' | tee -a -i ${logfilepath}
+            else
+                echo 'Working with web ssl-port from CLI parms' >> ${logfilepath}
             fi
             export APICLIwebsslport=${CLIparm_websslport}
         else
             # Default back to expected SSL port, since we won't know what the remote management server configuration for web ssl-port is.
             # This may change once Gaia API is readily available and can be checked.
             if ${APISCRIPTVERBOSE} ; then
-                echo 'Remote management cannot currently be queried for web ssl-port, so defaulting to 443' | tee -a -i ${logfilepath}
+                echo 'Remote management cannot currently be queried for web ssl-port, so defaulting to 443.' | tee -a -i ${logfilepath}
+                echo 'A login failure may indicate that remote management is NOT using web ssl-port 443 for the API!' | tee -a -i ${logfilepath}
+            else
+                echo 'Remote management cannot currently be queried for web ssl-port, so defaulting to 443.' >> ${logfilepath}
+                echo 'A login failure may indicate that remote management is NOT using web ssl-port 443 for the API!' >> ${logfilepath}
             fi
             export APICLIwebsslport=443
         fi
@@ -1009,6 +1278,8 @@ subSetupLogin2MgmtCLI () {
         # not working with remote management server
         if ${APISCRIPTVERBOSE} ; then
             echo 'Not working with remote management server' | tee -a -i ${logfilepath}
+        else
+            echo 'Not working with remote management server' >> ${logfilepath}
         fi
         
         # MODIFIED 2020-11-16 -
@@ -1021,16 +1292,25 @@ subSetupLogin2MgmtCLI () {
             echo 'Initial APICLIwebsslport   = '${APICLIwebsslport} | tee -a -i ${logfilepath}
             echo 'Current CLIparm_websslport = '${CLIparm_websslport} | tee -a -i ${logfilepath}
             echo 'Current currentapisslport  = '${currentapisslport} | tee -a -i ${logfilepath}
+        else
+            echo >> ${logfilepath}
+            echo 'Initial APICLIwebsslport   = '${APICLIwebsslport} >> ${logfilepath}
+            echo 'Current CLIparm_websslport = '${CLIparm_websslport} >> ${logfilepath}
+            echo 'Current currentapisslport  = '${currentapisslport} >> ${logfilepath}
         fi
         
         if [ ! -z "${CLIparm_websslport}" ] ; then
             if ${APISCRIPTVERBOSE} ; then
                 echo 'Working with web ssl-port from CLI parms' | tee -a -i ${logfilepath}
+            else
+                echo 'Working with web ssl-port from CLI parms' >> ${logfilepath}
             fi
             export APICLIwebsslport=${CLIparm_websslport}
         else
             if ${APISCRIPTVERBOSE} ; then
                 echo 'Working with web ssl-port harvested from Gaia' | tee -a -i ${logfilepath}
+            else
+                echo 'Working with web ssl-port harvested from Gaia' >> ${logfilepath}
             fi
             export APICLIwebsslport=${currentapisslport}
         fi
@@ -1039,6 +1319,9 @@ subSetupLogin2MgmtCLI () {
     if ${APISCRIPTVERBOSE} ; then
         echo 'Final APICLIwebsslport     = '${APICLIwebsslport} | tee -a -i ${logfilepath}
         echo | tee -a -i ${logfilepath}
+    else
+        echo 'Final APICLIwebsslport     = '${APICLIwebsslport} >> ${logfilepath}
+        echo >> ${logfilepath}
     fi
     # ADDED 2020-11-16 -
     # Handle login session-timeout parameter
@@ -1054,6 +1337,10 @@ subSetupLogin2MgmtCLI () {
         echo | tee -a -i ${logfilepath}
         echo 'Initial ${APISessionTimeout}      = '${APISessionTimeout} | tee -a -i ${logfilepath}
         echo 'Current ${CLIparm_sessiontimeout} = '${CLIparm_sessiontimeout} | tee -a -i ${logfilepath}
+    else
+        echo | tee -a -i ${logfilepath}
+        echo 'Initial ${APISessionTimeout}      = '${APISessionTimeout} >> ${logfilepath}
+        echo 'Current ${CLIparm_sessiontimeout} = '${CLIparm_sessiontimeout} >> ${logfilepath}
     fi
     
     if [ ! -z ${CLIparm_sessiontimeout} ]; then
@@ -1062,6 +1349,7 @@ subSetupLogin2MgmtCLI () {
             # parameter is outside of range for MinAPISessionTimeout to MaxAPISessionTimeout
             echo 'Value of ${CLIparm_sessiontimeout} ('${CLIparm_sessiontimeout}') is out side of allowed range!' | tee -a -i ${logfilepath}
             echo 'Allowed session-timeout value range is '${MinAPISessionTimeout}' to '${MaxAPISessionTimeout} | tee -a -i ${logfilepath}
+            echo 'Setting default session-timeout value '${DefaultAPISessionTimeout} | tee -a -i ${logfilepath}
             export APISessionTimeout=${DefaultAPISessionTimeout}
         else
             # parameter is within range for MinAPISessionTimeout to MaxAPISessionTimeout
@@ -1075,28 +1363,20 @@ subSetupLogin2MgmtCLI () {
     if ${APISCRIPTVERBOSE} ; then
         echo | tee -a -i ${logfilepath}
         echo 'Final ${APISessionTimeout}       = '${APISessionTimeout} | tee -a -i ${logfilepath}
+    else
+        echo >> ${logfilepath}
+        echo 'Final ${APISessionTimeout}       = '${APISessionTimeout} >> ${logfilepath}
     fi
     
-    # MODIFIED 2018-05-03 -
+    # MODIFIED 2020-12-14-
+    #
+    # Removed requirement to force using and admin user
+    #
     
-    # ================================================================================================
-    # NOTE:  APICLIadmin value must be set to operate this script, removing this varaiable will lead
-    #        to logon failure with mgmt_cli logon.  Root User (-r) parameter is handled differently,
-    #        so DO NOT REMOVE OR CLEAR this variable.  Adjust the export APICLIadmin= line to reflect
-    #        the default administrator name for the environment
-    #
-    #        The value for APICLIadmin now is set by the value of DefaultMgmtAdmin found at the top 
-    #        of the script in the 'Root script declarations' section.
-    #
-    # ================================================================================================
     if [ ! -z "${CLIparm_user}" ] ; then
         export APICLIadmin=${CLIparm_user}
-    elif [ ! -z "${DefaultMgmtAdmin}" ] ; then
-        export APICLIadmin=${DefaultMgmtAdmin}
     else
-        #export APICLIadmin=administrator
-        #export APICLIadmin=admin
-        export APICLIadmin=${DefaultMgmtAdmin}
+        export APICLIadmin=
     fi
     
     # Clear variables that need to be set later

@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=030
-ScriptDate=2020-11-19
+ScriptRevision=045
+ScriptDate=2020-12-17
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -29,6 +29,10 @@ export APIActionsScriptVersionX=v${ScriptVersion//./x}
 export APIActionScriptTemplateVersionX=v${TemplateVersion//./x}
 
 ActionScriptName=api_mgmt_cli_shell_template_action_handler.template.${APISubscriptsRevision}.v${ScriptVersion}
+export APIActionScriptFileNameRoot=api_mgmt_cli_shell_template_action_handler.template
+export APIActionScriptShortName=api_mgmt_cli_shell_template_action_handler
+export APIActionScriptnohupName=${APIActionScriptShortName}
+export APIActionScriptDescription="API action handler template"
 
 # =================================================================================================
 # =================================================================================================

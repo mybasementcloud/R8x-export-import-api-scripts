@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=025
-ScriptDate=2020-11-18
+ScriptRevision=045
+ScriptDate=2020-12-17
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -34,7 +34,11 @@ export APIExpectedAPISubscriptsVersion=v${APISubscriptsVersion}
 export APIExpectedActionScriptsVersionX=v${ScriptVersion//./x}
 export APIExpectedAPISubscriptsVersionX=v${APISubscriptsVersion//./x}
 
-ScriptName=cli_api_export_objects_to_csv
+ScriptName=wip.test_read_exobdef_json_file
+export APIScriptFileNameRoot=wip.test_read_exobdef_json_file
+export APIScriptShortName=wip.test_read_exobdef_json_file
+export APIScriptnohupName=${APIScriptShortName}
+export APIScriptDescription="test reading json export objects definition fil"
 
 
 # -------------------------------------------------------------------------------------------------
