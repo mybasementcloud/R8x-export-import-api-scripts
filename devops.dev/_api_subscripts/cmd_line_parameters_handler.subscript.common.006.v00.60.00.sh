@@ -2,7 +2,7 @@
 #
 # SCRIPT subscript for CLI Operations for command line parameters handling
 #
-# (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
+# (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
 # DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=045
-ScriptDate=2020-12-17
+ScriptRevision=065
+ScriptDate=2021-01-16
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -412,11 +412,22 @@ dumpcliparmparseresults () {
     
     printf "%-40s = %s\n" 'CLIparm_NoSystemObjects' "${CLIparm_NoSystemObjects}" >> ${workoutputfile}
     
+    # ADDED 2021-01-16 -
+    
+    echo  >> ${workoutputfile}
+    printf "%-40s = %s\n" 'CSVEXPORT05TAGS' "${CSVEXPORT05TAGS}" >> ${workoutputfile}
+    printf "%-40s = %s\n" 'CSVEXPORT10TAGS' "${CSVEXPORT10TAGS}" >> ${workoutputfile}
+    printf "%-40s = %s\n" 'CSVEXPORTNOTAGS' "${CSVEXPORTNOTAGS}" >> ${workoutputfile}
+    if ${UseR8XAPI} ; then
+        printf "%-40s = %s\n" 'CLIparm_CSVEXPORT05TAGS' "${CLIparm_CSVEXPORT05TAGS}" >> ${workoutputfile}
+        printf "%-40s = %s\n" 'CLIparm_CSVEXPORT10TAGS' "${CLIparm_CSVEXPORT10TAGS}" >> ${workoutputfile}
+        printf "%-40s = %s\n" 'CLIparm_CSVEXPORTNOTAGS' "${CLIparm_CSVEXPORTNOTAGS}" >> ${workoutputfile}
+    fi
+    
     echo  >> ${workoutputfile}
     printf "%-40s = %s\n" 'CLEANUPWIP' "${CLEANUPWIP}" >> ${workoutputfile}
     printf "%-40s = %s\n" 'NODOMAINFOLDERS' "${NODOMAINFOLDERS}" >> ${workoutputfile}
     printf "%-40s = %s\n" 'CSVADDEXPERRHANDLE' "${CSVADDEXPERRHANDLE}" >> ${workoutputfile}
-    
     if ${UseR8XAPI} ; then
         printf "%-40s = %s\n" 'CLIparm_CLEANUPWIP' "${CLIparm_CLEANUPWIP}" >> ${workoutputfile}
         printf "%-40s = %s\n" 'CLIparm_NODOMAINFOLDERS' "${CLIparm_NODOMAINFOLDERS}" >> ${workoutputfile}
@@ -653,6 +664,11 @@ doshowhelp () {
     echo
     echo '  NO System Objects Export   --NSO | --no-system-objects  {default mode}'
     echo '  Export System Objects      --SO | --system-objects'
+    echo
+    echo '  Export 5 Tags for object   --5-TAGS | --CSVEXPORT05TAGS'
+    echo '  Export 10 Tags for object  --10-TAGS | --CSVEXPORT10TAGS'
+    echo '  Export NO Tags for object  --NO-TAGS | --CSVEXPORTNOTAGS'
+    echo
     echo '  Remove WIP folders after   --CLEANUPWIP'
     echo '  No domain name in folders  --NODOMAINFOLDERS'
     echo '  CSV export add err handler --CSVADDEXPERRHANDLE'
@@ -833,7 +849,7 @@ ProcessCommandLIneParameterVerboseEnable () {
 
 ProcessCommandLineParametersAndSetValues () {
     
-    # MODIFIED 2020-11-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    # MODIFIED 2021-01-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
     #rawcliparmdump=false
@@ -1017,6 +1033,22 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_CSVEXPORTDATADOMAIN=true
                     CLIparm_CSVEXPORTDATACREATOR=true
                     ;;
+                # ADDED 2021-01-16 -
+                --5-TAGS | --CSVEXPORT05TAGS )
+                    CLIparm_CSVEXPORT05TAGS=true
+                    CLIparm_CSVEXPORT10TAGS=false
+                    CLIparm_CSVEXPORTNOTAGS=false
+                    ;;
+                --10-TAGS | --CSVEXPORT10TAGS )
+                    CLIparm_CSVEXPORT05TAGS=true
+                    CLIparm_CSVEXPORT10TAGS=true
+                    CLIparm_CSVEXPORTNOTAGS=false
+                    ;;
+                --NO-TAGS | --CSVEXPORTNOTAGS )
+                    CLIparm_CSVEXPORT05TAGS=false
+                    CLIparm_CSVEXPORT10TAGS=false
+                    CLIparm_CSVEXPORTNOTAGS=true
+                    ;;
                 # Handle --flag=value opts like this
                 # and --flag value opts like this
                 -f=* | --format=* )
@@ -1101,8 +1133,8 @@ ProcessCommandLineParametersAndSetValues () {
     eval set -- ${REMAINS}
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-23
-    # MODIFIED 2020-11-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-16
+    # MODIFIED 2021-01-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
     export SHOWHELP=${SHOWHELP}
@@ -1197,6 +1229,14 @@ ProcessCommandLineParametersAndSetValues () {
     
     export CLIparm_NoSystemObjects=${CLIparm_NoSystemObjects}
     
+    # ADDED 2021-01-16 -
+    export CLIparm_CSVEXPORT05TAGS=${CLIparm_CSVEXPORT05TAGS}
+    export CLIparm_CSVEXPORT10TAGS=${CLIparm_CSVEXPORT10TAGS}
+    export CLIparm_CSVEXPORTNOTAGS=${CLIparm_CSVEXPORTNOTAGS}
+    export CSVEXPORT05TAGS=${CLIparm_CSVEXPORT05TAGS}
+    export CSVEXPORT10TAGS=${CLIparm_CSVEXPORT10TAGS}
+    export CSVEXPORTNOTAGS=${CLIparm_CSVEXPORTNOTAGS}
+    
     # ADDED 2018-05-03-2 -
     export CLIparm_CLEANUPWIP=${CLIparm_CLEANUPWIP}
     export CLIparm_NODOMAINFOLDERS=${CLIparm_NODOMAINFOLDERS}
@@ -1209,7 +1249,7 @@ ProcessCommandLineParametersAndSetValues () {
     export REMAINS=${REMAINS}
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-23
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-16
     
     return 0
 }
@@ -1321,7 +1361,7 @@ fi
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
-# MODIFIED 2020-11-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -1340,6 +1380,10 @@ fi
 #
 # --NSO | --no-system-objects
 # --SO | --system-objects
+#
+# --5-TAGS | --CSVEXPORT05TAGS
+# --10-TAGS | --CSVEXPORT10TAGS
+# --NO-TAGS | --CSVEXPORTNOTAGS
 #
 # --CLEANUPWIP
 # --NODOMAINFOLDERS
@@ -1375,6 +1419,16 @@ export CLIparm_resultspath=
 export CLIparm_exportpath=
 export CLIparm_importpath=
 export CLIparm_deletepath=
+
+# ADDED 2021-01-16 -
+# Define number tags to export to CSV :  5, 10, none
+
+export CSVEXPORT05TAGS=true
+export CSVEXPORT10TAGS=false
+export CSVEXPORTNOTAGS=false
+export CLIparm_CSVEXPORT05TAGS=${CSVEXPORT05TAGS}
+export CLIparm_CSVEXPORT10TAGS=${CSVEXPORT10TAGS}
+export CLIparm_CSVEXPORTNOTAGS=${CSVEXPORTNOTAGS}
 
 # MODIFIED 2018-06-24 -
 #export CLIparm_NoSystemObjects=true
@@ -1453,7 +1507,7 @@ export CLIparm_CSVEXPORTDATADOMAIN=false
 export CLIparm_CSVEXPORTDATACREATOR=false
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-23
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-16
 
 
 # -------------------------------------------------------------------------------------------------

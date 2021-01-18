@@ -1,16 +1,20 @@
 { "file_meta_info" : {
 	"fileversion" : "0.60.0",
-	"filerevision" : "045",
-	"filedate" : "2020-12-17"
+	"filerevision" : "065",
+	"filedate" : "2021-01-16"
 }, 
 "default_csv_export_elements" : [ {
 	"name" : "common",
 	"CSVFileHeader" : "\"name\",\"color\",\"comments\"",
 	"CSVJQparms" : ".[\"name\"], .[\"color\"], .[\"comments\"]"
 }, {
-	"name" : "tags",
-	"CSVFileHeader" : "\"tags.0\",\"tags.1\",\"tags.2\",\"tags.3\",\"tags.4\",\"tags.5\",\"tags.6\"",
-	"CSVJQparms" : ".[\"tags\"][0][\"name\"], .[\"tags\"][1][\"name\"], .[\"tags\"][2][\"name\"], .[\"tags\"][3][\"name\"], .[\"tags\"][4][\"name\"], .[\"tags\"][5][\"name\"], .[\"tags\"][6][\"name\"]"
+	"name" : "tags05",
+	"CSVFileHeader" : "\"tags.0\",\"tags.1\",\"tags.2\",\"tags.3\",\"tags.4\"",
+	"CSVJQparms" : ".[\"tags\"][0][\"name\"], .[\"tags\"][1][\"name\"], .[\"tags\"][2][\"name\"], .[\"tags\"][3][\"name\"], .[\"tags\"][4][\"name\"]"
+}, {
+	"name" : "tags10",
+	"CSVFileHeader" : "\"tags.0\",\"tags.1\",\"tags.2\",\"tags.3\",\"tags.4\",\"tags.5\",\"tags.6\",\"tags.7\",\"tags.8\",\"tags.9\"",
+	"CSVJQparms" : ".[\"tags\"][0][\"name\"], .[\"tags\"][1][\"name\"], .[\"tags\"][2][\"name\"], .[\"tags\"][3][\"name\"], .[\"tags\"][4][\"name\"], .[\"tags\"][5][\"name\"], .[\"tags\"][6][\"name\"], .[\"tags\"][7][\"name\"], .[\"tags\"][8][\"name\"], .[\"tags\"][9][\"name\"]"
 }, {
 	"name" : "domain",
 	"CSVFileHeader" : "\"uid\",\"domain.name\",\"domain.domain-type\"",
@@ -21,8 +25,8 @@
 	"CSVJQparms" : ".[\"meta-info\"][\"creator\"], .[\"meta-info\"][\"creation-time\"][\"iso-8601\"], .[\"meta-info\"][\"last-modifier\"], .[\"meta-info\"][\"last-modify-time\"][\"iso-8601\"]"
 }, {
 	"name" : "errorhandling",
-	"CSVFileHeader" : "\"ignore-warnings\",\"ignore-errors\"",
-	"CSVJQparms" : "true, true"
+	"CSVFileHeader" : "\"ignore-warnings\",\"ignore-errors\",\"set-if-exists\"",
+	"CSVJQparms" : "true, true, true"
 } ], 
 "simplex_objects" : [ {
 	"name" : "host",
@@ -35,6 +39,17 @@
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"ipv4-address\",\"ipv6-address\",\"nat-settings.auto-rule\",\"nat-settings.hide-behind\",\"nat-settings.install-on\",\"nat-settings.ipv4-address\",\"nat-settings.ipv6-address\",\"nat-settings.method\"",
 	"CSVJQparms" : ".[\"ipv4-address\"], .[\"ipv6-address\"], .[\"nat-settings\"][\"auto-rule\"], .[\"nat-settings\"][\"hide-behind\"], .[\"nat-settings\"][\"install-on\", .[\"nat-settings\"][\"ipv4-address\"], .[\"nat-settings\"][\"ipv6-address\"], .[\"nat-settings\"][\"method\""
+}{
+	"name" : "host-no-NAT",
+	"name-plural" : "hosts-no-NAT",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "host",
+	"objectsype" : "hosts",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"ipv4-address\",\"ipv6-address\"",
+	"CSVJQparms" : ".[\"ipv4-address\"], .[\"ipv6-address\"]"
 }, {
 	"name" : "network",
 	"name-plural" : "networks",

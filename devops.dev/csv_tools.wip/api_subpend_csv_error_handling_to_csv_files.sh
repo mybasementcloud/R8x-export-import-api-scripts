@@ -2,7 +2,7 @@
 #
 # SCRIPT Subpend CSV Error Handling to CSV files
 #
-# (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
+# (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
 # DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=045
-ScriptDate=2020-12-17
+ScriptRevision=065
+ScriptDate=2021-01-16
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -723,7 +723,7 @@ fi
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
-# MODIFIED 2020-11-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -742,6 +742,10 @@ fi
 #
 # --NSO | --no-system-objects
 # --SO | --system-objects
+#
+# --5-TAGS | --CSVEXPORT05TAGS
+# --10-TAGS | --CSVEXPORT10TAGS
+# --NO-TAGS | --CSVEXPORTNOTAGS
 #
 # --CLEANUPWIP
 # --NODOMAINFOLDERS
@@ -777,6 +781,16 @@ export CLIparm_resultspath=
 export CLIparm_exportpath=
 export CLIparm_importpath=
 export CLIparm_deletepath=
+
+# ADDED 2021-01-16 -
+# Define number tags to export to CSV :  5, 10, none
+
+export CSVEXPORT05TAGS=true
+export CSVEXPORT10TAGS=false
+export CSVEXPORTNOTAGS=false
+export CLIparm_CSVEXPORT05TAGS=${CSVEXPORT05TAGS}
+export CLIparm_CSVEXPORT10TAGS=${CSVEXPORT10TAGS}
+export CLIparm_CSVEXPORTNOTAGS=${CSVEXPORTNOTAGS}
 
 # MODIFIED 2018-06-24 -
 #export CLIparm_NoSystemObjects=true
@@ -855,7 +869,7 @@ export CLIparm_CSVEXPORTDATADOMAIN=false
 export CLIparm_CSVEXPORTDATACREATOR=false
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-23
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-16
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1223,11 +1237,22 @@ dumpcliparmparseresults () {
     
     printf "%-40s = %s\n" 'CLIparm_NoSystemObjects' "${CLIparm_NoSystemObjects}" >> ${workoutputfile}
     
+    # ADDED 2021-01-16 -
+    
+    echo  >> ${workoutputfile}
+    printf "%-40s = %s\n" 'CSVEXPORT05TAGS' "${CSVEXPORT05TAGS}" >> ${workoutputfile}
+    printf "%-40s = %s\n" 'CSVEXPORT10TAGS' "${CSVEXPORT10TAGS}" >> ${workoutputfile}
+    printf "%-40s = %s\n" 'CSVEXPORTNOTAGS' "${CSVEXPORTNOTAGS}" >> ${workoutputfile}
+    if ${UseR8XAPI} ; then
+        printf "%-40s = %s\n" 'CLIparm_CSVEXPORT05TAGS' "${CLIparm_CSVEXPORT05TAGS}" >> ${workoutputfile}
+        printf "%-40s = %s\n" 'CLIparm_CSVEXPORT10TAGS' "${CLIparm_CSVEXPORT10TAGS}" >> ${workoutputfile}
+        printf "%-40s = %s\n" 'CLIparm_CSVEXPORTNOTAGS' "${CLIparm_CSVEXPORTNOTAGS}" >> ${workoutputfile}
+    fi
+    
     echo  >> ${workoutputfile}
     printf "%-40s = %s\n" 'CLEANUPWIP' "${CLEANUPWIP}" >> ${workoutputfile}
     printf "%-40s = %s\n" 'NODOMAINFOLDERS' "${NODOMAINFOLDERS}" >> ${workoutputfile}
     printf "%-40s = %s\n" 'CSVADDEXPERRHANDLE' "${CSVADDEXPERRHANDLE}" >> ${workoutputfile}
-    
     if ${UseR8XAPI} ; then
         printf "%-40s = %s\n" 'CLIparm_CLEANUPWIP' "${CLIparm_CLEANUPWIP}" >> ${workoutputfile}
         printf "%-40s = %s\n" 'CLIparm_NODOMAINFOLDERS' "${CLIparm_NODOMAINFOLDERS}" >> ${workoutputfile}
@@ -1508,6 +1533,11 @@ doshowhelp () {
     echo
     echo '  NO System Objects Export   --NSO | --no-system-objects  {default mode}'
     echo '  Export System Objects      --SO | --system-objects'
+    echo
+    echo '  Export 5 Tags for object   --5-TAGS | --CSVEXPORT05TAGS'
+    echo '  Export 10 Tags for object  --10-TAGS | --CSVEXPORT10TAGS'
+    echo '  Export NO Tags for object  --NO-TAGS | --CSVEXPORTNOTAGS'
+    echo
     echo '  Remove WIP folders after   --CLEANUPWIP'
     echo '  No domain name in folders  --NODOMAINFOLDERS'
     echo '  CSV export add err handler --CSVADDEXPERRHANDLE'
@@ -1684,7 +1714,7 @@ ProcessCommandLIneParameterVerboseEnable () {
 
 ProcessCommandLineParametersAndSetValues () {
     
-    # MODIFIED 2020-11-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    # MODIFIED 2021-01-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
     #rawcliparmdump=false
@@ -1868,6 +1898,22 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_CSVEXPORTDATADOMAIN=true
                     CLIparm_CSVEXPORTDATACREATOR=true
                     ;;
+                # ADDED 2021-01-16 -
+                --5-TAGS | --CSVEXPORT05TAGS )
+                    CLIparm_CSVEXPORT05TAGS=true
+                    CLIparm_CSVEXPORT10TAGS=false
+                    CLIparm_CSVEXPORTNOTAGS=false
+                    ;;
+                --10-TAGS | --CSVEXPORT10TAGS )
+                    CLIparm_CSVEXPORT05TAGS=true
+                    CLIparm_CSVEXPORT10TAGS=true
+                    CLIparm_CSVEXPORTNOTAGS=false
+                    ;;
+                --NO-TAGS | --CSVEXPORTNOTAGS )
+                    CLIparm_CSVEXPORT05TAGS=false
+                    CLIparm_CSVEXPORT10TAGS=false
+                    CLIparm_CSVEXPORTNOTAGS=true
+                    ;;
                 # Handle --flag=value opts like this
                 # and --flag value opts like this
                 -f=* | --format=* )
@@ -1952,8 +1998,8 @@ ProcessCommandLineParametersAndSetValues () {
     eval set -- ${REMAINS}
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-23
-    # MODIFIED 2020-11-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-16
+    # MODIFIED 2021-01-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
     export SHOWHELP=${SHOWHELP}
@@ -2048,6 +2094,14 @@ ProcessCommandLineParametersAndSetValues () {
     
     export CLIparm_NoSystemObjects=${CLIparm_NoSystemObjects}
     
+    # ADDED 2021-01-16 -
+    export CLIparm_CSVEXPORT05TAGS=${CLIparm_CSVEXPORT05TAGS}
+    export CLIparm_CSVEXPORT10TAGS=${CLIparm_CSVEXPORT10TAGS}
+    export CLIparm_CSVEXPORTNOTAGS=${CLIparm_CSVEXPORTNOTAGS}
+    export CSVEXPORT05TAGS=${CLIparm_CSVEXPORT05TAGS}
+    export CSVEXPORT10TAGS=${CLIparm_CSVEXPORT10TAGS}
+    export CSVEXPORTNOTAGS=${CLIparm_CSVEXPORTNOTAGS}
+    
     # ADDED 2018-05-03-2 -
     export CLIparm_CLEANUPWIP=${CLIparm_CLEANUPWIP}
     export CLIparm_NODOMAINFOLDERS=${CLIparm_NODOMAINFOLDERS}
@@ -2060,7 +2114,7 @@ ProcessCommandLineParametersAndSetValues () {
     export REMAINS=${REMAINS}
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-23
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-16
     
     return 0
 }
@@ -2750,8 +2804,207 @@ fi
 
 
 # =================================================================================================
-# START:  Main operations
+# START:  API Subpend CSV Error Handling
 # =================================================================================================
+
+
+#export APICLIdetaillvl=standard
+
+export APICLIdetaillvl=full
+
+# ADDED 2018-05-04-2 -
+# Only changes this parameter to force the specific state of CLIparm_NoSystemObjects
+# since it is set using the command line parameters --SO (false) and --NSO (true)
+#
+#export CLIparm_NoSystemObjects=false
+
+# ADDED 2018-04-25 -
+export primarytargetoutputformat=${FileExtCSV}
+
+# -------------------------------------------------------------------------------------------------
+# Start executing Main operations
+# -------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
+# Configure working paths for export and dump
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2018-05-04-3 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# ------------------------------------------------------------------------
+# Set and clear temporary log file
+# ------------------------------------------------------------------------
+
+export templogfilepath=/var/tmp/templog_${ScriptName}.`date +%Y%m%d-%H%M%S%Z`.log
+echo > ${templogfilepath}
+
+echo 'Configure working paths for export and dump' >> ${templogfilepath}
+echo >> ${templogfilepath}
+
+echo "domainnamenospace = '${domainnamenospace}' " >> ${templogfilepath}
+echo "CLIparm_NODOMAINFOLDERS = '${CLIparm_NODOMAINFOLDERS}' " >> ${templogfilepath}
+echo "primarytargetoutputformat = '${primarytargetoutputformat}' " >> ${templogfilepath}
+echo "APICLICSVExportpathbase = '${APICLICSVExportpathbase}' " >> ${templogfilepath}
+echo "APICLIpathexport = '${APICLIpathexport}' " >> ${templogfilepath}
+
+# ------------------------------------------------------------------------
+
+if [ ! -z "${domainnamenospace}" ] && [ "${CLIparm_NODOMAINFOLDERS}" != "true" ] ; then
+    # Handle adding domain name to path for MDM operations
+    export APICLIpathexport=${APICLICSVExportpathbase}/${domainnamenospace}
+    
+    echo 'Handle adding domain name to path for MDM operations' >> ${templogfilepath}
+    echo "APICLIpathexport = '${APICLIpathexport}' " >> ${templogfilepath}
+    
+    if [ ! -r ${APICLIpathexport} ] ; then
+        mkdir -p -v ${APICLIpathexport} >> ${templogfilepath}
+    fi
+else
+    # NOT adding domain name to path for MDM operations
+    export APICLIpathexport=${APICLICSVExportpathbase}
+    
+    echo 'NOT adding domain name to path for MDM operations' >> ${templogfilepath}
+    echo "APICLIpathexport = '${APICLIpathexport}' " >> ${templogfilepath}
+    
+    if [ ! -r ${APICLIpathexport} ] ; then
+        mkdir -p -v ${APICLIpathexport} >> ${templogfilepath}
+    fi
+fi
+
+# ------------------------------------------------------------------------
+
+if ${script_use_delete} ; then
+    # primary operation is delete
+    
+    export APICLIpathexport=${APICLIpathexport}/delete
+    
+    echo | tee -a -i ${templogfilepath}
+    echo 'Delete using '${primarytargetoutputformat}' Starting!' | tee -a -i ${templogfilepath}
+    
+elif ${script_use_import} ; then
+    # primary operation is import
+    
+    export APICLIpathexport=${APICLIpathexport}/import
+    
+    echo | tee -a -i ${templogfilepath}
+    echo 'Import using '${primarytargetoutputformat}' Starting!' | tee -a -i ${templogfilepath}
+    
+elif ${script_use_export} ; then
+    # primary operation is export
+    
+    # primary operation is export to primarytargetoutputformat
+    export APICLIpathexport=${APICLIpathexport}/${primarytargetoutputformat}
+    
+    echo | tee -a -i ${templogfilepath}
+    echo 'Export to '${primarytargetoutputformat}' Starting!' | tee -a -i ${templogfilepath}
+    
+else
+    # primary operation is something else
+    
+    export APICLIpathexport=${APICLIpathbase}
+    
+fi
+
+if [ ! -r ${APICLIpathexport} ] ; then
+    mkdir -p -v ${APICLIpathexport} >> ${templogfilepath}
+fi
+
+echo >> ${templogfilepath}
+echo 'After Evaluation of script type' >> ${templogfilepath}
+echo "APICLIpathexport = '${APICLIpathexport}' " >> ${templogfilepath}
+echo " = '$' " >> ${templogfilepath}
+
+# ------------------------------------------------------------------------
+
+if [ x"${primarytargetoutputformat}" = x"${FileExtJSON}" ] ; then
+    # for JSON provide the detail level
+    
+    export APICLIpathexport=${APICLIpathexport}/${APICLIdetaillvl}
+    
+    if [ ! -r ${APICLIpathexport} ] ; then
+        mkdir -p -v ${APICLIpathexport} >> ${templogfilepath}
+    fi
+    
+    export APICLIJSONpathexportwip=
+    if [ x"$script_uses_wip_json" = x"true" ] ; then
+        # script uses work-in-progress (wip) folder for json
+        
+        export APICLIJSONpathexportwip=${APICLIpathexport}/wip
+        
+        if [ ! -r ${APICLIJSONpathexportwip} ] ; then
+            mkdir -p -v ${APICLIJSONpathexportwip} >> ${templogfilepath}
+        fi
+    fi
+else    
+    export APICLIJSONpathexportwip=
+fi
+
+echo >> ${templogfilepath}
+echo 'After handling json target' >> ${templogfilepath}
+echo "APICLIpathexport = '${APICLIpathexport}' " >> ${templogfilepath}
+echo "APICLIJSONpathexportwip = '${APICLIJSONpathexportwip}' " >> ${templogfilepath}
+
+# ------------------------------------------------------------------------
+
+if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
+    # for CSV handle specifics, like wip
+    
+    export APICLICSVpathexportwip=
+    if [ x"$script_uses_wip" = x"true" ] ; then
+        # script uses work-in-progress (wip) folder for csv
+        
+        export APICLICSVpathexportwip=${APICLIpathexport}/wip
+        
+        if [ ! -r ${APICLICSVpathexportwip} ] ; then
+            mkdir -p -v ${APICLICSVpathexportwip} >> ${templogfilepath}
+        fi
+    fi
+else
+    export APICLICSVpathexportwip=
+fi
+
+echo >> ${templogfilepath}
+echo 'After handling csv target' >> ${templogfilepath}
+echo "APICLIpathexport = '${APICLIpathexport}' " >> ${templogfilepath}
+echo "APICLICSVpathexportwip = '${APICLICSVpathexportwip}' " >> ${templogfilepath}
+
+# ------------------------------------------------------------------------
+
+export APICLIfileexportpost='_'${APICLIdetaillvl}'_'${APICLIfileexportsuffix}
+
+export APICLICSVheaderfilesuffix=header
+
+export APICLICSVfileexportpost='_'${APICLIdetaillvl}'_'${APICLICSVfileexportsuffix}
+
+export APICLIJSONheaderfilesuffix=header
+export APICLIJSONfooterfilesuffix=footer
+
+export APICLIJSONfileexportpost='_'${APICLIdetaillvl}'_'${APICLIJSONfileexportsuffix}
+
+echo >> ${templogfilepath}
+echo 'Setup other file and path variables' >> ${templogfilepath}
+echo "APICLIfileexportpost = '${APICLIfileexportpost}' " >> ${templogfilepath}
+echo "APICLICSVheaderfilesuffix = '${APICLICSVheaderfilesuffix}' " >> ${templogfilepath}
+echo "APICLICSVfileexportpost = '${APICLICSVfileexportpost}' " >> ${templogfilepath}
+echo "APICLIJSONheaderfilesuffix = '${APICLIJSONheaderfilesuffix}' " >> ${templogfilepath}
+echo "APICLIJSONfooterfilesuffix = '${APICLIJSONfooterfilesuffix}' " >> ${templogfilepath}
+echo "APICLIJSONfileexportpost = '${APICLIJSONfileexportpost}' " >> ${templogfilepath}
+
+# ------------------------------------------------------------------------
+
+echo >> ${templogfilepath}
+
+cat ${templogfilepath} >> ${logfilepath}
+rm -v ${templogfilepath} >> ${logfilepath}
+
+# ------------------------------------------------------------------------
+
+echo 'Dump "'${APICLIdetaillvl}'" details to path:  '${APICLIpathexport} | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04-3
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2840,16 +3093,13 @@ RefactorObjectsCSV () {
     #
     # Screen width template for sizing, default width of 80 characters assumed
     #
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-    
     export APICLIfilename=${APICLICSVobjecttype}
     if [ x"${APICLIexportnameaddon}" != x"" ] ; then
         export APICLIfilename=${APICLIfilename}'_'${APICLIexportnameaddon}
     fi
     export APICLIfilename=${APICLIfilename}'_'${APICLIdetaillvl}'_csv'${APICLICSVfileexportsuffix}
     
-    export APICLIImportCSVfile=$APICLICSVImportpathbase/${APICLIfilename}
+    export APICLIImportCSVfile=${APICLICSVImportpathbase}/${APICLIfilename}
     
     export OutputPath=${APICLIpathexport}/${APICLIfilename}
     
@@ -2863,18 +3113,18 @@ RefactorObjectsCSV () {
     fi
     
     export fileimport=${APICLIImportCSVfile}
-    export filerefactor=$OutputPath
+    export filerefactor=${OutputPath}
     
     echo | tee -a -i ${logfilepath}
     echo "Refactor ${APICLIobjecttype} CSV File " | tee -a -i ${logfilepath}
     echo "  Original File  :  ${APICLIImportCSVfile}" | tee -a -i ${logfilepath}
-    echo "  Refactore File :  $OutputPath" | tee -a -i ${logfilepath}
+    echo "  Refactore File :  ${OutputPath}" | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     
     GenerateRefactoredCSV
     
     echo | tee -a -i ${logfilepath}
-    tail $OutputPath | tee -a -i ${logfilepath}
+    tail ${OutputPath} | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     
@@ -2885,9 +3135,6 @@ RefactorObjectsCSV () {
         read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
     fi
     
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-
     echo | tee -a -i ${logfilepath}
     return 0
 }
@@ -3426,7 +3673,7 @@ ConfigureComplexObjects () {
     fi
     export APICLIfilename=${APICLIfilename}'_'${APICLIdetaillvl}'_csv'${APICLICSVfileexportsuffix}
 
-m     export APICLIImportCSVfile=$APICLICSVImportpathbase/${APICLIfilename}
+m     export APICLIImportCSVfile=${APICLICSVImportpathbase}/${APICLIfilename}
 
     export OutputPath=${APICLIpathexport}/${APICLIfilename}
     
@@ -3440,18 +3687,18 @@ m     export APICLIImportCSVfile=$APICLICSVImportpathbase/${APICLIfilename}
     fi
 
     export fileimport=${APICLIImportCSVfile}
-    export filerefactor=$OutputPath
+    export filerefactor=${OutputPath}
 
     echo | tee -a -i ${logfilepath}
     echo "Refactor ${APICLIobjecttype} CSV File " | tee -a -i ${logfilepath}
     echo "  Original File  :  ${APICLIImportCSVfile}" | tee -a -i ${logfilepath}
-    echo "  Refactore File :  $OutputPath" | tee -a -i ${logfilepath}
+    echo "  Refactore File :  ${OutputPath}" | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     
     GenerateRefactoredCSV
 
     echo | tee -a -i ${logfilepath}
-    tail $OutputPath | tee -a -i ${logfilepath}
+    tail ${OutputPath} | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
 

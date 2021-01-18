@@ -2,7 +2,7 @@
 #
 # SCRIPT Base Template for API CLI Operations with command line parameters script utilization
 #
-# (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
+# (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
 # DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=045
-ScriptDate=2020-12-17
+ScriptRevision=065
+ScriptDate=2021-01-16
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -770,7 +770,7 @@ fi
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
-# MODIFIED 2020-11-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -789,6 +789,10 @@ fi
 #
 # --NSO | --no-system-objects
 # --SO | --system-objects
+#
+# --5-TAGS | --CSVEXPORT05TAGS
+# --10-TAGS | --CSVEXPORT10TAGS
+# --NO-TAGS | --CSVEXPORTNOTAGS
 #
 # --CLEANUPWIP
 # --NODOMAINFOLDERS
@@ -824,6 +828,16 @@ export CLIparm_resultspath=
 export CLIparm_exportpath=
 export CLIparm_importpath=
 export CLIparm_deletepath=
+
+# ADDED 2021-01-16 -
+# Define number tags to export to CSV :  5, 10, none
+
+export CSVEXPORT05TAGS=true
+export CSVEXPORT10TAGS=false
+export CSVEXPORTNOTAGS=false
+export CLIparm_CSVEXPORT05TAGS=${CSVEXPORT05TAGS}
+export CLIparm_CSVEXPORT10TAGS=${CSVEXPORT10TAGS}
+export CLIparm_CSVEXPORTNOTAGS=${CSVEXPORTNOTAGS}
 
 # MODIFIED 2018-06-24 -
 #export CLIparm_NoSystemObjects=true
@@ -902,7 +916,7 @@ export CLIparm_CSVEXPORTDATADOMAIN=false
 export CLIparm_CSVEXPORTDATACREATOR=false
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-23
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-16
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2010,10 +2024,10 @@ echo
 #
 #export MgmtCLI_Delete_OpParms="details-level \"${APICLIdetaillvl}\" ${MgmtCLI_IgnoreErr_OpParms} ${MgmtCLI_Base_OpParms}"
 #
-#mgmt_cli delete ${APICLIobjecttype} --batch ${APICLIDeleteCSVfile} $MgmtCLI_Delete_OpParms > $OutputPath
+#mgmt_cli delete ${APICLIobjecttype} --batch ${APICLIDeleteCSVfile} $MgmtCLI_Delete_OpParms > ${OutputPath}
 #mgmt_cli show ${APICLIobjecttype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
-#mgmt_cli add ${APICLIobjecttype} --batch ${APICLIImportCSVfile} $MgmtCLI_Add_OpParms > $OutputPath
-#mgmt_cli set ${APICLIobjecttype} --batch ${APICLIImportCSVfile} ignore-warnings true ignore-errors true --ignore-errors true -f json -s ${APICLIsessionfile} > $OutputPath
+#mgmt_cli add ${APICLIobjecttype} --batch ${APICLIImportCSVfile} $MgmtCLI_Add_OpParms > ${OutputPath}
+#mgmt_cli set ${APICLIobjecttype} --batch ${APICLIImportCSVfile} ignore-warnings true ignore-errors true --ignore-errors true -f json -s ${APICLIsessionfile} > ${OutputPath}
 
 
 #
@@ -2021,8 +2035,8 @@ echo
 #
 #mgmt_cli show hosts details-level "standard" -f json -s ${APICLIsessionfile} > dump/${DATE}/hosts_dump_standard_$DATE.txt
 #mgmt_cli show hosts details-level "full" -f json -s ${APICLIsessionfile} > dump/${DATE}/hosts_dump_full_$DATE.txt
-#mgmt_cli add host --batch "$APICLICSVImportpathbase" ignore-warnings true ignore-errors true details-level "full" --ignore-errors true -f json -s ${APICLIsessionfile} > dump/${DATE}/hosts_dump_full_$DATE.txt
-#mgmt_cli set network --batch "$APICLICSVImportpathbase" ignore-warnings true ignore-errors true details-level "full" --ignore-errors true -f json -s ${APICLIsessionfile} > dump/${DATE}/hosts_dump_full_$DATE.txt
+#mgmt_cli add host --batch "${APICLICSVImportpathbase}" ignore-warnings true ignore-errors true details-level "full" --ignore-errors true -f json -s ${APICLIsessionfile} > dump/${DATE}/hosts_dump_full_$DATE.txt
+#mgmt_cli set network --batch "${APICLICSVImportpathbase}" ignore-warnings true ignore-errors true details-level "full" --ignore-errors true -f json -s ${APICLIsessionfile} > dump/${DATE}/hosts_dump_full_$DATE.txt
 #
 
 # meat END

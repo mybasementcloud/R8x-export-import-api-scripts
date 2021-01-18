@@ -12,7 +12,7 @@ Well functioning sets of scripts shall be packaged into releases that can be dow
 
 # Overview
 
-The export, import, set, and delete using CSV files scripts in this post, currently version 00.60.00 dated 2020-12-17, are intended to allow operations on an existing R80, R80.10, R80.20[|.M1|.M2], R80.30, R80.40, and R81 Check Point management server (SMS or MDM) from bash on the management server or another API enabled management server instance (Check Point Gaia OS R8X) able to authenticate and reach the target management server.
+The export, import, set, and delete using CSV files scripts in this post, currently version 00.60.00 dated 2021-01-17, are intended to allow operations on an existing R80, R80.10, R80.20[|.M1|.M2], R80.30, R80.40, and R81 Check Point management server (SMS or MDM) from bash on the management server or another API enabled management server instance (Check Point Gaia OS R8X) able to authenticate and reach the target management server.
 
 
 These scripts show examples of:
@@ -39,10 +39,10 @@ Releases have packages for the key script folders:
 
 The script packages are:
 
-- Common operations handlers         :  common.v00.50.00.055.tgz
-- Export, Import, Set, Delete Object :  export_import.all.v00.50.00.055.tgz
-- session cleanup handlers           :  Session_Cleanup.v04.50.00.templatev00.50.00.055.tgz
-- template for script development    :  _templates.v00.50.00.055tgz
+- Common operations handlers         :  pending, last version -- common.v00.50.00.055.tgz
+- Export, Import, Set, Delete Object :  pending, last version -- export_import.all.v00.50.00.055.tgz
+- session cleanup handlers           :  pending, last version -- Session_Cleanup.v04.50.00.templatev00.50.00.055.tgz
+- template for script development    :  pending, last version -- _templates.v00.50.00.055tgz
     - script templates with command line parameter handling for the API from bash
 
 The approach to provided compressed packages was changed to facilitate quicker implementation on the management hosts.

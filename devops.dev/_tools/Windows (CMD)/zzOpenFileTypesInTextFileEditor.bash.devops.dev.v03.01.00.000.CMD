@@ -2,7 +2,7 @@
 REM
 REM Script :  Code Snipet Open File Types in Text File Editor
 REM
-REM # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/
+REM # (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/
 REM #
 REM # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
 REM # DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
@@ -15,9 +15,9 @@ REM #
 REM #
 
 SET _LOCALSCRIPTNAME=zzOpenFileTypesInTextFileEditor.bash.devops.dev
-SET _LOCALSCRIPTDATE=2020-11-17
-SET _LOCALSCRIPTTIME=1300CDT
-SET _LOCALSCRIPTVERSION=03.00.00
+SET _LOCALSCRIPTDATE=2021-01-16
+SET _LOCALSCRIPTTIME=2000CDT
+SET _LOCALSCRIPTVERSION=03.01.00
 SET _LOCALSCRIPTREVISION=000
 
 
@@ -880,6 +880,7 @@ REM We want these opened in a specific order and only these specific folders
 CALL :sub_ProcessROOTFolder "_templates.wip"
 CALL :sub_ProcessROOTFolder "_api_subscripts"
 CALL :sub_ProcessROOTFolder "export_import.wip"
+CALL :sub_ProcessROOTFolder "csv_tools.wip"
 CALL :sub_ProcessROOTFolder "Session_Cleanup.wip"
 
 @ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"

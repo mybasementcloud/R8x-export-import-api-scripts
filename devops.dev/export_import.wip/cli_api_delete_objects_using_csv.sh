@@ -2,7 +2,7 @@
 #
 # SCRIPT Object delete using object-names csv files for API CLI Operations
 #
-# (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
+# (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
 # DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.00
-ScriptRevision=045
-ScriptDate=2020-12-17
+ScriptRevision=065
+ScriptDate=2021-01-16
 TemplateVersion=00.60.00
 APISubscriptsVersion=00.60.00
 APISubscriptsRevision=006
@@ -789,7 +789,7 @@ fi
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
-# MODIFIED 2020-11-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -808,6 +808,10 @@ fi
 #
 # --NSO | --no-system-objects
 # --SO | --system-objects
+#
+# --5-TAGS | --CSVEXPORT05TAGS
+# --10-TAGS | --CSVEXPORT10TAGS
+# --NO-TAGS | --CSVEXPORTNOTAGS
 #
 # --CLEANUPWIP
 # --NODOMAINFOLDERS
@@ -843,6 +847,16 @@ export CLIparm_resultspath=
 export CLIparm_exportpath=
 export CLIparm_importpath=
 export CLIparm_deletepath=
+
+# ADDED 2021-01-16 -
+# Define number tags to export to CSV :  5, 10, none
+
+export CSVEXPORT05TAGS=true
+export CSVEXPORT10TAGS=false
+export CSVEXPORTNOTAGS=false
+export CLIparm_CSVEXPORT05TAGS=${CSVEXPORT05TAGS}
+export CLIparm_CSVEXPORT10TAGS=${CSVEXPORT10TAGS}
+export CLIparm_CSVEXPORTNOTAGS=${CSVEXPORTNOTAGS}
 
 # MODIFIED 2018-06-24 -
 #export CLIparm_NoSystemObjects=true
@@ -921,7 +935,7 @@ export CLIparm_CSVEXPORTDATADOMAIN=false
 export CLIparm_CSVEXPORTDATACREATOR=false
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-23
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-16
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2248,13 +2262,13 @@ DeleteSimpleObjects () {
     echo | tee -a -i ${logfilepath}
     echo "Delete ${APICLIobjecttype} using CSV File : ${APICLIDeleteCSVfile}" | tee -a -i ${logfilepath}
     echo "  mgmt_cli parameters : $MgmtCLI_Delete_OpParms" | tee -a -i ${logfilepath}
-    echo "  and dump to $OutputPath" | tee -a -i ${logfilepath}
+    echo "  and dump to ${OutputPath}" | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     
-    mgmt_cli delete ${APICLIobjecttype} --batch ${APICLIDeleteCSVfile} $MgmtCLI_Delete_OpParms > $OutputPath
+    mgmt_cli delete ${APICLIobjecttype} --batch ${APICLIDeleteCSVfile} $MgmtCLI_Delete_OpParms > ${OutputPath}
     
     echo | tee -a -i ${logfilepath}
-    tail $OutputPath | tee -a -i ${logfilepath}
+    tail ${OutputPath} | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     
