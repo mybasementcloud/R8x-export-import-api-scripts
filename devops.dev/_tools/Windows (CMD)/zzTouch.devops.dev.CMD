@@ -79,7 +79,11 @@ REM ----------------------------------------------------------------
 
 REM CALL :sub_TOUCHDIR "%CURDIR%"
 CALL :sub_TOUCHDIR "_api_subscripts"
+CALL :sub_TOUCHDIR "_api_subscripts\_code_snippets"
 CALL :sub_TOUCHDIR "_templates.wip"
+REM CALL :sub_TOUCHDIR "_templates.wip\_code_snippet"
+CALL :sub_TOUCHDIR "csv_tools.wip"
+REM CALL :sub_TOUCHDIR "csv_tools.wip\_code_snippet"
 CALL :sub_TOUCHDIR "export_import.wip"
 CALL :sub_TOUCHDIR "Session_Cleanup.wip"
 

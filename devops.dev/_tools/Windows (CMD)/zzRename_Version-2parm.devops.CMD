@@ -1,4 +1,4 @@
-ECHO OFF
+@ECHO OFF
 REM
 REM CODESNIPET :  Rename Files with Version using 2 parameters : OldVersion, NewVersion - devops[.dev] folder specific
 REM
@@ -15,9 +15,9 @@ REM #
 REM #
 
 SET _LOCALSCRIPTNAME=zzRename_Version-2parm.devops
-SET _LOCALSCRIPTDATE=2021-01-16
-SET _LOCALSCRIPTTIME=2000CDT
-SET _LOCALSCRIPTVERSION=05.01.00
+SET _LOCALSCRIPTDATE=2021-01-18
+SET _LOCALSCRIPTTIME=2125CDT
+SET _LOCALSCRIPTVERSION=05.02.00
 SET _LOCALSCRIPTREVISION=000
 
 
@@ -715,12 +715,17 @@ ECHO. >> "%_scriptLOGFQPN%"
 
 CALL :sub_ProcessFolderFileRename "."
 CALL :sub_ProcessFolderFileRename ".\_api_subscripts"
-CALL :sub_ProcessFolderFileRename ".\__Updates"
+CALL :sub_ProcessFolderFileRename ".\_api_subscripts\_code_snippets"
 CALL :sub_ProcessFolderFileRename ".\_templates.wip"
+REM CALL :sub_ProcessFolderFileRename ".\_templates.wip\_code_snippets"
 CALL :sub_ProcessFolderFileRename ".\csv_tools.wip"
+REM CALL :sub_ProcessFolderFileRename ".\csv_tools.wip\_code_snippets"
 CALL :sub_ProcessFolderFileRename ".\export_import.wip"
 CALL :sub_ProcessFolderFileRename ".\MDM.wip"
 CALL :sub_ProcessFolderFileRename ".\Session_Cleanup.wip"
+
+REM We'll leave the __Updates alone
+REM CALL :sub_ProcessFolderFileRename ".\__Updates"
 
 REM * ===================================================================================
 REM * Log the results

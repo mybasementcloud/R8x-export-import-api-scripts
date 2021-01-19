@@ -1,12 +1,24 @@
 { "file_meta_info" : {
-	"fileversion" : "0.60.0",
-	"filerevision" : "065",
-	"filedate" : "2021-01-16"
+	"fileversion" : "0.60.1",
+	"filerevision" : "015",
+	"filedate" : "2021-01-18"
 }, 
 "default_csv_export_elements" : [ {
 	"name" : "common",
 	"CSVFileHeader" : "\"name\",\"color\",\"comments\"",
 	"CSVJQparms" : ".[\"name\"], .[\"color\"], .[\"comments\"]"
+}, {
+	"name" : "name-only",
+	"CSVFileHeader" : "\"name\"",
+	"CSVJQparms" : ".[\"name\"]"
+}, {
+	"name" : "name-and-uid",
+	"CSVFileHeader" : "\"name\",\"uid\"",
+	"CSVJQparms" : ".[\"name\"], .[\"uid\"]"
+}, {
+	"name" : "uid-only",
+	"CSVFileHeader" : "\"uid\"",
+	"CSVJQparms" : ".[\"uid\"]"
 }, {
 	"name" : "tags05",
 	"CSVFileHeader" : "\"tags.0\",\"tags.1\",\"tags.2\",\"tags.3\",\"tags.4\"",
@@ -16,7 +28,7 @@
 	"CSVFileHeader" : "\"tags.0\",\"tags.1\",\"tags.2\",\"tags.3\",\"tags.4\",\"tags.5\",\"tags.6\",\"tags.7\",\"tags.8\",\"tags.9\"",
 	"CSVJQparms" : ".[\"tags\"][0][\"name\"], .[\"tags\"][1][\"name\"], .[\"tags\"][2][\"name\"], .[\"tags\"][3][\"name\"], .[\"tags\"][4][\"name\"], .[\"tags\"][5][\"name\"], .[\"tags\"][6][\"name\"], .[\"tags\"][7][\"name\"], .[\"tags\"][8][\"name\"], .[\"tags\"][9][\"name\"]"
 }, {
-	"name" : "domain",
+	"name" : "uid-domain",
 	"CSVFileHeader" : "\"uid\",\"domain.name\",\"domain.domain-type\"",
 	"CSVJQparms" : ".[\"uid\"], .[\"domain\"][\"name\"], .[\"domain\"][\"domain-type\"]"
 }, {
