@@ -7,6 +7,7 @@ The provided TSV (Tab Separated Values) file is listing of the supported objects
 For some columns there are caveats (e.g. !) which are described at the end of the document
 
 The columns contents are as follows:
+
     - version
         This is whether the object (OBJECT) is included in this version release or not (true or false).  
             True indicates it is included in this version
