@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.01
-ScriptRevision=015
-ScriptDate=2021-01-18
+ScriptRevision=020
+ScriptDate=2021-01-19
 TemplateVersion=00.60.01
 APISubscriptsVersion=00.60.01
 APISubscriptsRevision=006
@@ -2581,6 +2581,19 @@ CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
+# access-roles
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.1
+export APICLIobjecttype=access-role
+export APICLIobjectstype=access-roles
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
 # opsec-applications
 # -------------------------------------------------------------------------------------------------
 
@@ -2639,6 +2652,32 @@ CheckAPIVersionAndExecuteOperation
 export APIobjectminversion=1.6.1
 export APICLIobjecttype=access-point-names
 export APICLIobjectstype=access-point-names
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# tacacs-groups objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.7
+export APICLIobjecttype=tacacs-group
+export APICLIobjectstype=tacacs-groups
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# tacacs-server objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.7
+export APICLIobjecttype=tacacs-server
+export APICLIobjectstype=tacacs-servers
 export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
@@ -2782,6 +2821,23 @@ CheckAPIVersionAndExecuteOperation
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-08-28
+# ADDED 2021-01-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+# -------------------------------------------------------------------------------------------------
+# services-gtp objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.7
+export APICLIobjecttype=service-gtp
+export APICLIobjectstype=services-gtp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2021-01-19
 # MODIFIED 2020-10-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 # -------------------------------------------------------------------------------------------------
@@ -2958,19 +3014,6 @@ CheckAPIVersionAndExecuteOperation
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
-
-
-# -------------------------------------------------------------------------------------------------
-# access-roles
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APICLIobjecttype=access-role
-export APICLIobjectstype=access-roles
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------

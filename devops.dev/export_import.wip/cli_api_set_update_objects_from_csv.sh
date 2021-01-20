@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.01
-ScriptRevision=015
-ScriptDate=2021-01-18
+ScriptRevision=020
+ScriptDate=2021-01-19
 TemplateVersion=00.60.01
 APISubscriptsVersion=00.60.01
 APISubscriptsRevision=006
@@ -2382,6 +2382,19 @@ CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
+# host objects - NO NAT Details
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.1
+export APICLIobjecttype=host
+export APICLIobjectstype=hosts
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=NO_NAT
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
 # network objects
 # -------------------------------------------------------------------------------------------------
 
@@ -2655,6 +2668,32 @@ CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
+# tacacs-server objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.7
+export APICLIobjecttype=tacacs-server
+export APICLIobjectstype=tacacs-servers
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# tacacs-groups objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.7
+export APICLIobjecttype=tacacs-group
+export APICLIobjectstype=tacacs-groups
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # Service & Applications
 # -------------------------------------------------------------------------------------------------
@@ -2767,6 +2806,19 @@ export APIobjectminversion=1.1
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# services-gtp objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.7
+export APICLIobjecttype=service-gtp
+export APICLIobjectstype=services-gtp
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3054,7 +3106,7 @@ ConfigureComplexObjects () {
 
 
 # -------------------------------------------------------------------------------------------------
-# group members objects
+# Generic OBJECT Members : Group Members
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
@@ -3069,14 +3121,14 @@ ConfigureComplexObjects
 
 
 # -------------------------------------------------------------------------------------------------
-# host interfaces
+# Generic OBJECT Members : Time Group Members
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
-export APICLIobjecttype=host
-export APICLIobjectstype=hosts
-export APICLIcomplexobjecttype=host-interface
-export APICLIcomplexobjectstype=host-interfaces
+export APICLIobjecttype=time-group
+export APICLIobjectstype=time-groups
+export APICLIcomplexobjecttype=time-group-member
+export APICLIcomplexobjectstype=time-group-members
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
 export APICLIexportnameaddon=
 
@@ -3084,14 +3136,75 @@ ConfigureComplexObjects
 
 
 # -------------------------------------------------------------------------------------------------
-# user-group members
+# Generic OBJECT Members : TACACS Group Members
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.7
+export APICLIobjecttype=tacacs-group
+export APICLIobjectstype=tacacs-groups
+export APICLIcomplexobjecttype=tacacs-group-member
+export APICLIcomplexobjectstype=tacacs-group-members
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+ConfigureComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# Generic OBJECT Members : Service Group Members
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APICLIobjecttype=service-group
+export APICLIobjectstype=service-groups
+export APICLIcomplexobjecttype=service-group-member
+export APICLIcomplexobjectstype=service-group-members
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+ConfigureComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# Generic OBJECT Members : Application Site Group Members
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.1
+export APICLIobjecttype=application-site-group
+export APICLIobjectstype=application-site-groups
+export APICLIcomplexobjecttype=application-site-group-member
+export APICLIcomplexobjectstype=application-site-group-members
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+ConfigureComplexObjects
+
+# -------------------------------------------------------------------------------------------------
+# Generic OBJECT Members : user-group members
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-18 -
+
+export APIobjectminversion=1.6.1
 export APICLIobjecttype=user-group
 export APICLIobjectstype=user-groups
 export APICLIcomplexobjecttype=user-group-member
 export APICLIcomplexobjectstype=user-group-members
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+ConfigureComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : host interfaces
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.1
+export APICLIobjecttype=host
+export APICLIobjectstype=hosts
+export APICLIcomplexobjecttype=host-interface
+export APICLIcomplexobjectstype=host-interfaces
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
 export APICLIexportnameaddon=
 

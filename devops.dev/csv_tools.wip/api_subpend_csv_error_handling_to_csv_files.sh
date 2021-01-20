@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.01
-ScriptRevision=015
-ScriptDate=2021-01-18
+ScriptRevision=020
+ScriptDate=2021-01-19
 TemplateVersion=00.60.01
 APISubscriptsVersion=00.60.01
 APISubscriptsRevision=006
@@ -3420,6 +3420,84 @@ RefactorObjectsCSV
 
 
 # -------------------------------------------------------------------------------------------------
+# trusted-client objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.1
+export APICLIobjecttype=trusted-client
+export APICLIobjectstype=trusted-clients
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# lsv-profile objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.6
+export APICLIobjecttype=lsv-profile
+export APICLIobjectstype=lsv-profiles
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# gsn-handover-group objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.6.1
+export APICLIobjecttype=gsn-handover-group
+export APICLIobjectstype=gsn-handover-groups
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# access-point-name objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.6.1
+export APICLIobjecttype=access-point-names
+export APICLIobjectstype=access-point-names
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# tacacs-server objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.7
+export APICLIobjecttype=tacacs-server
+export APICLIobjectstype=tacacs-servers
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# tacacs-groups objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.7
+export APICLIobjecttype=tacacs-group
+export APICLIobjectstype=tacacs-groups
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # Services and Applications
 # -------------------------------------------------------------------------------------------------
@@ -3526,6 +3604,19 @@ export APICLICSVobjecttype=services-rpc
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+# services-gtp objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.7
+export APICLIobjecttype=service-gtp
+export APICLIobjectstype=services-gtp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3721,21 +3812,98 @@ m     export APICLIImportCSVfile=${APICLICSVImportpathbase}/${APICLIfilename}
 
 
 # -------------------------------------------------------------------------------------------------
-# group members objects
+# Generic OBJECT Members : Group Members
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
 export APICLIcomplexobjecttype=group-member
 export APICLIcomplexobjectstype=group-members
-export APICLICSVobjecttype=group-members
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
 export APICLIexportnameaddon=
 
 ConfigureComplexObjects
 
 
 # -------------------------------------------------------------------------------------------------
-# host interfaces
+# Generic OBJECT Members : Time Group Members
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.1
+export APICLIobjecttype=time-group
+export APICLIobjectstype=time-groups
+export APICLIcomplexobjecttype=time-group-member
+export APICLIcomplexobjectstype=time-group-members
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+ConfigureComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# Generic OBJECT Members : TACACS Group Members
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.7
+export APICLIobjecttype=tacacs-group
+export APICLIobjectstype=tacacs-groups
+export APICLIcomplexobjecttype=tacacs-group-member
+export APICLIcomplexobjectstype=tacacs-group-members
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+ConfigureComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# Generic OBJECT Members : Service Group Members
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.1
+export APICLIobjecttype=service-group
+export APICLIobjectstype=service-groups
+export APICLIcomplexobjecttype=service-group-member
+export APICLIcomplexobjectstype=service-group-members
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+ConfigureComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# Generic OBJECT Members : Application Site Group Members
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.1
+export APICLIobjecttype=application-site-group
+export APICLIobjectstype=application-site-groups
+export APICLIcomplexobjecttype=application-site-group-member
+export APICLIcomplexobjectstype=application-site-group-members
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+ConfigureComplexObjects
+
+# -------------------------------------------------------------------------------------------------
+# Generic OBJECT Members : user-group members
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-18 -
+
+export APIobjectminversion=1.6.1
+export APICLIobjecttype=user-group
+export APICLIobjectstype=user-groups
+export APICLIcomplexobjecttype=user-group-member
+export APICLIcomplexobjectstype=user-group-members
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+ConfigureComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : host interfaces
 # -------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=host

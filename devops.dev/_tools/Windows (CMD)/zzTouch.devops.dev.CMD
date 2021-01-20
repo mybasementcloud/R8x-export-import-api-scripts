@@ -61,6 +61,9 @@ REM FOR %%I IN (v*.) DO "%PATHTOUCH%" "%%I" >> "%TEMP%\TouchDir.log"
 FOR %%I IN (*.version) DO "%PATHTOUCH%" "%%I" >> "%TEMP%\TouchDir.log"
 FOR %%I IN (*.sh) DO "%PATHTOUCH%" "%%I" >> "%TEMP%\TouchDir.log"
 FOR %%I IN (*.json) DO "%PATHTOUCH%" "%%I" >> "%TEMP%\TouchDir.log"
+FOR %%I IN (*.md) DO "%PATHTOUCH%" "%%I" >> "%TEMP%\TouchDir.log"
+FOR %%I IN (*.tsv) DO "%PATHTOUCH%" "%%I" >> "%TEMP%\TouchDir.log"
+FOR %%I IN (*.xlsx) DO "%PATHTOUCH%" "%%I" >> "%TEMP%\TouchDir.log"
 
 REM CD /D "%CURDIR%"
 POPD
@@ -77,7 +80,7 @@ REM ----------------------------------------------------------------
 
 :FIRST
 
-REM CALL :sub_TOUCHDIR "%CURDIR%"
+CALL :sub_TOUCHDIR "%CURDIR%"
 CALL :sub_TOUCHDIR "_api_subscripts"
 CALL :sub_TOUCHDIR "_api_subscripts\_code_snippets"
 CALL :sub_TOUCHDIR "_templates.wip"

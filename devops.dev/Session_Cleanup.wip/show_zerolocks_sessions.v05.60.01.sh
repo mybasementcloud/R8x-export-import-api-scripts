@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=05.60.01
-ScriptRevision=015
-ScriptDate=2021-01-18
+ScriptRevision=020
+ScriptDate=2021-01-19
 TemplateVersion=00.60.01
 APISubscriptsVersion=00.60.01
 APISubscriptsRevision=006

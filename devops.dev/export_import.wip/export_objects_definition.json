@@ -1,7 +1,7 @@
 { "file_meta_info" : {
 	"fileversion" : "0.60.1",
-	"filerevision" : "015",
-	"filedate" : "2021-01-18"
+	"filerevision" : "020",
+	"filedate" : "2021-01-19"
 }, 
 "default_csv_export_elements" : [ {
 	"name" : "common",
@@ -51,7 +51,7 @@
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"ipv4-address\",\"ipv6-address\",\"nat-settings.auto-rule\",\"nat-settings.hide-behind\",\"nat-settings.install-on\",\"nat-settings.ipv4-address\",\"nat-settings.ipv6-address\",\"nat-settings.method\"",
 	"CSVJQparms" : ".[\"ipv4-address\"], .[\"ipv6-address\"], .[\"nat-settings\"][\"auto-rule\"], .[\"nat-settings\"][\"hide-behind\"], .[\"nat-settings\"][\"install-on\", .[\"nat-settings\"][\"ipv4-address\"], .[\"nat-settings\"][\"ipv6-address\"], .[\"nat-settings\"][\"method\""
-}{
+}, {
 	"name" : "host-no-NAT",
 	"name-plural" : "hosts-no-NAT",
 	"objectgroup" : "Network Objects",
@@ -294,6 +294,28 @@
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
 }, {
+	"name" : "tacacs-server",
+	"name-plural" : "tacacs-servers",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "tacacs-server",
+	"objectsype" : "tacacs-servers",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"encryption\",\"priority\",\"server-type\",\"server.name\",\"service\",\"secret-key\"",
+	"CSVJQparms" : ".[\"encryption\"], .[\"priority\"], .[\"server-type\"], .[\"server\"][\"name\"], .[\"service\"], \"\""
+}, {
+	"name" : "tacacs-group",
+	"name-plural" : "tacacs-groups",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "tacacs-group",
+	"objectsype" : "tacacs-groups",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
 	"name" : "service TCP",
 	"name-plural" : "services TCP",
 	"objectgroup" : "Service & Applications",
@@ -302,8 +324,8 @@
 	"objectsype" : "services-tcp",
 	"objectlimit" : 500,
 	"sortparms" : "'-f -t , -k 1,1'",
-	"CSVFileHeader" : "",
-	"CSVJQparms" : ""
+	"CSVFileHeader" : "\"port\",\"protocol\",\"source-port\",\"aggressive-aging.enable\",\"aggressive-aging.default-timeout\",\"aggressive-aging.timeout\",\"aggressive-aging.use-default-timeout\",\"keep-connections-open-after-policy-installation\",\"match-by-protocol-signature\",\"match-for-any\",\"override-default-settings\",\"session-timeout\",\"use-default-session-timeout\",\"sync-connections-on-cluster\"",
+	"CSVJQparms" : ".[\"port\"], .[\"protocol\"], .[\"source-port\"], .[\"aggressive-aging\"][\"enable\"], .[\"aggressive-aging\"][\"default-timeout\"], .[\"aggressive-aging\"][\"timeout\"], .[\"aggressive-aging\"][\"use-default-timeout\"], .[\"keep-connections-open-after-policy-installation\"], .[\"match-by-protocol-signature\"], .[\"match-for-any\"], .[\"override-default-settings\"], .[\"session-timeout\"], .[\"use-default-session-timeout\"], .[\"sync-connections-on-cluster\"]"
 }, {
 	"name" : "service UDP",
 	"name-plural" : "services UDP",
@@ -313,8 +335,8 @@
 	"objectsype" : "services-udp",
 	"objectlimit" : 500,
 	"sortparms" : "'-f -t , -k 1,1'",
-	"CSVFileHeader" : "",
-	"CSVJQparms" : ""
+	"CSVFileHeader" : "\"port\",\"protocol\",\"source-port\",\"accept-replies\",\"aggressive-aging.enable\",\"aggressive-aging.default-timeout\",\"aggressive-aging.timeout\",\"aggressive-aging.use-default-timeout\",\"keep-connections-open-after-policy-installation\",\"match-by-protocol-signature\",\"match-for-any\",\"override-default-settings\",\"session-timeout\",\"use-default-session-timeout\",\"sync-connections-on-cluster\"",
+	"CSVJQparms" : ".[\"port\"], .[\"protocol\"], .[\"source-port\"], .[\"accept-replies\"], .[\"aggressive-aging\"][\"enable\"], .[\"aggressive-aging\"][\"default-timeout\"], .[\"aggressive-aging\"][\"timeout\"], .[\"aggressive-aging\"][\"use-default-timeout\"], .[\"keep-connections-open-after-policy-installation\"], .[\"match-by-protocol-signature\"], .[\"match-for-any\"], .[\"override-default-settings\"], .[\"session-timeout\"], .[\"use-default-session-timeout\"], .[\"sync-connections-on-cluster\"]"
 }, {
 	"name" : "service ICMP",
 	"name-plural" : "services ICMP",
@@ -324,8 +346,8 @@
 	"objectsype" : "services-icmp",
 	"objectlimit" : 500,
 	"sortparms" : "'-f -t , -k 1,1'",
-	"CSVFileHeader" : "",
-	"CSVJQparms" : ""
+	"CSVFileHeader" : "\"icmp-code\",\"icmp-type\",\"keep-connections-open-after-policy-installation\"",
+	"CSVJQparms" : ".[\"icmp-code\"], .[\"icmp-type\"], .[\"keep-connections-open-after-policy-installation\"]"
 }, {
 	"name" : "service ICMP6",
 	"name-plural" : "services ICMP6",
@@ -335,8 +357,8 @@
 	"objectsype" : "services-icmp6",
 	"objectlimit" : 500,
 	"sortparms" : "'-f -t , -k 1,1'",
-	"CSVFileHeader" : "",
-	"CSVJQparms" : ""
+	"CSVFileHeader" : "\"icmp-code\",\"icmp-type\",\"keep-connections-open-after-policy-installation\"",
+	"CSVJQparms" : ".[\"icmp-code\"], .[\"icmp-type\"], .[\"keep-connections-open-after-policy-installation\"]"
 }, {
 	"name" : "service sctp",
 	"name-plural" : "services sctp",
@@ -346,8 +368,8 @@
 	"objectsype" : "services-sctp",
 	"objectlimit" : 500,
 	"sortparms" : "'-f -t , -k 1,1'",
-	"CSVFileHeader" : "",
-	"CSVJQparms" : ""
+	"CSVFileHeader" : "\"port\",\"source-port\",\"aggressive-aging.enable\",\"aggressive-aging.default-timeout\",\"aggressive-aging.timeout\",\"aggressive-aging.use-default-timeout\",\"keep-connections-open-after-policy-installation\",\"match-for-any\",\"session-timeout\",\"use-default-session-timeout\",\"sync-connections-on-cluster\"",
+	"CSVJQparms" : ".[\"port\"], .[\"source-port\"], .[\"aggressive-aging\"][\"enable\"], .[\"aggressive-aging\"][\"default-timeout\"], .[\"aggressive-aging\"][\"timeout\"], .[\"aggressive-aging\"][\"use-default-timeout\"], .[\"keep-connections-open-after-policy-installation\"], .[\"match-for-any\"], .[\"session-timeout\"], .[\"use-default-session-timeout\"], .[\"sync-connections-on-cluster\"]"
 }, {
 	"name" : "service other",
 	"name-plural" : "services other",
@@ -357,8 +379,8 @@
 	"objectsype" : "services-other",
 	"objectlimit" : 500,
 	"sortparms" : "'-f -t , -k 1,1'",
-	"CSVFileHeader" : "",
-	"CSVJQparms" : ""
+	"CSVFileHeader" : "\"port\",\"source-port\",\"accept-replies\",\"ip-protocol\",\"action\",\"match\",\"aggressive-aging.enable\",\"aggressive-aging.default-timeout\",\"aggressive-aging.timeout\",\"aggressive-aging.use-default-timeout\",\"keep-connections-open-after-policy-installation\",\"match-for-any\",\"override-default-settings\",\"session-timeout\",\"use-default-session-timeout\",\"sync-connections-on-cluster\"",
+	"CSVJQparms" : ".[\"port\"], .[\"source-port\"], .[\"accept-replies\"], .[\"ip-protocol\"], .[\"action\"], .[\"match\"], .[\"aggressive-aging\"][\"enable\"], .[\"aggressive-aging\"][\"default-timeout\"], .[\"aggressive-aging\"][\"timeout\"], .[\"aggressive-aging\"][\"use-default-timeout\"], .[\"keep-connections-open-after-policy-installation\"], .[\"match-for-any\"], .[\"override-default-settings\"], .[\"session-timeout\"], .[\"use-default-session-timeout\"], .[\"sync-connections-on-cluster\"]"
 }, {
 	"name" : "service dce rpc",
 	"name-plural" : "services dce rpc",
@@ -367,9 +389,9 @@
 	"objectype" : "service-dce-rpc",
 	"objectsype" : "services-dce-rpc",
 	"objectlimit" : 500,
-	"sortparms" : "",
-	"CSVFileHeader" : "",
-	"CSVJQparms" : ""
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"interface-uuid\",\"keep-connections-open-after-policy-installation\"",
+	"CSVJQparms" : ".[\"interface-uuid\"], .[\"keep-connections-open-after-policy-installation\"]"
 }, {
 	"name" : "service rpc",
 	"name-plural" : "services rpc",
@@ -378,9 +400,20 @@
 	"objectype" : "service-rpc",
 	"objectsype" : "services-rpc",
 	"objectlimit" : 500,
-	"sortparms" : "",
-	"CSVFileHeader" : "",
-	"CSVJQparms" : ""
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"program-number\",\"keep-connections-open-after-policy-installation\"",
+	"CSVJQparms" : ".[\"program-number], .[\"keep-connections-open-after-policy-installation\"]"
+}, {
+	"name" : "service gtp",
+	"name-plural" : "services gtp",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.6.1",
+	"objectype" : "service-gtp",
+	"objectsype" : "services-gtp",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"version\",\"allow-usage-of-static-ip\",\"cs-fallback-and-srvcc\",\"radio-access-technology\",\"restoration-and-recovery\",\"reverse-service\",\"trace-management\",\"access-point-name.enable\",\"access-point-name.apn\",\"apply-access-policy-on-user-traffic.enable\",\"apply-access-policy-on-user-traffic.add-imsi-field-to-log\",\"imsi-prefix.enable\",\"imsi-prefix.prefix\",\"interface-profile.profile\",\"interface-profile.custom-message-types\",\"ldap-group.enable\",\"ldap-group.group\",\"ldap-group.according-to\",\"ms-isdn.enable\",\"ms-isdn.ms-isdn\",\"selection-mode.enable\",\"selection-mode.mode\",\"radio-access-technology.utran\",\"radio-access-technology.geran\",\"radio-access-technology.wlan\",\"radio-access-technology.gan\",\"radio-access-technology.hspa-evolution\",\"radio-access-technology.eutran\",\"radio-access-technology.virtual\",\"radio-access-technology.nb-iot\",\"radio-access-technology.other-types-range.enable\",\"radio-access-technology.other-types-range.types\"",
+	"CSVJQparms" : ".[\"version\"], .[\"allow-usage-of-static-ip\"], .[\"cs-fallback-and-srvcc\"], .[\"radio-access-technology\"], .[\"restoration-and-recovery\"], .[\"reverse-service\"], .[\"trace-management\"], .[\"access-point-name\"][\"enable\"], .[\"access-point-name\"][\"apn\"], .[\"apply-access-policy-on-user-traffic\"][\"enable\"], .[\"apply-access-policy-on-user-traffic\"][\"add-imsi-field-to-log\"], .[\"imsi-prefix\"][\"enable\"], .[\"imsi-prefix\"][\"prefix\"], .[\"interface-profile\"][\"profile\"], .[\"interface-profile\"][\"custom-message-types\"], .[\"ldap-group\"][\"enable\"], .[\"ldap-group\"][\"group\"], .[\"ldap-group\"][\"according-to\"], .[\"ms-isdn\"][\"enable\"], .[\"ms-isdn\"][\"ms-isdn\"], .[\"selection-mode\"][\"enable\"], .[\"selection-mode\"][\"mode\"], .[\"radio-access-technology\"][\"utran\"], .[\"radio-access-technology\"][\"geran\"], .[\"radio-access-technology\"][\"wlan\"], .[\"radio-access-technology\"][\"gan\"], .[\"radio-access-technology\"][\"hspa-evolution\"], .[\"radio-access-technology\"][\"eutran\"], .[\"radio-access-technology\"][\"virtual\"], .[\"radio-access-technology\"][\"nb-iot\"], .[\"radio-access-technology\"][\"other-types-range\"][\"enable\"], .[\"radio-access-technology\"][\"other-types-range\"][\"types\"]"
 }, {
 	"name" : "service citrix tcp",
 	"name-plural" : "services citrix tcp",
@@ -389,9 +422,9 @@
 	"objectype" : "service-citrix-tcp",
 	"objectsype" : "services-citrix-tcp",
 	"objectlimit" : 500,
-	"sortparms" : "",
-	"CSVFileHeader" : "",
-	"CSVJQparms" : ""
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"application\"",
+	"CSVJQparms" : ".[\"application\"]"
 }, {
 	"name" : "service compound tcp",
 	"name-plural" : "services-compound-tcp",
@@ -400,9 +433,9 @@
 	"objectype" : "service-compound-tcp",
 	"objectsype" : "services-compound-tcp",
 	"objectlimit" : 500,
-	"sortparms" : "",
-	"CSVFileHeader" : "",
-	"CSVJQparms" : ""
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"compound-service\",\"keep-connections-open-after-policy-installation\"",
+	"CSVJQparms" : ".[\"compound-service\"], .[\"keep-connections-open-after-policy-installation\"]"
 }, {
 	"name" : "service group",
 	"name-plural" : "service groups",
@@ -492,7 +525,7 @@
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
 } ], 
-"complex_objects" : [ {
+"complex_object_members" : [ {
 	"name" : "group member",
 	"name-plural" : "group members",
 	"objectgroup" : "Network Objects",
@@ -505,19 +538,6 @@
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"members.add\"",
 	"CSVJQparms" : ".[\"name\"], .[\"members\"]['$COUNTER'][\"name\"]"
-}, {
-	"name" : "host interface",
-	"name-plural" : "host interfaces",
-	"objectgroup" : "Network Objects",
-	"api-version" : "1.1",
-	"objectype" : "host",
-	"objectsype" : "hosts",
-	"complexobjecttype" : "host-interface",
-	"complexobjectstype" : "host-interfaces",
-	"objectlimit" : 500,
-	"sortparms" : "'-f -t , -k 1,1'",
-	"CSVFileHeader" : "\"name\",\"interfaces.add.name\",\"interfaces.add.subnet4\",\"interfaces.add.mask-length4\",\"interfaces.add.subnet6\",\"interfaces.add.mask-length6\",\"interfaces.add.color\",\"interfaces.add.comments\"",
-	"CSVJQparms" : ".[\"name\"], .[\"interfaces\"]['$COUNTER'][\"name\"], .[\"interfaces\"]['$COUNTER'][\"subnet4\"], .[\"interfaces\"]['$COUNTER'][\"mask-length4\"], .[\"interfaces\"]['$COUNTER'][\"subnet6\"], .[\"interfaces\"]['$COUNTER'][\"mask-length6\"], .[\"interfaces\"]['$COUNTER'][\"color\"], .[\"interfaces\"]['$COUNTER'][\"comments\"]"
 }, {
 	"name" : "service group member",
 	"name-plural" : "service  group members",
@@ -544,5 +564,19 @@
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"members.add\"",
 	"CSVJQparms" : ".[\"name\"], .[\"members\"]['$COUNTER'][\"name\"]"
+} ],
+"complex_objects" : [ {
+	"name" : "host interface",
+	"name-plural" : "host interfaces",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "host",
+	"objectsype" : "hosts",
+	"complexobjecttype" : "host-interface",
+	"complexobjectstype" : "host-interfaces",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"name\",\"interfaces.add.name\",\"interfaces.add.subnet4\",\"interfaces.add.mask-length4\",\"interfaces.add.subnet6\",\"interfaces.add.mask-length6\",\"interfaces.add.color\",\"interfaces.add.comments\"",
+	"CSVJQparms" : ".[\"name\"], .[\"interfaces\"]['$COUNTER'][\"name\"], .[\"interfaces\"]['$COUNTER'][\"subnet4\"], .[\"interfaces\"]['$COUNTER'][\"mask-length4\"], .[\"interfaces\"]['$COUNTER'][\"subnet6\"], .[\"interfaces\"]['$COUNTER'][\"mask-length6\"], .[\"interfaces\"]['$COUNTER'][\"color\"], .[\"interfaces\"]['$COUNTER'][\"comments\"]"
 } ]
 }

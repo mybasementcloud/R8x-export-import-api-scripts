@@ -1,7 +1,7 @@
 { "file_meta_info" : {
 	"fileversion" : "0.60.1",
-	"filerevision" : "015",
-	"filedate" : "2021-01-18"
+	"filerevision" : "020",
+	"filedate" : "2021-01-19"
 }, 
 "default_csv_export_elements" : [ {
 	"name" : "common",
@@ -52,6 +52,17 @@
 	"CSVFileHeader" : "\"ipv4-address\",\"ipv6-address\",\"nat-settings.auto-rule\",\"nat-settings.hide-behind\",\"nat-settings.install-on\",\"nat-settings.ipv4-address\",\"nat-settings.ipv6-address\",\"nat-settings.method\"",
 	"CSVJQparms" : ".[\"ipv4-address\"], .[\"ipv6-address\"], .[\"nat-settings\"][\"auto-rule\"], .[\"nat-settings\"][\"hide-behind\"], .[\"nat-settings\"][\"install-on\", .[\"nat-settings\"][\"ipv4-address\"], .[\"nat-settings\"][\"ipv6-address\"], .[\"nat-settings\"][\"method\""
 }, {
+	"name" : "host-no-NAT",
+	"name-plural" : "hosts-no-NAT",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "host",
+	"objectsype" : "hosts",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"ipv4-address\",\"ipv6-address\"",
+	"CSVJQparms" : ".[\"ipv4-address\"], .[\"ipv6-address\"]"
+}, {
 	"name" : "network",
 	"name-plural" : "networks",
 	"objectgroup" : "Network Objects",
@@ -62,8 +73,19 @@
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"broadcast\",\"subnet4\",\"mask-length4\",\"subnet6\",\"mask-length6\",\"nat-settings.auto-rule\",\"nat-settings.hide-behind\",\"nat-settings.install-on\",\"nat-settings.method\"",
 	"CSVJQparms" : ".[\"broadcast\"], .[\"subnet4\"], .[\"mask-length4\"], .[\"subnet6\"], .[\"mask-length6\"], .[\"nat-settings\"][\"auto-rule\"], .[\"nat-settings\"][\"hide-behind\"], .[\"nat-settings\"][\"install-on\"], .[\"nat-settings\"][\"method\"]"
+}, {
+	"name" : "service TCP",
+	"name-plural" : "services TCP",
+	"objectgroup" : "Service & Applications",
+	"api-version" : "1.1",
+	"objectype" : "service-tcp",
+	"objectsype" : "services-tcp",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"port\",\"protocol\",\"source-port\",\"aggressive-aging.enable\",\"aggressive-aging.default-timeout\",\"aggressive-aging.timeout\",\"aggressive-aging.use-default-timeout\",\"keep-connections-open-after-policy-installation\",\"match-by-protocol-signature\",\"match-for-any\",\"override-default-settings\",\"session-timeout\",\"use-default-session-timeout\",\"sync-connections-on-cluster\"",
+	"CSVJQparms" : ".[\"port\"], .[\"protocol\"], .[\"source-port\"], .[\"aggressive-aging\"][\"enable\"], .[\"aggressive-aging\"][\"default-timeout\"], .[\"aggressive-aging\"][\"timeout\"], .[\"aggressive-aging\"][\"use-default-timeout\"], .[\"keep-connections-open-after-policy-installation\"], .[\"match-by-protocol-signature\"], .[\"match-for-any\"], .[\"override-default-settings\"], .[\"session-timeout\"], .[\"use-default-session-timeout\"], .[\"sync-connections-on-cluster\"]"
 } ], 
-"complex_objects" : [ {
+"complex_object_members" : [ {
 	"name" : "group member",
 	"name-plural" : "group members",
 	"objectgroup" : "Network Objects",
@@ -76,5 +98,19 @@
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"members.add\"",
 	"CSVJQparms" : ".[\"name\"], .[\"members\"]['$COUNTER'][\"name\"]"
+} ],
+"complex_objects" : [ {
+	"name" : "host interface",
+	"name-plural" : "host interfaces",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.1",
+	"objectype" : "host",
+	"objectsype" : "hosts",
+	"complexobjecttype" : "host-interface",
+	"complexobjectstype" : "host-interfaces",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"name\",\"interfaces.add.name\",\"interfaces.add.subnet4\",\"interfaces.add.mask-length4\",\"interfaces.add.subnet6\",\"interfaces.add.mask-length6\",\"interfaces.add.color\",\"interfaces.add.comments\"",
+	"CSVJQparms" : ".[\"name\"], .[\"interfaces\"]['$COUNTER'][\"name\"], .[\"interfaces\"]['$COUNTER'][\"subnet4\"], .[\"interfaces\"]['$COUNTER'][\"mask-length4\"], .[\"interfaces\"]['$COUNTER'][\"subnet6\"], .[\"interfaces\"]['$COUNTER'][\"mask-length6\"], .[\"interfaces\"]['$COUNTER'][\"color\"], .[\"interfaces\"]['$COUNTER'][\"comments\"]"
 } ]
 }

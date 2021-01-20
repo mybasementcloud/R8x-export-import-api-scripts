@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.01
-ScriptRevision=015
-ScriptDate=2021-01-18
+ScriptRevision=020
+ScriptDate=2021-01-19
 TemplateVersion=00.60.01
 APISubscriptsVersion=00.60.01
 APISubscriptsRevision=006
@@ -316,6 +316,78 @@ set_simplexobjects_csv_export_elements () {
 
 
 # -------------------------------------------------------------------------------------------------
+# set_complexobjectmembers_csv_export_elements : Set the values for compolex export elements
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-10-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+set_complexobjectmembers_csv_export_elements () {
+    #
+    
+    whichname=$1
+    
+    export readcsvfileheader=`cat "${exobdeffilepath}" | ${JQ16} '.complex_object_members[] | select(."name"=="'"$whichname"'") | ."CSVFileHeader"' -r`
+    export readcsvJQparsevalue=`cat "${exobdeffilepath}" | ${JQ16} '.complex_object_members[] | select(."name"=="'"$whichname"'") | ."CSVJQparms"' -r`
+    
+    if [ -z "${CSVFileHeader}" ] ; then
+        export CSVFileHeader=${readcsvfileheader}
+    else
+        export CSVFileHeader=${CSVFileHeader}','${readcsvfileheader}
+    fi
+    
+    if [ -z "${csvJQparsevalue}" ] ; then
+        export csvJQparsevalue=${readcsvJQparsevalue}
+    else
+        export csvJQparsevalue=${csvJQparsevalue}', '${readcsvJQparsevalue}
+    fi
+    
+    echo 'readcsvfileheader       = '${readcsvfileheader}
+    echo 'readcsvJQparsevalue     = '${readcsvJQparsevalue}
+    echo
+    
+    export APIobjectminversion=`cat "${exobdeffilepath}" | ${JQ16} '.complex_object_members[] | select(."name"=="'"$whichname"'") | ."api-version"' -r`
+    export APICLIobjecttype=`cat "${exobdeffilepath}" | ${JQ16} '.complex_object_members[] | select(."name"=="'"$whichname"'") | ."objectype"' -r`
+    export APICLIobjectstype=`cat "${exobdeffilepath}" | ${JQ16} '.complex_object_members[] | select(."name"=="'"$whichname"'") | ."objectsype"' -r`
+    export APICLICSVobjecttype=${APICLIobjectstype}
+    export APICLIcomplexobjecttype=`cat "${exobdeffilepath}" | ${JQ16} '.complex_object_members[] | select(."name"=="'"$whichname"'") | ."complexobjecttype"' -r`
+    export APICLIcomplexobjectstype=`cat "${exobdeffilepath}" | ${JQ16} '.complex_object_members[] | select(."name"=="'"$whichname"'") | ."complexobjectstype"' -r`
+    
+    export WorkAPIObjectLimit=`cat "${exobdeffilepath}" | ${JQ16} '.complex_object_members[] | select(."name"=="'"$whichname"'") | ."objectlimit"' -r`
+    export APICLIobjectsortparms=`cat "${exobdeffilepath}" | ${JQ16} '.complex_object_members[] | select(."name"=="'"$whichname"'") | ."sortparms"' -r`
+    export APICLIobjectgroup=`cat "${exobdeffilepath}" | ${JQ16} '.complex_object_members[] | select(."name"=="'"$whichname"'") | ."objectgroup"' -r`
+    
+    echo 'APIobjectminversion     = '${APIobjectminversion}
+    echo 'APICLIobjecttype        = '${APICLIobjecttype}
+    echo 'APICLIobjectstype       = '${APICLIobjectstype}
+    echo 'APICLICSVobjecttype     = '${APICLICSVobjecttype}
+    echo 'APICLIcomplexobjecttype = '${APICLIcomplexobjecttype}
+    echo 'APICLIcomplexobjectstype= '${APICLIcomplexobjectstype}
+    echo 'WorkAPIObjectLimit      = '${WorkAPIObjectLimit}
+    echo 'APICLIobjectsortparms   = '${APICLIobjectsortparms}
+    echo 'APICLIobjectgroup       = '${APICLIobjectgroup}
+    echo
+    echo 'CSVFileHeader           = '${CSVFileHeader}
+    echo 'csvJQparsevalue         = '${csvJQparsevalue}
+    echo
+    echo
+    
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-10-02
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#set_complexobjectmembers_csv_export_elements <parm1=elementname>
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
 # set_complexobjects_csv_export_elements : Set the values for compolex export elements
 # -------------------------------------------------------------------------------------------------
 
@@ -399,7 +471,39 @@ export elementname=common
 
 set_default_csv_export_elements "${elementname}"
 
-export elementname=tags
+export elementname=name-only
+
+#cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r
+#cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVJQparms"' -r
+#echo
+
+set_default_csv_export_elements "${elementname}"
+
+export elementname=name-and-uid
+
+#cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r
+#cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVJQparms"' -r
+#echo
+
+set_default_csv_export_elements "${elementname}"
+
+export elementname=uid-only
+
+#cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r
+#cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVJQparms"' -r
+#echo
+
+set_default_csv_export_elements "${elementname}"
+
+export elementname=tags05
+
+#cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r
+#cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVJQparms"' -r
+#echo
+
+set_default_csv_export_elements "${elementname}"
+
+export elementname=tags10
 
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVJQparms"' -r
@@ -416,6 +520,14 @@ export elementname=domain
 set_default_csv_export_elements "${elementname}"
 
 export elementname=meta-info
+
+#cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r
+#cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVJQparms"' -r
+#echo
+
+set_default_csv_export_elements "${elementname}"
+
+export elementname=errorhandling
 
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVJQparms"' -r
@@ -454,6 +566,30 @@ export csvJQparsevalue=${keepercsvJQparsevalue}
 set_simplexobjects_csv_export_elements "group"
 
 echo '-------------------------------------------------------------------------------------------------'
+
+export CSVFileHeader=${keepercsvfileheader}
+export csvJQparsevalue=${keepercsvJQparsevalue}
+
+set_simplexobjects_csv_export_elements "service TCP"
+
+echo '-------------------------------------------------------------------------------------------------'
+
+
+echo '-------------------------------------------------------------------------------------------------'
+echo '-------------------------------------------------------------------------------------------------'
+
+
+echo '-------------------------------------------------------------------------------------------------'
+
+export CSVFileHeader=${keepercsvfileheader}
+export csvJQparsevalue=${keepercsvJQparsevalue}
+
+set_complexobjectmembers_csv_export_elements "user group member"
+
+echo '-------------------------------------------------------------------------------------------------'
+
+
+echo '-------------------------------------------------------------------------------------------------'
 echo '-------------------------------------------------------------------------------------------------'
 
 
@@ -466,10 +602,6 @@ set_complexobjects_csv_export_elements "host interface"
 
 echo '-------------------------------------------------------------------------------------------------'
 
-export CSVFileHeader=${keepercsvfileheader}
-export csvJQparsevalue=${keepercsvJQparsevalue}
-
-set_complexobjects_csv_export_elements "user group member"
 
 echo '-------------------------------------------------------------------------------------------------'
 echo '-------------------------------------------------------------------------------------------------'

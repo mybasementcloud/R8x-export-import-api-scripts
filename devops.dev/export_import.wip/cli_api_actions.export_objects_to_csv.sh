@@ -14,8 +14,8 @@
 #
 #
 ScriptVersion=00.60.01
-ScriptRevision=015
-ScriptDate=2021-01-18
+ScriptRevision=020
+ScriptDate=2021-01-19
 TemplateVersion=00.60.01
 APISubscriptsVersion=00.60.01
 APISubscriptsRevision=006
@@ -1101,11 +1101,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_securityzones=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -1131,11 +1133,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_dynamicobjects=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -1161,11 +1165,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_tags=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -1191,11 +1197,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_simplegateways=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -1221,11 +1229,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_simpleclusters=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -1251,11 +1261,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_checkpointhosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -1316,11 +1328,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_time_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -1346,11 +1360,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_access_roles=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -1414,11 +1430,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_trustedclients=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -1444,11 +1462,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_lsvprofiles=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -1474,11 +1494,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_gsnhandovergroups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -1504,16 +1526,78 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_accesspointnames=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_accesspointnames="${objectstotal_accesspointnames}"
 export number_of_objects=${number_accesspointnames}
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# tacacs-server objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.7
+export APICLIobjecttype=tacacs-server
+export APICLIobjectstype=tacacs-servers
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"encryption","priority","server-type","server.name","service","secret-key"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"icon"'
+
+export CSVJQparms=
+export CSVJQparms='.["encryption"], .["priority"], .["server-type"], .["server"]["name"], .["service"], ""'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["icon"]'
+
+objectstotal_tacacsservers=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_tacacsservers="${objectstotal_tacacsservers}"
+export number_of_objects=${number_tacacsservers}
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# tacacs-groups objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.7
+export APICLIobjecttype=tacacs-group
+export APICLIobjectstype=tacacs-groups
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+
+export CSVJQparms=
+
+objectstotal_tacacsgroups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_tacacsgroups="${objectstotal_tacacsgroups}"
+export number_of_objects=${number_tacacsgroups}
 
 CheckAPIVersionAndExecuteOperation
 
@@ -1549,12 +1633,18 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
-#export CSVFileHeader=${CSVFileHeader}',"icon"'
+export CSVFileHeader='"port","protocol","source-port"'
+export CSVFileHeader=${CSVFileHeader}',"aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.timeout","aggressive-aging.use-default-timeout"'
+export CSVFileHeader=${CSVFileHeader}',"keep-connections-open-after-policy-installation","match-by-protocol-signature","match-for-any","override-default-settings"'
+export CSVFileHeader=${CSVFileHeader}',"session-timeout","use-default-session-timeout","sync-connections-on-cluster"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
-#export CSVJQparms=${CSVJQparms}', .["icon"]'
+export CSVJQparms='.["port"], .["protocol"], .["source-port"]'
+export CSVJQparms=${CSVJQparms}', .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["timeout"], .["aggressive-aging"]["use-default-timeout"]'
+export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installation"], .["match-by-protocol-signature"], .["match-for-any"], .["override-default-settings"]'
+export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
 
 objectstotal_services_tcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_tcp="${objectstotal_services_tcp}"
@@ -1579,12 +1669,18 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
-#export CSVFileHeader=${CSVFileHeader}',"icon"'
+export CSVFileHeader='"port","protocol","source-port"'
+export CSVFileHeader=${CSVFileHeader}',"accept-replies","aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.timeout","aggressive-aging.use-default-timeout"'
+export CSVFileHeader=${CSVFileHeader}',"keep-connections-open-after-policy-installation","match-by-protocol-signature","match-for-any","override-default-settings"'
+export CSVFileHeader=${CSVFileHeader}',"session-timeout","use-default-session-timeout","sync-connections-on-cluster"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
-#export CSVJQparms=${CSVJQparms}', .["icon"]'
+export CSVJQparms='.["port"], .["protocol"], .["source-port"]'
+export CSVJQparms=${CSVJQparms}', .["accept-replies"], .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["timeout"], .["aggressive-aging"]["use-default-timeout"]'
+export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installation"], .["match-by-protocol-signature"], .["match-for-any"], .["override-default-settings"]'
+export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
 
 objectstotal_services_udp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_udp="${objectstotal_services_udp}"
@@ -1609,11 +1705,15 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+export CSVFileHeader='"icmp-code","icmp-type","keep-connections-open-after-policy-installation"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+export CSVJQparms='.["icmp-code"], .["icmp-type"], .["keep-connections-open-after-policy-installation"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_services_icmp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -1639,11 +1739,15 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+export CSVFileHeader='"icmp-code","icmp-type","keep-connections-open-after-policy-installation"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+export CSVJQparms='.["icmp-code"], .["icmp-type"], .["keep-connections-open-after-policy-installation"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_services_icmp6=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -1669,12 +1773,18 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
-#export CSVFileHeader=${CSVFileHeader}',"icon"'
+export CSVFileHeader='"port","source-port"'
+export CSVFileHeader=${CSVFileHeader}',"aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.timeout","aggressive-aging.use-default-timeout"'
+export CSVFileHeader=${CSVFileHeader}',"keep-connections-open-after-policy-installation","match-for-any"'
+export CSVFileHeader=${CSVFileHeader}',"session-timeout","use-default-session-timeout","sync-connections-on-cluster"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
-#export CSVJQparms=${CSVJQparms}', .["icon"]'
+export CSVJQparms='.["port"], .["source-port"]'
+export CSVJQparms=${CSVJQparms}', .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["timeout"], .["aggressive-aging"]["use-default-timeout"]'
+export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installation"], .["match-for-any"]'
+export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
 
 objectstotal_services_sctp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_sctp="${objectstotal_services_sctp}"
@@ -1699,12 +1809,20 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
-#export CSVFileHeader=${CSVFileHeader}',"icon"'
+export CSVFileHeader='"port","source-port"'
+export CSVFileHeader=${CSVFileHeader}',"accept-replies","ip-protocol","action","match"'
+export CSVFileHeader=${CSVFileHeader}',"aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.timeout","aggressive-aging.use-default-timeout"'
+export CSVFileHeader=${CSVFileHeader}',"keep-connections-open-after-policy-installation","match-for-any","override-default-settings"'
+export CSVFileHeader=${CSVFileHeader}',"session-timeout","use-default-session-timeout","sync-connections-on-cluster"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
-#export CSVJQparms=${CSVJQparms}', .["icon"]'
+export CSVJQparms='.["port"], .["source-port"]'
+export CSVJQparms=${CSVJQparms}', .["accept-replies"], .["ip-protocol"], .["action"], .["match"]'
+export CSVJQparms=${CSVJQparms}', .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["timeout"], .["aggressive-aging"]["use-default-timeout"]'
+export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installation"], .["match-for-any"], .["override-default-settings"]'
+export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
 
 objectstotal_services_other=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_other="${objectstotal_services_other}"
@@ -1729,11 +1847,15 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+export CSVFileHeader='"interface-uuid","keep-connections-open-after-policy-installation"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+export CSVJQparms='.["interface-uuid"], .["keep-connections-open-after-policy-installation"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_services_dce_rpc=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -1759,16 +1881,70 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+export CSVFileHeader='"program-number","keep-connections-open-after-policy-installation"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+export CSVJQparms='.["program-number"], .["keep-connections-open-after-policy-installation"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_services_rpc=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_rpc="${objectstotal_services_rpc}"
 export number_of_objects=${number_services_rpc}
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# service-gtp objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.7
+export APICLIobjecttype=service-gtp
+export APICLIobjectstype=services-gtp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"version","allow-usage-of-static-ip","cs-fallback-and-srvcc","radio-access-technology"'
+export CSVFileHeader=${CSVFileHeader}',"restoration-and-recovery","reverse-service","trace-management"'
+export CSVFileHeader=${CSVFileHeader}',"access-point-name.enable","access-point-name.apn","apply-access-policy-on-user-traffic.enable","apply-access-policy-on-user-traffic.add-imsi-field-to-log"'
+export CSVFileHeader=${CSVFileHeader}',"imsi-prefix.enable","imsi-prefix.prefix","interface-profile.profile","interface-profile.custom-message-types"'
+export CSVFileHeader=${CSVFileHeader}',"ldap-group.enable","ldap-group.group","ldap-group.according-to"'
+export CSVFileHeader=${CSVFileHeader}',"ms-isdn.enable","ms-isdn.ms-isdn","selection-mode.enable","selection-mode.mode"'
+export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.utran","radio-access-technology.geran","radio-access-technology.wlan","radio-access-technology.gan"'
+export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.hspa-evolution","radio-access-technology.eutran","radio-access-technology.virtual","radio-access-technology.nb-iot"'
+export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.other-types-range.enable","radio-access-technology.other-types-range.types"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"icon"'
+
+export CSVJQparms=
+export CSVJQparms='.["version"], .["allow-usage-of-static-ip"], .["cs-fallback-and-srvcc"], .["radio-access-technology"]'
+export CSVJQparms=${CSVJQparms}', .["restoration-and-recovery"], .["reverse-service"], .["trace-management"]'
+export CSVJQparms=${CSVJQparms}', .["access-point-name"]["enable"], .["access-point-name"]["apn"], .["apply-access-policy-on-user-traffic"]["enable"], .["apply-access-policy-on-user-traffic"]["add-imsi-field-to-log"]'
+export CSVJQparms=${CSVJQparms}', .["imsi-prefix"]["enable"], .["imsi-prefix"]["prefix"], .["interface-profile"]["profile"], .["interface-profile"]["custom-message-types"]'
+export CSVJQparms=${CSVJQparms}', .["ldap-group"]["enable"], .["ldap-group"]["group"], .["ldap-group"]["according-to"]'
+export CSVJQparms=${CSVJQparms}', .["ms-isdn"]["enable"], .["ms-isdn"]["ms-isdn"], .["selection-mode"]["enable"], .["selection-mode"]["mode"]'
+export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["utran"], .["radio-access-technology"]["geran"], .["radio-access-technology"]["wlan"], .["radio-access-technology"]["gan"]'
+export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["hspa-evolution"], .["radio-access-technology"]["eutran"], .["radio-access-technology"]["virtual"], .["radio-access-technology"]["nb-iot"]'
+export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["other-types-range"]["enable"], .["radio-access-technology"]["other-types-range"]["types"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["icon"]'
+
+objectstotal_servicescitrixtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_servicescitrixtcp="${objectstotal_servicescitrixtcp}"
+export number_of_objects=${number_servicescitrixtcp}
 
 CheckAPIVersionAndExecuteOperation
 
@@ -1789,11 +1965,15 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+export CSVFileHeader='"application"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+export CSVJQparms='.["application"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_servicescitrixtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -1819,11 +1999,15 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
+export CSVFileHeader='"compound-service","keep-connections-open-after-policy-installation"'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
+export CSVJQparms='.["compound-service"], .["keep-connections-open-after-policy-installation"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_servicescompoundtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -1849,12 +2033,8 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader='"OBJECT_PARAMETER_HEADERS"'
-#export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms='.["OBJECT_PARAMETERS"]'
-#export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_service_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_service_groups="${objectstotal_service_groups}"
@@ -1865,7 +2045,7 @@ CheckAPIVersionAndExecuteOperation
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-08-28
-# MODIFIED 2018-05-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-19 - 3 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # -------------------------------------------------------------------------------------------------
@@ -1884,12 +2064,34 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-export CSVFileHeader='"primary-category","risk","description","urls-defined-as-regular-expression"'
-#export CSVFileHeader=${CSVFileHeader}',"user-defined"'
+export CSVFileHeader='"primary-category","urls-defined-as-regular-expression"'
+# user-defined can't be imported so while shown, it adds no value for normal operations
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export CSVFileHeader=${CSVFileHeader}',"user-defined","risk"'
+fi
+# The next elements are more complex elements, but required for import add operation
+export CSVFileHeader=${CSVFileHeader}',"url-list.0","application-signature.0"'
+# The next elements are more complex elements, but NOT required for import add operation
+export CSVFileHeader=${CSVFileHeader}',"additional-categories.0"'
+export CSVFileHeader=${CSVFileHeader}',"description'
+#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-export CSVJQparms='.["primary-category"], .["risk"], .["description"], .["urls-defined-as-regular-expression"]'
-#export CSVJQparms=${CSVJQparms}', .["user-defined"]'
+export CSVJQparms='.["primary-category"], .["urls-defined-as-regular-expression"]'
+# user-defined can't be imported so while shown, it adds no value for normal operations
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export CSVJQparms=${CSVJQparms}', .["user-defined"], .["risk"]'
+fi
+# The next elements are more complex elements, but required for import add operation
+export CSVJQparms=${CSVJQparms}', .["url-list"][0], .["application-signature"][0]'
+# The next elements are more complex elements, but NOT required for import add operation
+export CSVJQparms=${CSVJQparms}', .["additional-categories"][0]'
+export CSVJQparms=${CSVJQparms}', .["description"]'
+#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_application_sites=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_application_sites="${objectstotal_application_sites}"
@@ -1899,8 +2101,8 @@ CheckAPIVersionAndExecuteOperation
 
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-02
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-19 - 3
+# MODIFIED 2021-01-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # -------------------------------------------------------------------------------------------------
@@ -1919,10 +2121,16 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-export CSVFileHeader='"user-defined","read-only", "meta-info.creator"'
+# user-defined can't be imported so while shown, it adds no value for normal operations
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export CSVFileHeader='"user-defined"'
+fi
 
 export CSVJQparms=
-export CSVJQparms='.["user-defined"], .["read-only"], .["meta-info"]["creator"]'
+# user-defined can't be imported so while shown, it adds no value for normal operations
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export CSVJQparms='.["user-defined"]'
+fi
 
 objectstotal_application_site_categories=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_application_site_categories="${objectstotal_application_site_categories}"
@@ -1932,8 +2140,8 @@ CheckAPIVersionAndExecuteOperation
 
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-19
+# MODIFIED 2021-01-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # -------------------------------------------------------------------------------------------------
@@ -1952,10 +2160,8 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-export CSVFileHeader='"user-defined","read-only", "meta-info.creator"'
 
 export CSVJQparms=
-export CSVJQparms='.["user-defined"], .["read-only"], .["meta-info"]["creator"]'
 
 objectstotal_application_site_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_application_site_groups="${objectstotal_application_site_groups}"
@@ -1965,7 +2171,7 @@ CheckAPIVersionAndExecuteOperation
 
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-19
 
 
 # ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -2331,7 +2537,7 @@ FinalizeExportComplexObjectsToCSVviaJQ () {
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
-# START :  Generic Complex Object Handling Procedures
+# START :  Generic Complex Object Member Handling Procedures
 # -------------------------------------------------------------------------------------------------
 
 # ADDED 2021-01-18 -
@@ -2582,13 +2788,13 @@ GetObjectMembers () {
 
 
 # -------------------------------------------------------------------------------------------------
-# GenericComplextObjectsTypesHandler proceedure
+# GenericComplexObjectsMembersHandler proceedure
 # -------------------------------------------------------------------------------------------------
 
 # MODIFIED 2021-01-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-GenericComplextObjectsTypesHandler () {
+GenericComplexObjectsMembersHandler () {
     #
     # Generic Handler for Complex Object Types
     
@@ -2615,13 +2821,13 @@ GenericComplextObjectsTypesHandler () {
 
 
 # -------------------------------------------------------------------------------------------------
-# END :  Generic Complex Object Handling Procedures
+# END :  Generic Complex Object Member Handling Procedures
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
-# Generic OBJECT Group Members
+# Generic OBJECT Members : Group Members
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
@@ -2639,11 +2845,11 @@ export APICLICSVsortparms='-f -t , -k 1,2'
 
 export CSVFileHeader='"name","members.add"'
 
-GenericComplextObjectsTypesHandler
+GenericComplexObjectsMembersHandler
 
 
 # -------------------------------------------------------------------------------------------------
-# Generic OBJECT Time Group Members
+# Generic OBJECT Members : Time Group Members
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
@@ -2661,11 +2867,11 @@ export APICLICSVsortparms='-f -t , -k 1,2'
 
 export CSVFileHeader='"name","members.add"'
 
-GenericComplextObjectsTypesHandler
+GenericComplexObjectsMembersHandler
 
 
 # -------------------------------------------------------------------------------------------------
-# Generic OBJECT TACACS Group Members
+# Generic OBJECT Members : TACACS Group Members
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.7
@@ -2683,11 +2889,11 @@ export APICLICSVsortparms='-f -t , -k 1,2'
 
 export CSVFileHeader='"name","members.add"'
 
-GenericComplextObjectsTypesHandler
+GenericComplexObjectsMembersHandler
 
 
 # -------------------------------------------------------------------------------------------------
-# Generic OBJECT Service Group Members
+# Generic OBJECT Members : Service Group Members
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
@@ -2705,11 +2911,11 @@ export APICLICSVsortparms='-f -t , -k 1,2'
 
 export CSVFileHeader='"name","members.add"'
 
-GenericComplextObjectsTypesHandler
+GenericComplexObjectsMembersHandler
 
 
 # -------------------------------------------------------------------------------------------------
-# Generic OBJECT Application Site Group Members
+# Generic OBJECT Members : Application Site Group Members
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
@@ -2727,11 +2933,11 @@ export APICLICSVsortparms='-f -t , -k 1,2'
 
 export CSVFileHeader='"name","members.add"'
 
-GenericComplextObjectsTypesHandler
+GenericComplexObjectsMembersHandler
 
 
 # -------------------------------------------------------------------------------------------------
-# Generic OBJECT user-group members
+# Generic OBJECT Members : user-group members
 # -------------------------------------------------------------------------------------------------
 
 # MODIFIED 2021-01-18 -
@@ -2751,7 +2957,7 @@ export APICLICSVsortparms='-f -t , -k 1,2'
 
 export CSVFileHeader='"name","members.add"'
 
-GenericComplextObjectsTypesHandler
+GenericComplexObjectsMembersHandler
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2764,7 +2970,7 @@ GenericComplextObjectsTypesHandler
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
-# Non-Generic Complex Objects :  These require extra plumbing
+# Specific Complex Objects :  These require extra plumbing
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
@@ -2774,7 +2980,7 @@ GenericComplextObjectsTypesHandler
 # -------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------
-# host interfaces
+# Specific Complex OBJECT : host interfaces
 # -------------------------------------------------------------------------------------------------
 
 
@@ -3141,7 +3347,7 @@ GetHostInterfaces () {
 # -------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------
-# host interfaces
+# Specific Complex OBJECT : host interfaces
 # -------------------------------------------------------------------------------------------------
 
 # MODIFIED 2021-01-18 - 
