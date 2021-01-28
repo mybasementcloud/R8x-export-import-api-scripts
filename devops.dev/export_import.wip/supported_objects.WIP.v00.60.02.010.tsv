@@ -1,0 +1,58 @@
+v00.60.02.010	OBJECT HANDLER	OBJECT GROUP	OBJECT	Minimum Version	CSV Details	Objects JSON	Export CSV	Export CSV Action	Export JSON Action	Import	Set-Update	Delete	Suppend Error Handling	Notes
+TRUE	Simple Object Handler	Network Objects	hosts	1.1	TRUE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	Hosts may require more complex operations to provide enhanced export for later import
+TRUE	Simple Object Handler	Network Objects	hosts (NO NAT)	1.1	TRUE	TRUE	TRUE	TRUE	N/A	TRUE	TRUE	N/A	TRUE	Hosts (NO NAT) is provided to simplfy object reuse in other management without creating the problem of import of NAT settings
+TRUE	Simple Object Handler	Network Objects	networks	1.1	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	wildcards	1.2	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	groups	1.1	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	groups-with-exclusion	1.1	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	address-ranges	1.1	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	multicast-address-ranges	1.1	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	dns-domains	1.1	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	security-zones	1.1	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	dynamic-objects	1.1	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	tags	1.1	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE, disabled	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	simple-gateways	1.1	FALSE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	simple-clusters	1.6	FALSE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	checkpoint-hosts	1.6.1	FALSE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	times	1.1	TRUE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	time-groups	1.1	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	access-roles	1.1	FALSE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE, !	TRUE	-
+TRUE	Simple Object Handler	Network Objects	opsec-applications	1.1	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	trusted-clients	1.1	FALSE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	lsv-profiles	1.6	FALSE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	gsn-handover-groups	1.6.1	FALSE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	access-point-names	1.6.1	FALSE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	tacacs-servers	1.7	TRUE, !	FALSE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Network Objects	tacacs-groups	1.7	TRUE	FALSE, !	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Service & Applications	services-tcp	1.1	TRUE, !+	TRUE, !+	TRUE, !+	TRUE, !+	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Service & Applications	services-udp	1.1	TRUE, !+	TRUE, !+	TRUE, !+	TRUE, !+	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Service & Applications	services-icmp	1.1	TRUE, !+	TRUE, !+	TRUE, !+	TRUE, !+	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Service & Applications	services-icmp6	1.1	TRUE, !+	TRUE, !+	TRUE, !+	TRUE, !+	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Service & Applications	services-sctp	1.1	TRUE, !+	TRUE, !+	TRUE, !+	TRUE, !+	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Service & Applications	services-other	1.1	TRUE, !+	TRUE, !+	TRUE, !+	TRUE, !+	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Service & Applications	services-dce-rpc	1.1	TRUE, !+	TRUE, !+	TRUE, !+	TRUE, !+	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Service & Applications	services-rpc	1.1	TRUE, !+	TRUE, !+	TRUE, !+	TRUE, !+	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Service & Applications	services-gtp	1.7	TRUE, !+	TRUE, !+	TRUE, !+	TRUE, !+	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Service & Applications	service-citrix-tcp	1.6.1	TRUE, !+	TRUE, !+	TRUE, !+	TRUE, !+	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Service & Applications	services-compound-tcp	1.6.1	TRUE, !+	TRUE, !+	TRUE, !+	TRUE, !+	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Service & Applications	service-groups	1.1	FALSE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Service & Applications	application-sites	1.1	FALSE, !*	TRUE, !*	TRUE, !*	TRUE, !*	TRUE	TRUE	TRUE	TRUE	TRUE	Application-Sites object requires more complex export handling
+TRUE	Simple Object Handler	Service & Applications	application-site-categories	1.1	TRUE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Service & Applications	application-site-groups	1.1	TRUE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Users	users	1.6.1	FALSE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Users	user-groups	1.6.1	FALSE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Users	user-templates	1.6.1	FALSE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Simple Object Handler	Users	identity-tags	1.6.1	FALSE, !	TRUE, !	TRUE, !	TRUE, !	TRUE	TRUE	TRUE	TRUE	TRUE	-
+TRUE	Generic Complex Object Member	Network Objects	group-members	1.1	TRUE	TRUE	TRUE	TRUE	FALSE, N/A	TRUE	TRUE	FALSE, N/A	TRUE	-
+TRUE	Generic Complex Object Member	Network Objects	time-group-members	1.1	TRUE	TRUE	TRUE	TRUE	FALSE, N/A	TRUE	TRUE	FALSE, N/A	TRUE	-
+TRUE	Generic Complex Object Member	Network Objects	tacacs-group-members	1.7	TRUE	TRUE	TRUE	TRUE	FALSE, N/A	TRUE	TRUE	FALSE, N/A	TRUE	-
+TRUE	Generic Complex Object Member	Service & Applications	service-group-members	1.1	TRUE	TRUE	TRUE	TRUE	FALSE, N/A	TRUE	TRUE	FALSE, N/A	TRUE	-
+TRUE	Generic Complex Object Member	Service & Applications	application-site-group-members	1.1	TRUE	TRUE	TRUE	TRUE	FALSE, N/A	TRUE	TRUE	FALSE, N/A	TRUE	-
+TRUE	Generic Complex Object Member	Users	user-group-members	1.6.1	TRUE	TRUE	TRUE	TRUE	FALSE, N/A	TRUE	TRUE	FALSE, N/A	TRUE	-
+TRUE	Specifc Complex Object	Network Objects	host-interfaces	1.1	TRUE	TRUE	TRUE	TRUE	FALSE, N/A	TRUE	TRUE	FALSE, N/A	TRUE	-
+FALSE	Specifc Complex Object	Users	users-with-auth-checkpointpassword	1.6.1	TRUE	TRUE	TRUE	TRUE	FALSE, N/A	TRUE	TRUE	FALSE, N/A	TRUE	-
+FALSE	Specifc Complex Object	Users	users-with-auth-ospassword	1.6.1	TRUE	TRUE	TRUE	TRUE	FALSE, N/A	TRUE	TRUE	FALSE, N/A	TRUE	-
+FALSE	Specifc Complex Object	Users	users-with-auth-securid	1.6.1	TRUE	TRUE	TRUE	TRUE	FALSE, N/A	TRUE	TRUE	FALSE, N/A	TRUE	-
+FALSE	Specifc Complex Object	Users	users-with-auth-radius	1.6.1	TRUE	TRUE	TRUE	TRUE	FALSE, N/A	TRUE	TRUE	FALSE, N/A	TRUE	-
+FALSE	Specifc Complex Object	Users	users-with-auth-tacacs	1.6.1	TRUE	TRUE	TRUE	TRUE	FALSE, N/A	TRUE	TRUE	FALSE, N/A	TRUE	-
+FALSE	Specifc Complex Object	Users	users-with-auth-undefined	1.6.1	TRUE	TRUE	TRUE	TRUE	FALSE, N/A	TRUE	TRUE	FALSE, N/A	TRUE	-

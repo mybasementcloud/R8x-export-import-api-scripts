@@ -13,11 +13,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.01
-ScriptRevision=020
-ScriptDate=2021-01-19
-TemplateVersion=00.60.01
-APISubscriptsVersion=00.60.01
+ScriptVersion=00.60.02
+ScriptRevision=010
+ScriptDate=2021-01-27
+TemplateVersion=00.60.02
+APISubscriptsVersion=00.60.02
 APISubscriptsRevision=006
 
 #
@@ -1229,7 +1229,7 @@ CheckAPIVersionAndExecuteOperation
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
-# no more objects
+# No more objects
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 

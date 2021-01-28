@@ -1,7 +1,7 @@
 { "file_meta_info" : {
-	"fileversion" : "0.60.1",
-	"filerevision" : "020",
-	"filedate" : "2021-01-19"
+	"fileversion" : "0.60.2",
+	"filerevision" : "010",
+	"filedate" : "2021-01-27"
 }, 
 "default_csv_export_elements" : [ {
 	"name" : "common",
@@ -578,5 +578,95 @@
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"name\",\"interfaces.add.name\",\"interfaces.add.subnet4\",\"interfaces.add.mask-length4\",\"interfaces.add.subnet6\",\"interfaces.add.mask-length6\",\"interfaces.add.color\",\"interfaces.add.comments\"",
 	"CSVJQparms" : ".[\"name\"], .[\"interfaces\"]['$COUNTER'][\"name\"], .[\"interfaces\"]['$COUNTER'][\"subnet4\"], .[\"interfaces\"]['$COUNTER'][\"mask-length4\"], .[\"interfaces\"]['$COUNTER'][\"subnet6\"], .[\"interfaces\"]['$COUNTER'][\"mask-length6\"], .[\"interfaces\"]['$COUNTER'][\"color\"], .[\"interfaces\"]['$COUNTER'][\"comments\"]"
+}, {
+	"name" : "user with auth cp password",
+	"name-plural" : "users with auth cp password",
+	"objectgroup" : "Users",
+	"api-version" : "1.6.1",
+	"objecttype" : "user",
+	"objectstype" : "users",
+	"complexobjecttype" : "user-with-auth-checkpointpassword",
+	"complexobjectstype" : "users-with-auth-checkpointpassword",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,2'",
+	"CSVFileHeader" : "\"name\",\"authentication-method\",\"password\"",
+	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"], .[\"Pr0v1d3Us3rPa$$W0rdH3r3!\"]",
+	"exportkeycheck" : "\"authentication-method\"",
+	"exportkeyvalue" : "\"check point password\""
+}, {
+	"name" : "user with auth os password",
+	"name-plural" : "users with auth os password",
+	"objectgroup" : "Users",
+	"api-version" : "1.6.1",
+	"objecttype" : "user",
+	"objectstype" : "users",
+	"complexobjecttype" : "user-with-auth-ospassword",
+	"complexobjectstype" : "users-with-auth-ospassword",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,2'",
+	"CSVFileHeader" : "\"name\",\"authentication-method\"",
+	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"]",
+	"exportkeycheck" : "\"authentication-method\"",
+	"exportkeyvalue" : "\"os password\""
+}, {
+	"name" : "user with auth securid",
+	"name-plural" : "users with auth securid",
+	"objectgroup" : "Users",
+	"api-version" : "1.6.1",
+	"objecttype" : "user",
+	"objectstype" : "users",
+	"complexobjecttype" : "user-with-auth-securid",
+	"complexobjectstype" : "users-with-auth-securid",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,2'",
+	"CSVFileHeader" : "\"name\",\"authentication-method\"",
+	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"]",
+	"exportkeycheck" : "\"authentication-method\"",
+	"exportkeyvalue" : "\"securid\""
+}, {
+	"name" : "user with auth radius",
+	"name-plural" : "users with auth radius",
+	"objectgroup" : "Users",
+	"api-version" : "1.6.1",
+	"objecttype" : "user",
+	"objectstype" : "users",
+	"complexobjecttype" : "user-with-auth-radius",
+	"complexobjectstype" : "users-with-auth-radius",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,2'",
+	"CSVFileHeader" : "\"name\",\"authentication-method\",\"radius-server.name\"",
+	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"], .[\"radius-server\"][\"name\"]",
+	"exportkeycheck" : "\"authentication-method\"",
+	"exportkeyvalue" : "\"radius\""
+}, {
+	"name" : "user with auth tacacs",
+	"name-plural" : "users with auth tacacs",
+	"objectgroup" : "Users",
+	"api-version" : "1.6.1",
+	"objecttype" : "user",
+	"objectstype" : "users",
+	"complexobjecttype" : "user-with-auth-tacacs",
+	"complexobjectstype" : "users-with-auth-tacacs",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,2'",
+	"CSVFileHeader" : "\"name\",\"authentication-method\",\"tacacs-server.nam\"",
+	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"], .[\"tacacs-server\"][\"name\"]",
+	"exportkeycheck" : "\"authentication-method\"",
+	"exportkeyvalue" : "\"tacacs\""
+}, {
+	"name" : "user with auth undefined",
+	"name-plural" : "users with auth undefined",
+	"objectgroup" : "Users",
+	"api-version" : "1.6.1",
+	"objecttype" : "user",
+	"objectstype" : "users",
+	"complexobjecttype" : "user-with-auth-undefined",
+	"complexobjectstype" : "users-with-auth-undefined",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,2'",
+	"CSVFileHeader" : "\"name\",\"authentication-method\"",
+	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"]",
+	"exportkeycheck" : "\"authentication-method\"",
+	"exportkeyvalue" : "\"undefined\""
 } ]
 }

@@ -1,7 +1,7 @@
 { "file_meta_info" : {
-	"fileversion" : "0.60.1",
-	"filerevision" : "020",
-	"filedate" : "2021-01-19"
+	"fileversion" : "0.60.2",
+	"filerevision" : "010",
+	"filedate" : "2021-01-27"
 }, 
 "default_csv_export_elements" : [ {
 	"name" : "common",
@@ -112,5 +112,20 @@
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"name\",\"interfaces.add.name\",\"interfaces.add.subnet4\",\"interfaces.add.mask-length4\",\"interfaces.add.subnet6\",\"interfaces.add.mask-length6\",\"interfaces.add.color\",\"interfaces.add.comments\"",
 	"CSVJQparms" : ".[\"name\"], .[\"interfaces\"]['$COUNTER'][\"name\"], .[\"interfaces\"]['$COUNTER'][\"subnet4\"], .[\"interfaces\"]['$COUNTER'][\"mask-length4\"], .[\"interfaces\"]['$COUNTER'][\"subnet6\"], .[\"interfaces\"]['$COUNTER'][\"mask-length6\"], .[\"interfaces\"]['$COUNTER'][\"color\"], .[\"interfaces\"]['$COUNTER'][\"comments\"]"
+}, {
+	"name" : "user with auth cp password",
+	"name-plural" : "users with auth cp password",
+	"objectgroup" : "Users",
+	"api-version" : "1.6.1",
+	"objecttype" : "user",
+	"objectstype" : "users",
+	"complexobjecttype" : "user-with-auth-checkpointpassword",
+	"complexobjectstype" : "users-with-auth-checkpointpassword",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,2'",
+	"CSVFileHeader" : "\"name\",\"authentication-method\",\"password\"",
+	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"], .[\"Pr0v1d3Us3rPa$$W0rdH3r3!\"]",
+	"exportkeycheck" : "\"authentication-method\"",
+	"exportkeyvalue" : "\"check point password\""
 } ]
 }

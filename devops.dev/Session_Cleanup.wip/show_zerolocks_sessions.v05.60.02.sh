@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT Export objects from all domains, object export to CSV file for API CLI Operations
+# SCRIPT Show zerolocks sessions all users
 #
 # (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
@@ -13,12 +13,13 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.02
+ScriptVersion=05.60.02
 ScriptRevision=010
 ScriptDate=2021-01-27
 TemplateVersion=00.60.02
 APISubscriptsVersion=00.60.02
 APISubscriptsRevision=006
+
 
 #
 
@@ -34,11 +35,11 @@ export APIExpectedAPISubscriptsVersion=v${APISubscriptsVersion}
 export APIExpectedActionScriptsVersionX=v${ScriptVersion//./x}
 export APIExpectedAPISubscriptsVersionX=v${APISubscriptsVersion//./x}
 
-ScriptName=cli_api_export_all_domains_objects_to_csv
-export APIScriptFileNameRoot=cli_api_export_all_domains_objects_to_csv
-export APIScriptShortName=export_all_domains_objects_to_csv
+ScriptName=show_zerolocks_sessions.v${ScriptVersion}
+export APIScriptFileNameRoot=show_zerolocks_sessions
+export APIScriptShortName=show_zerolocks_sessions
 export APIScriptnohupName=${APIScriptShortName}
-export APIScriptDescription="Export objects from all domains, object export to CSV file for API CLI Operations"
+export APIScriptDescription="Show zerolocks sessions all users"
 
 # =================================================================================================
 # =================================================================================================
@@ -134,6 +135,7 @@ export APISCRIPTVERBOSE=false
 # -------------------------------------------------------------------------------------------------
 
 # ADDED 2018-05-03 -
+
 # ================================================================================================
 # NOTE:  
 #   DefaultMgmtAdmin value is used to set the APICLIadmin value in the setup for logon.  This is
@@ -147,21 +149,21 @@ export APISCRIPTVERBOSE=false
 export DefaultMgmtAdmin=administrator
 
 
-# 2018-05-02 - script type - export objects (all)
+# 2018-11-20 - script type - Session Reporting and Clean-up
 
 export script_use_publish="false"
 
-export script_use_export="true"
+export script_use_export="false"
 export script_use_import="false"
 export script_use_delete="false"
 export script_use_csvfile="false"
 
-export script_dump_csv="true"
+export script_dump_csv="false"
 export script_dump_json="false"
 export script_dump_standard="false"
 export script_dump_full="false"
 
-export script_uses_wip="true"
+export script_uses_wip="false"
 export script_uses_wip_json="false"
 
 # ADDED 2018-10-27 -
@@ -317,49 +319,10 @@ export mgmt_cli_API_operations_handler_file=mgmt_cli_api_operations.subscript.co
 # Set parameters for Main operations
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-export FileExtJSON=json
-export FileExtCSV=csv
-export FileExtTXT=txt
-
-export APICLIfileexportpre=dump_
-
-export APICLIfileexportext=${FileExtJSON}
-export APICLIfileexportsuffix=${DATE}'.'${APICLIfileexportext}
-
-export APICLICSVfileexportext=${FileExtCSV}
-export APICLICSVfileexportsuffix='.'${APICLICSVfileexportext}
-
-export APICLIJSONfileexportext=${FileExtJSON}
-export APICLIJSONfileexportsuffix='.'${APICLIJSONfileexportext}
 
 export MinAPIObjectLimit=500
 export MaxAPIObjectLimit=500
 export WorkAPIObjectLimit=${MaxAPIObjectLimit}
-
-# Configure basic information for formation of file path for action handler scripts
-#
-# APIScriptActionFileRoot - root path to for action handler scripts
-# APIScriptActionFileFolder - folder under root path to for action handler scripts
-# APIScriptActionFilePath - path, for action handler scripts
-#
-export APIScriptActionFileRoot=.
-export APIScriptActionFileFolder=
-
-export APIScriptActionFilePrefix=cli_api_actions
-
-export APIScriptJSONActionFilename=${APIScriptActionFilePrefix}.'export_objects_to_json'.sh
-#export APIScriptJSONActionFilename=${APIScriptActionFilePrefix}'_actions_'${APIScriptVersion}.sh
-
-export APIScriptCSVActionFilename=${APIScriptActionFilePrefix}.'export_objects_to_csv'.sh
-#export APIScriptCSVActionFilename=${APIScriptActionFilePrefix}'_actions_to_csv_'${APIScriptVersion}.sh
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04
-
-# -------------------------------------------------------------------------------------------------
 
 
 # =================================================================================================
@@ -1931,205 +1894,10 @@ fi
 # =================================================================================================
 # =================================================================================================
 
-
 # =================================================================================================
 # -------------------------------------------------------------------------------------------------
 # =================================================================================================
 # START:  Main operations - 
-# =================================================================================================
-
-
-# =================================================================================================
-# =================================================================================================
-# START:  Main Dump Procedures
-# =================================================================================================
-
-# ADDED 2018-09-21 -
-
-# -------------------------------------------------------------------------------------------------
-# Start :  Check that Action Handler Scripts exist before executing
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-CheckExportActionHandlerScripts () {
-
-    #
-    # Check that Action Handler Scripts exist before executing
-    #
-        
-    # -------------------------------------------------------------------------------------------------
-    # Check that Action Handler Scripts exist before executing
-    # -------------------------------------------------------------------------------------------------
-    
-    # MODIFIED 2018-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-    #
-    
-    # Basic information for formation of file path for action handler scripts
-    #
-    # APIScriptActionFileRoot - root path to for action handler scripts
-    # APIScriptActionFileFolder - folder under root path to for action handler scripts
-    # APIScriptActionFilePath - path, for action handler scripts
-    #
-    if [ ! -z "${APIScriptActionFileFolder}" ]; then
-        export APIScriptActionFilePath=${APIScriptActionFileRoot}/${APIScriptActionFileFolder}
-    else
-        export APIScriptActionFilePath=${APIScriptActionFileRoot}
-    fi
-    
-    export APIScriptJSONActionFile=${APIScriptActionFilePath}/${APIScriptJSONActionFilename}
-    export APIScriptCSVActionFile=${APIScriptActionFilePath}/${APIScriptCSVActionFilename}
-    
-    # Check that we can find the action handler scripts
-    #
-    if [ ! -r ${APIScriptJSONActionFile} ] ; then
-        # no file found, that is a problem
-        echo | tee -a -i ${logfilepath}
-        echo 'JSON Action Handler script file missing' | tee -a -i ${logfilepath}
-        echo '  File not found : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo 'Other parameter elements : ' | tee -a -i ${logfilepath}
-        echo '  Root of folder path : '${APIScriptActionFileRoot} | tee -a -i ${logfilepath}
-        echo '  Folder in Root path : '${APIScriptActionFileFolder} | tee -a -i ${logfilepath}
-        echo '  Folder Root path    : '${APIScriptActionFilePath} | tee -a -i ${logfilepath}
-        echo '  Script Filename     : '${APIScriptJSONActionFilename} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        
-        exit 251
-    fi
-    
-    # Check that we can find the action handler scripts
-    #
-    if [ ! -r ${APIScriptCSVActionFile} ] ; then
-        # no file found, that is a problem
-        echo | tee -a -i ${logfilepath}
-        echo 'CSV Action Handler script file missing' | tee -a -i ${logfilepath}
-        echo '  File not found : '${APIScriptCSVActionFile} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo 'Other parameter elements : ' | tee -a -i ${logfilepath}
-        echo '  Root of folder path : '${APIScriptActionFileRoot} | tee -a -i ${logfilepath}
-        echo '  Folder in Root path : '${APIScriptActionFileFolder} | tee -a -i ${logfilepath}
-        echo '  Folder Root path    : '${APIScriptActionFilePath} | tee -a -i ${logfilepath}
-        echo '  Script Filename     : '${APIScriptCSVActionFilename} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        
-        exit 251
-    fi
-    
-    return 0
-}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
-
-# -------------------------------------------------------------------------------------------------
-# End :  Check that Action Handler Scripts exist before executing
-# -------------------------------------------------------------------------------------------------
-
-
-# -------------------------------------------------------------------------------------------------
-# MainExportDumpOperations - Execute Main Dump operations - json Standard, json Full, CSV
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2020-11-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-MainExportDumpOperations () {
-    #
-    # Execute Main Dump operations - json Standard, json Full, CSV
-    #
-    
-    # -------------------------------------------------------------------------------------------------
-    # Start executing Main Dump operations - json Standard, json Full, CSV
-    # -------------------------------------------------------------------------------------------------
-    
-    # MODIFIED 2020-11-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-    #
-    
-    if ${script_dump_json} ; then
-        # Script supports json output for results
-        
-        export primarytargetoutputformat=${FileExtJSON}
-        
-        if ${CLIparm_formatjson} ; then
-            # CLI parameters enabled or did not disable json output for results
-            if ${script_dump_standard} ; then
-                # Script supports json standard output for results
-                export APICLIdetaillvl=standard
-                if ${CLIparm_detailslevelstandard} ; then
-                    # CLI parameters enabled or did not disable json standard output for results
-                    
-                    echo | tee -a -i ${logfilepath}
-                    echo 'Now dumping "'${APICLIdetaillvl}'" details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
-                    echo 'Calling Action File : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
-                    echo | tee -a -i ${logfilepath}
-                    
-                    . ${APIScriptJSONActionFile} "$@"
-                fi
-            fi
-            
-            if ${script_dump_full} ; then
-                # Script supports json full output for results
-                export APICLIdetaillvl=full
-                if ${CLIparm_detailslevelfull} ; then
-                    # CLI parameters enabled or did not disable json full output for results
-                    
-                    echo | tee -a -i ${logfilepath}
-                    echo 'Now dumping "'${APICLIdetaillvl}'" details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
-                    echo 'Calling Action File : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
-                    echo | tee -a -i ${logfilepath}
-                    
-                    . ${APIScriptJSONActionFile} "$@"
-                fi
-            fi
-        fi
-        
-    fi
-    
-    if ${script_dump_csv} ; then
-        # Script supports csv output for results
-        
-        export primarytargetoutputformat=${FileExtCSV}
-        
-        export APICLIdetaillvl=full
-        
-        if ${CLIparm_formatcsv} ; then
-            # CLI parameters enabled or did not disable csv output for results
-            echo | tee -a -i ${logfilepath}
-            echo 'Now dumping "'${APICLIdetaillvl}'" details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
-            echo 'Calling Action File : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
-            echo | tee -a -i ${logfilepath}
-            
-            . ${APIScriptCSVActionFile} "$@"
-        fi
-    fi
-    
-    #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-23
-    
-    echo
-    return 0
-}
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-16
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-# =================================================================================================
-# END:  Main Dump Procedures
-# =================================================================================================
 # =================================================================================================
 
 
@@ -2177,6 +1945,7 @@ fi
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-16
 
+
 # =================================================================================================
 # END:  Setup Login Parameters and Login to Mgmt_CLI
 # =================================================================================================
@@ -2204,257 +1973,34 @@ fi
 
 
 # =================================================================================================
-# START:  Export objects - json (standard and full), csv
+# START:  Main operations
 # =================================================================================================
 
-
-#export APICLIdetaillvl=standard
-
-export APICLIdetaillvl=full
-
-# ADDED 2018-05-04-2 -
-# Only changes this parameter to force the specific state of CLIparm_NoSystemObjects
-# since it is set using the command line parameters --SO (false) and --NSO (true)
-#
-#export CLIparm_NoSystemObjects=false
-
-# ADDED 2018-04-25 -
-export primarytargetoutputformat=${FileExtJSON}
 
 # -------------------------------------------------------------------------------------------------
 # Start executing Main operations
 # -------------------------------------------------------------------------------------------------
 
 
-CheckExportActionHandlerScripts
+export deletefile=${APICLIpathbase}/sessions_to_delete_uid.${DATEDTGS}.csv
+export dumpfile=${APICLIpathbase}/delete_session.${DATEDTGS}.json
 
-
-# =================================================================================================
-# =================================================================================================
-# START:  Main Domain Handling Procedures
-# =================================================================================================
-
-# -------------------------------------------------------------------------------------------------
-# GenerateArrayOfDomains - Generate Array with list of domains on MDS
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-GenerateArrayOfDomains () {
-    #
-    # Generate Array with list of domains on MDS
-    #
-    
-    echo | tee -a -i ${logfilepath}
-    echo 'Generate Array with list of domains on MDS' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    
-    export MgmtCLI_Base_OpParms="-f json -s ${APICLIsessionfile}"
-    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
-    export MgmtCLI_Show_OpParms="details-level \"full\" ${MgmtCLI_Base_OpParms}"
-    
-    objectstotal=$(mgmt_cli show domains limit 1 offset 0 details-level "standard" ${MgmtCLI_Base_OpParms} | ${JQ} ".total")
-    
-    GETDOMAINS="`mgmt_cli show domains ${MgmtCLI_Base_OpParms} | jq '.objects[].name'`"
-    
-    echo 'Populate array of domains : ' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    
-    line="\"System Data\""
-    DOMAINSARRAY+=("${line}")
-    echo -n 'Domains :  '${line}
-    
-    line="\"Global\""
-    DOMAINSARRAY+=("${line}")
-    echo -n ', '${line}
-    
-    arraylength=2
-    while read -r line; do
-    
-        if [ $arraylength -eq 0 ]; then
-            echo -n 'Domains :  '
-        else
-            echo -n ', '
-        fi
-    
-        DOMAINSARRAY+=("${line}")
-        echo -n ${line}
-    
-        #if [ "${line}" == 'lo' ]; then
-        #    echo -n 'Not adding '${line}
-        #else 
-        #    DOMAINSARRAY+=("${line}")
-        #    echo -n ${line}
-        #fi
-        
-        arraylength=${#DOMAINSARRAY[@]}
-        arrayelement=$((arraylength-1))
-        
-    done <<< "$GETDOMAINS"
-    echo
-
-    return 0
-}
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
-
-# -------------------------------------------------------------------------------------------------
-# DumpArrayOfDomains - repeated proceedure
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED YYYY-MM-DD -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-DumpArrayOfDomains () {
-    #
-    # repeated procedure description
-    #
-    
-    echo 'Show list of domains in array' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    for j in "${DOMAINSARRAY[@]}"
-    do
-        echo "${j}" | tee -a -i ${logfilepath}
-    done
-    echo | tee -a -i ${logfilepath}
-    
-    if ${APISCRIPTVERBOSE} ; then
-            
-        echo 'Raw dump of domains array : ' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo ${DOMAINSARRAY[@]} | tee -a -i ${logfilepath}
-        #echo ${DOMAINSARRAY[*]} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        
-    fi
-    
-    return 0
-}
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED YYYY-MM-DD
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-# =================================================================================================
-# END:  Main Domain Handling Procedures
-# =================================================================================================
-# =================================================================================================
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-# Generate list of domains in Array
-#
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-
-if [ "${sys_type_MDS}" != "true" ]; then
-    
-    echo | tee -a -i ${logfilepath}
-    echo '!!!! This script is expected to run on Multi-Domain Management !!!!' | tee -a -i ${logfilepath}
-    echo 'Exiting...!' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    exit 255
-    
-fi
-
-DOMAINSARRAY=()
-
-GenerateArrayOfDomains
-echo | tee -a -i ${logfilepath}
-
-DumpArrayOfDomains
-echo | tee -a -i ${logfilepath}
-
-if ! ${NOWAIT} ; then
-    read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
-fi
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
 
 echo | tee -a -i ${logfilepath}
-echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo 'Show zero locks sessions' | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
 
+echo 'Zero locks sessions' >> ${dumpfile}
+echo >> ${dumpfile}
 
-# MODIFIED 2020-11-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+echo '.uid, .locks, .changes, .expired-session, username' >> ${dumpfile}
+mgmt_cli -s ${APICLIsessionfile} show sessions details-level full --format json | jq -r '.objects[] | (.uid + ", " + (.locks|tostring) + ", " + (.changes|tostring) + ", " + (."expired-session"|tostring) + ", " + ."user-name")' >> ${dumpfile}
+#mgmt_cli -s ${APICLIsessionfile} show sessions details-level full --format json | jq -r '.objects[] | select((."user-name"=="WEB_API")) | (.uid + ", " + (.locks|tostring) + ", " + (.changes|tostring) + ", " + (."expired-session"|tostring) + ", " + ."user-name")' >> ${dumpfile}
+echo >> ${dumpfile}
 
-export LoggedIntoMgmtCli=false
-
-for j in "${DOMAINSARRAY[@]}" ; do
-    workdomain=${j}
-    workdomain=${workdomain//\"}
-    
-    echo | tee -a -i ${logfilepath}
-    echo 'Domain :  >'${workdomain}'< ' | tee -a -i ${logfilepath}
-    
-    if ${LoggedIntoMgmtCli} ; then
-        # we logged in earlier, time to logout
-        . ${mgmt_cli_API_operations_handler} LOGOUT "$@"
-    fi
-    
-    echo | tee -a -i ${logfilepath}
-    
-    # we need to login to the specific domain for the API export, so let's set that up from scratch again
-    . ${mgmt_cli_API_operations_handler} SETUPLOGIN "$@"
-    
-    export domaintarget=${workdomain}
-    
-    echo | tee -a -i ${logfilepath}
-    echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-    echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo 'Start dump for '${domaintarget} | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-    
-    export LoggedIntoMgmtCli=false
-    
-    # we need to login to the specific domain for the API export
-    . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-    LOGINEXITCODE=$?
-    
-    if [ "${LOGINEXITCODE}" != "0" ] ; then
-        # well that went sideways...
-        exit ${LOGINEXITCODE}
-    else
-        export LoggedIntoMgmtCli=true
-    fi
-    
-    echo | tee -a -i ${logfilepath}
-    
-    MainExportDumpOperations
-    
-    echo | tee -a -i ${logfilepath}
-    echo 'Dump for '${domaintarget}' Completed!' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-    echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    
-    if ! ${NOWAIT} ; then
-        read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
-    fi
-    
-done
+cat ${dumpfile} | tee -a -i ${logfilepath}
 
 echo | tee -a -i ${logfilepath}
-echo 'Dumps Completed!' | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-16
-
 
 
 # =================================================================================================
@@ -2489,44 +2035,6 @@ fi
 if ${UseR8XAPI} ; then
     . ${mgmt_cli_API_operations_handler} LOGOUT "$@"
 fi
-
-# -------------------------------------------------------------------------------------------------
-# Clean-up according to CLI Parms and special requirements
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2020-11-17 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-if [ x"${CLIparm_CLEANUPWIP}" = x"true" ] ; then
-    # Remove Work-In-Progress folder and files
-    
-    if [ -r ${APICLICSVpathexportwip} ] ; then
-        if ${APISCRIPTVERBOSE} ; then
-            echo 'Remove CSV Work-In-Progress folder and files' | tee -a -i ${logfilepath}
-            echo '   CSV WIP Folder : '${APICLICSVpathexportwip} | tee -a -i ${logfilepath}
-        else
-            echo 'Remove CSV Work-In-Progress folder and files' >> ${logfilepath}
-            echo '   CSV WIP Folder : '${APICLICSVpathexportwip} >> ${logfilepath}
-        fi
-        rm -v -r ${APICLICSVpathexportwip} | tee -a -i ${logfilepath}
-    fi
-    
-    if [ -r ${APICLIJSONpathexportwip} ] ; then
-        if ${APISCRIPTVERBOSE} ; then
-            echo 'Remove JSON Work-In-Progress folder and files' | tee -a -i ${logfilepath}
-            echo '   JSON WIP Folder : '${APICLIJSONpathexportwip} | tee -a -i ${logfilepath}
-        else
-            echo 'Remove JSON Work-In-Progress folder and files' >> ${logfilepath}
-            echo '   JSON WIP Folder : '${APICLIJSONpathexportwip} >> ${logfilepath}
-        fi
-        rm -v -r ${APICLIJSONpathexportwip} | tee -a -i ${logfilepath}
-    fi
-
-fi
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-17
-
 
 # -------------------------------------------------------------------------------------------------
 # Clean-up and exit

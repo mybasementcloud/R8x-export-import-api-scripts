@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT Object export to CSV file for API CLI Operations
+# SCRIPT Object export to CSV file for API CLI Operations - testing - selective enabled objects
 #
 # (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
@@ -34,11 +34,11 @@ export APIExpectedAPISubscriptsVersion=v${APISubscriptsVersion}
 export APIExpectedActionScriptsVersionX=v${ScriptVersion//./x}
 export APIExpectedAPISubscriptsVersionX=v${APISubscriptsVersion//./x}
 
-ScriptName=cli_api_export_objects_to_csv
-export APIScriptFileNameRoot=cli_api_export_objects_to_csv
-export APIScriptShortName=export_objects_to_csv
+ScriptName=cli_api_export_objects_to_csv.testing
+export APIScriptFileNameRoot=cli_api_export_objects_to_csv.testing
+export APIScriptShortName=export_objects_to_csv.testing
 export APIScriptnohupName=${APIScriptShortName}
-export APIScriptDescription="Object export to CSV file for API CLI Operations"
+export APIScriptDescription="Object export to CSV file for API CLI Operations - testing - selective enabled objects"
 
 # =================================================================================================
 # =================================================================================================
@@ -2757,7 +2757,7 @@ objectstotal_hosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details
 export number_hosts="${objectstotal_hosts}"
 export number_of_objects=${number_hosts}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2844,7 +2844,7 @@ objectstotal_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 detail
 export number_groups="${objectstotal_groups}"
 export number_of_objects=${number_groups}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2872,7 +2872,7 @@ objectstotal_groupswithexclusion=$(mgmt_cli show ${APICLIobjectstype} limit 1 of
 export number_groupswithexclusion="${objectstotal_groupswithexclusion}"
 export number_of_objects=${number_groupswithexclusion}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2902,7 +2902,7 @@ objectstotal_addressranges=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0
 export number_addressranges="${objectstotal_addressranges}"
 export number_of_objects=${number_addressranges}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2932,7 +2932,7 @@ objectstotal_multicastaddressranges=$(mgmt_cli show ${APICLIobjectstype} limit 1
 export number_multicastaddressranges="${objectstotal_multicastaddressranges}"
 export number_of_objects=${number_multicastaddressranges}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2960,7 +2960,7 @@ objectstotal_dnsdomains=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 de
 export number_dnsdomains="${objectstotal_dnsdomains}"
 export number_of_objects=${number_dnsdomains}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2992,7 +2992,7 @@ objectstotal_securityzones=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0
 export number_securityzones="${objectstotal_securityzones}"
 export number_of_objects=${number_securityzones}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3024,7 +3024,7 @@ objectstotal_dynamicobjects=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 
 export number_dynamicobjects="${objectstotal_dynamicobjects}"
 export number_of_objects=${number_dynamicobjects}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3088,7 +3088,7 @@ objectstotal_simplegateways=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 
 export number_simplegateways="${objectstotal_simplegateways}"
 export number_of_objects=${number_simplegateways}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3120,7 +3120,7 @@ objectstotal_simpleclusters=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 
 export number_simpleclusters="${objectstotal_simpleclusters}"
 export number_of_objects=${number_simpleclusters}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3152,7 +3152,7 @@ objectstotal_checkpointhosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset
 export number_checkpointhosts="${objectstotal_checkpointhosts}"
 export number_of_objects=${number_checkpointhosts}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3187,7 +3187,7 @@ objectstotal_times=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details
 export number_times="${objectstotal_times}"
 export number_of_objects=${number_times}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3219,7 +3219,7 @@ objectstotal_time_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 d
 export number_time_groups="${objectstotal_time_groups}"
 export number_of_objects=${number_time_groups}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3251,7 +3251,7 @@ objectstotal_access_roles=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 
 export number_access_roles="${objectstotal_access_roles}"
 export number_of_objects=${number_access_roles}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3289,7 +3289,7 @@ objectstotal_opsec_applications=$(mgmt_cli show ${APICLIobjectstype} limit 1 off
 export number_opsec_applications="${objectstotal_opsec_applications}"
 export number_of_objects=${number_opsec_applications}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3321,7 +3321,7 @@ objectstotal_trustedclients=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 
 export number_trustedclients="${objectstotal_trustedclients}"
 export number_of_objects=${number_trustedclients}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3353,7 +3353,7 @@ objectstotal_lsvprofiles=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 d
 export number_lsvprofiles="${objectstotal_lsvprofiles}"
 export number_of_objects=${number_number_lsvprofiles}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3385,7 +3385,7 @@ objectstotal_gsnhandovergroups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offs
 export number_gsnhandovergroups="${objectstotal_gsnhandovergroups}"
 export number_of_objects=${number_gsnhandovergroups}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3417,7 +3417,7 @@ objectstotal_accesspointnames=$(mgmt_cli show ${APICLIobjectstype} limit 1 offse
 export number_accesspointnames="${objectstotal_accesspointnames}"
 export number_of_objects=${number_accesspointnames}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3451,7 +3451,7 @@ objectstotal_tacacsservers=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0
 export number_tacacsservers="${objectstotal_tacacsservers}"
 export number_of_objects=${number_tacacsservers}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3477,7 +3477,7 @@ objectstotal_tacacsgroups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 
 export number_tacacsgroups="${objectstotal_tacacsgroups}"
 export number_of_objects=${number_tacacsgroups}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3528,7 +3528,7 @@ objectstotal_services_tcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 
 export number_services_tcp="${objectstotal_services_tcp}"
 export number_of_objects=${number_services_tcp}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3564,7 +3564,7 @@ objectstotal_services_udp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 
 export number_services_udp="${objectstotal_services_udp}"
 export number_of_objects=${number_services_udp}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3598,7 +3598,7 @@ objectstotal_services_icmp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0
 export number_services_icmp="${objectstotal_services_icmp}"
 export number_of_objects=${number_services_icmp}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3632,7 +3632,7 @@ objectstotal_services_icmp6=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 
 export number_services_icmp6="${objectstotal_services_icmp6}"
 export number_of_objects=${number_services_icmp6}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3668,7 +3668,7 @@ objectstotal_services_sctp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0
 export number_services_sctp="${objectstotal_services_sctp}"
 export number_of_objects=${number_services_sctp}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3706,7 +3706,7 @@ objectstotal_services_other=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 
 export number_services_other="${objectstotal_services_other}"
 export number_of_objects=${number_services_other}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3740,7 +3740,7 @@ objectstotal_services_dce_rpc=$(mgmt_cli show ${APICLIobjectstype} limit 1 offse
 export number_services_dce_rpc="${objectstotal_services_dce_rpc}"
 export number_of_objects=${number_services_dce_rpc}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3774,7 +3774,7 @@ objectstotal_services_rpc=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 
 export number_services_rpc="${objectstotal_services_rpc}"
 export number_of_objects=${number_services_rpc}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3824,7 +3824,7 @@ objectstotal_servicescitrixtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offs
 export number_servicescitrixtcp="${objectstotal_servicescitrixtcp}"
 export number_of_objects=${number_servicescitrixtcp}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3858,7 +3858,7 @@ objectstotal_servicescitrixtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offs
 export number_servicescitrixtcp="${objectstotal_servicescitrixtcp}"
 export number_of_objects=${number_servicescitrixtcp}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3892,7 +3892,7 @@ objectstotal_servicescompoundtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 of
 export number_servicescompoundtcp="${objectstotal_servicescompoundtcp}"
 export number_of_objects=${number_servicescompoundtcp}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3918,7 +3918,7 @@ objectstotal_service_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 
 export number_service_groups="${objectstotal_service_groups}"
 export number_of_objects=${number_service_groups}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 #
@@ -3975,7 +3975,7 @@ objectstotal_application_sites=$(mgmt_cli show ${APICLIobjectstype} limit 1 offs
 export number_application_sites="${objectstotal_application_sites}"
 export number_of_objects=${number_application_sites}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 #
@@ -4014,7 +4014,7 @@ objectstotal_application_site_categories=$(mgmt_cli show ${APICLIobjectstype} li
 export number_application_site_categories="${objectstotal_application_site_categories}"
 export number_of_objects=${number_application_site_categories}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 #
@@ -4045,7 +4045,7 @@ objectstotal_application_site_groups=$(mgmt_cli show ${APICLIobjectstype} limit 
 export number_application_site_groups="${objectstotal_application_site_groups}"
 export number_of_objects=${number_application_site_groups}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 #
@@ -4225,7 +4225,7 @@ objectstotal_identity_tags=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0
 export number_identity_tags="${objectstotal_identity_tags}"
 export number_of_objects=${number_identity_tags}
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
@@ -4774,7 +4774,7 @@ export APICLICSVsortparms='-f -t , -k 1,2'
 
 export CSVFileHeader='"name","members.add"'
 
-GenericComplexObjectsMembersHandler
+#GenericComplexObjectsMembersHandler
 
 
 # -------------------------------------------------------------------------------------------------
@@ -4794,7 +4794,7 @@ export APICLIexportnameaddon=
 #
 export APICLICSVsortparms='-f -t , -k 1,2'
 
-export CSVFileHeader='"name","members.add"'
+#export CSVFileHeader='"name","members.add"'
 
 GenericComplexObjectsMembersHandler
 
@@ -4840,7 +4840,7 @@ export APICLICSVsortparms='-f -t , -k 1,2'
 
 export CSVFileHeader='"name","members.add"'
 
-GenericComplexObjectsMembersHandler
+#GenericComplexObjectsMembersHandler
 
 
 # -------------------------------------------------------------------------------------------------
@@ -4862,7 +4862,7 @@ export APICLICSVsortparms='-f -t , -k 1,2'
 
 export CSVFileHeader='"name","members.add"'
 
-GenericComplexObjectsMembersHandler
+#GenericComplexObjectsMembersHandler
 
 
 # -------------------------------------------------------------------------------------------------

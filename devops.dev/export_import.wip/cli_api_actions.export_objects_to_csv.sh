@@ -13,11 +13,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.01
-ScriptRevision=020
-ScriptDate=2021-01-19
-TemplateVersion=00.60.01
-APISubscriptsVersion=00.60.01
+ScriptVersion=00.60.02
+ScriptRevision=010
+ScriptDate=2021-01-27
+TemplateVersion=00.60.02
+APISubscriptsVersion=00.60.02
 APISubscriptsRevision=006
 
 #
@@ -744,11 +744,14 @@ GetNumberOfObjectsviaJQ () {
 # CheckAPIVersionAndExecuteOperation :  Check the API Version running where we're logged in and if good execute operation
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-12-14 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CheckAPIVersionAndExecuteOperation () {
     #
+    # Check the API Version running where we're logged in and if good execute operation
+    #
+    
     GetAPIVersion=$(mgmt_cli show api-versions -f json -s ${APICLIsessionfile} | ${JQ} '.["current-version"]' -r)
     export CheckAPIVersion=${GetAPIVersion}
     
@@ -763,11 +766,18 @@ CheckAPIVersionAndExecuteOperation () {
     echo 'Required minimum API version for object : '${APICLIobjectstype}' is API version = '${APIobjectminversion} | tee -a -i ${logfilepath}
     echo 'Logged in management server API version = '${CurrentAPIVersion}' Check version : "'${CheckAPIVersion}'"' | tee -a -i ${logfilepath}
     
+    errorreturn=0
+    
     if [ $(expr ${APIobjectminversion} '<=' ${CurrentAPIVersion}) ] ; then
         # API is sufficient version
         echo | tee -a -i ${logfilepath}
         
         ExportObjectsToCSVviaJQ
+        errorreturn=$?
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo 'Error '${errorreturn}' in ExportObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+        fi
         
     else
         # API is not of a sufficient version to operate on for this object
@@ -777,13 +787,16 @@ CheckAPIVersionAndExecuteOperation () {
     fi
     
     echo | tee -a -i ${logfilepath}
-    return 0
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    
+    return ${errorreturn}
     
     #
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-12-14
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2194,12 +2207,12 @@ echo | tee -a -i ${logfilepath}
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
 
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
 # -------------------------------------------------------------------------------------------------
 # user objects
 # -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-27\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 export APIobjectminversion=1.6.1
 export APICLIobjecttype=user
@@ -2212,16 +2225,20 @@ export APICLIexportnameaddon=
 #
 export APICLICSVsortparms='-f -t , -k 1,1'
 
+# User export with credential information is not working properly when done this way, so not exporting authentication method here.
+# Handling the export of explicit per user authentication method and inforamtion later in specific complex objects, one export for each authentication-method
+# NOTE:  It is not possible to export users Check Point Password value
+
 export CSVFileHeader=
 export CSVFileHeader='"template","e-mail","phone-number"'
-export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server.name","tacacs-server.name"'
+#export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server.name","tacacs-server.name"'
 export CSVFileHeader=${CSVFileHeader}',"expiration-date"'
-export CSVFileHeader=${CSVFileHeader}',"encryption.enable-ike", "encryption.enable-public-key", "encryption.enable-shared-secret"'
+export CSVFileHeader=${CSVFileHeader}',"encryption.enable-ike","encryption.enable-public-key","encryption.enable-shared-secret"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
 export CSVJQparms='.["template"], .["e-mail"], .["phone-number"]'
-export CSVJQparms=${CSVJQparms}', .["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
+#export CSVJQparms=${CSVJQparms}', .["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
 export CSVJQparms=${CSVJQparms}', .["expiration-date"]["iso-8601"]'
 export CSVJQparms=${CSVJQparms}', .["encryption"]["ike"], .["encryption"]["public-key"], .["encryption"]["shared-secret"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
@@ -2233,7 +2250,7 @@ export number_of_objects=${number_users}
 CheckAPIVersionAndExecuteOperation
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
 
 # ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
@@ -2293,7 +2310,7 @@ export APICLICSVsortparms='-f -t , -k 1,1'
 export CSVFileHeader=
 export CSVFileHeader='"authentication-method","radius-server.name","tacacs-server.name"'
 export CSVFileHeader=${CSVFileHeader}',"expiration-by-global-properties","expiration-date"'
-export CSVFileHeader=${CSVFileHeader}',"encryption.enable-ike", "encryption.enable-public-key", "encryption.enable-shared-secret"'
+export CSVFileHeader=${CSVFileHeader}',"encryption.enable-ike","encryption.enable-public-key","encryption.enable-shared-secret"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
@@ -2419,7 +2436,7 @@ SetupExportComplexObjectsToCSVviaJQ () {
     fi
     
     echo | tee -a -i ${logfilepath}
-    echo "Creat ${APICLIcomplexobjectstype} CSV File : ${APICLICSVfile}" | tee -a -i ${logfilepath}
+    echo "Create ${APICLIcomplexobjectstype} CSV File : ${APICLICSVfile}" | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     
     #
@@ -2530,9 +2547,18 @@ FinalizeExportComplexObjectsToCSVviaJQ () {
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
-# Generic Complext Objects Type Handler
+# Generic Complex Objects Type Handler
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
+
+echo | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo 'Generic Complex Objects Type Handler' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2691,7 +2717,7 @@ DumpArrayOfObjectsType () {
 # CollectMembersInObjectsType proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -2730,7 +2756,27 @@ CollectMembersInObjectsType () {
                     echo -n '.'
                 fi
                 
-                echo ${i//\'/},${MEMBER_NAME} >> ${APICLICSVfiledata}
+                # Build the output line
+                echo -n ${i//\'/},${MEMBER_NAME} >> ${APICLICSVfiledata}
+                
+                if ${CSVADDEXPERRHANDLE} ; then
+                    echo -n 'e'
+                    
+                    #export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+                    #export CSVJQparms=${CSVJQparms}', true, true'
+                    #
+                    echo -n ', true, true' >> ${APICLICSVfiledata}
+                    
+                    # May need to add plumbing to handle the case that not all objects types might support set-if-exists
+                    # For now just keep it separate
+                    #
+                    #export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
+                    #export CSVJQparms=${CSVJQparms}', true'
+                    
+                    #echo -n ', true' >> ${APICLICSVfiledata}
+                fi
+                
+                echo >> ${APICLICSVfiledata}
                 
                 let COUNTER=COUNTER+1
                 
@@ -2746,20 +2792,31 @@ CollectMembersInObjectsType () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-18
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
 
 
 # -------------------------------------------------------------------------------------------------
 # GetObjectMembers proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
 # GetObjectMembers generate output of objects type members from existing objects type objects
 
 GetObjectMembers () {
+    
+    if ${CSVADDEXPERRHANDLE} ; then
+        export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+        export CSVJQparms=${CSVJQparms}', true, true'
+        #
+        # May need to add plumbing to handle the case that not all objects types might support set-if-exists
+        # For now just keep it separate
+        #
+        #export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
+        #export CSVJQparms=${CSVJQparms}', true'
+    fi
     
     SetupExportComplexObjectsToCSVviaJQ
     
@@ -2769,18 +2826,20 @@ GetObjectMembers () {
     
     CollectMembersInObjectsType
     
+    errorreturn=0
+    
     FinalizeExportComplexObjectsToCSVviaJQ
     errorreturn=$?
     if [ ${errorreturn} != 0 ] ; then
         # Something went wrong, terminate
-        return ${errorreturn}
+        echo 'Error '${errorreturn}' in FinalizeExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
     fi
     
-    return 0
+    return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-18
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2791,12 +2850,14 @@ GetObjectMembers () {
 # GenericComplexObjectsMembersHandler proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 GenericComplexObjectsMembersHandler () {
     #
     # Generic Handler for Complex Object Types
+    
+    errorreturn=0
     
     objectstotal_object=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
     export number_object="${objectstotal_object}"
@@ -2808,12 +2869,17 @@ GenericComplexObjectsMembersHandler () {
         echo | tee -a -i ${logfilepath}
     else
         GetObjectMembers
+        errorreturn=$?
     fi
     
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    
+    return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-18
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2975,6 +3041,15 @@ GenericComplexObjectsMembersHandler
 # -------------------------------------------------------------------------------------------------
 
 
+echo | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo 'Specific Complex Objects :  These require extra plumbing' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
+
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -2984,13 +3059,20 @@ GenericComplexObjectsMembersHandler
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-01-18 -
+echo | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo 'Specific Complex OBJECT : host interfaces' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
+
+# MODIFIED 2021-01-27 -
 
 # -------------------------------------------------------------------------------------------------
 # PopulateArrayOfHostInterfaces proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -3020,23 +3102,14 @@ PopulateArrayOfHostInterfaces () {
         MGMT_CLI_HOSTS_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level "full" -s ${APICLIsessionfile} -f json | ${JQ} '.objects[] | '"${notsystemobjectselector}"' | .name | @sh' -r`"
     else
         # Don't Ignore System Objects
-        MGMT_CLI_HOSTS_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level "standard" -s ${APICLIsessionfile} -f json | ${JQ} ".objects[].name | @sh" -r`"
+        MGMT_CLI_HOSTS_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level "standard" -s ${APICLIsessionfile} -f json | ${JQ} '.objects[].name | @sh' -r`"
     fi
     
     # break the string into an array - each element of the array is a line in the original string
     # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
     
-     if ${APISCRIPTVERBOSE} ; then
+    if ${APISCRIPTVERBOSE} ; then
         # Verbose mode ON
-        echo | tee -a -i ${logfilepath}
-        
-        # Output list of all hosts found - Header
-        echo -n '. ${line}, ' | tee -a -i ${logfilepath}
-        echo -n '$(eval echo ${line}), ' | tee -a -i ${logfilepath}
-        echo -n 'arraylength, ' | tee -a -i ${logfilepath}
-        echo -n 'arrayelement, ' | tee -a -i ${logfilepath}
-        #echo -n '$(eval echo ${ALLHOSTARR[${arrayelement}]}) ' | tee -a -i ${logfilepath}
-        echo -n '${NUM_HOST_INTERFACES}, NUM_HOST_INTERFACES > 0 ' | tee -a -i ${logfilepath}
         echo | tee -a -i ${logfilepath}
     fi
     
@@ -3048,7 +3121,6 @@ PopulateArrayOfHostInterfaces () {
         
         arraylength=${#ALLHOSTSARR[@]}
         arrayelement=$((arraylength-1))
-        
         
         if ${APISCRIPTVERBOSE} ; then
             # Verbose mode ON
@@ -3098,14 +3170,14 @@ PopulateArrayOfHostInterfaces () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-05
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
 
 
 # -------------------------------------------------------------------------------------------------
 # GetArrayOfHostInterfaces proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -3161,14 +3233,14 @@ GetArrayOfHostInterfaces () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-05
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
 
 
 # -------------------------------------------------------------------------------------------------
 # DumpArrayOfHostsObjects proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -3209,14 +3281,14 @@ DumpArrayOfHostsObjects () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-05
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
 
 
 # -------------------------------------------------------------------------------------------------
 # CollectInterfacesInHostObjects proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -3276,11 +3348,27 @@ CollectInterfacesInHostObjects () {
                 export CSVoutputline=${CSVoutputline},"${INTERFACE_subnet6}","${INTERFACE_masklength6}"
                 export CSVoutputline=${CSVoutputline},"${INTERFACE_COLOR}","${INTERFACE_COMMENT}"
                 
+                if ${CSVADDEXPERRHANDLE} ; then
+                    #export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+                    #export CSVJQparms=${CSVJQparms}', true, true'
+                    #
+                    
+                    export CSVoutputline=${CSVoutputline}', true, true'
+                    
+                    # May need to add plumbing to handle the case that not all objects types might support set-if-exists
+                    # For now just keep it separate
+                    #
+                    #export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
+                    #export CSVJQparms=${CSVJQparms}', true'
+                    
+                    export CSVoutputline=${CSVoutputline}', true'
+                fi
+                
                 if ${APISCRIPTVERBOSE} ; then
                     # Verbose mode ON
                     echo ${CSVoutputline} | tee -a -i ${logfilepath}
-                    fi
-                    
+                fi
+                
                 echo ${CSVoutputline} >> ${APICLICSVfiledata} | tee -a -i ${logfilepath}
                 
                 let COUNTER=COUNTER+1
@@ -3297,14 +3385,14 @@ CollectInterfacesInHostObjects () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-05
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
 
 
 # -------------------------------------------------------------------------------------------------
 # GetHostInterfaces proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -3313,6 +3401,17 @@ CollectInterfacesInHostObjects () {
 GetHostInterfaces () {
     
     export HostInterfacesCount=0
+    
+    if ${CSVADDEXPERRHANDLE} ; then
+        export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+        export CSVJQparms=${CSVJQparms}', true, true'
+        #
+        # May need to add plumbing to handle the case that not all objects types might support set-if-exists
+        # For now just keep it separate
+        #
+        export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
+        export CSVJQparms=${CSVJQparms}', true'
+    fi
     
     SetupExportComplexObjectsToCSVviaJQ
     
@@ -3340,7 +3439,7 @@ GetHostInterfaces () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-05
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3350,7 +3449,7 @@ GetHostInterfaces () {
 # Specific Complex OBJECT : host interfaces
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-18 - 
+# MODIFIED 2021-01-27 - 
 
 export APIobjectminversion=1.1
 export APICLIobjecttype=host
@@ -3379,7 +3478,7 @@ export CSVJQparms=${CSVJQparms}', .["interfaces"]['${COUNTER}']["color"], .["int
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 objectstotal_hosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3391,11 +3490,19 @@ if [ ${number_hosts} -le 0 ] ; then
     echo 'No hosts to generate interfaces from!' | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
 else
+    # hosts found
+    echo | tee -a -i ${logfilepath}
+    echo 'Check hosts to generate interfaces!' | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    
     GetHostInterfaces
 fi
 
+echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-05
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3404,15 +3511,505 @@ fi
 
 
 # -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : users authentications
 # -------------------------------------------------------------------------------------------------
-# no more complex objects
+
+
+echo | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo 'Specific Complex OBJECT : users authentications' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
+
+# -------------------------------------------------------------------------------------------------
+# ExportUserAuthenticationsToCSVviaJQ
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ExportUserAuthenticationsToCSVviaJQ is the meat of the script's repeated actions.
+#
+# For this script the ${APICLIobjectstype} item's name is exported to a CSV file and sorted.
+# The original exported data and raw sorted data are retained in separate files, as is the header
+# for the CSV file generated.
+
+ExportUserAuthenticationsToCSVviaJQ () {
+    #
+    
+    if ${CSVADDEXPERRHANDLE} ; then
+        export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+        export CSVJQparms=${CSVJQparms}', true, true'
+        #
+        # May need to add plumbing to handle the case that not all objects types might support set-if-exists
+        # For now just keep it separate
+        #
+        export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
+        export CSVJQparms=${CSVJQparms}', true'
+    fi
+    
+    SetupExportComplexObjectsToCSVviaJQ
+    errorreturn=$?
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, terminate
+        echo 'Problem found in procedure SetupExportComplexObjectsToCSVviaJQ! error return = '${errorreturn} | tee -a -i ${logfilepath}
+        return ${errorreturn}
+    fi
+    
+    export MgmtCLI_Base_OpParms="-f json -s ${APICLIsessionfile}"
+    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
+    
+    export MgmtCLI_Show_OpParms="details-level \"full\" ${MgmtCLI_Base_OpParms}"
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    
+    export userauthtypeselectorelement='."'"${APICLIexportkeycheck}"'" == "'"${APICLIexportkeyvalue}"'"'
+    
+    # MODIFIED 2018-07-20 -
+    
+    # System Object selection operands
+    # Future alternative if more options to exclude are needed
+    export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
+    export notsystemobjectselectorelement='."domain"."name" as $a | ['${systemobjectdomains}'] | index($a) | not'
+    
+    # We need to assemble a more complicated selection method for this
+    #
+    if ${NoSystemObjects} ; then
+        # Ignore System Objects
+        export userauthobjectselector='select(('"${notsystemobjectselectorelement}"') and ('"${userauthtypeselectorelement}"'))'
+    else
+        # Don't Ignore System Objects
+        export userauthobjectselector='select('"${userauthtypeselectorelement}"')'
+    fi
+    
+    echo | tee -a -i ${logfilepath}
+    echo '  '${APICLIobjectstype}' - Populate up to next '${WorkAPIObjectLimit}' '${APICLIobjecttype}' objects starting with object '${currentuseroffset}' of '${objectslefttoshow}' remaining!' | tee -a -i ${logfilepath}
+    echo '  '${APICLIobjectstype}' - Selection criteria '${userauthobjectselector} | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    
+    objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+    
+    objectstoshow=${objectstotal}
+    
+    echo "Processing ${objectstoshow} ${APICLIobjecttype} objects in ${WorkAPIObjectLimit} object chunks:" | tee -a -i ${logfilepath}
+    
+    objectslefttoshow=${objectstoshow}
+    currentuseroffset=0
+    
+    echo | tee -a -i ${logfilepath}
+    echo "Export ${APICLIobjectstype} to CSV File" | tee -a -i ${logfilepath}
+    echo "  and dump to ${APICLICSVfile}" | tee -a -i ${logfilepath}
+    if ${APISCRIPTVERBOSE} ; then
+        # Verbose mode ON
+        echo "  mgmt_cli parameters : ${MgmtCLI_Show_OpParms}" | tee -a -i ${logfilepath}
+        echo '  CSVJQparms' - ${CSVJQparms} | tee -a -i ${logfilepath}
+        echo "  User Authentication Selector : "${userauthobjectselector} | tee -a -i ${logfilepath}
+    fi
+    echo | tee -a -i ${logfilepath}
+    
+    while [ ${objectslefttoshow} -ge 1 ] ; do
+        # we have objects to process
+        echo "  Now processing up to next ${WorkAPIObjectLimit} ${APICLIobjecttype} objects starting with object ${currentuseroffset} of ${objectslefttoshow} remaining!" | tee -a -i ${logfilepath}
+        
+        #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentuseroffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
+        #errorreturn=$?
+        
+        mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentuseroffset} details-level "full" -s ${APICLIsessionfile} -f json | ${JQ} '.objects[] | '"${userauthobjectselector}"' | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
+        errorreturn=$?
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo 'Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            return ${errorreturn}
+        fi
+        
+        objectslefttoshow=`expr ${objectslefttoshow} - ${WorkAPIObjectLimit}`
+        currentuseroffset=`expr ${currentuseroffset} + ${WorkAPIObjectLimit}`
+    done
+    
+    FinalizeExportComplexObjectsToCSVviaJQ
+    errorreturn=$?
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, terminate
+        echo 'Problem found in procedure FinalizeExportComplexObjectsToCSVviaJQ! error return = '${errorreturn} | tee -a -i ${logfilepath}
+        
+        if ! ${NOWAIT} ; then
+            read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
+        fi
+        
+        return ${errorreturn}
+    fi
+    
+    if ${APISCRIPTVERBOSE} ; then
+        echo
+        echo "Done with Exporting ${APICLIobjectstype} to CSV File : ${APICLICSVfile}" | tee -a -i ${logfilepath}
+        
+        if ! ${NOWAIT} ; then
+            read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
+        fi
+        
+    fi
+    
+    echo | tee -a -i ${logfilepath}
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
+
+
+# -------------------------------------------------------------------------------------------------
+# GetUserAuthentications proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# GetUserAuthentications generate output of host's interfaces from existing hosts with interface objects
+
+GetUserAuthentications () {
+    
+    errorreturn=0
+    
+    ExportUserAuthenticationsToCSVviaJQ
+    
+    errorreturn=$?
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, terminate
+        echo 'Error '${errorreturn}' in ExportUserAuthenticationsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    
+    return ${errorreturn}
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
+
+
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : user authentications :  passwords
 # -------------------------------------------------------------------------------------------------
-# no more objects
+
+# MODIFIED 2021-01-27 - 
+
+export APIobjectminversion=1.6.1
+export APICLIobjecttype=user
+export APICLIobjectstype=users
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+#export APICLICSVsortparms='-f -t , -k 1,1'
+
+#export CSVFileHeader=
+#export CSVFileHeader='"template","e-mail","phone-number"'
+#export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server.name","tacacs-server.name"'
+#export CSVFileHeader=${CSVFileHeader}',"expiration-date"'
+#export CSVFileHeader=${CSVFileHeader}',"encryption.enable-ike","encryption.enable-public-key","encryption.enable-shared-secret"'
+#export CSVFileHeader=${CSVFileHeader}',"icon"'
+
+#export CSVJQparms=
+#export CSVJQparms='.["template"], .["e-mail"], .["phone-number"]'
+#export CSVJQparms=${CSVJQparms}', .["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
+#export CSVJQparms=${CSVJQparms}', .["expiration-date"]["iso-8601"]'
+#export CSVJQparms=${CSVJQparms}', .["encryption"]["ike"], .["encryption"]["public-key"], .["encryption"]["shared-secret"]'
+#export CSVJQparms=${CSVJQparms}', .["icon"]'
+
+# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+objectstotal_users=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_users="${objectstotal_users}"
+
+if [ ${number_users} -le 0 ] ; then
+    # No Users found
+    echo | tee -a -i ${logfilepath}
+    echo 'No '${APICLIobjectstype}' to generate authentications from!' | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+else
+    # Users found
+    
+    # User export with credential information is not working properly when done as a complete object.
+    # Handling the export of explicit per user authentication method and inforamtion later in specific complex objects, one export for each authentication-method
+    # NOTE:  It is not possible to export users Check Point Password value
+    
+    # -------------------------------------------------------------------------------------------------
+    # Specific Complex OBJECT : user authentications :  passwords
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2021-01-27 - 
+    
+    export APIobjectminversion=1.6.1
+    export APICLIobjecttype=user
+    export APICLIobjectstype=users
+    export APICLIcomplexobjecttype='user-with-auth-checkpointpassword'
+    export APICLIcomplexobjectstype='users-with-auth-checkpointpassword'
+    export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    export APICLIexportnameaddon=
+    
+    export APICLIexportkeycheck='authentication-method'
+    export APICLIexportkeyvalue='check point password'
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    export APICLICSVsortparms='-f -t , -k 1,1'
+    
+    # NOTE:  It is not possible to export users Check Point Password value
+    
+    export CSVFileHeader='"name","authentication-method"'
+    export CSVFileHeader=${CSVFileHeader}',"password"'
+    
+    export CSVJQparms='.["name"], .["authentication-method"]'
+    export CSVJQparms=${CSVJQparms}', "Pr0v1d3Us3rPa$$W0rdH3r3!"'
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    
+    GetUserAuthentications
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    # -------------------------------------------------------------------------------------------------
+    # Specific Complex OBJECT : user authentications :  passwords
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2021-01-27 - 
+    
+    export APIobjectminversion=1.6.1
+    export APICLIobjecttype=user
+    export APICLIobjectstype=users
+    export APICLIcomplexobjecttype='user-with-auth-ospassword'
+    export APICLIcomplexobjectstype='users-with-auth-ospassword'
+    export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    export APICLIexportnameaddon=
+    
+    export APICLIexportkeycheck='authentication-method'
+    export APICLIexportkeyvalue='os password'
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    export APICLICSVsortparms='-f -t , -k 1,1'
+    
+    export CSVFileHeader='"name","authentication-method"'
+    #export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey"'
+    
+    export CSVJQparms='.["name"], .["authentication-method"]'
+    #export CSVJQparms=${CSVJQparms}', .["key"]["subkey"], .["key"]["subkey"]'
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    
+    GetUserAuthentications
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    # -------------------------------------------------------------------------------------------------
+    # Specific Complex OBJECT : user authentications :  passwords
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2021-01-27 - 
+    
+    export APIobjectminversion=1.6.1
+    export APICLIobjecttype=user
+    export APICLIobjectstype=users
+    export APICLIcomplexobjecttype='user-with-auth-securid'
+    export APICLIcomplexobjectstype='users-with-auth-securid'
+    export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    export APICLIexportnameaddon=
+    
+    export APICLIexportkeycheck='authentication-method'
+    export APICLIexportkeyvalue='securid'
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    export APICLICSVsortparms='-f -t , -k 1,1'
+    
+    export CSVFileHeader='"name","authentication-method"'
+    #export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey"'
+    
+    export CSVJQparms='.["name"], .["authentication-method"]'
+    #export CSVJQparms=${CSVJQparms}', .["key"]["subkey"], .["key"]["subkey"]'
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    
+    GetUserAuthentications
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    # -------------------------------------------------------------------------------------------------
+    # Specific Complex OBJECT : user authentications :  passwords
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2021-01-27 - 
+    
+    export APIobjectminversion=1.6.1
+    export APICLIobjecttype=user
+    export APICLIobjectstype=users
+    export APICLIcomplexobjecttype='user-with-auth-radius'
+    export APICLIcomplexobjectstype='users-with-auth-radius'
+    export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    export APICLIexportnameaddon=
+    
+    export APICLIexportkeycheck='authentication-method'
+    export APICLIexportkeyvalue='radius'
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    export APICLICSVsortparms='-f -t , -k 1,1'
+    
+    #export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server.name","tacacs-server.name"'
+    #export CSVJQparms=${CSVJQparms}', .["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
+    
+    export CSVFileHeader='"name","authentication-method"'
+    export CSVFileHeader=${CSVFileHeader}',"radius-server"'
+    
+    export CSVJQparms='.["name"], .["authentication-method"]'
+    export CSVJQparms=${CSVJQparms}', .["radius-server"]["name"]'
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    
+    GetUserAuthentications
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    # -------------------------------------------------------------------------------------------------
+    # Specific Complex OBJECT : user authentications :  passwords
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2021-01-27 - 
+    
+    export APIobjectminversion=1.6.1
+    export APICLIobjecttype=user
+    export APICLIobjectstype=users
+    export APICLIcomplexobjecttype='user-with-auth-tacacs'
+    export APICLIcomplexobjectstype='users-with-auth-tacacs'
+    export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    export APICLIexportnameaddon=
+    
+    export APICLIexportkeycheck='authentication-method'
+    export APICLIexportkeyvalue='tacacs'
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    
+    #export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server.name","tacacs-server.name"'
+    #export CSVJQparms=${CSVJQparms}', .["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
+    
+    export APICLICSVsortparms='-f -t , -k 1,1'
+    
+    export CSVFileHeader='"name","authentication-method"'
+    export CSVFileHeader=${CSVFileHeader}',"tacacs-server.name"'
+    
+    export CSVJQparms='.["name"], .["authentication-method"]'
+    export CSVJQparms=${CSVJQparms}', .["tacacs-server"]["name"]'
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    
+    GetUserAuthentications
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    # -------------------------------------------------------------------------------------------------
+    # Specific Complex OBJECT : user authentications :  passwords
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2021-01-27 - 
+    
+    export APIobjectminversion=1.6.1
+    export APICLIobjecttype=user
+    export APICLIobjectstype=users
+    export APICLIcomplexobjecttype='user-with-auth-undefined'
+    export APICLIcomplexobjectstype='users-with-auth-undefined'
+    export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    export APICLIexportnameaddon=
+    
+    export APICLIexportkeycheck='authentication-method'
+    export APICLIexportkeyvalue='undefined'
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    export APICLICSVsortparms='-f -t , -k 1,1'
+    
+    export CSVFileHeader='"name","authentication-method"'
+    #export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey"'
+    
+    export CSVJQparms='.["name"], .["authentication-method"]'
+    #export CSVJQparms=${CSVJQparms}', .["key"]["subkey"], .["key"]["subkey"]'
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    
+    GetUserAuthentications
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+fi
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# No more complex objects
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+echo | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo 'No more complex objects' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# No more objects
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 

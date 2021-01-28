@@ -1,7 +1,7 @@
 { "file_meta_info" : {
-	"fileversion" : "0.60.1",
-	"filerevision" : "020",
-	"filedate" : "2021-01-19"
+	"fileversion" : "0.60.2",
+	"filerevision" : "010",
+	"filedate" : "2021-01-27"
 }, 
 "default_csv_export_elements" : [ {
 	"name" : "common",
@@ -266,5 +266,36 @@
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
+}, {
+	"name" : "example",
+	"name-plural" : "examples",
+	"objectgroup" : [
+		"Network Objects", 
+		"Service & Applications",
+		"Users"
+	 ],
+	"api-version" : [
+		"1.1", 
+		"1.2",
+		"1.3",
+		"1.4",
+		"1.5",
+		"1.6",
+		"1.6.1.",
+		"1.7"
+	],
+	"objectype" : "example",
+	"objectsype" : "examples",
+	"complexobjecttype" : "example",
+	"complexobjectstype" : "examples",
+	"objectlimit" : [
+		500,
+		1-500 
+	],
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+	"exportkeycheck" : "\"check_key\"",
+	"exportkeyvalue" : "\"check_value"\"
 } ]
 }

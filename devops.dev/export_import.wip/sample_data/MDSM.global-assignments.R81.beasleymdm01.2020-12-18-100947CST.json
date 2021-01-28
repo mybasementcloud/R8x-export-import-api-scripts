@@ -1,0 +1,333 @@
+{
+  "objects" : [ {
+    "uid" : "a6b2c499-5ed5-4c1c-8801-0b88c134b1a2",
+    "type" : "global-assignment",
+    "domain" : {
+      "uid" : "a0eebc99-afed-4ef8-bb6d-fedfedfedfed",
+      "name" : "System Data",
+      "domain-type" : "mds"
+    },
+    "global-domain" : {
+      "uid" : "1e294ce0-367a-11e3-aa6e-0800200c9a66",
+      "name" : "Global",
+      "type" : "global-domain",
+      "domain" : {
+        "uid" : "a0eebc99-afed-4ef8-bb6d-fedfedfedfed",
+        "name" : "System Data",
+        "domain-type" : "mds"
+      },
+      "global-domain-assignments" : [ "a6b2c499-5ed5-4c1c-8801-0b88c134b1a2", "ea29ec45-0005-4aee-b6c8-7737b004da5e", "bcde8481-a803-45f3-b8dc-43439094d63b" ],
+      "domain-type" : "global domain",
+      "servers" : [ {
+        "type" : "management server",
+        "multi-domain-server" : "BeasleyMDM01",
+        "active" : true
+      } ],
+      "comments" : "",
+      "color" : "crete blue",
+      "icon" : "Objects/globalDomain",
+      "tags" : [ ],
+      "meta-info" : {
+        "lock" : "unlocked",
+        "validation-state" : "ok",
+        "last-modify-time" : {
+          "posix" : 1501102851650,
+          "iso-8601" : "2017-07-26T16:00-0500"
+        },
+        "last-modifier" : "System",
+        "creation-time" : {
+          "posix" : 1501102851650,
+          "iso-8601" : "2017-07-26T16:00-0500"
+        },
+        "creator" : "System"
+      },
+      "read-only" : false
+    },
+    "dependent-domain" : {
+      "uid" : "ee5d54c7-c15c-4382-ba3d-285bdc930f80",
+      "name" : "CORE-G2-LAST-RESORT",
+      "type" : "domain",
+      "domain" : {
+        "uid" : "a0eebc99-afed-4ef8-bb6d-fedfedfedfed",
+        "name" : "System Data",
+        "domain-type" : "mds"
+      },
+      "global-domain-assignments" : [ "a6b2c499-5ed5-4c1c-8801-0b88c134b1a2" ],
+      "domain-type" : "domain",
+      "servers" : [ {
+        "name" : "CORE_G2_LAST_RESORT_Mgmt_1",
+        "type" : "management server",
+        "ipv4-address" : "10.69.248.216",
+        "multi-domain-server" : "BeasleyMDM01",
+        "active" : true
+      } ],
+      "comments" : "CORE Last Resort Domain for Backup access to environment GEN 2",
+      "color" : "crete blue",
+      "icon" : "Objects/domain",
+      "tags" : [ ],
+      "meta-info" : {
+        "lock" : "unlocked",
+        "validation-state" : "ok",
+        "last-modify-time" : {
+          "posix" : 1520486252187,
+          "iso-8601" : "2018-03-07T23:17-0600"
+        },
+        "last-modifier" : "_adminx",
+        "creation-time" : {
+          "posix" : 1520486252187,
+          "iso-8601" : "2018-03-07T23:17-0600"
+        },
+        "creator" : "_adminx"
+      },
+      "read-only" : false
+    },
+    "global-access-policy" : "Standard",
+    "global-threat-prevention-policy" : "Standard",
+    "manage-protection-actions" : true,
+    "assignment-status" : "up to date",
+    "assignment-up-to-date" : {
+      "posix" : 1608304594263,
+      "iso-8601" : "2020-12-18T09:16-0600"
+    },
+    "comments" : "",
+    "color" : "black",
+    "icon" : "Objects/globalAssignment",
+    "tags" : [ ],
+    "meta-info" : {
+      "lock" : "unlocked",
+      "validation-state" : "ok",
+      "last-modify-time" : {
+        "posix" : 1608304594322,
+        "iso-8601" : "2020-12-18T09:16-0600"
+      },
+      "last-modifier" : "administrator",
+      "creation-time" : {
+        "posix" : 1523557091497,
+        "iso-8601" : "2018-04-12T13:18-0500"
+      },
+      "creator" : "_adminx"
+    },
+    "read-only" : false
+  }, {
+    "uid" : "ea29ec45-0005-4aee-b6c8-7737b004da5e",
+    "type" : "global-assignment",
+    "domain" : {
+      "uid" : "a0eebc99-afed-4ef8-bb6d-fedfedfedfed",
+      "name" : "System Data",
+      "domain-type" : "mds"
+    },
+    "global-domain" : {
+      "uid" : "1e294ce0-367a-11e3-aa6e-0800200c9a66",
+      "name" : "Global",
+      "type" : "global-domain",
+      "domain" : {
+        "uid" : "a0eebc99-afed-4ef8-bb6d-fedfedfedfed",
+        "name" : "System Data",
+        "domain-type" : "mds"
+      },
+      "global-domain-assignments" : [ "a6b2c499-5ed5-4c1c-8801-0b88c134b1a2", "ea29ec45-0005-4aee-b6c8-7737b004da5e", "bcde8481-a803-45f3-b8dc-43439094d63b" ],
+      "domain-type" : "global domain",
+      "servers" : [ {
+        "type" : "management server",
+        "multi-domain-server" : "BeasleyMDM01",
+        "active" : true
+      } ],
+      "comments" : "",
+      "color" : "crete blue",
+      "icon" : "Objects/globalDomain",
+      "tags" : [ ],
+      "meta-info" : {
+        "lock" : "unlocked",
+        "validation-state" : "ok",
+        "last-modify-time" : {
+          "posix" : 1501102851650,
+          "iso-8601" : "2017-07-26T16:00-0500"
+        },
+        "last-modifier" : "System",
+        "creation-time" : {
+          "posix" : 1501102851650,
+          "iso-8601" : "2017-07-26T16:00-0500"
+        },
+        "creator" : "System"
+      },
+      "read-only" : false
+    },
+    "dependent-domain" : {
+      "uid" : "2b2a3b68-fc2a-4f92-93cd-0253a58b2aa5",
+      "name" : "EXAMPLE-DEMO",
+      "type" : "domain",
+      "domain" : {
+        "uid" : "a0eebc99-afed-4ef8-bb6d-fedfedfedfed",
+        "name" : "System Data",
+        "domain-type" : "mds"
+      },
+      "global-domain-assignments" : [ "ea29ec45-0005-4aee-b6c8-7737b004da5e" ],
+      "domain-type" : "domain",
+      "servers" : [ {
+        "name" : "EXAMPLE_DEMO_Mgmt",
+        "type" : "management server",
+        "ipv4-address" : "10.69.248.219",
+        "multi-domain-server" : "BeasleyMDM01",
+        "active" : true
+      } ],
+      "comments" : "Example Demonstration Domain",
+      "color" : "pink",
+      "icon" : "Objects/domain",
+      "tags" : [ "294ac5db-ef9a-4bc8-9f9c-ed03c3dfabda" ],
+      "meta-info" : {
+        "lock" : "unlocked",
+        "validation-state" : "ok",
+        "last-modify-time" : {
+          "posix" : 1503325742467,
+          "iso-8601" : "2017-08-21T09:29-0500"
+        },
+        "last-modifier" : "administrator",
+        "creation-time" : {
+          "posix" : 1503325742467,
+          "iso-8601" : "2017-08-21T09:29-0500"
+        },
+        "creator" : "administrator"
+      },
+      "read-only" : false
+    },
+    "global-access-policy" : "Standard",
+    "global-threat-prevention-policy" : "Standard",
+    "manage-protection-actions" : true,
+    "assignment-status" : "up to date",
+    "assignment-up-to-date" : {
+      "posix" : 1608304594486,
+      "iso-8601" : "2020-12-18T09:16-0600"
+    },
+    "comments" : "",
+    "color" : "black",
+    "icon" : "Objects/globalAssignment",
+    "tags" : [ ],
+    "meta-info" : {
+      "lock" : "unlocked",
+      "validation-state" : "ok",
+      "last-modify-time" : {
+        "posix" : 1608304594512,
+        "iso-8601" : "2020-12-18T09:16-0600"
+      },
+      "last-modifier" : "administrator",
+      "creation-time" : {
+        "posix" : 1504804185632,
+        "iso-8601" : "2017-09-07T12:09-0500"
+      },
+      "creator" : "administrator"
+    },
+    "read-only" : false
+  }, {
+    "uid" : "bcde8481-a803-45f3-b8dc-43439094d63b",
+    "type" : "global-assignment",
+    "domain" : {
+      "uid" : "a0eebc99-afed-4ef8-bb6d-fedfedfedfed",
+      "name" : "System Data",
+      "domain-type" : "mds"
+    },
+    "global-domain" : {
+      "uid" : "1e294ce0-367a-11e3-aa6e-0800200c9a66",
+      "name" : "Global",
+      "type" : "global-domain",
+      "domain" : {
+        "uid" : "a0eebc99-afed-4ef8-bb6d-fedfedfedfed",
+        "name" : "System Data",
+        "domain-type" : "mds"
+      },
+      "global-domain-assignments" : [ "a6b2c499-5ed5-4c1c-8801-0b88c134b1a2", "ea29ec45-0005-4aee-b6c8-7737b004da5e", "bcde8481-a803-45f3-b8dc-43439094d63b" ],
+      "domain-type" : "global domain",
+      "servers" : [ {
+        "type" : "management server",
+        "multi-domain-server" : "BeasleyMDM01",
+        "active" : true
+      } ],
+      "comments" : "",
+      "color" : "crete blue",
+      "icon" : "Objects/globalDomain",
+      "tags" : [ ],
+      "meta-info" : {
+        "lock" : "unlocked",
+        "validation-state" : "ok",
+        "last-modify-time" : {
+          "posix" : 1501102851650,
+          "iso-8601" : "2017-07-26T16:00-0500"
+        },
+        "last-modifier" : "System",
+        "creation-time" : {
+          "posix" : 1501102851650,
+          "iso-8601" : "2017-07-26T16:00-0500"
+        },
+        "creator" : "System"
+      },
+      "read-only" : false
+    },
+    "dependent-domain" : {
+      "uid" : "2d9bc7ef-5339-4dd3-98b5-c067f7b08c8e",
+      "name" : "CORE-G2-CLUSTERS",
+      "type" : "domain",
+      "domain" : {
+        "uid" : "a0eebc99-afed-4ef8-bb6d-fedfedfedfed",
+        "name" : "System Data",
+        "domain-type" : "mds"
+      },
+      "global-domain-assignments" : [ "bcde8481-a803-45f3-b8dc-43439094d63b" ],
+      "domain-type" : "domain",
+      "servers" : [ {
+        "name" : "CORE_G2_CLUSTERS_Mgmt",
+        "type" : "management server",
+        "ipv4-address" : "10.69.248.217",
+        "multi-domain-server" : "BeasleyMDM01",
+        "active" : true
+      } ],
+      "comments" : "",
+      "color" : "crete blue",
+      "icon" : "Objects/domain",
+      "tags" : [ ],
+      "meta-info" : {
+        "lock" : "unlocked",
+        "validation-state" : "ok",
+        "last-modify-time" : {
+          "posix" : 1584386270376,
+          "iso-8601" : "2020-03-16T14:17-0500"
+        },
+        "last-modifier" : "_adminx",
+        "creation-time" : {
+          "posix" : 1584386270376,
+          "iso-8601" : "2020-03-16T14:17-0500"
+        },
+        "creator" : "_adminx"
+      },
+      "read-only" : false
+    },
+    "global-access-policy" : "Standard",
+    "global-threat-prevention-policy" : "Standard",
+    "manage-protection-actions" : true,
+    "assignment-status" : "up to date",
+    "assignment-up-to-date" : {
+      "posix" : 1608304594910,
+      "iso-8601" : "2020-12-18T09:16-0600"
+    },
+    "comments" : "",
+    "color" : "black",
+    "icon" : "Objects/globalAssignment",
+    "tags" : [ ],
+    "meta-info" : {
+      "lock" : "unlocked",
+      "validation-state" : "ok",
+      "last-modify-time" : {
+        "posix" : 1608304594941,
+        "iso-8601" : "2020-12-18T09:16-0600"
+      },
+      "last-modifier" : "administrator",
+      "creation-time" : {
+        "posix" : 1584386761040,
+        "iso-8601" : "2020-03-16T14:26-0500"
+      },
+      "creator" : "_adminx"
+    },
+    "read-only" : false
+  } ],
+  "from" : 1,
+  "to" : 3,
+  "total" : 3
+}

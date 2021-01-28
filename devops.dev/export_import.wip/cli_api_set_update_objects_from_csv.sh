@@ -13,11 +13,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.01
-ScriptRevision=020
-ScriptDate=2021-01-19
-TemplateVersion=00.60.01
-APISubscriptsVersion=00.60.01
+ScriptVersion=00.60.02
+ScriptRevision=010
+ScriptDate=2021-01-27
+TemplateVersion=00.60.02
+APISubscriptsVersion=00.60.02
 APISubscriptsRevision=006
 
 #
@@ -3212,12 +3212,106 @@ ConfigureComplexObjects
 
 
 # -------------------------------------------------------------------------------------------------
-# no more complex objects
+# Specific Complex OBJECT : user authentications :  passwords
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-27 - 
+
+export APIobjectminversion=1.6.1
+export APICLIobjecttype=user
+export APICLIobjectstype=users
+export APICLIcomplexobjecttype=user-with-auth-checkpointpassword
+export APICLIcomplexobjectstype=users-with-auth-checkpointpassword
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+
+# -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : user authentications :  passwords
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-27 - 
+
+export APIobjectminversion=1.6.1
+export APICLIobjecttype=user
+export APICLIobjectstype=users
+export APICLIcomplexobjecttype=user-with-auth-ospassword
+export APICLIcomplexobjectstype=users-with-auth-ospassword
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+
+# -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : user authentications :  passwords
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-27 - 
+
+export APIobjectminversion=1.6.1
+export APICLIobjecttype=user
+export APICLIobjectstype=users
+export APICLIcomplexobjecttype=user-with-auth-securid
+export APICLIcomplexobjectstype=users-with-auth-securid
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+
+# -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : user authentications :  passwords
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-27 - 
+
+export APIobjectminversion=1.6.1
+export APICLIobjecttype=user
+export APICLIobjectstype=users
+export APICLIcomplexobjecttype=user-with-auth-radius
+export APICLIcomplexobjectstype=users-with-auth-radius
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+
+# -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : user authentications :  passwords
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-27 - 
+
+export APIobjectminversion=1.6.1
+export APICLIobjecttype=user
+export APICLIobjectstype=users
+export APICLIcomplexobjecttype=user-with-auth-tacacs
+export APICLIcomplexobjectstype=users-with-auth-tacacs
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+
+# -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : user authentications :  passwords
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-27 - 
+
+export APIobjectminversion=1.6.1
+export APICLIobjecttype=user
+export APICLIobjectstype=users
+export APICLIcomplexobjecttype=user-with-auth-undefined
+export APICLIcomplexobjectstype=users-with-auth-undefined
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# No more complex objects
+# -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
-# no objects
+# -------------------------------------------------------------------------------------------------
+# No more objects
+# -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 echo | tee -a -i ${logfilepath}
