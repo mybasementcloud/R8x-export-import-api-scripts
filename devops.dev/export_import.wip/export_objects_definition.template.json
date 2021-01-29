@@ -1,7 +1,7 @@
 { "file_meta_info" : {
-	"fileversion" : "0.60.2",
+	"fileversion" : "0.60.3",
 	"filerevision" : "010",
-	"filedate" : "2021-01-27"
+	"filedate" : "2021-01-29"
 }, 
 "default_csv_export_elements" : [ {
 	"name" : "common",
@@ -58,6 +58,7 @@
 		"1.6.1.",
 		"1.7"
 	],
+	"cansetifexists" : "false",
 	"objectype" : "example",
 	"objectsype" : "examples",
 	"objectlimit" : [
@@ -85,6 +86,7 @@
 		"1.6.1.",
 		"1.7"
 	],
+	"cansetifexists" : "false",
 	"objectype" : "example",
 	"objectsype" : "examples",
 	"objectlimit" : [
@@ -112,6 +114,7 @@
 		"1.6.1.",
 		"1.7"
 	],
+	"cansetifexists" : "false",
 	"objectype" : "example",
 	"objectsype" : "examples",
 	"objectlimit" : [
@@ -139,6 +142,7 @@
 		"1.6.1.",
 		"1.7"
 	],
+	"cansetifexists" : "false",
 	"objectype" : "example",
 	"objectsype" : "examples",
 	"objectlimit" : [
@@ -167,6 +171,7 @@
 		"1.6.1.",
 		"1.7"
 	],
+	"cansetifexists" : "false",
 	"objectype" : "example",
 	"objectsype" : "examples",
 	"complexobjecttype" : "example",
@@ -196,6 +201,7 @@
 		"1.6.1.",
 		"1.7"
 	],
+	"cansetifexists" : "false",
 	"objectype" : "example",
 	"objectsype" : "examples",
 	"complexobjecttype" : "example",
@@ -226,6 +232,7 @@
 		"1.6.1.",
 		"1.7"
 	],
+	"cansetifexists" : "false",
 	"objectype" : "example",
 	"objectsype" : "examples",
 	"complexobjecttype" : "example",
@@ -255,6 +262,7 @@
 		"1.6.1.",
 		"1.7"
 	],
+	"cansetifexists" : "false",
 	"objectype" : "example",
 	"objectsype" : "examples",
 	"complexobjecttype" : "example",
@@ -284,6 +292,7 @@
 		"1.6.1.",
 		"1.7"
 	],
+	"cansetifexists" : "false",
 	"objectype" : "example",
 	"objectsype" : "examples",
 	"complexobjecttype" : "example",
@@ -295,7 +304,7 @@
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
-	"exportkeycheck" : "\"check_key\"",
-	"exportkeyvalue" : "\"check_value"\"
+	"exportcheck01key" : "\"check_key\"",
+	"exportcheck01value" : "\"check_value"\"
 } ]
 }

@@ -13,11 +13,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.02
+ScriptVersion=00.60.03
 ScriptRevision=010
-ScriptDate=2021-01-27
-TemplateVersion=00.60.02
-APISubscriptsVersion=00.60.02
+ScriptDate=2021-01-29
+TemplateVersion=00.60.03
+APISubscriptsVersion=00.60.03
 APISubscriptsRevision=006
 
 #
@@ -3157,10 +3157,26 @@ echo
 # host objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
-export APICLICSVobjecttype=hosts
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+# host objects - NO NAT Details
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
+export APICLIobjecttype=host
+export APICLIobjectstype=hosts
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=NO_NAT
 
 RefactorObjectsCSV
 
@@ -3169,9 +3185,25 @@ RefactorObjectsCSV
 # network objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
 export APICLIobjecttype=network
 export APICLIobjectstype=networks
-export APICLICSVobjecttype=networks
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+# wildcard objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.2
+export APIobjectcansetifexists=false
+export APICLIobjecttype=wildcard
+export APICLIobjectstype=wildcards
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3181,9 +3213,11 @@ RefactorObjectsCSV
 # group objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
-export APICLICSVobjecttype=groups
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3193,9 +3227,11 @@ RefactorObjectsCSV
 # group-with-exclusion objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=group-with-exclusion
 export APICLIobjectstype=groups-with-exclusion
-export APICLICSVobjecttype=groups-with-exclusion
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3205,9 +3241,25 @@ RefactorObjectsCSV
 # address-range objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
 export APICLIobjecttype=address-range
 export APICLIobjectstype=address-ranges
-export APICLICSVobjecttype=address-ranges
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+# multicast-address-ranges objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
+export APICLIobjecttype=multicast-address-range
+export APICLIobjectstype=multicast-address-ranges
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3217,9 +3269,11 @@ RefactorObjectsCSV
 # dns-domain objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=dns-domain
 export APICLIobjectstype=dns-domains
-export APICLICSVobjecttype=dns-domains
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3229,155 +3283,95 @@ RefactorObjectsCSV
 # security-zone objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=security-zone
 export APICLIobjectstype=security-zones
-export APICLICSVobjecttype=security-zones
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
 
-
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
 
 # -------------------------------------------------------------------------------------------------
 # dynamic-objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=dynamic-object
 export APICLIobjectstype=dynamic-objects
-export APICLICSVobjecttype=dynamic-objects
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
 
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
-
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Services and Applications
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-echo
-echo 'Services and Applications'
-echo
-echo >> ${logfilepath}
-echo 'Services and Applications' >> ${logfilepath}
-echo >> ${logfilepath}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
-
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# application-sites objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=application-site
-export APICLIobjectstype=application-sites
-export APICLICSVobjecttype=application-sites
-export APICLIexportnameaddon=
-
-RefactorObjectsCSV
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
-
-
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# application-site-categories objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=application-site-category
-export APICLIobjectstype=application-site-categories
-export APICLICSVobjecttype=application-site-categories
-export APICLIexportnameaddon=
-
-RefactorObjectsCSV
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
-
-
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# application-site-groups objects
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=application-site-group
-export APICLIobjectstype=application-site-groups
-export APICLICSVobjecttype=application-site-groups
-export APICLIexportnameaddon=
-
-RefactorObjectsCSV
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Identifying Data
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-echo
-echo 'Identifying Data'
-echo
 
 # -------------------------------------------------------------------------------------------------
 # tags
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=tag
 export APICLIobjectstype=tags
-export APICLICSVobjecttype=tags
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
 
 
-# ADDED 2017-07-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Future objects to export to CSV
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
 # -------------------------------------------------------------------------------------------------
 # simple-gateways
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=simple-gateway
 export APICLIobjectstype=simple-gateways
-export APICLICSVobjecttype=simple-gateways
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
-#RefactorObjectsCSV
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+# simple-clusters
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.6
+export APIobjectcansetifexists=false
+export APICLIobjecttype=simple-cluster
+export APICLIobjectstype=simple-clusters
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+# checkpoint-hosts
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=true
+export APICLIobjecttype=checkpoint-hosts
+export APICLIobjectstype=checkpoint-hosts
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+RefactorObjectsCSV
 
 
 # -------------------------------------------------------------------------------------------------
 # times
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=time
 export APICLIobjectstype=times
-export APICLICSVobjecttype=times
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3387,9 +3381,11 @@ RefactorObjectsCSV
 # time_groups
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
-export APICLICSVobjecttype=time-groups
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3399,9 +3395,11 @@ RefactorObjectsCSV
 # access-roles
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=access-role
 export APICLIobjectstype=access-roles
-export APICLICSVobjecttype=access-roles
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3411,9 +3409,11 @@ RefactorObjectsCSV
 # opsec-applications
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=opsec-application
 export APICLIobjectstype=opsec-applications
-export APICLICSVobjecttype=opsec-applications
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3424,12 +3424,13 @@ RefactorObjectsCSV
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=trusted-client
 export APICLIobjectstype=trusted-clients
 export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
-CheckAPIVersionAndExecuteOperation
+RefactorObjectsCSV
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3437,12 +3438,13 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6
+export APIobjectcansetifexists=false
 export APICLIobjecttype=lsv-profile
 export APICLIobjectstype=lsv-profiles
 export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
-CheckAPIVersionAndExecuteOperation
+RefactorObjectsCSV
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3450,12 +3452,13 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=gsn-handover-group
 export APICLIobjectstype=gsn-handover-groups
 export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
-CheckAPIVersionAndExecuteOperation
+RefactorObjectsCSV
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3463,12 +3466,13 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=access-point-names
 export APICLIobjectstype=access-point-names
 export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
-CheckAPIVersionAndExecuteOperation
+RefactorObjectsCSV
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3476,12 +3480,13 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-server
 export APICLIobjectstype=tacacs-servers
 export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
-CheckAPIVersionAndExecuteOperation
+RefactorObjectsCSV
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3489,34 +3494,39 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-group
 export APICLIobjectstype=tacacs-groups
 export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
-CheckAPIVersionAndExecuteOperation
+RefactorObjectsCSV
 
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
-# Services and Applications
+# Service & Applications
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-#echo
-#echo 'Services and Applications'
-#echo
-#echo >> ${logfilepath}
-#echo 'Services and Applications' >> ${logfilepath}
-#echo >> ${logfilepath}
+echo | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo 'Service & Applications' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
 
 # -------------------------------------------------------------------------------------------------
 # services-tcp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
-export APICLICSVobjecttype=services-tcp
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3526,9 +3536,11 @@ RefactorObjectsCSV
 # services-udp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
-export APICLICSVobjecttype=services-udp
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3538,9 +3550,11 @@ RefactorObjectsCSV
 # services-icmp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-icmp
 export APICLIobjectstype=services-icmp
-export APICLICSVobjecttype=services-icmp
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3550,9 +3564,11 @@ RefactorObjectsCSV
 # services-icmp6 objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-icmp6
 export APICLIobjectstype=services-icmp6
-export APICLICSVobjecttype=services-icmp6
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3562,9 +3578,11 @@ RefactorObjectsCSV
 # services-sctp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
-export APICLICSVobjecttype=services-sctp
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3574,9 +3592,11 @@ RefactorObjectsCSV
 # services-other objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
-export APICLICSVobjecttype=services-other
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3586,9 +3606,11 @@ RefactorObjectsCSV
 # services-dce-rpc objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-dce-rpc
 export APICLIobjectstype=services-dce-rpc
-export APICLICSVobjecttype=services-dce-rpc
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3598,9 +3620,11 @@ RefactorObjectsCSV
 # services-rpc objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
-export APICLICSVobjecttype=services-rpc
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3611,21 +3635,52 @@ RefactorObjectsCSV
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-gtp
 export APICLIobjectstype=services-gtp
 export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
-CheckAPIVersionAndExecuteOperation
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+# service-citrix-tcp objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=service-citrix-tcp
+export APICLIobjectstype=services-citrix-tcp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+# service-compound-tcp objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=service-compound-tcp
+export APICLIobjectstype=services-compound-tcp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+RefactorObjectsCSV
 
 
 # -------------------------------------------------------------------------------------------------
 # service-groups objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
-export APICLICSVobjecttype=service-groups
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3633,8 +3688,65 @@ RefactorObjectsCSV
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-08-28
+# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# application-sites objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+RefactorObjectsCSV
 
 
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
+
+# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# application-site-categories objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=application-site-category
+export APICLIobjectstype=application-site-categories
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+RefactorObjectsCSV
+
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
+
+# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# application-site-groups objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=application-site-group
+export APICLIobjectstype=application-site-groups
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+RefactorObjectsCSV
+
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
 # ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
@@ -3644,12 +3756,13 @@ RefactorObjectsCSV
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-echo
-echo 'Users'
-echo
-echo >> ${logfilepath}
-echo 'Users' >> ${logfilepath}
-echo >> ${logfilepath}
+echo | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo 'Users' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
@@ -3661,9 +3774,11 @@ echo >> ${logfilepath}
 # users
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=users
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user
 export APICLIobjectstype=users
-export APICLICSVobjecttype=users
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3678,9 +3793,11 @@ RefactorObjectsCSV
 # user-groups
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=user-groups
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user-group
 export APICLIobjectstype=user-groups
-export APICLICSVobjecttype=user-groups
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3695,9 +3812,11 @@ RefactorObjectsCSV
 # user-templates
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=user-templates
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user-template
 export APICLIobjectstype=user-templates
-export APICLICSVobjecttype=user-templates
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3712,9 +3831,11 @@ RefactorObjectsCSV
 # identity-tags
 # -------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=identity-tags
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=identity-tag
 export APICLIobjectstype=identity-tags
-export APICLICSVobjecttype=identity-tags
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 RefactorObjectsCSV
@@ -3726,6 +3847,7 @@ RefactorObjectsCSV
 # -------------------------------------------------------------------------------------------------
 # no more simple objects
 # -------------------------------------------------------------------------------------------------
+
 
 echo
 echo ${APICLIdetaillvl}' Refactor simple elements CSV files - Complete!'
@@ -3751,21 +3873,16 @@ echo
 # For this script the ${APICLIobjecttype} items are deleted.
 
 ConfigureComplexObjects () {
-    #
-    # Screen width template for sizing, default width of 80 characters assumed
-    #
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     
-        
     export APICLIfilename=${APICLIcomplexobjectstype}
     if [ x"${APICLIexportnameaddon}" != x"" ] ; then
         export APICLIfilename=${APICLIfilename}'_'${APICLIexportnameaddon}
     fi
     export APICLIfilename=${APICLIfilename}'_'${APICLIdetaillvl}'_csv'${APICLICSVfileexportsuffix}
-
-m     export APICLIImportCSVfile=${APICLICSVImportpathbase}/${APICLIfilename}
-
+    
+    #export APICLIImportCSVfile=${APICLICSVImportpathbase}/${APICLICSVobjecttype}'_'${APICLIdetaillvl}'_csv'${APICLICSVfileexportsuffix}
+    export APICLIImportCSVfile=${APICLICSVImportpathbase}/${APICLIfilename}
+    
     export OutputPath=${APICLIpathexport}/${APICLIfilename}
     
     if [ ! -r ${APICLIImportCSVfile} ] ; then
@@ -3776,10 +3893,10 @@ m     export APICLIImportCSVfile=${APICLICSVImportpathbase}/${APICLIfilename}
         echo | tee -a -i ${logfilepath}
         return 0
     fi
-
+    
     export fileimport=${APICLIImportCSVfile}
     export filerefactor=${OutputPath}
-
+    
     echo | tee -a -i ${logfilepath}
     echo "Refactor ${APICLIobjecttype} CSV File " | tee -a -i ${logfilepath}
     echo "  Original File  :  ${APICLIImportCSVfile}" | tee -a -i ${logfilepath}
@@ -3787,23 +3904,20 @@ m     export APICLIImportCSVfile=${APICLICSVImportpathbase}/${APICLIfilename}
     echo | tee -a -i ${logfilepath}
     
     GenerateRefactoredCSV
-
+    
     echo | tee -a -i ${logfilepath}
     tail ${OutputPath} | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
-
+    
     echo | tee -a -i ${logfilepath}
     echo "Done Refactoring ${APICLIobjecttype} CSV File : ${APICLIImportCSVfile}" | tee -a -i ${logfilepath}
-
+    
     if ! ${NOWAIT} ; then
         read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
     fi
-
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-
-    echo
+    
+    echo | tee -a -i ${logfilepath}
     return 0
 }
 
@@ -3816,6 +3930,7 @@ m     export APICLIImportCSVfile=${APICLICSVImportpathbase}/${APICLIfilename}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
 export APICLIcomplexobjecttype=group-member
@@ -3831,6 +3946,7 @@ ConfigureComplexObjects
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
 export APICLIcomplexobjecttype=time-group-member
@@ -3846,6 +3962,7 @@ ConfigureComplexObjects
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-group
 export APICLIobjectstype=tacacs-groups
 export APICLIcomplexobjecttype=tacacs-group-member
@@ -3861,6 +3978,7 @@ ConfigureComplexObjects
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
 export APICLIcomplexobjecttype=service-group-member
@@ -3876,6 +3994,7 @@ ConfigureComplexObjects
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-group
 export APICLIobjectstype=application-site-groups
 export APICLIcomplexobjecttype=application-site-group-member
@@ -3892,6 +4011,7 @@ ConfigureComplexObjects
 # MODIFIED 2021-01-18 -
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=user-group
 export APICLIobjectstype=user-groups
 export APICLIcomplexobjecttype=user-group-member
@@ -3907,6 +4027,7 @@ ConfigureComplexObjects
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
 export APICLIcomplexobjecttype=host-interface
@@ -3918,12 +4039,13 @@ ConfigureComplexObjects
 
 
 # -------------------------------------------------------------------------------------------------
-# Specific Complex OBJECT : user authentications :  passwords
+# Specific Complex OBJECT : user authentications :  check point password
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-27 - 
+# MODIFIED 2021-01-28 - 
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=user
 export APICLIobjectstype=users
 export APICLIcomplexobjecttype=user-with-auth-checkpointpassword
@@ -3931,14 +4053,17 @@ export APICLIcomplexobjectstype=users-with-auth-checkpointpassword
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
 export APICLIexportnameaddon=
 
+ConfigureComplexObjects
+
 
 # -------------------------------------------------------------------------------------------------
-# Specific Complex OBJECT : user authentications :  passwords
+# Specific Complex OBJECT : user authentications :  os password
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-27 - 
+# MODIFIED 2021-01-28 - 
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=user
 export APICLIobjectstype=users
 export APICLIcomplexobjecttype=user-with-auth-ospassword
@@ -3946,14 +4071,17 @@ export APICLIcomplexobjectstype=users-with-auth-ospassword
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
 export APICLIexportnameaddon=
 
+ConfigureComplexObjects
+
 
 # -------------------------------------------------------------------------------------------------
-# Specific Complex OBJECT : user authentications :  passwords
+# Specific Complex OBJECT : user authentications :  securid
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-27 - 
+# MODIFIED 2021-01-28 - 
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=user
 export APICLIobjectstype=users
 export APICLIcomplexobjecttype=user-with-auth-securid
@@ -3961,14 +4089,17 @@ export APICLIcomplexobjectstype=users-with-auth-securid
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
 export APICLIexportnameaddon=
 
+ConfigureComplexObjects
+
 
 # -------------------------------------------------------------------------------------------------
-# Specific Complex OBJECT : user authentications :  passwords
+# Specific Complex OBJECT : user authentications :  radius
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-27 - 
+# MODIFIED 2021-01-28 - 
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=user
 export APICLIobjectstype=users
 export APICLIcomplexobjecttype=user-with-auth-radius
@@ -3976,14 +4107,17 @@ export APICLIcomplexobjectstype=users-with-auth-radius
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
 export APICLIexportnameaddon=
 
+ConfigureComplexObjects
+
 
 # -------------------------------------------------------------------------------------------------
-# Specific Complex OBJECT : user authentications :  passwords
+# Specific Complex OBJECT : user authentications :  tacacs
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-27 - 
+# MODIFIED 2021-01-28 - 
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=user
 export APICLIobjectstype=users
 export APICLIcomplexobjecttype=user-with-auth-tacacs
@@ -3991,14 +4125,17 @@ export APICLIcomplexobjectstype=users-with-auth-tacacs
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
 export APICLIexportnameaddon=
 
+ConfigureComplexObjects
+
 
 # -------------------------------------------------------------------------------------------------
-# Specific Complex OBJECT : user authentications :  passwords
+# Specific Complex OBJECT : user authentications :  undefined
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-27 - 
+# MODIFIED 2021-01-28 - 
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=user
 export APICLIobjectstype=users
 export APICLIcomplexobjecttype=user-with-auth-undefined
@@ -4006,9 +4143,139 @@ export APICLIcomplexobjectstype=users-with-auth-undefined
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
 export APICLIexportnameaddon=
 
+ConfigureComplexObjects
+
 
 # -------------------------------------------------------------------------------------------------
-# no more complex objects
+# Specific Complex OBJECT : user-template user authentications :  check point passwords
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-28 - 
+
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+export APICLIcomplexobjecttype='user-template-with-auth-checkpointpassword'
+export APICLIcomplexobjectstype='user-templates-with-auth-checkpointpassword'
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+ConfigureComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : user-template user authentications :  os passwords
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-28 - 
+
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+export APICLIcomplexobjecttype='user-template-with-auth-ospassword'
+export APICLIcomplexobjectstype='user-templates-with-auth-ospassword'
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+ConfigureComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : user-template user authentications :  securid
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-28 - 
+
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+export APICLIcomplexobjecttype='user-template-with-auth-securid'
+export APICLIcomplexobjectstype='user-templates-with-auth-securid'
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+ConfigureComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : user-template user authentications :  radius
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-28 - 
+
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+export APICLIcomplexobjecttype='user-template-with-auth-radius'
+export APICLIcomplexobjectstype='user-templates-with-auth-radius'
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+ConfigureComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : user-template user authentications :  tacacs
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-28 - 
+
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+export APICLIcomplexobjecttype='user-template-with-auth-tacacs'
+export APICLIcomplexobjectstype='user-templates-with-auth-tacacs'
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+ConfigureComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : user-template user authentications :  undefined
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-28 - 
+
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+export APICLIcomplexobjecttype='user-template-with-auth-undefined'
+export APICLIcomplexobjectstype='user-templates-with-auth-undefined'
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+ConfigureComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : user-template user expiration :  non-global expiration
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-28 - 
+
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+export APICLIcomplexobjecttype='user-template-with-non-global-expiration'
+export APICLIcomplexobjectstype='user-templates-with-non-global-expiration'
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+ConfigureComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# No more complex objects
+# -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 

@@ -13,11 +13,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.02
+ScriptVersion=00.60.03
 ScriptRevision=010
-ScriptDate=2021-01-27
-TemplateVersion=00.60.02
-APISubscriptsVersion=00.60.02
+ScriptDate=2021-01-29
+TemplateVersion=00.60.03
+APISubscriptsVersion=00.60.03
 APISubscriptsRevision=006
 
 #
@@ -2445,6 +2445,8 @@ ExportObjectsToCSVviaJQ () {
         export CSVJQparms=${CSVJQparms}', .["meta-info"]["creator"], .["meta-info"]["creation-time"]["iso-8601"], .["meta-info"]["last-modifier"], .["meta-info"]["last-modify-time"]["iso-8601"]'
     fi
     
+    # MODIFIED 2021-01-28 -
+    
     if ${CSVADDEXPERRHANDLE} ; then
         export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
         export CSVJQparms=${CSVJQparms}', true, true'
@@ -2452,8 +2454,10 @@ ExportObjectsToCSVviaJQ () {
         # May need to add plumbing to handle the case that not all objects types might support set-if-exists
         # For now just keep it separate
         #
-        export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
-        export CSVJQparms=${CSVJQparms}', true'
+        if ${APIobjectcansetifexists} ; then
+            export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
+            export CSVJQparms=${CSVJQparms}', true'
+        fi
     fi
     
     SetupExportObjectsToCSVviaJQ
@@ -2467,7 +2471,7 @@ ExportObjectsToCSVviaJQ () {
     export MgmtCLI_Base_OpParms="-f json -s ${APICLIsessionfile}"
     export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
     
-    export MgmtCLI_Show_OpParms="details-level \"full\" ${MgmtCLI_Base_OpParms}"
+    export MgmtCLI_Show_OpParms="details-level full ${MgmtCLI_Base_OpParms}"
     
     # MODIFIED 2018-07-20 - CLEANED UP 2020-10-05
     
@@ -2703,6 +2707,7 @@ echo | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -2734,6 +2739,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -2766,6 +2772,7 @@ export number_of_objects=${number_hosts}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
 export APICLIobjecttype=network
 export APICLIobjectstype=networks
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -2796,6 +2803,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.2
+export APIobjectcansetifexists=false
 export APICLIobjecttype=wildcard
 export APICLIobjectstype=wildcards
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -2824,6 +2832,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -2852,6 +2861,7 @@ export number_of_objects=${number_groups}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=group-with-exclusion
 export APICLIobjectstype=groups-with-exclusion
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -2880,6 +2890,7 @@ export number_of_objects=${number_groupswithexclusion}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
 export APICLIobjecttype=address-range
 export APICLIobjectstype=address-ranges
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -2910,6 +2921,7 @@ export number_of_objects=${number_addressranges}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
 export APICLIobjecttype=multicast-address-range
 export APICLIobjectstype=multicast-address-ranges
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -2940,6 +2952,7 @@ export number_of_objects=${number_multicastaddressranges}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=dns-domain
 export APICLIobjectstype=dns-domains
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -2968,6 +2981,7 @@ export number_of_objects=${number_dnsdomains}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=security-zone
 export APICLIobjectstype=security-zones
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -2979,13 +2993,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_securityzones=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3000,6 +3014,7 @@ export number_of_objects=${number_securityzones}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=dynamic-object
 export APICLIobjectstype=dynamic-objects
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3011,13 +3026,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_dynamicobjects=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3032,6 +3047,7 @@ export number_of_objects=${number_dynamicobjects}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=tag
 export APICLIobjectstype=tags
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3043,13 +3059,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_tags=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3064,6 +3080,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=simple-gateway
 export APICLIobjectstype=simple-gateways
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3075,13 +3092,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_simplegateways=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3096,6 +3113,7 @@ export number_of_objects=${number_simplegateways}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6
+export APIobjectcansetifexists=false
 export APICLIobjecttype=simple-cluster
 export APICLIobjectstype=simple-clusters
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3107,13 +3125,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_simpleclusters=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3128,6 +3146,7 @@ export number_of_objects=${number_simpleclusters}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=true
 export APICLIobjecttype=checkpoint-hosts
 export APICLIobjectstype=checkpoint-hosts
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3139,13 +3158,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_checkpointhosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3160,6 +3179,7 @@ export number_of_objects=${number_checkpointhosts}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=time
 export APICLIobjectstype=times
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3195,6 +3215,7 @@ export number_of_objects=${number_times}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3206,13 +3227,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_time_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3227,6 +3248,7 @@ export number_of_objects=${number_time_groups}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=access-role
 export APICLIobjectstype=access-roles
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3238,13 +3260,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_access_roles=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3259,6 +3281,7 @@ export number_of_objects=${number_access_roles}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=opsec-application
 export APICLIobjectstype=opsec-applications
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3297,6 +3320,7 @@ export number_of_objects=${number_opsec_applications}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=trusted-client
 export APICLIobjectstype=trusted-clients
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3308,13 +3332,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_trustedclients=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3329,6 +3353,7 @@ export number_of_objects=${number_trustedclients}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6
+export APIobjectcansetifexists=false
 export APICLIobjecttype=lsv-profile
 export APICLIobjectstype=lsv-profiles
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3340,13 +3365,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_lsvprofiles=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3361,6 +3386,7 @@ export number_of_objects=${number_number_lsvprofiles}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=gsn-handover-group
 export APICLIobjectstype=gsn-handover-groups
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3372,13 +3398,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_gsnhandovergroups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3393,6 +3419,7 @@ export number_of_objects=${number_gsnhandovergroups}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=access-point-names
 export APICLIobjectstype=access-point-names
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3404,13 +3431,13 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_accesspointnames=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3424,7 +3451,10 @@ export number_of_objects=${number_accesspointnames}
 # tacacs-server objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2021-01-29 -
+
 export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-server
 export APICLIobjectstype=tacacs-servers
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3436,22 +3466,33 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-export CSVFileHeader='"encryption","priority","server-type","server.name","service","secret-key"'
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+export CSVFileHeader='"server-type"'
+export CSVFileHeader=${CSVFileHeader}',"server"'
+export CSVFileHeader=${CSVFileHeader}',"service"'
+export CSVFileHeader=${CSVFileHeader}',"priority"'
+export CSVFileHeader=${CSVFileHeader}',"encryption"'
+export CSVFileHeader=${CSVFileHeader}',"secret-key"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-export CSVJQparms='.["encryption"], .["priority"], .["server-type"], .["server"]["name"], .["service"], ""'
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+export CSVJQparms='.["server-type"]'
+export CSVJQparms=${CSVJQparms}', .["server"]["name"]'
+export CSVJQparms=${CSVJQparms}', .["service"]["name"]'
+export CSVJQparms=${CSVJQparms}', .["priority"]'
+export CSVJQparms=${CSVJQparms}', .["encryption"]'
+export CSVJQparms=${CSVJQparms}', ""'
+#export CSVJQparms=${CSVJQparms}', "Y0urP4$$w04dH3r3"'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_tacacsservers=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_tacacsservers="${objectstotal_tacacsservers}"
 export number_of_objects=${number_tacacsservers}
 
-#CheckAPIVersionAndExecuteOperation
+CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3459,6 +3500,7 @@ export number_of_objects=${number_tacacsservers}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-group
 export APICLIobjectstype=tacacs-groups
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3477,7 +3519,7 @@ objectstotal_tacacsgroups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 
 export number_tacacsgroups="${objectstotal_tacacsgroups}"
 export number_of_objects=${number_tacacsgroups}
 
-#CheckAPIVersionAndExecuteOperation
+CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3500,6 +3542,7 @@ echo | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3515,14 +3558,14 @@ export CSVFileHeader='"port","protocol","source-port"'
 export CSVFileHeader=${CSVFileHeader}',"aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.timeout","aggressive-aging.use-default-timeout"'
 export CSVFileHeader=${CSVFileHeader}',"keep-connections-open-after-policy-installation","match-by-protocol-signature","match-for-any","override-default-settings"'
 export CSVFileHeader=${CSVFileHeader}',"session-timeout","use-default-session-timeout","sync-connections-on-cluster"'
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
 
 export CSVJQparms=
 export CSVJQparms='.["port"], .["protocol"], .["source-port"]'
 export CSVJQparms=${CSVJQparms}', .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["timeout"], .["aggressive-aging"]["use-default-timeout"]'
 export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installation"], .["match-by-protocol-signature"], .["match-for-any"], .["override-default-settings"]'
 export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
 
 objectstotal_services_tcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_tcp="${objectstotal_services_tcp}"
@@ -3536,6 +3579,7 @@ export number_of_objects=${number_services_tcp}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3551,14 +3595,14 @@ export CSVFileHeader='"port","protocol","source-port"'
 export CSVFileHeader=${CSVFileHeader}',"accept-replies","aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.timeout","aggressive-aging.use-default-timeout"'
 export CSVFileHeader=${CSVFileHeader}',"keep-connections-open-after-policy-installation","match-by-protocol-signature","match-for-any","override-default-settings"'
 export CSVFileHeader=${CSVFileHeader}',"session-timeout","use-default-session-timeout","sync-connections-on-cluster"'
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
 
 export CSVJQparms=
 export CSVJQparms='.["port"], .["protocol"], .["source-port"]'
 export CSVJQparms=${CSVJQparms}', .["accept-replies"], .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["timeout"], .["aggressive-aging"]["use-default-timeout"]'
 export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installation"], .["match-by-protocol-signature"], .["match-for-any"], .["override-default-settings"]'
 export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
 
 objectstotal_services_udp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_udp="${objectstotal_services_udp}"
@@ -3572,6 +3616,7 @@ export number_of_objects=${number_services_udp}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-icmp
 export APICLIobjectstype=services-icmp
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3584,14 +3629,14 @@ export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
 export CSVFileHeader='"icmp-code","icmp-type","keep-connections-open-after-policy-installation"'
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
 export CSVJQparms='.["icmp-code"], .["icmp-type"], .["keep-connections-open-after-policy-installation"]'
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_services_icmp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3606,6 +3651,7 @@ export number_of_objects=${number_services_icmp}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-icmp6
 export APICLIobjectstype=services-icmp6
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3618,14 +3664,14 @@ export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
 export CSVFileHeader='"icmp-code","icmp-type","keep-connections-open-after-policy-installation"'
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
 export CSVJQparms='.["icmp-code"], .["icmp-type"], .["keep-connections-open-after-policy-installation"]'
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_services_icmp6=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3640,6 +3686,7 @@ export number_of_objects=${number_services_icmp6}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3655,14 +3702,14 @@ export CSVFileHeader='"port","source-port"'
 export CSVFileHeader=${CSVFileHeader}',"aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.timeout","aggressive-aging.use-default-timeout"'
 export CSVFileHeader=${CSVFileHeader}',"keep-connections-open-after-policy-installation","match-for-any"'
 export CSVFileHeader=${CSVFileHeader}',"session-timeout","use-default-session-timeout","sync-connections-on-cluster"'
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
 
 export CSVJQparms=
 export CSVJQparms='.["port"], .["source-port"]'
 export CSVJQparms=${CSVJQparms}', .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["timeout"], .["aggressive-aging"]["use-default-timeout"]'
 export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installation"], .["match-for-any"]'
 export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
 
 objectstotal_services_sctp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_sctp="${objectstotal_services_sctp}"
@@ -3676,6 +3723,7 @@ export number_of_objects=${number_services_sctp}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3692,7 +3740,7 @@ export CSVFileHeader=${CSVFileHeader}',"accept-replies","ip-protocol","action","
 export CSVFileHeader=${CSVFileHeader}',"aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.timeout","aggressive-aging.use-default-timeout"'
 export CSVFileHeader=${CSVFileHeader}',"keep-connections-open-after-policy-installation","match-for-any","override-default-settings"'
 export CSVFileHeader=${CSVFileHeader}',"session-timeout","use-default-session-timeout","sync-connections-on-cluster"'
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
 
 export CSVJQparms=
 export CSVJQparms='.["port"], .["source-port"]'
@@ -3700,7 +3748,7 @@ export CSVJQparms=${CSVJQparms}', .["accept-replies"], .["ip-protocol"], .["acti
 export CSVJQparms=${CSVJQparms}', .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["timeout"], .["aggressive-aging"]["use-default-timeout"]'
 export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installation"], .["match-for-any"], .["override-default-settings"]'
 export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
 
 objectstotal_services_other=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_other="${objectstotal_services_other}"
@@ -3714,6 +3762,7 @@ export number_of_objects=${number_services_other}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-dce-rpc
 export APICLIobjectstype=services-dce-rpc
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3726,14 +3775,14 @@ export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
 export CSVFileHeader='"interface-uuid","keep-connections-open-after-policy-installation"'
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
 export CSVJQparms='.["interface-uuid"], .["keep-connections-open-after-policy-installation"]'
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_services_dce_rpc=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3748,6 +3797,7 @@ export number_of_objects=${number_services_dce_rpc}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3760,14 +3810,14 @@ export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
 export CSVFileHeader='"program-number","keep-connections-open-after-policy-installation"'
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
 export CSVJQparms='.["program-number"], .["keep-connections-open-after-policy-installation"]'
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_services_rpc=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3782,6 +3832,7 @@ export number_of_objects=${number_services_rpc}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-gtp
 export APICLIobjectstype=services-gtp
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3802,8 +3853,8 @@ export CSVFileHeader=${CSVFileHeader}',"ms-isdn.enable","ms-isdn.ms-isdn","selec
 export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.utran","radio-access-technology.geran","radio-access-technology.wlan","radio-access-technology.gan"'
 export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.hspa-evolution","radio-access-technology.eutran","radio-access-technology.virtual","radio-access-technology.nb-iot"'
 export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.other-types-range.enable","radio-access-technology.other-types-range.types"'
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
@@ -3816,8 +3867,8 @@ export CSVJQparms=${CSVJQparms}', .["ms-isdn"]["enable"], .["ms-isdn"]["ms-isdn"
 export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["utran"], .["radio-access-technology"]["geran"], .["radio-access-technology"]["wlan"], .["radio-access-technology"]["gan"]'
 export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["hspa-evolution"], .["radio-access-technology"]["eutran"], .["radio-access-technology"]["virtual"], .["radio-access-technology"]["nb-iot"]'
 export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["other-types-range"]["enable"], .["radio-access-technology"]["other-types-range"]["types"]'
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_servicescitrixtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3832,6 +3883,7 @@ export number_of_objects=${number_servicescitrixtcp}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-citrix-tcp
 export APICLIobjectstype=services-citrix-tcp
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3844,14 +3896,14 @@ export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
 export CSVFileHeader='"application"'
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
 export CSVJQparms='.["application"]'
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_servicescitrixtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3866,6 +3918,7 @@ export number_of_objects=${number_servicescitrixtcp}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-compound-tcp
 export APICLIobjectstype=services-compound-tcp
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3878,14 +3931,14 @@ export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
 export CSVFileHeader='"compound-service","keep-connections-open-after-policy-installation"'
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
 export CSVJQparms='.["compound-service"], .["keep-connections-open-after-policy-installation"]'
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_servicescompoundtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3900,6 +3953,7 @@ export number_of_objects=${number_servicescompoundtcp}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3931,6 +3985,7 @@ export number_of_objects=${number_service_groups}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -3952,8 +4007,8 @@ export CSVFileHeader=${CSVFileHeader}',"url-list.0","application-signature.0"'
 # The next elements are more complex elements, but NOT required for import add operation
 export CSVFileHeader=${CSVFileHeader}',"additional-categories.0"'
 export CSVFileHeader=${CSVFileHeader}',"description'
-#export CSVFileHeader=${CSVFileHeader}',"element","element","element","element"'
-#export CSVFileHeader=${CSVFileHeader}',"element.subelement","element.subelement","element.subelement","element.subelement"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
@@ -3967,8 +4022,8 @@ export CSVJQparms=${CSVJQparms}', .["url-list"][0], .["application-signature"][0
 # The next elements are more complex elements, but NOT required for import add operation
 export CSVJQparms=${CSVJQparms}', .["additional-categories"][0]'
 export CSVJQparms=${CSVJQparms}', .["description"]'
-#export CSVJQparms=${CSVJQparms}', .["element"], .["element"], .["element"], .["element"]'
-#export CSVJQparms=${CSVJQparms}', .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"], .["element"]["subelement"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 objectstotal_application_sites=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -3988,6 +4043,7 @@ export number_of_objects=${number_application_sites}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-category
 export APICLIobjectstype=application-site-categories
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -4027,6 +4083,7 @@ export number_of_objects=${number_application_site_categories}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-group
 export APICLIobjectstype=application-site-groups
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -4074,10 +4131,11 @@ echo | tee -a -i ${logfilepath}
 # user objects
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-27\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-28\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=user
 export APICLIobjectstype=users
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -4094,14 +4152,55 @@ export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
 export CSVFileHeader='"template","e-mail","phone-number"'
-#export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server.name","tacacs-server.name"'
-export CSVFileHeader=${CSVFileHeader}',"expiration-date"'
+#export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server","tacacs-server"'
+#export CSVFileHeader=${CSVFileHeader}',"expiration-date"'
 export CSVFileHeader=${CSVFileHeader}',"encryption.enable-ike","encryption.enable-public-key","encryption.enable-shared-secret"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
 export CSVJQparms='.["template"], .["e-mail"], .["phone-number"]'
 #export CSVJQparms=${CSVJQparms}', .["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
+#export CSVJQparms=${CSVJQparms}', .["expiration-date"]["iso-8601"]'
+export CSVJQparms=${CSVJQparms}', .["encryption"]["ike"], .["encryption"]["public-key"], .["encryption"]["shared-secret"]'
+#export CSVJQparms=${CSVJQparms}', .["icon"]'
+
+objectstotal_users=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_users="${objectstotal_users}"
+export number_of_objects=${number_users}
+
+CheckAPIVersionAndExecuteOperation
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-28
+# MODIFIED 2021-01-28\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user
+export APICLIobjectstype=users
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=REFERENCE_ONLY_DO_NOT_IMPORT
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+# User export with credential information is not working properly when done this way, so not exporting authentication method here.
+# Handling the export of explicit per user authentication method and inforamtion later in specific complex objects, one export for each authentication-method
+# NOTE:  It is not possible to export users Check Point Password value
+
+export CSVFileHeader=
+export CSVFileHeader='"template","e-mail","phone-number"'
+export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server","tacacs-server"'
+export CSVFileHeader=${CSVFileHeader}',"expiration-date"'
+export CSVFileHeader=${CSVFileHeader}',"encryption.enable-ike","encryption.enable-public-key","encryption.enable-shared-secret"'
+#export CSVFileHeader=${CSVFileHeader}',"icon"'
+
+export CSVJQparms=
+export CSVJQparms='.["template"], .["e-mail"], .["phone-number"]'
+export CSVJQparms=${CSVJQparms}', .["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
 export CSVJQparms=${CSVJQparms}', .["expiration-date"]["iso-8601"]'
 export CSVJQparms=${CSVJQparms}', .["encryption"]["ike"], .["encryption"]["public-key"], .["encryption"]["shared-secret"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
@@ -4113,16 +4212,18 @@ export number_of_objects=${number_users}
 CheckAPIVersionAndExecuteOperation
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-28
 
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
 
 # -------------------------------------------------------------------------------------------------
 # user-group objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2021-01-28\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=user-group
 export APICLIobjectstype=user-groups
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -4150,16 +4251,17 @@ export number_of_objects=${number_user_groups}
 CheckAPIVersionAndExecuteOperation
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
-
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-28
 
 # -------------------------------------------------------------------------------------------------
 # user-template objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2021-01-28\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
 export APICLIobjectstype=user-templates
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -4171,7 +4273,46 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-export CSVFileHeader='"authentication-method","radius-server.name","tacacs-server.name"'
+export CSVFileHeader='"authentication-method","radius-server","tacacs-server"'
+#export CSVFileHeader=${CSVFileHeader}',"expiration-by-global-properties","expiration-date"'
+export CSVFileHeader=${CSVFileHeader}',"expiration-by-global-properties"'
+export CSVFileHeader=${CSVFileHeader}',"encryption.enable-ike","encryption.enable-public-key","encryption.enable-shared-secret"'
+#export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"icon"'
+
+export CSVJQparms=
+export CSVJQparms='.["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
+#export CSVJQparms=${CSVJQparms}', .["expiration-by-global-properties"], .["expiration-date"]["iso-8601"]'
+export CSVJQparms=${CSVJQparms}', .["expiration-by-global-properties"]'
+export CSVJQparms=${CSVJQparms}', .["encryption"]["ike"], .["encryption"]["public-key"], .["encryption"]["shared-secret"]'
+#export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["icon"]'
+
+objectstotal_user_templates=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_user_templates="${objectstotal_user_templates}"
+export number_of_objects=${number_user_templates}
+
+CheckAPIVersionAndExecuteOperation
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-28
+# MODIFIED 2021-01-28\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=REFERENCE_ONLY_DO_NOT_IMPORT
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"authentication-method","radius-server","tacacs-server"'
 export CSVFileHeader=${CSVFileHeader}',"expiration-by-global-properties","expiration-date"'
 export CSVFileHeader=${CSVFileHeader}',"encryption.enable-ike","encryption.enable-public-key","encryption.enable-shared-secret"'
 #export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
@@ -4191,16 +4332,17 @@ export number_of_objects=${number_user_templates}
 CheckAPIVersionAndExecuteOperation
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
-
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-28
 
 # -------------------------------------------------------------------------------------------------
 # identity-tag objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2021-01-28\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=identity-tag
 export APICLIobjectstype=identity-tags
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -4225,10 +4367,10 @@ objectstotal_identity_tags=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0
 export number_identity_tags="${objectstotal_identity_tags}"
 export number_of_objects=${number_identity_tags}
 
-#CheckAPIVersionAndExecuteOperation
+CheckAPIVersionAndExecuteOperation
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-28
 
 
 # -------------------------------------------------------------------------------------------------
@@ -4633,10 +4775,12 @@ CollectMembersInObjectsType () {
                     # May need to add plumbing to handle the case that not all objects types might support set-if-exists
                     # For now just keep it separate
                     #
-                    #export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
-                    #export CSVJQparms=${CSVJQparms}', true'
-                    
-                    #echo -n ', true' >> ${APICLICSVfiledata}
+                    #if ${APIobjectcansetifexists} ; then
+                        #export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
+                        #export CSVJQparms=${CSVJQparms}', true'
+                        
+                        #echo -n ', true' >> ${APICLICSVfiledata}
+                    #fi
                 fi
                 
                 echo >> ${APICLICSVfiledata}
@@ -4677,8 +4821,10 @@ GetObjectMembers () {
         # May need to add plumbing to handle the case that not all objects types might support set-if-exists
         # For now just keep it separate
         #
-        #export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
-        #export CSVJQparms=${CSVJQparms}', true'
+        #if ${APIobjectcansetifexists} ; then
+            #export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
+            #export CSVJQparms=${CSVJQparms}', true'
+        #fi
     fi
     
     SetupExportComplexObjectsToCSVviaJQ
@@ -4760,6 +4906,7 @@ GenericComplexObjectsMembersHandler () {
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
 export APICLIcomplexobjecttype=group-member
@@ -4782,6 +4929,7 @@ export CSVFileHeader='"name","members.add"'
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
 export APICLIcomplexobjecttype=time-group-member
@@ -4804,6 +4952,7 @@ GenericComplexObjectsMembersHandler
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-group
 export APICLIobjectstype=tacacs-groups
 export APICLIcomplexobjecttype=tacacs-group-member
@@ -4826,6 +4975,7 @@ GenericComplexObjectsMembersHandler
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
 export APICLIcomplexobjecttype=service-group-member
@@ -4848,6 +4998,7 @@ export CSVFileHeader='"name","members.add"'
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-group
 export APICLIobjectstype=application-site-groups
 export APICLIcomplexobjecttype=application-site-group-member
@@ -4872,6 +5023,7 @@ export CSVFileHeader='"name","members.add"'
 # MODIFIED 2021-01-18 -
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=user-group
 export APICLIobjectstype=user-groups
 export APICLIcomplexobjecttype=user-group-member
@@ -5221,10 +5373,12 @@ CollectInterfacesInHostObjects () {
                     # May need to add plumbing to handle the case that not all objects types might support set-if-exists
                     # For now just keep it separate
                     #
-                    #export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
-                    #export CSVJQparms=${CSVJQparms}', true'
-                    
-                    export CSVoutputline=${CSVoutputline}', true'
+                    if ${APIobjectcansetifexists} ; then
+                        #export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
+                        #export CSVJQparms=${CSVJQparms}', true'
+                        
+                        export CSVoutputline=${CSVoutputline}', true'
+                    fi
                 fi
                 
                 if ${APISCRIPTVERBOSE} ; then
@@ -5265,6 +5419,8 @@ GetHostInterfaces () {
     
     export HostInterfacesCount=0
     
+    # MODIFIED 2021-01-28 -
+    
     if ${CSVADDEXPERRHANDLE} ; then
         export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
         export CSVJQparms=${CSVJQparms}', true, true'
@@ -5272,8 +5428,10 @@ GetHostInterfaces () {
         # May need to add plumbing to handle the case that not all objects types might support set-if-exists
         # For now just keep it separate
         #
-        export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
-        export CSVJQparms=${CSVJQparms}', true'
+        if ${APIobjectcansetifexists} ; then
+            export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
+            export CSVJQparms=${CSVJQparms}', true'
+        fi
     fi
     
     SetupExportComplexObjectsToCSVviaJQ
@@ -5315,6 +5473,7 @@ GetHostInterfaces () {
 # MODIFIED 2021-01-27 - 
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
 export APICLIcomplexobjecttype=host-interface
@@ -5358,7 +5517,7 @@ else
     echo 'Check hosts to generate interfaces!' | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     
-    GetHostInterfaces
+    #GetHostInterfaces
 fi
 
 echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
@@ -5401,6 +5560,8 @@ echo | tee -a -i ${logfilepath}
 ExportUserAuthenticationsToCSVviaJQ () {
     #
     
+    # MODIFIED 2021-01-28 -
+    
     if ${CSVADDEXPERRHANDLE} ; then
         export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
         export CSVJQparms=${CSVJQparms}', true, true'
@@ -5408,8 +5569,10 @@ ExportUserAuthenticationsToCSVviaJQ () {
         # May need to add plumbing to handle the case that not all objects types might support set-if-exists
         # For now just keep it separate
         #
-        export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
-        export CSVJQparms=${CSVJQparms}', true'
+        if ${APIobjectcansetifexists} ; then
+            export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
+            export CSVJQparms=${CSVJQparms}', true'
+        fi
     fi
     
     SetupExportComplexObjectsToCSVviaJQ
@@ -5423,15 +5586,23 @@ ExportUserAuthenticationsToCSVviaJQ () {
     export MgmtCLI_Base_OpParms="-f json -s ${APICLIsessionfile}"
     export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
     
-    export MgmtCLI_Show_OpParms="details-level \"full\" ${MgmtCLI_Base_OpParms}"
+    export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
     
-    #
-    # APICLICSVsortparms can change due to the nature of the object
-    #
+    # MODIFIED 2021-01-28 -
     
-    export userauthtypeselectorelement='."'"${APICLIexportkeycheck}"'" == "'"${APICLIexportkeyvalue}"'"'
+    #export userauthtypeselectorelement='."'"${APICLIexportcheck01key}"'" == "'"${APICLIexportcheck01value}"'"'
+    if [ "${APICLIexportcheck01value}" == "true" ] ; then 
+        # The value of ${APICLIexportcheck01value} is boolean true, so check if the value of ${APICLIexportcheck01key} is true
+        export userauthtypeselectorelement='."'"${APICLIexportcheck01key}"'"' 
+    elif [ "${APICLIexportcheck01value}" == "false" ] ; then 
+        # The value of ${APICLIexportcheck01value} is boolean false, so check if the value of ${APICLIexportcheck01key} is not true
+        export userauthtypeselectorelement='."'"${APICLIexportcheck01key}"'" | not'
+    else 
+        # The value of ${APICLIexportcheck01value} is a string, not boolean, so check if the value of ${APICLIexportcheck01key} is the same
+        export userauthtypeselectorelement='."'"${APICLIexportcheck01key}"'" == "'"${APICLIexportcheck01value}"'"'
+    fi
     
-    # MODIFIED 2018-07-20 -
+    # MODIFIED 2021-01-27 -
     
     # System Object selection operands
     # Future alternative if more options to exclude are needed
@@ -5563,12 +5734,13 @@ GetUserAuthentications () {
 
 
 # -------------------------------------------------------------------------------------------------
-# Specific Complex OBJECT : user authentications :  passwords
+# Specific Complex OBJECT : user authentications
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-27 - 
+# MODIFIED 2021-01-28 - 
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=user
 export APICLIobjectstype=users
 
@@ -5579,7 +5751,7 @@ export APICLIobjectstype=users
 
 #export CSVFileHeader=
 #export CSVFileHeader='"template","e-mail","phone-number"'
-#export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server.name","tacacs-server.name"'
+#export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server","tacacs-server"'
 #export CSVFileHeader=${CSVFileHeader}',"expiration-date"'
 #export CSVFileHeader=${CSVFileHeader}',"encryption.enable-ike","encryption.enable-public-key","encryption.enable-shared-secret"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
@@ -5591,7 +5763,7 @@ export APICLIobjectstype=users
 #export CSVJQparms=${CSVJQparms}', .["encryption"]["ike"], .["encryption"]["public-key"], .["encryption"]["shared-secret"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-28 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 objectstotal_users=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -5610,12 +5782,13 @@ else
     # NOTE:  It is not possible to export users Check Point Password value
     
     # -------------------------------------------------------------------------------------------------
-    # Specific Complex OBJECT : user authentications :  passwords
+    # Specific Complex OBJECT : user authentications :  check point passwords
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2021-01-27 - 
+    # MODIFIED 2021-01-28 - 
     
     export APIobjectminversion=1.6.1
+    export APIobjectcansetifexists=false
     export APICLIobjecttype=user
     export APICLIobjectstype=users
     export APICLIcomplexobjecttype='user-with-auth-checkpointpassword'
@@ -5623,8 +5796,8 @@ else
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
     export APICLIexportnameaddon=
     
-    export APICLIexportkeycheck='authentication-method'
-    export APICLIexportkeyvalue='check point password'
+    export APICLIexportcheck01key='authentication-method'
+    export APICLIexportcheck01value='check point password'
     
     #
     # APICLICSVsortparms can change due to the nature of the object
@@ -5650,12 +5823,13 @@ else
     # -------------------------------------------------------------------------------------------------
     
     # -------------------------------------------------------------------------------------------------
-    # Specific Complex OBJECT : user authentications :  passwords
+    # Specific Complex OBJECT : user authentications :  os passwords
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2021-01-27 - 
+    # MODIFIED 2021-01-28 - 
     
     export APIobjectminversion=1.6.1
+    export APIobjectcansetifexists=false
     export APICLIobjecttype=user
     export APICLIobjectstype=users
     export APICLIcomplexobjecttype='user-with-auth-ospassword'
@@ -5663,8 +5837,8 @@ else
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
     export APICLIexportnameaddon=
     
-    export APICLIexportkeycheck='authentication-method'
-    export APICLIexportkeyvalue='os password'
+    export APICLIexportcheck01key='authentication-method'
+    export APICLIexportcheck01value='os password'
     
     #
     # APICLICSVsortparms can change due to the nature of the object
@@ -5689,12 +5863,13 @@ else
     # -------------------------------------------------------------------------------------------------
     
     # -------------------------------------------------------------------------------------------------
-    # Specific Complex OBJECT : user authentications :  passwords
+    # Specific Complex OBJECT : user authentications :  securid
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2021-01-27 - 
+    # MODIFIED 2021-01-28 - 
     
     export APIobjectminversion=1.6.1
+    export APIobjectcansetifexists=false
     export APICLIobjecttype=user
     export APICLIobjectstype=users
     export APICLIcomplexobjecttype='user-with-auth-securid'
@@ -5702,8 +5877,8 @@ else
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
     export APICLIexportnameaddon=
     
-    export APICLIexportkeycheck='authentication-method'
-    export APICLIexportkeyvalue='securid'
+    export APICLIexportcheck01key='authentication-method'
+    export APICLIexportcheck01value='securid'
     
     #
     # APICLICSVsortparms can change due to the nature of the object
@@ -5728,12 +5903,13 @@ else
     # -------------------------------------------------------------------------------------------------
     
     # -------------------------------------------------------------------------------------------------
-    # Specific Complex OBJECT : user authentications :  passwords
+    # Specific Complex OBJECT : user authentications :  radius
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2021-01-27 - 
+    # MODIFIED 2021-01-28 - 
     
     export APIobjectminversion=1.6.1
+    export APIobjectcansetifexists=false
     export APICLIobjecttype=user
     export APICLIobjectstype=users
     export APICLIcomplexobjecttype='user-with-auth-radius'
@@ -5741,15 +5917,15 @@ else
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
     export APICLIexportnameaddon=
     
-    export APICLIexportkeycheck='authentication-method'
-    export APICLIexportkeyvalue='radius'
+    export APICLIexportcheck01key='authentication-method'
+    export APICLIexportcheck01value='radius'
     
     #
     # APICLICSVsortparms can change due to the nature of the object
     #
     export APICLICSVsortparms='-f -t , -k 1,1'
     
-    #export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server.name","tacacs-server.name"'
+    #export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server","tacacs-server"'
     #export CSVJQparms=${CSVJQparms}', .["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
     
     export CSVFileHeader='"name","authentication-method"'
@@ -5770,12 +5946,13 @@ else
     # -------------------------------------------------------------------------------------------------
     
     # -------------------------------------------------------------------------------------------------
-    # Specific Complex OBJECT : user authentications :  passwords
+    # Specific Complex OBJECT : user authentications :  tacacs
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2021-01-27 - 
+    # MODIFIED 2021-01-28 - 
     
     export APIobjectminversion=1.6.1
+    export APIobjectcansetifexists=false
     export APICLIobjecttype=user
     export APICLIobjectstype=users
     export APICLIcomplexobjecttype='user-with-auth-tacacs'
@@ -5783,19 +5960,19 @@ else
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
     export APICLIexportnameaddon=
     
-    export APICLIexportkeycheck='authentication-method'
-    export APICLIexportkeyvalue='tacacs'
+    export APICLIexportcheck01key='authentication-method'
+    export APICLIexportcheck01value='tacacs'
     
     #
     # APICLICSVsortparms can change due to the nature of the object
     
-    #export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server.name","tacacs-server.name"'
+    #export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server","tacacs-server"'
     #export CSVJQparms=${CSVJQparms}', .["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
     
     export APICLICSVsortparms='-f -t , -k 1,1'
     
     export CSVFileHeader='"name","authentication-method"'
-    export CSVFileHeader=${CSVFileHeader}',"tacacs-server.name"'
+    export CSVFileHeader=${CSVFileHeader}',"tacacs-server"'
     
     export CSVJQparms='.["name"], .["authentication-method"]'
     export CSVJQparms=${CSVJQparms}', .["tacacs-server"]["name"]'
@@ -5812,12 +5989,13 @@ else
     # -------------------------------------------------------------------------------------------------
     
     # -------------------------------------------------------------------------------------------------
-    # Specific Complex OBJECT : user authentications :  passwords
+    # Specific Complex OBJECT : user authentications :  undefined
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2021-01-27 - 
+    # MODIFIED 2021-01-28 - 
     
     export APIobjectminversion=1.6.1
+    export APIobjectcansetifexists=false
     export APICLIobjecttype=user
     export APICLIobjectstype=users
     export APICLIcomplexobjecttype='user-with-auth-undefined'
@@ -5825,8 +6003,8 @@ else
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
     export APICLIexportnameaddon=
     
-    export APICLIexportkeycheck='authentication-method'
-    export APICLIexportkeyvalue='undefined'
+    export APICLIexportcheck01key='authentication-method'
+    export APICLIexportcheck01value='undefined'
     
     #
     # APICLICSVsortparms can change due to the nature of the object
@@ -5853,7 +6031,403 @@ else
 fi
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-28
+
+
+# -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : user-template user authentications
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-28 - 
+
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+#export APICLICSVsortparms='-f -t , -k 1,1'
+
+#export CSVFileHeader=
+#export CSVFileHeader='"authentication-method","radius-server","tacacs-server"'
+#export CSVFileHeader=${CSVFileHeader}',"expiration-by-global-properties","expiration-date"'
+#export CSVFileHeader=${CSVFileHeader}',"encryption.enable-ike","encryption.enable-public-key","encryption.enable-shared-secret"'
+#export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"icon"'
+
+#export CSVJQparms=
+#export CSVJQparms='.["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
+#export CSVJQparms=${CSVJQparms}', .["expiration-by-global-properties"], .["expiration-date"]["iso-8601"]'
+#export CSVJQparms=${CSVJQparms}', .["encryption"]["ike"], .["encryption"]["public-key"], .["encryption"]["shared-secret"]'
+#export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["icon"]'
+
+# MODIFIED 2021-01-28 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+objectstotal_user_templates=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_user_templates="${objectstotal_user_templates}"
+
+if [ ${number_user_templates} -le 0 ] ; then
+    # No Users found
+    echo | tee -a -i ${logfilepath}
+    echo 'No '${APICLIobjectstype}' to generate authentications from!' | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+else
+    # Users found
+    
+    # User export with credential information is not working properly when done as a complete object.
+    # Handling the export of explicit per user authentication method and inforamtion later in specific complex objects, one export for each authentication-method
+    # NOTE:  It is not possible to export users Check Point Password value
+    
+    # -------------------------------------------------------------------------------------------------
+    # Specific Complex OBJECT : user-template user authentications :  check point passwords
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2021-01-29 - 
+    
+    export APIobjectminversion=1.6.1
+    export APIobjectcansetifexists=false
+    export APICLIobjecttype=user-template
+    export APICLIobjectstype=user-templates
+    export APICLIcomplexobjecttype='user-template-with-auth-checkpointpassword'
+    export APICLIcomplexobjectstype='user-templates-with-auth-checkpointpassword'
+    export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcheck01key='authentication-method'
+    export APICLIexportcheck01value='check point password'
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    export APICLICSVsortparms='-f -t , -k 1,1'
+    
+    # NOTE:  It is not possible to export users Check Point Password value
+    
+    export CSVFileHeader='"name","authentication-method"'
+    #export CSVFileHeader=${CSVFileHeader}',"password"'
+    
+    export CSVJQparms='.["name"], .["authentication-method"]'
+    #export CSVJQparms=${CSVJQparms}', "Pr0v1d3Us3rPa$$W0rdH3r3!"'
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    
+    GetUserAuthentications
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    # -------------------------------------------------------------------------------------------------
+    # Specific Complex OBJECT : user-template user authentications :  os passwor
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2021-01-28 - 
+    
+    export APIobjectminversion=1.6.1
+    export APIobjectcansetifexists=false
+    export APICLIobjecttype=user-template
+    export APICLIobjectstype=user-templates
+    export APICLIcomplexobjecttype='user-template-with-auth-ospassword'
+    export APICLIcomplexobjectstype='user-templates-with-auth-ospassword'
+    export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcheck01key='authentication-method'
+    export APICLIexportcheck01value='os password'
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    export APICLICSVsortparms='-f -t , -k 1,1'
+    
+    export CSVFileHeader='"name","authentication-method"'
+    #export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey"'
+    
+    export CSVJQparms='.["name"], .["authentication-method"]'
+    #export CSVJQparms=${CSVJQparms}', .["key"]["subkey"], .["key"]["subkey"]'
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    
+    GetUserAuthentications
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    # -------------------------------------------------------------------------------------------------
+    # Specific Complex OBJECT : user-template user authentications :  securid
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2021-01-28 - 
+    
+    export APIobjectminversion=1.6.1
+    export APIobjectcansetifexists=false
+    export APICLIobjecttype=user-template
+    export APICLIobjectstype=user-templates
+    export APICLIcomplexobjecttype='user-template-with-auth-securid'
+    export APICLIcomplexobjectstype='user-templates-with-auth-securid'
+    export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcheck01key='authentication-method'
+    export APICLIexportcheck01value='securid'
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    export APICLICSVsortparms='-f -t , -k 1,1'
+    
+    export CSVFileHeader='"name","authentication-method"'
+    #export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey"'
+    
+    export CSVJQparms='.["name"], .["authentication-method"]'
+    #export CSVJQparms=${CSVJQparms}', .["key"]["subkey"], .["key"]["subkey"]'
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    
+    GetUserAuthentications
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    # -------------------------------------------------------------------------------------------------
+    # Specific Complex OBJECT : user-template user authentications :  radius
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2021-01-28 - 
+    
+    export APIobjectminversion=1.6.1
+    export APIobjectcansetifexists=false
+    export APICLIobjecttype=user-template
+    export APICLIobjectstype=user-templates
+    export APICLIcomplexobjecttype='user-template-with-auth-radius'
+    export APICLIcomplexobjectstype='user-templates-with-auth-radius'
+    export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcheck01key='authentication-method'
+    export APICLIexportcheck01value='radius'
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    export APICLICSVsortparms='-f -t , -k 1,1'
+    
+    #export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server","tacacs-server"'
+    #export CSVJQparms=${CSVJQparms}', .["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
+    
+    export CSVFileHeader='"name","authentication-method"'
+    export CSVFileHeader=${CSVFileHeader}',"radius-server"'
+    
+    export CSVJQparms='.["name"], .["authentication-method"]'
+    export CSVJQparms=${CSVJQparms}', .["radius-server"]["name"]'
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    
+    GetUserAuthentications
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    # -------------------------------------------------------------------------------------------------
+    # Specific Complex OBJECT : user-template user authentications :  tacacs
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2021-01-28 - 
+    
+    export APIobjectminversion=1.6.1
+    export APIobjectcansetifexists=false
+    export APICLIobjecttype=user-template
+    export APICLIobjectstype=user-templates
+    export APICLIcomplexobjecttype='user-template-with-auth-tacacs'
+    export APICLIcomplexobjectstype='user-templates-with-auth-tacacs'
+    export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcheck01key='authentication-method'
+    export APICLIexportcheck01value='tacacs'
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    
+    #export CSVFileHeader=${CSVFileHeader}',"authentication-method","radius-server","tacacs-server"'
+    #export CSVJQparms=${CSVJQparms}', .["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
+    
+    export APICLICSVsortparms='-f -t , -k 1,1'
+    
+    export CSVFileHeader='"name","authentication-method"'
+    export CSVFileHeader=${CSVFileHeader}',"tacacs-server"'
+    
+    export CSVJQparms='.["name"], .["authentication-method"]'
+    export CSVJQparms=${CSVJQparms}', .["tacacs-server"]["name"]'
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    
+    GetUserAuthentications
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    # -------------------------------------------------------------------------------------------------
+    # Specific Complex OBJECT : user-template user authentications :  undefined
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2021-01-28 - 
+    
+    export APIobjectminversion=1.6.1
+    export APIobjectcansetifexists=false
+    export APICLIobjecttype=user-template
+    export APICLIobjectstype=user-templates
+    export APICLIcomplexobjecttype='user-template-with-auth-undefined'
+    export APICLIcomplexobjectstype='user-templates-with-auth-undefined'
+    export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcheck01key='authentication-method'
+    export APICLIexportcheck01value='undefined'
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    export APICLICSVsortparms='-f -t , -k 1,1'
+    
+    export CSVFileHeader='"name","authentication-method"'
+    #export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey"'
+    
+    export CSVJQparms='.["name"], .["authentication-method"]'
+    #export CSVJQparms=${CSVJQparms}', .["key"]["subkey"], .["key"]["subkey"]'
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    
+    GetUserAuthentications
+    
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+fi
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-28
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : user-template user expiration
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-28 - 
+
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+#export APICLICSVsortparms='-f -t , -k 1,1'
+
+#export CSVFileHeader=
+#export CSVFileHeader='"authentication-method","radius-server","tacacs-server"'
+#export CSVFileHeader=${CSVFileHeader}',"expiration-by-global-properties","expiration-date"'
+#export CSVFileHeader=${CSVFileHeader}',"encryption.enable-ike","encryption.enable-public-key","encryption.enable-shared-secret"'
+#export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"icon"'
+
+#export CSVJQparms=
+#export CSVJQparms='.["authentication-method"], .["radius-server"]["name"], .["tacacs-server"]["name"]'
+#export CSVJQparms=${CSVJQparms}', .["expiration-by-global-properties"], .["expiration-date"]["iso-8601"]'
+#export CSVJQparms=${CSVJQparms}', .["encryption"]["ike"], .["encryption"]["public-key"], .["encryption"]["shared-secret"]'
+#export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["icon"]'
+
+# MODIFIED 2021-01-28 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+objectstotal_user_templates=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_user_templates="${objectstotal_user_templates}"
+
+if [ ${number_user_templates} -le 0 ] ; then
+    # No Users found
+    echo | tee -a -i ${logfilepath}
+    echo 'No '${APICLIobjectstype}' to generate authentications from!' | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+else
+    # Users found
+    
+    # User export with credential information is not working properly when done as a complete object.
+    # Handling the export of explicit per user authentication method and inforamtion later in specific complex objects, one export for each authentication-method
+    # NOTE:  It is not possible to export users Check Point Password value
+    
+    # -------------------------------------------------------------------------------------------------
+    # Specific Complex OBJECT : user-template user expiration :  non-global expiration
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2021-01-28 - 
+    
+    export APIobjectminversion=1.6.1
+    export APIobjectcansetifexists=false
+    export APICLIobjecttype=user-template
+    export APICLIobjectstype=user-templates
+    export APICLIcomplexobjecttype='user-template-with-non-global-expiration'
+    export APICLIcomplexobjectstype='user-templates-with-non-global-expiration'
+    export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcheck01key='expiration-by-global-properties'
+    export APICLIexportcheck01value=false
+    
+    #
+    # APICLICSVsortparms can change due to the nature of the object
+    #
+    export APICLICSVsortparms='-f -t , -k 1,1'
+    
+    # NOTE:  It is not possible to export users Check Point Password value
+    
+    export CSVFileHeader='"name","expiration-by-global-properties", "expiration-date"'
+    #export CSVFileHeader=${CSVFileHeader}',"value"'
+    
+    export CSVJQparms='.["name"], .["expiration-by-global-properties"], .["expiration-date"]["iso-8601"]'
+    #export CSVJQparms=${CSVJQparms}', "key"'
+    
+    GetUserAuthentications
+    
+fi
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-28
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------

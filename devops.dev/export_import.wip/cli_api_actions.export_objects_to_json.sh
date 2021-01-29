@@ -13,11 +13,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.02
+ScriptVersion=00.60.03
 ScriptRevision=010
-ScriptDate=2021-01-27
-TemplateVersion=00.60.02
-APISubscriptsVersion=00.60.02
+ScriptDate=2021-01-29
+TemplateVersion=00.60.03
+APISubscriptsVersion=00.60.03
 APISubscriptsRevision=006
 
 #
@@ -576,6 +576,7 @@ echo | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -589,6 +590,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
 export APICLIobjecttype=network
 export APICLIobjectstype=networks
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -602,6 +604,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.2
+export APIobjectcansetifexists=false
 export APICLIobjecttype=wildcard
 export APICLIobjectstype=wildcards
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -615,6 +618,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -628,6 +632,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=group-with-exclusion
 export APICLIobjectstype=groups-with-exclusion
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -641,6 +646,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
 export APICLIobjecttype=address-range
 export APICLIobjectstype=address-ranges
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -654,6 +660,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
 export APICLIobjecttype=multicast-address-range
 export APICLIobjectstype=multicast-address-ranges
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -667,6 +674,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=dns-domain
 export APICLIobjectstype=dns-domains
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -680,6 +688,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=security-zone
 export APICLIobjectstype=security-zones
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -693,6 +702,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=dynamic-object
 export APICLIobjectstype=dynamic-objects
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -706,6 +716,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=tag
 export APICLIobjectstype=tags
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -719,6 +730,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=simple-gateway
 export APICLIobjectstype=simple-gateways
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -732,6 +744,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6
+export APIobjectcansetifexists=false
 export APICLIobjecttype=simple-cluster
 export APICLIobjectstype=simple-clusters
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -745,6 +758,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=true
 export APICLIobjecttype=checkpoint-hosts
 export APICLIobjectstype=checkpoint-hosts
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -758,6 +772,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=time
 export APICLIobjectstype=times
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -771,6 +786,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -784,6 +800,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=access-role
 export APICLIobjectstype=access-roles
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -797,6 +814,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=opsec-application
 export APICLIobjectstype=opsec-applications
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -810,6 +828,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=trusted-client
 export APICLIobjectstype=trusted-clients
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -823,6 +842,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6
+export APIobjectcansetifexists=false
 export APICLIobjecttype=lsv-profile
 export APICLIobjectstype=lsv-profiles
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -836,6 +856,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=gsn-handover-group
 export APICLIobjectstype=gsn-handover-groups
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -849,6 +870,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=access-point-names
 export APICLIobjectstype=access-point-names
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -862,6 +884,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=access-point-names
 export APICLIobjectstype=access-point-names
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -875,6 +898,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-server
 export APICLIobjectstype=tacacs-servers
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -888,6 +912,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-group
 export APICLIobjectstype=tacacs-groups
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -916,6 +941,7 @@ echo | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -929,6 +955,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -942,6 +969,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-icmp
 export APICLIobjectstype=services-icmp
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -955,6 +983,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-icmp6
 export APICLIobjectstype=services-icmp6
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -968,6 +997,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -981,6 +1011,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -994,6 +1025,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-dce-rpc
 export APICLIobjectstype=services-dce-rpc
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -1007,6 +1039,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -1020,6 +1053,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-gtp
 export APICLIobjectstype=services-gtp
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -1033,6 +1067,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-citrix-tcp
 export APICLIobjectstype=services-citrix-tcp
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -1046,6 +1081,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-compound-tcp
 export APICLIobjectstype=services-compound-tcp
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -1059,6 +1095,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -1072,6 +1109,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -1085,6 +1123,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-category
 export APICLIobjectstype=application-site-categories
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -1098,6 +1137,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-group
 export APICLIobjectstype=application-site-groups
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -1135,6 +1175,7 @@ echo | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=user
 export APICLIobjectstype=users
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -1153,6 +1194,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=user-group
 export APICLIobjectstype=user-groups
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -1171,6 +1213,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
 export APICLIobjectstype=user-templates
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -1189,6 +1232,7 @@ CheckAPIVersionAndExecuteOperation
 # -------------------------------------------------------------------------------------------------
 
 export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
 export APICLIobjecttype=identity-tag
 export APICLIobjectstype=identity-tags
 export APICLICSVobjecttype=${APICLIobjectstype}

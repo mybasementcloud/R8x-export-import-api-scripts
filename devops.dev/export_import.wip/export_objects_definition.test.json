@@ -1,7 +1,7 @@
 { "file_meta_info" : {
-	"fileversion" : "0.60.2",
+	"fileversion" : "0.60.3",
 	"filerevision" : "010",
-	"filedate" : "2021-01-27"
+	"filedate" : "2021-01-29"
 }, 
 "default_csv_export_elements" : [ {
 	"name" : "common",
@@ -45,6 +45,7 @@
 	"name-plural" : "hosts",
 	"objectgroup" : "Network Objects",
 	"api-version" : "1.1",
+	"cansetifexists" : "true",
 	"objectype" : "host",
 	"objectsype" : "hosts",
 	"objectlimit" : 500,
@@ -56,6 +57,7 @@
 	"name-plural" : "hosts-no-NAT",
 	"objectgroup" : "Network Objects",
 	"api-version" : "1.1",
+	"cansetifexists" : "true",
 	"objectype" : "host",
 	"objectsype" : "hosts",
 	"objectlimit" : 500,
@@ -67,6 +69,7 @@
 	"name-plural" : "networks",
 	"objectgroup" : "Network Objects",
 	"api-version" : "1.1",
+	"cansetifexists" : "true",
 	"objectype" : "network",
 	"objectsype" : "networks",
 	"objectlimit" : 500,
@@ -78,6 +81,7 @@
 	"name-plural" : "services TCP",
 	"objectgroup" : "Service & Applications",
 	"api-version" : "1.1",
+	"cansetifexists" : "false",
 	"objectype" : "service-tcp",
 	"objectsype" : "services-tcp",
 	"objectlimit" : 500,
@@ -104,6 +108,7 @@
 	"name-plural" : "host interfaces",
 	"objectgroup" : "Network Objects",
 	"api-version" : "1.1",
+	"cansetifexists" : "false",
 	"objectype" : "host",
 	"objectsype" : "hosts",
 	"complexobjecttype" : "host-interface",
@@ -125,7 +130,22 @@
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"authentication-method\",\"password\"",
 	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"], .[\"Pr0v1d3Us3rPa$$W0rdH3r3!\"]",
-	"exportkeycheck" : "\"authentication-method\"",
-	"exportkeyvalue" : "\"check point password\""
+	"exportcheck01key" : "\"authentication-method\"",
+	"exportcheck01value" : "\"check point password\""
+}, {
+	"name" : "user-template with auth radius",
+	"name-plural" : "user-templates with auth radius",
+	"objectgroup" : "Users",
+	"api-version" : "1.6.1",
+	"objecttype" : "user-template",
+	"objectstype" : "user-templates",
+	"complexobjecttype" : "user-template-with-auth-radius",
+	"complexobjectstype" : "user-templates-with-auth-radius",
+	"objectlimit" : 500,
+	"sortparms" : "'-f -t , -k 1,2'",
+	"CSVFileHeader" : "\"name\",\"authentication-method\",\"radius-server.name\"",
+	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"], .[\"radius-server\"][\"name\"]",
+	"exportcheck01key" : "\"authentication-method\"",
+	"exportcheck01value" : "\"radius\""
 } ]
 }

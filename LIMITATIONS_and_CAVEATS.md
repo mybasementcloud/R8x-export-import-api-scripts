@@ -29,9 +29,9 @@ Currently RADIUS server object and RADIUS servers group object types do not exis
 
     3.)  TACACS "authentication-method" DOES NOT support import when the RADIUS server is set to "ANY"
 
-    4.)  Certificates are currently not handled, export may not be plausible
+    4.)  Users with "authentication-method" "check point password" will get a generic complex password set in the CSV file, since the export of their password or even a hash is not avialable.  To import that user with a defined password for authentication, the CSV used for the import must be MANUALLY EDITED to reflect the desired actual password.  Careless import may clobber existing authentication settings and user known password.  CAVEAT EMPTOR!
 
-    5.)  Users with "authentication-method" "check point password" will get a generic complex password set in the CSV file, since the export of their password or even a hash is not avialable.  To import that user with a defined password for authentication, the CSV used for the import must be MANUALLY EDITED to reflect the desired actual password.  Careless import may clobber existing authentication settings and user known password.  CAVEAT EMPTOR!
+    5.)  Certificates are currently not handled, export may not be plausible
 
 ### User-Template Objects
     1.) "authentication-method" significantly impacts export approach for user-template objects.  Unlike user objects, the basic details about the "authentication-method" are exportable and importable--with caveats
@@ -40,3 +40,8 @@ Currently RADIUS server object and RADIUS servers group object types do not exis
 
     3.)  TACACS "authentication-method" DOES NOT support import when the RADIUS server is set to "ANY"
 
+### User and User-Template Objects
+    1.) Locations currently not handled, as this requires a concept and approach
+
+    2.) Times currently not handled, as this requires a concept and approach
+    

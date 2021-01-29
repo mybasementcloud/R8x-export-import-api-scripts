@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT Object delete using object-names csv files for API CLI Operations
+# SCRIPT Remove zerolocks sessions with web_api user
 #
 # (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
@@ -13,12 +13,13 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.03
+ScriptVersion=05.60.03
 ScriptRevision=010
 ScriptDate=2021-01-29
 TemplateVersion=00.60.03
 APISubscriptsVersion=00.60.03
 APISubscriptsRevision=006
+
 
 #
 
@@ -34,11 +35,11 @@ export APIExpectedAPISubscriptsVersion=v${APISubscriptsVersion}
 export APIExpectedActionScriptsVersionX=v${ScriptVersion//./x}
 export APIExpectedAPISubscriptsVersionX=v${APISubscriptsVersion//./x}
 
-ScriptName=cli_api_delete_objects_using_csv
-export APIScriptFileNameRoot=cli_api_delete_objects_using_csv
-export APIScriptShortName=delete_objects_using_csv
+ScriptName=remove_zerolocks_web_api_sessions.v${ScriptVersion}
+export APIScriptFileNameRoot=remove_zerolocks_web_api_sessions
+export APIScriptShortName=remove_zerolocks_web_api_sessions
 export APIScriptnohupName=${APIScriptShortName}
-export APIScriptDescription="Object delete using object-names csv files for API CLI Operations"
+export APIScriptDescription="Remove zerolocks sessions with web_api user"
 
 # =================================================================================================
 # =================================================================================================
@@ -134,6 +135,7 @@ export APISCRIPTVERBOSE=false
 # -------------------------------------------------------------------------------------------------
 
 # ADDED 2018-05-03 -
+
 # ================================================================================================
 # NOTE:  
 #   DefaultMgmtAdmin value is used to set the APICLIadmin value in the setup for logon.  This is
@@ -147,13 +149,13 @@ export APISCRIPTVERBOSE=false
 export DefaultMgmtAdmin=administrator
 
 
-# 2018-05-02 - script type - delete objects
+# 2018-11-20 - script type - Session Reporting and Clean-up
 
 export script_use_publish="true"
 
 export script_use_export="false"
 export script_use_import="false"
-export script_use_delete="true"
+export script_use_delete="false"
 export script_use_csvfile="false"
 
 export script_dump_csv="false"
@@ -317,49 +319,10 @@ export mgmt_cli_API_operations_handler_file=mgmt_cli_api_operations.subscript.co
 # Set parameters for Main operations
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-export FileExtJSON=json
-export FileExtCSV=csv
-export FileExtTXT=txt
-
-export APICLIfileexportpre=dump_
-
-export APICLIfileexportext=${FileExtJSON}
-export APICLIfileexportsuffix=${DATE}'.'${APICLIfileexportext}
-
-export APICLICSVfileexportext=${FileExtCSV}
-export APICLICSVfileexportsuffix='.'${APICLICSVfileexportext}
-
-export APICLIJSONfileexportext=${FileExtJSON}
-export APICLIJSONfileexportsuffix='.'${APICLIJSONfileexportext}
 
 export MinAPIObjectLimit=500
 export MaxAPIObjectLimit=500
 export WorkAPIObjectLimit=${MaxAPIObjectLimit}
-
-# Configure basic information for formation of file path for action handler scripts
-#
-# APIScriptActionFileRoot - root path to for action handler scripts
-# APIScriptActionFileFolder - folder under root path to for action handler scripts
-# APIScriptActionFilePath - path, for action handler scripts
-#
-export APIScriptActionFileRoot=.
-export APIScriptActionFileFolder=
-
-export APIScriptActionFilePrefix=cli_api_actions
-
-export APIScriptJSONActionFilename=${APIScriptActionFilePrefix}.'export_objects_to_json'.sh
-#export APIScriptJSONActionFilename=${APIScriptActionFilePrefix}'_actions_'${APIScriptVersion}.sh
-
-export APIScriptCSVActionFilename=${APIScriptActionFilePrefix}.'export_objects_to_csv'.sh
-#export APIScriptCSVActionFilename=${APIScriptActionFilePrefix}'_actions_to_csv_'${APIScriptVersion}.sh
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04
-
-# -------------------------------------------------------------------------------------------------
 
 
 # =================================================================================================
@@ -1931,7 +1894,6 @@ fi
 # =================================================================================================
 # =================================================================================================
 
-
 # =================================================================================================
 # -------------------------------------------------------------------------------------------------
 # =================================================================================================
@@ -2011,1098 +1973,49 @@ fi
 
 
 # =================================================================================================
-# START:  Delete using CSV
+# START:  Main operations
 # =================================================================================================
 
-
-#export APICLIdetaillvl=standard
-#export APICLIdetaillvl=full
-export APICLIdetaillvl=name
-
-# ADDED 2018-05-04-2 -
-# Only changes this parameter to force the specific state of CLIparm_NoSystemObjects
-# since it is set using the command line parameters --SO (false) and --NSO (true)
-#
-#export CLIparm_NoSystemObjects=false
-
-# ADDED 2018-04-25 -
-export primarytargetoutputformat=${FileExtCSV}
 
 # -------------------------------------------------------------------------------------------------
 # Start executing Main operations
 # -------------------------------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------------------------------
-# Configure working paths for export and dump
-# -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-04-3 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+export deletefile=${APICLIpathbase}/sessions_to_delete_uid.${DATEDTGS}.csv
+export dumpfile=${APICLIpathbase}/delete_session.${DATEDTGS}.json
 
-# ------------------------------------------------------------------------
-# Set and clear temporary log file
-# ------------------------------------------------------------------------
-
-export templogfilepath=/var/tmp/templog_${ScriptName}.`date +%Y%m%d-%H%M%S%Z`.log
-echo > ${templogfilepath}
-
-echo 'Configure working paths for export and dump' >> ${templogfilepath}
-echo >> ${templogfilepath}
-
-echo "domainnamenospace = '${domainnamenospace}' " >> ${templogfilepath}
-echo "CLIparm_NODOMAINFOLDERS = '${CLIparm_NODOMAINFOLDERS}' " >> ${templogfilepath}
-echo "primarytargetoutputformat = '${primarytargetoutputformat}' " >> ${templogfilepath}
-echo "APICLICSVExportpathbase = '${APICLICSVExportpathbase}' " >> ${templogfilepath}
-echo "APICLIpathexport = '${APICLIpathexport}' " >> ${templogfilepath}
-
-# ------------------------------------------------------------------------
-
-if [ ! -z "${domainnamenospace}" ] && [ "${CLIparm_NODOMAINFOLDERS}" != "true" ] ; then
-    # Handle adding domain name to path for MDM operations
-    export APICLIpathexport=${APICLICSVExportpathbase}/${domainnamenospace}
-    
-    echo 'Handle adding domain name to path for MDM operations' >> ${templogfilepath}
-    echo "APICLIpathexport = '${APICLIpathexport}' " >> ${templogfilepath}
-    
-    if [ ! -r ${APICLIpathexport} ] ; then
-        mkdir -p -v ${APICLIpathexport} >> ${templogfilepath}
-    fi
-else
-    # NOT adding domain name to path for MDM operations
-    export APICLIpathexport=${APICLICSVExportpathbase}
-    
-    echo 'NOT adding domain name to path for MDM operations' >> ${templogfilepath}
-    echo "APICLIpathexport = '${APICLIpathexport}' " >> ${templogfilepath}
-    
-    if [ ! -r ${APICLIpathexport} ] ; then
-        mkdir -p -v ${APICLIpathexport} >> ${templogfilepath}
-    fi
-fi
-
-# ------------------------------------------------------------------------
-
-if ${script_use_delete} ; then
-    # primary operation is delete
-    
-    export APICLIpathexport=${APICLIpathexport}/delete
-    
-    echo | tee -a -i ${templogfilepath}
-    echo 'Delete using '${primarytargetoutputformat}' Starting!' | tee -a -i ${templogfilepath}
-    
-elif ${script_use_import} ; then
-    # primary operation is import
-    
-    export APICLIpathexport=${APICLIpathexport}/import
-    
-    echo | tee -a -i ${templogfilepath}
-    echo 'Import using '${primarytargetoutputformat}' Starting!' | tee -a -i ${templogfilepath}
-    
-elif ${script_use_export} ; then
-    # primary operation is export
-    
-    # primary operation is export to primarytargetoutputformat
-    export APICLIpathexport=${APICLIpathexport}/${primarytargetoutputformat}
-    
-    echo | tee -a -i ${templogfilepath}
-    echo 'Export to '${primarytargetoutputformat}' Starting!' | tee -a -i ${templogfilepath}
-    
-else
-    # primary operation is something else
-    
-    export APICLIpathexport=${APICLIpathbase}
-    
-fi
-
-if [ ! -r ${APICLIpathexport} ] ; then
-    mkdir -p -v ${APICLIpathexport} >> ${templogfilepath}
-fi
-
-echo >> ${templogfilepath}
-echo 'After Evaluation of script type' >> ${templogfilepath}
-echo "APICLIpathexport = '${APICLIpathexport}' " >> ${templogfilepath}
-echo " = '$' " >> ${templogfilepath}
-
-# ------------------------------------------------------------------------
-
-if [ x"${primarytargetoutputformat}" = x"${FileExtJSON}" ] ; then
-    # for JSON provide the detail level
-    
-    export APICLIpathexport=${APICLIpathexport}/${APICLIdetaillvl}
-    
-    if [ ! -r ${APICLIpathexport} ] ; then
-        mkdir -p -v ${APICLIpathexport} >> ${templogfilepath}
-    fi
-    
-    export APICLIJSONpathexportwip=
-    if [ x"$script_uses_wip_json" = x"true" ] ; then
-        # script uses work-in-progress (wip) folder for json
-        
-        export APICLIJSONpathexportwip=${APICLIpathexport}/wip
-        
-        if [ ! -r ${APICLIJSONpathexportwip} ] ; then
-            mkdir -p -v ${APICLIJSONpathexportwip} >> ${templogfilepath}
-        fi
-    fi
-else    
-    export APICLIJSONpathexportwip=
-fi
-
-echo >> ${templogfilepath}
-echo 'After handling json target' >> ${templogfilepath}
-echo "APICLIpathexport = '${APICLIpathexport}' " >> ${templogfilepath}
-echo "APICLIJSONpathexportwip = '${APICLIJSONpathexportwip}' " >> ${templogfilepath}
-
-# ------------------------------------------------------------------------
-
-if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
-    # for CSV handle specifics, like wip
-    
-    export APICLICSVpathexportwip=
-    if [ x"$script_uses_wip" = x"true" ] ; then
-        # script uses work-in-progress (wip) folder for csv
-        
-        export APICLICSVpathexportwip=${APICLIpathexport}/wip
-        
-        if [ ! -r ${APICLICSVpathexportwip} ] ; then
-            mkdir -p -v ${APICLICSVpathexportwip} >> ${templogfilepath}
-        fi
-    fi
-else
-    export APICLICSVpathexportwip=
-fi
-
-echo >> ${templogfilepath}
-echo 'After handling csv target' >> ${templogfilepath}
-echo "APICLIpathexport = '${APICLIpathexport}' " >> ${templogfilepath}
-echo "APICLICSVpathexportwip = '${APICLICSVpathexportwip}' " >> ${templogfilepath}
-
-# ------------------------------------------------------------------------
-
-export APICLIfileexportpost='_'${APICLIdetaillvl}'_'${APICLIfileexportsuffix}
-
-export APICLICSVheaderfilesuffix=header
-
-export APICLICSVfileexportpost='_'${APICLIdetaillvl}'_'${APICLICSVfileexportsuffix}
-
-export APICLIJSONheaderfilesuffix=header
-export APICLIJSONfooterfilesuffix=footer
-
-export APICLIJSONfileexportpost='_'${APICLIdetaillvl}'_'${APICLIJSONfileexportsuffix}
-
-echo >> ${templogfilepath}
-echo 'Setup other file and path variables' >> ${templogfilepath}
-echo "APICLIfileexportpost = '${APICLIfileexportpost}' " >> ${templogfilepath}
-echo "APICLICSVheaderfilesuffix = '${APICLICSVheaderfilesuffix}' " >> ${templogfilepath}
-echo "APICLICSVfileexportpost = '${APICLICSVfileexportpost}' " >> ${templogfilepath}
-echo "APICLIJSONheaderfilesuffix = '${APICLIJSONheaderfilesuffix}' " >> ${templogfilepath}
-echo "APICLIJSONfooterfilesuffix = '${APICLIJSONfooterfilesuffix}' " >> ${templogfilepath}
-echo "APICLIJSONfileexportpost = '${APICLIJSONfileexportpost}' " >> ${templogfilepath}
-
-# ------------------------------------------------------------------------
-
-echo >> ${templogfilepath}
-
-cat ${templogfilepath} >> ${logfilepath}
-rm -v ${templogfilepath} >> ${logfilepath}
-
-# ------------------------------------------------------------------------
-
-echo 'Dump "'${APICLIdetaillvl}'" details to path:  '${APICLIpathexport} | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04-3
-
-
-# =================================================================================================
-# -------------------------------------------------------------------------------------------------
-# START : Main Operational repeated proceedures - Delete Simple Objects
-# -------------------------------------------------------------------------------------------------
-
-# -------------------------------------------------------------------------------------------------
-# DeleteSimpleObjects - Operational repeated proceedure
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2018-05-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# The Operational repeated proceedure - Delete Simple Objects is the meat of the script's simple
-# objects releated repeated actions.
-#
-# For this script the ${APICLIobjecttype} items are deleted.
-
-DeleteSimpleObjects () {
-    #
-    # Screen width template for sizing, default width of 80 characters assumed
-    #
-    export APICLIfilename=${APICLICSVobjecttype}
-    if [ x"${APICLIexportnameaddon}" != x"" ] ; then
-        export APICLIfilename=${APICLIfilename}'_'${APICLIexportnameaddon}
-    fi
-    export APICLIfilename=${APICLIfilename}'_'${APICLIdetaillvl}'_csv'${APICLICSVfileexportsuffix}
-    
-    #export APICLIDeleteCSVfile=$APICLICSVDeletepathbase/${APICLICSVobjecttype}'_'${APICLIdetaillvl}'_csv'${APICLICSVfileexportsuffix}
-    export APICLIDeleteCSVfile=$APICLICSVDeletepathbase/${APICLIfilename}
-    
-    export OutputPath=${APICLIpathexport}/${APICLIfileexportpre}'delete_'${APICLIobjecttype}'_'${APICLIfileexportext}
-    
-    if [ ! -r ${APICLIDeleteCSVfile} ] ; then
-        # no CSV file for this type of object
-        echo | tee -a -i ${logfilepath}
-        echo 'CSV file for object '${APICLIobjecttype}' missing : '${APICLIDeleteCSVfile} | tee -a -i ${logfilepath}
-        echo 'Skipping!' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        return 0
-    fi
-    
-    export MgmtCLI_Base_OpParms="-f json -s ${APICLIsessionfile}"
-    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
-    export MgmtCLI_Delete_OpParms="details-level \"${APICLIdetaillvl}\" ${MgmtCLI_IgnoreErr_OpParms} ${MgmtCLI_Base_OpParms}"
-    
-    echo | tee -a -i ${logfilepath}
-    echo "Delete ${APICLIobjecttype} using CSV File : ${APICLIDeleteCSVfile}" | tee -a -i ${logfilepath}
-    echo "  mgmt_cli parameters : $MgmtCLI_Delete_OpParms" | tee -a -i ${logfilepath}
-    echo "  and dump to ${OutputPath}" | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    
-    mgmt_cli delete ${APICLIobjecttype} --batch ${APICLIDeleteCSVfile} $MgmtCLI_Delete_OpParms > ${OutputPath}
-    
-    echo | tee -a -i ${logfilepath}
-    tail ${OutputPath} | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    
-    echo | tee -a -i ${logfilepath}
-    echo 'Publish '${APICLIobjecttype}' object changes!  This could take a while...' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    
-    . ${mgmt_cli_API_operations_handler} PUBLISH "$@"
-    errorreturn=$?
-    
-    echo | tee -a -i ${logfilepath}
-    echo "Done with Deleting ${APICLIobjecttype} using CSV File : ${APICLIDeleteCSVfile}" | tee -a -i ${logfilepath}
-    
-    echo | tee -a -i ${logfilepath}
-    return 0
-}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-05
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-# -------------------------------------------------------------------------------------------------
-# CheckAPIVersionAndExecuteOperation :  Check the API Version running where we're logged in and if good execute operation
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2020-10-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-CheckAPIVersionAndExecuteOperation () {
-    #
-    GetAPIVersion=$(mgmt_cli show api-versions -f json -s ${APICLIsessionfile} | ${JQ} '.["current-version"]' -r)
-    export CheckAPIVersion=${GetAPIVersion}
-    
-    if [ ${CheckAPIVersion} = null ] ; then
-        # show api-versions does not exist in version 1.0, so it fails and returns null
-        CurrentAPIVersion=1.0
-    else
-        CurrentAPIVersion=${CheckAPIVersion}
-    fi
-    
-    echo | tee -a -i ${logfilepath}
-    echo 'Required minimum API version for object : '${APICLIobjectstype}' is API version = '${APIobjectminversion} | tee -a -i ${logfilepath}
-    echo 'Logged in management server API version = '${CurrentAPIVersion} | tee -a -i ${logfilepath}
-    
-    if [ $(expr ${APIobjectminversion} '<=' ${CurrentAPIVersion}) ] ; then
-        # API is sufficient version
-        echo | tee -a -i ${logfilepath}
-        
-        DeleteSimpleObjects
-        
-    else
-        # API is not of a sufficient version to operate on for this object
-        echo | tee -a -i ${logfilepath}
-        echo 'Current API Version ('${CurrentAPIVersion}') does not meet minimum API version expected requirement ('${APIobjectminversion}')' | tee -a -i ${logfilepath}
-        echo '! skipping object '${APICLIobjectstype}'!' | tee -a -i ${logfilepath}
-    fi
-    
-    echo | tee -a -i ${logfilepath}
-    return 0
-    
-    #
-}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-10-02
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-# -------------------------------------------------------------------------------------------------
-# END : Main Operational repeated proceedures - Delete Simple Objects
-# -------------------------------------------------------------------------------------------------
-# =================================================================================================
-
-# -------------------------------------------------------------------------------------------------
-# handle simple objects
-# -------------------------------------------------------------------------------------------------
 
 echo | tee -a -i ${logfilepath}
-echo ${APICLIdetaillvl}' CSV delete - simple objects - Delete using CSV starting!' | tee -a -i ${logfilepath}
+echo 'Before session delete' | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Network Objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+echo '.uid, .locks, .changes, .expired-session, username' >> ${dumpfile}
+#mgmt_cli -s ${APICLIsessionfile} show sessions details-level full --format json | jq -r '.objects[] | (.uid + ", " + (.locks|tostring) + ", " + (.changes|tostring) + ", " + (."expired-session"|tostring) + ", " + ."user-name")' >> ${dumpfile}
+mgmt_cli -s ${APICLIsessionfile} show sessions details-level full --format json | jq -r '.objects[] | select((."user-name"=="WEB_API")) | (.uid + ", " + (.locks|tostring) + ", " + (.changes|tostring) + ", " + (."expired-session"|tostring) + ", " + ."user-name")' >> ${dumpfile}
+echo >> ${dumpfile}
+
+cat ${dumpfile} | tee -a -i ${logfilepath}
+
+echo 'uid' > ${deletefile}
+
+mgmt_cli -s ${APICLIsessionfile} show sessions limit 500 details-level full --format json | jq -r '.objects[] | select((.locks==0) and (.changes==0) and (."expired-session"==true) and (."user-name"=="WEB_API")) | [ .uid ] | @csv' >> ${deletefile}
+
+mgmt_cli -s ${APICLIsessionfile} discard --batch ${deletefile} > ${dumpfile}
+
+cat ${dumpfile} | tee -a -i ${logfilepath}
 
 echo | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo 'Network Objects' | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo 'After session delete' | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
 
+echo '.uid, .locks, .changes, .expired-session, username' > ${dumpfile}
+#mgmt_cli -s ${APICLIsessionfile} show sessions details-level full --format json | jq -r '.objects[] | (.uid + ", " + (.locks|tostring) + ", " + (.changes|tostring) + ", " + (."expired-session"|tostring) + ", " + ."user-name")' >> ${dumpfile}
+mgmt_cli -s ${APICLIsessionfile} show sessions details-level full --format json | jq -r '.objects[] | select((."user-name"=="WEB_API")) | (.uid + ", " + (.locks|tostring) + ", " + (.changes|tostring) + ", " + (."expired-session"|tostring) + ", " + ."user-name")' >> ${dumpfile}
+echo >> ${dumpfile}
 
-# -------------------------------------------------------------------------------------------------
-# group-with-exclusion objects
-# -------------------------------------------------------------------------------------------------
+cat ${dumpfile} | tee -a -i ${logfilepath}
 
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=group-with-exclusion
-export APICLIobjectstype=groups-with-exclusion
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# group objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=group
-export APICLIobjectstype=groups
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# host objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=true
-export APICLIobjecttype=host
-export APICLIobjectstype=hosts
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# network objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=true
-export APICLIobjecttype=network
-export APICLIobjectstype=networks
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# wildcard objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.2
-export APIobjectcansetifexists=false
-export APICLIobjecttype=wildcard
-export APICLIobjectstype=wildcards
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# address-range objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=true
-export APICLIobjecttype=address-range
-export APICLIobjectstype=address-ranges
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# multicast-address-ranges objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=true
-export APICLIobjecttype=multicast-address-range
-export APICLIobjectstype=multicast-address-ranges
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# dns-domain objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=dns-domain
-export APICLIobjectstype=dns-domains
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# security-zones objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=security-zone
-export APICLIobjectstype=security-zones
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# dynamic-objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=dynamic-object
-export APICLIobjectstype=dynamic-objects
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# tags
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=tag
-export APICLIobjectstype=tags
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# simple-clusters
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6
-export APIobjectcansetifexists=false
-export APICLIobjecttype=simple-cluster
-export APICLIobjectstype=simple-clusters
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# simple-gateways
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=simple-gateway
-export APICLIobjectstype=simple-gateways
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# checkpoint-hosts
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=true
-export APICLIobjecttype=checkpoint-hosts
-export APICLIobjectstype=checkpoint-hosts
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# time_groups
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=time-group
-export APICLIobjectstype=time-groups
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# times
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=time
-export APICLIobjectstype=times
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# access-roles
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=access-role
-export APICLIobjectstype=access-roles
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# opsec-applications
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=opsec-application
-export APICLIobjectstype=opsec-applications
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# trusted-client objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=trusted-client
-export APICLIobjectstype=trusted-clients
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# lsv-profile objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6
-export APIobjectcansetifexists=false
-export APICLIobjecttype=lsv-profile
-export APICLIobjectstype=lsv-profiles
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# gsn-handover-group objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=gsn-handover-group
-export APICLIobjectstype=gsn-handover-groups
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# access-point-name objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=access-point-names
-export APICLIobjectstype=access-point-names
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# tacacs-groups objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.7
-export APIobjectcansetifexists=false
-export APICLIobjecttype=tacacs-group
-export APICLIobjectstype=tacacs-groups
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# tacacs-server objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.7
-export APIobjectcansetifexists=false
-export APICLIobjecttype=tacacs-server
-export APICLIobjectstype=tacacs-servers
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Service & Applications
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-echo | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo 'Service & Applications' | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
-
-
-# ADDED 2017-07-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# service-groups objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=service-group
-export APICLIobjectstype=service-groups
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# services-tcp objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=service-tcp
-export APICLIobjectstype=services-tcp
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# services-udp objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=service-udp
-export APICLIobjectstype=services-udp
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# services-icmp objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=service-icmp
-export APICLIobjectstype=services-icmp
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# services-icmp6 objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=service-icmp6
-export APICLIobjectstype=services-icmp6
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# services-sctp objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=service-sctp
-export APICLIobjectstype=services-sctp
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# services-other objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=service-other
-export APICLIobjectstype=services-other
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# services-dce-rpc objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=service-dce-rpc
-export APICLIobjectstype=services-dce-rpc
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# services-rpc objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=service-rpc
-export APICLIobjectstype=services-rpc
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-08-28
-# ADDED 2021-01-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-# -------------------------------------------------------------------------------------------------
-# services-gtp objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.7
-export APIobjectcansetifexists=false
-export APICLIobjecttype=service-gtp
-export APICLIobjectstype=services-gtp
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2021-01-19
-# MODIFIED 2020-10-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-# -------------------------------------------------------------------------------------------------
-# service-citrix-tcp objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=service-citrix-tcp
-export APICLIobjectstype=services-citrix-tcp
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# service-compound-tcp objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=service-compound-tcp
-export APICLIobjectstype=services-compound-tcp
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-10-02
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# application-site-groups objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=application-site-group
-export APICLIobjectstype=application-site-groups
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
-
-
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# application-site-categories objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=application-site-category
-export APICLIobjectstype=application-site-categories
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
-
-
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# application-sites objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=application-site
-export APICLIobjectstype=application-sites
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Users
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-echo | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo 'Users' | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
-
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# user-groups
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=user-group
-export APICLIobjectstype=user-groups
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# users
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=user
-export APICLIobjectstype=users
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# user-templates
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=user-template
-export APICLIobjectstype=user-templates
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# identity-tags
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=identity-tag
-export APICLIobjectstype=identity-tags
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
-
-
-# -------------------------------------------------------------------------------------------------
-# no more simple objects
-# -------------------------------------------------------------------------------------------------
-
-echo | tee -a -i ${logfilepath}
-echo 'CSV delete - simple objects - Complete!' | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-
-
-# -------------------------------------------------------------------------------------------------
-# handle complex objects
-# -------------------------------------------------------------------------------------------------
-
-#
-# Currently all complex objects are created from simple objects, so nothing left to remove
-#
-
-#echo | tee -a -i ${logfilepath}
-#echo ${APICLIdetaillvl}' CSV delete - complex objects - Delete using CSV starting!' | tee -a -i ${logfilepath}
-#echo | tee -a -i ${logfilepath}
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# No more complex objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# No more objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-echo | tee -a -i ${logfilepath}
-echo 'Delete Completed!' | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
 
 
@@ -3138,44 +2051,6 @@ fi
 if ${UseR8XAPI} ; then
     . ${mgmt_cli_API_operations_handler} LOGOUT "$@"
 fi
-
-# -------------------------------------------------------------------------------------------------
-# Clean-up according to CLI Parms and special requirements
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2020-11-17 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-if [ x"${CLIparm_CLEANUPWIP}" = x"true" ] ; then
-    # Remove Work-In-Progress folder and files
-    
-    if [ -r ${APICLICSVpathexportwip} ] ; then
-        if ${APISCRIPTVERBOSE} ; then
-            echo 'Remove CSV Work-In-Progress folder and files' | tee -a -i ${logfilepath}
-            echo '   CSV WIP Folder : '${APICLICSVpathexportwip} | tee -a -i ${logfilepath}
-        else
-            echo 'Remove CSV Work-In-Progress folder and files' >> ${logfilepath}
-            echo '   CSV WIP Folder : '${APICLICSVpathexportwip} >> ${logfilepath}
-        fi
-        rm -v -r ${APICLICSVpathexportwip} | tee -a -i ${logfilepath}
-    fi
-    
-    if [ -r ${APICLIJSONpathexportwip} ] ; then
-        if ${APISCRIPTVERBOSE} ; then
-            echo 'Remove JSON Work-In-Progress folder and files' | tee -a -i ${logfilepath}
-            echo '   JSON WIP Folder : '${APICLIJSONpathexportwip} | tee -a -i ${logfilepath}
-        else
-            echo 'Remove JSON Work-In-Progress folder and files' >> ${logfilepath}
-            echo '   JSON WIP Folder : '${APICLIJSONpathexportwip} >> ${logfilepath}
-        fi
-        rm -v -r ${APICLIJSONpathexportwip} | tee -a -i ${logfilepath}
-    fi
-
-fi
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-17
-
 
 # -------------------------------------------------------------------------------------------------
 # Clean-up and exit
