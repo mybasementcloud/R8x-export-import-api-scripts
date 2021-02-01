@@ -13,11 +13,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.03
-ScriptRevision=010
-ScriptDate=2021-01-29
-TemplateVersion=00.60.03
-APISubscriptsVersion=00.60.03
+ScriptVersion=00.60.04
+ScriptRevision=000
+ScriptDate=2021-01-31
+TemplateVersion=00.60.04
+APISubscriptsVersion=00.60.04
 APISubscriptsRevision=006
 
 #
@@ -915,7 +915,7 @@ export localCLIparms=false
 # processcliremains - Local command line parameter processor
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-31 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 processcliremains () {
@@ -939,7 +939,6 @@ processcliremains () {
             shift
             for OPT ; do
                 # MODIFIED 2019-03-08
-                #LOCALREMAINS="${LOCALREMAINS} \"${OPT}\""
                 LOCALREMAINS="${LOCALREMAINS} ${OPT}"
             done
             break
@@ -964,7 +963,6 @@ processcliremains () {
                 # Anything unknown is recorded for later
                 * )
                     # MODIFIED 2019-03-08
-                    #LOCALREMAINS="${LOCALREMAINS} \"${OPT}\""
                     LOCALREMAINS="${LOCALREMAINS} ${OPT}"
                     break
                     ;;
@@ -987,11 +985,12 @@ processcliremains () {
     eval set -- ${LOCALREMAINS}
     
     export CLIparm_local1=${CLIparm_local1}
-
+    
+    return 0
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-31
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -1714,7 +1713,7 @@ ProcessCommandLIneParameterVerboseEnable () {
 
 ProcessCommandLineParametersAndSetValues () {
     
-    # MODIFIED 2021-01-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    # MODIFIED 2021-01-31 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
     #rawcliparmdump=false
@@ -1820,11 +1819,11 @@ ProcessCommandLineParametersAndSetValues () {
                     #shift
                     ;;
                 # and --flag value opts like this
-                -u* | --user )
+                -u | --user )
                     CLIparm_user="$2"
                     shift
                     ;;
-                -p* | --password )
+                -p | --password )
                     CLIparm_password="$2"
                     shift
                     ;;
@@ -1836,20 +1835,20 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_use_api_key=true
                     shift
                     ;;
-                -P* | --port )
+                -P | --port )
                     CLIparm_websslport="$2"
                     shift
                     ;;
-                -m* | --management )
+                -m | --management )
                     CLIparm_mgmt="$2"
                     shift
                     ;;
-                -d* | --domain )
+                -d | --domain )
                     CLIparm_domain="$2"
                     CLIparm_domain=${CLIparm_domain//\"}
                     shift
                     ;;
-                -s* | --session-file )
+                -s | --session-file )
                     CLIparm_sessionidfile="$2"
                     shift
                     ;;
@@ -1858,11 +1857,11 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_sessiontimeout=${CLIparm_sessiontimeout//\"}
                     #shift
                     ;;
-                -l* | --log-path )
+                -l | --log-path )
                     CLIparm_logpath="$2"
                     shift
                     ;;
-                -o* | --output )
+                -o | --output )
                     CLIparm_outputpath="$2"
                     shift
                     ;;
@@ -1920,7 +1919,7 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_format="${OPT#*=}"
                     #shift
                     ;;
-                -f* | --format* )
+                -f | --format* )
                     CLIparm_format="$2"
                     shift
                     ;;
@@ -1944,7 +1943,7 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_exportpath="${OPT#*=}"
                     #shift
                     ;;
-                -x* | --export )
+                -x | --export )
                     CLIparm_exportpath="$2"
                     shift
                     ;;
@@ -1952,7 +1951,7 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_importpath="${OPT#*=}"
                     #shift
                     ;;
-                -i* | --import-path )
+                -i | --import-path )
                     CLIparm_importpath="$2"
                     shift
                     ;;
@@ -1960,7 +1959,7 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_deletepath="${OPT#*=}"
                     #shift
                     ;;
-                -k* | --delete-path )
+                -k | --delete-path )
                     CLIparm_deletepath="$2"
                     shift
                     ;;
@@ -1968,7 +1967,7 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_csvpath="${OPT#*=}"
                     #shift
                     ;;
-                -c* | --csv )
+                -c | --csv )
                     CLIparm_csvpath="$2"
                     shift
                     ;;
@@ -1998,7 +1997,7 @@ ProcessCommandLineParametersAndSetValues () {
     eval set -- ${REMAINS}
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-16
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-31
     # MODIFIED 2021-01-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
@@ -3157,6 +3156,7 @@ echo
 # host objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=host
@@ -3171,6 +3171,7 @@ RefactorObjectsCSV
 # host objects - NO NAT Details
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=host
@@ -3185,6 +3186,7 @@ RefactorObjectsCSV
 # network objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=network
@@ -3199,6 +3201,7 @@ RefactorObjectsCSV
 # wildcard objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.2
 export APIobjectcansetifexists=false
 export APICLIobjecttype=wildcard
@@ -3213,6 +3216,7 @@ RefactorObjectsCSV
 # group objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=group
@@ -3227,6 +3231,7 @@ RefactorObjectsCSV
 # group-with-exclusion objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=group-with-exclusion
@@ -3241,6 +3246,7 @@ RefactorObjectsCSV
 # address-range objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=address-range
@@ -3255,6 +3261,7 @@ RefactorObjectsCSV
 # multicast-address-ranges objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=multicast-address-range
@@ -3269,6 +3276,7 @@ RefactorObjectsCSV
 # dns-domain objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=dns-domain
@@ -3283,6 +3291,7 @@ RefactorObjectsCSV
 # security-zone objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=security-zone
@@ -3297,6 +3306,7 @@ RefactorObjectsCSV
 # dynamic-objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=dynamic-object
@@ -3311,6 +3321,7 @@ RefactorObjectsCSV
 # tags
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=tag
@@ -3325,6 +3336,7 @@ RefactorObjectsCSV
 # simple-gateways
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=simple-gateway
@@ -3339,6 +3351,7 @@ RefactorObjectsCSV
 # simple-clusters
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6
 export APIobjectcansetifexists=false
 export APICLIobjecttype=simple-cluster
@@ -3353,6 +3366,7 @@ RefactorObjectsCSV
 # checkpoint-hosts
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=checkpoint-hosts
@@ -3367,6 +3381,7 @@ RefactorObjectsCSV
 # times
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=time
@@ -3381,6 +3396,7 @@ RefactorObjectsCSV
 # time_groups
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=time-group
@@ -3395,6 +3411,7 @@ RefactorObjectsCSV
 # access-roles
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=access-role
@@ -3409,6 +3426,7 @@ RefactorObjectsCSV
 # opsec-applications
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=opsec-application
@@ -3423,6 +3441,7 @@ RefactorObjectsCSV
 # trusted-client objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=trusted-client
@@ -3437,6 +3456,7 @@ RefactorObjectsCSV
 # lsv-profile objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6
 export APIobjectcansetifexists=false
 export APICLIobjecttype=lsv-profile
@@ -3451,6 +3471,7 @@ RefactorObjectsCSV
 # gsn-handover-group objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=gsn-handover-group
@@ -3465,6 +3486,7 @@ RefactorObjectsCSV
 # access-point-name objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=access-point-names
@@ -3479,6 +3501,7 @@ RefactorObjectsCSV
 # tacacs-server objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-server
@@ -3493,6 +3516,7 @@ RefactorObjectsCSV
 # tacacs-groups objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-group
@@ -3522,6 +3546,7 @@ echo | tee -a -i ${logfilepath}
 # services-tcp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-tcp
@@ -3536,6 +3561,7 @@ RefactorObjectsCSV
 # services-udp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-udp
@@ -3550,6 +3576,7 @@ RefactorObjectsCSV
 # services-icmp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-icmp
@@ -3564,6 +3591,7 @@ RefactorObjectsCSV
 # services-icmp6 objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-icmp6
@@ -3578,6 +3606,7 @@ RefactorObjectsCSV
 # services-sctp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-sctp
@@ -3592,6 +3621,7 @@ RefactorObjectsCSV
 # services-other objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-other
@@ -3606,6 +3636,7 @@ RefactorObjectsCSV
 # services-dce-rpc objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-dce-rpc
@@ -3620,6 +3651,7 @@ RefactorObjectsCSV
 # services-rpc objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-rpc
@@ -3634,6 +3666,7 @@ RefactorObjectsCSV
 # services-gtp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-gtp
@@ -3648,6 +3681,7 @@ RefactorObjectsCSV
 # service-citrix-tcp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-citrix-tcp
@@ -3662,6 +3696,7 @@ RefactorObjectsCSV
 # service-compound-tcp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-compound-tcp
@@ -3676,6 +3711,7 @@ RefactorObjectsCSV
 # service-groups objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-group
@@ -3695,6 +3731,7 @@ RefactorObjectsCSV
 # application-sites objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site
@@ -3715,6 +3752,7 @@ RefactorObjectsCSV
 # application-site-categories objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-category
@@ -3735,6 +3773,7 @@ RefactorObjectsCSV
 # application-site-groups objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-group
@@ -3747,14 +3786,16 @@ RefactorObjectsCSV
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # Users
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
+
+# ADDED 2021-01-31 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 echo | tee -a -i ${logfilepath}
 echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
@@ -3765,7 +3806,7 @@ echo '--------------------------------------------------------------------------
 echo | tee -a -i ${logfilepath}
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2021-01-31
 
 # ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
@@ -3774,6 +3815,7 @@ echo | tee -a -i ${logfilepath}
 # users
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -3793,6 +3835,7 @@ RefactorObjectsCSV
 # user-groups
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-group
@@ -3812,6 +3855,7 @@ RefactorObjectsCSV
 # user-templates
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -3831,6 +3875,7 @@ RefactorObjectsCSV
 # identity-tags
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=identity-tag
@@ -3929,6 +3974,7 @@ ConfigureComplexObjects () {
 # Generic OBJECT Members : Group Members
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=group
@@ -3945,6 +3991,7 @@ ConfigureComplexObjects
 # Generic OBJECT Members : Time Group Members
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=time-group
@@ -3961,6 +4008,7 @@ ConfigureComplexObjects
 # Generic OBJECT Members : TACACS Group Members
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-group
@@ -3977,6 +4025,7 @@ ConfigureComplexObjects
 # Generic OBJECT Members : Service Group Members
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-group
@@ -3993,6 +4042,7 @@ ConfigureComplexObjects
 # Generic OBJECT Members : Application Site Group Members
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-group
@@ -4010,6 +4060,7 @@ ConfigureComplexObjects
 
 # MODIFIED 2021-01-18 -
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-group
@@ -4026,6 +4077,7 @@ ConfigureComplexObjects
 # Specific Complex OBJECT : host interfaces
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=host
@@ -4044,6 +4096,7 @@ ConfigureComplexObjects
 
 # MODIFIED 2021-01-28 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -4062,6 +4115,7 @@ ConfigureComplexObjects
 
 # MODIFIED 2021-01-28 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -4080,6 +4134,7 @@ ConfigureComplexObjects
 
 # MODIFIED 2021-01-28 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -4098,6 +4153,7 @@ ConfigureComplexObjects
 
 # MODIFIED 2021-01-28 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -4116,6 +4172,7 @@ ConfigureComplexObjects
 
 # MODIFIED 2021-01-28 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -4134,6 +4191,7 @@ ConfigureComplexObjects
 
 # MODIFIED 2021-01-28 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -4152,6 +4210,7 @@ ConfigureComplexObjects
 
 # MODIFIED 2021-01-28 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -4170,6 +4229,7 @@ ConfigureComplexObjects
 
 # MODIFIED 2021-01-28 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -4188,6 +4248,7 @@ ConfigureComplexObjects
 
 # MODIFIED 2021-01-28 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -4206,6 +4267,7 @@ ConfigureComplexObjects
 
 # MODIFIED 2021-01-28 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -4224,6 +4286,7 @@ ConfigureComplexObjects
 
 # MODIFIED 2021-01-28 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -4242,6 +4305,7 @@ ConfigureComplexObjects
 
 # MODIFIED 2021-01-28 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -4260,6 +4324,7 @@ ConfigureComplexObjects
 
 # MODIFIED 2021-01-28 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -4330,7 +4395,7 @@ fi
 # Clean-up and exit
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-31 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 echo 'CLI Operations Completed' | tee -a -i ${logfilepath}
@@ -4343,13 +4408,15 @@ if ${APISCRIPTVERBOSE} ; then
     #ls -alh ${APICLIpathroot} | tee -a -i ${logfilepath}
     #echo | tee -a -i ${logfilepath}
     
-    if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
-        echo 'Files in >'"${APICLIlogpathbase}"'<' | tee -a -i ${logfilepath}
-        ls -alhR ${APICLIpathbase} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+    if [ x"${APICLIlogpathbase}" != x"" ] ; then
+        if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
+            echo 'Files in ${APICLIlogpathbase} >'"${APICLIlogpathbase}"'<' | tee -a -i ${logfilepath}
+            ls -alhR ${APICLIlogpathbase} | tee -a -i ${logfilepath}
+            echo | tee -a -i ${logfilepath}
+        fi
     fi
     
-    echo 'Files in >'"${APICLIpathbase}"'<' | tee -a -i ${logfilepath}
+    echo 'Files in ${APICLIpathbase} >'"${APICLIpathbase}"'<' | tee -a -i ${logfilepath}
     ls -alhR ${APICLIpathbase} | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
 else
@@ -4360,13 +4427,15 @@ else
     #ls -alh ${APICLIpathroot} >> ${logfilepath}
     #echo >> ${logfilepath}
     
-    if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
-        echo 'Files in >'"${APICLIlogpathbase}"'<' >> ${logfilepath}
-        ls -alhR ${APICLIpathbase} >> ${logfilepath}
-        echo >> ${logfilepath}
+    if [ x"${APICLIlogpathbase}" != x"" ] ; then
+        if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
+            echo 'Files in ${APICLIlogpathbase} >'"${APICLIlogpathbase}"'<' >> ${logfilepath}
+            ls -alhR ${APICLIlogpathbase} >> ${logfilepath}
+            echo >> ${logfilepath}
+        fi
     fi
     
-    echo 'Files in >'"${APICLIpathbase}"'<' >> ${logfilepath}
+    echo 'Files in ${APICLIpathbase} >'"${APICLIpathbase}"'<' >> ${logfilepath}
     ls -alhR ${APICLIpathbase} >> ${logfilepath}
     echo >> ${logfilepath}
 fi
@@ -4377,7 +4446,7 @@ echo 'Log output in file   : '"${logfilepath}" | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-01-18
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-31
 
 
 # =================================================================================================

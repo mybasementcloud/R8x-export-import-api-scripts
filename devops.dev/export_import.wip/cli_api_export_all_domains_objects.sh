@@ -13,11 +13,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.03
-ScriptRevision=010
-ScriptDate=2021-01-29
-TemplateVersion=00.60.03
-APISubscriptsVersion=00.60.03
+ScriptVersion=00.60.04
+ScriptRevision=000
+ScriptDate=2021-01-31
+TemplateVersion=00.60.04
+APISubscriptsVersion=00.60.04
 APISubscriptsRevision=006
 
 #
@@ -980,7 +980,7 @@ export localCLIparms=false
 # processcliremains - Local command line parameter processor
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-31 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 processcliremains () {
@@ -1004,7 +1004,6 @@ processcliremains () {
             shift
             for OPT ; do
                 # MODIFIED 2019-03-08
-                #LOCALREMAINS="${LOCALREMAINS} \"${OPT}\""
                 LOCALREMAINS="${LOCALREMAINS} ${OPT}"
             done
             break
@@ -1029,7 +1028,6 @@ processcliremains () {
                 # Anything unknown is recorded for later
                 * )
                     # MODIFIED 2019-03-08
-                    #LOCALREMAINS="${LOCALREMAINS} \"${OPT}\""
                     LOCALREMAINS="${LOCALREMAINS} ${OPT}"
                     break
                     ;;
@@ -1052,11 +1050,12 @@ processcliremains () {
     eval set -- ${LOCALREMAINS}
     
     export CLIparm_local1=${CLIparm_local1}
-
+    
+    return 0
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-31
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -2238,7 +2237,7 @@ CheckExportActionHandlerScripts
 # GenerateArrayOfDomains - Generate Array with list of domains on MDS
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-31 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 GenerateArrayOfDomains () {
@@ -2250,38 +2249,38 @@ GenerateArrayOfDomains () {
     echo 'Generate Array with list of domains on MDS' | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     
-    export MgmtCLI_Base_OpParms="-f json -s ${APICLIsessionfile}"
-    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
-    export MgmtCLI_Show_OpParms="details-level \"full\" ${MgmtCLI_Base_OpParms}"
+    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}
+    export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
+    export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
     
-    objectstotal=$(mgmt_cli show domains limit 1 offset 0 details-level "standard" ${MgmtCLI_Base_OpParms} | ${JQ} ".total")
+    objectstotal=$(mgmt_cli show domains limit 1 offset 0 details-level standard ${MgmtCLI_Base_OpParms} | ${JQ} ".total")
     
-    GETDOMAINS="`mgmt_cli show domains ${MgmtCLI_Base_OpParms} | jq '.objects[].name'`"
+    GETDOMAINSBYNAME="`mgmt_cli show domains ${MgmtCLI_Base_OpParms} | jq '.objects[].name'`"
     
     echo 'Populate array of domains : ' | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     
-    line="\"System Data\""
+    line='"System Data"'
     DOMAINSARRAY+=("${line}")
     echo -n 'Domains :  '${line}
     
-    line="\"Global\""
+    line='"Global"'
     DOMAINSARRAY+=("${line}")
     echo -n ', '${line}
     
     arraylength=2
     while read -r line; do
-    
+        
         if [ $arraylength -eq 0 ]; then
             echo -n 'Domains :  '
         else
             echo -n ', '
         fi
-    
+        
         DOMAINSARRAY+=("${line}")
         echo -n ${line}
-    
-        #if [ "${line}" == 'lo' ]; then
+        
+        #if [ "${line}" == 'something-to-omit' ]; then
         #    echo -n 'Not adding '${line}
         #else 
         #    DOMAINSARRAY+=("${line}")
@@ -2291,14 +2290,14 @@ GenerateArrayOfDomains () {
         arraylength=${#DOMAINSARRAY[@]}
         arrayelement=$((arraylength-1))
         
-    done <<< "$GETDOMAINS"
+    done <<< "${GETDOMAINSBYNAME}"
     echo
-
+    
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-01-31
 
 # -------------------------------------------------------------------------------------------------
 # DumpArrayOfDomains - repeated proceedure
@@ -2533,7 +2532,7 @@ fi
 # Clean-up and exit
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-31 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 echo 'CLI Operations Completed' | tee -a -i ${logfilepath}
@@ -2546,13 +2545,15 @@ if ${APISCRIPTVERBOSE} ; then
     #ls -alh ${APICLIpathroot} | tee -a -i ${logfilepath}
     #echo | tee -a -i ${logfilepath}
     
-    if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
-        echo 'Files in >'"${APICLIlogpathbase}"'<' | tee -a -i ${logfilepath}
-        ls -alhR ${APICLIpathbase} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+    if [ x"${APICLIlogpathbase}" != x"" ] ; then
+        if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
+            echo 'Files in ${APICLIlogpathbase} >'"${APICLIlogpathbase}"'<' | tee -a -i ${logfilepath}
+            ls -alhR ${APICLIlogpathbase} | tee -a -i ${logfilepath}
+            echo | tee -a -i ${logfilepath}
+        fi
     fi
     
-    echo 'Files in >'"${APICLIpathbase}"'<' | tee -a -i ${logfilepath}
+    echo 'Files in ${APICLIpathbase} >'"${APICLIpathbase}"'<' | tee -a -i ${logfilepath}
     ls -alhR ${APICLIpathbase} | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
 else
@@ -2563,13 +2564,15 @@ else
     #ls -alh ${APICLIpathroot} >> ${logfilepath}
     #echo >> ${logfilepath}
     
-    if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
-        echo 'Files in >'"${APICLIlogpathbase}"'<' >> ${logfilepath}
-        ls -alhR ${APICLIpathbase} >> ${logfilepath}
-        echo >> ${logfilepath}
+    if [ x"${APICLIlogpathbase}" != x"" ] ; then
+        if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
+            echo 'Files in ${APICLIlogpathbase} >'"${APICLIlogpathbase}"'<' >> ${logfilepath}
+            ls -alhR ${APICLIlogpathbase} >> ${logfilepath}
+            echo >> ${logfilepath}
+        fi
     fi
     
-    echo 'Files in >'"${APICLIpathbase}"'<' >> ${logfilepath}
+    echo 'Files in ${APICLIpathbase} >'"${APICLIpathbase}"'<' >> ${logfilepath}
     ls -alhR ${APICLIpathbase} >> ${logfilepath}
     echo >> ${logfilepath}
 fi
@@ -2580,7 +2583,7 @@ echo 'Log output in file   : '"${logfilepath}" | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-01-18
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-31
 
 
 # =================================================================================================

@@ -15,21 +15,21 @@ REM #
 REM #
 
 SET _LOCALSCRIPTNAME=zzMakeUpdatesScriptsNow.devops.dev
-SET _LOCALSCRIPTDATE=2020-12-11
-SET _LOCALSCRIPTTIME=1615CST
-SET _LOCALSCRIPTVERSION=05.00.00
+SET _LOCALSCRIPTDATE=2021-01-29
+SET _LOCALSCRIPTTIME=2015CST
+SET _LOCALSCRIPTVERSION=v05.01.00
 SET _LOCALSCRIPTREVISION=000
 
 
-@ECHO.
-@ECHO =====================================================================================
-@ECHO =====================================================================================
-@ECHO Script Name:  %_LOCALSCRIPTNAME%
-@ECHO DATE:  %_LOCALSCRIPTDATE%  TIME:  %_LOCALSCRIPTTIME%
-@ECHO VERSION:  %_LOCALSCRIPTVERSION%  REVISION:  %_LOCALSCRIPTREVISION%
-@ECHO =====================================================================================
-@ECHO.
-@ECHO.
+@ECHO:
+@ECHO: =====================================================================================
+@ECHO: =====================================================================================
+@ECHO: Script Name:  %_LOCALSCRIPTNAME%
+@ECHO: DATE:  %_LOCALSCRIPTDATE%  TIME:  %_LOCALSCRIPTTIME%
+@ECHO: VERSION:  %_LOCALSCRIPTVERSION%  REVISION:  %_LOCALSCRIPTREVISION%
+@ECHO: =====================================================================================
+@ECHO:
+@ECHO:
 
 
 GOTO :STARTSCRIPT
@@ -234,11 +234,11 @@ REM * -------------------------------------------------------------------------
 REM * Subroutine Operations
 REM * -------------------------------------------------------------------------
 
-@ECHO. >> "%_scriptLOGFQPN%"
-@ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO Subroutine sub_CONFIGSCRIPTPATHS Start >> "%_scriptLOGFQPN%"
-@ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: Subroutine sub_CONFIGSCRIPTPATHS Start >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
 
 SET "subroutinecommonpath=" 
 SET "subroutinecommonfqpn="
@@ -247,25 +247,25 @@ SET "ERRORRETURN=0"
 SET "testthispath=.\_Common\__SUBROUTINES"
 SET "testthisfqpn=%testthispath%\%subroutinescriptfile%"
 IF EXIST "%testthisfqpn%" GOTO :SUBRTCMNPATHFOUND
-IF NOT EXIST "%testthisfqpn%" @ECHO Did not find target path here:  %testthisfqpn% >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%testthisfqpn%" @ECHO: Did not find target path here:  %testthisfqpn% >> "%_scriptLOGFQPN%"
 
 SET "testthispath=R:\_Common\__SUBROUTINES"
 SET "testthisfqpn=%testthispath%\%subroutinescriptfile%"
 IF EXIST "%testthisfqpn%" GOTO :SUBRTCMNPATHFOUND
-IF NOT EXIST "%testthisfqpn%" @ECHO Did not find target path here:  %testthisfqpn% >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%testthisfqpn%" @ECHO: Did not find target path here:  %testthisfqpn% >> "%_scriptLOGFQPN%"
 
 SET "testthispath=S:\Updates\Software\_Common\__SUBROUTINES"
 SET "testthisfqpn=%testthispath%\%subroutinescriptfile%"
 IF EXIST "%testthisfqpn%" GOTO :SUBRTCMNPATHFOUND
-IF NOT EXIST "%testthisfqpn%" @ECHO Did not find target path here:  %testthisfqpn% >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%testthisfqpn%" @ECHO: Did not find target path here:  %testthisfqpn% >> "%_scriptLOGFQPN%"
 
 SET "ERRORRETURN=100"
-@ECHO Did not find target path ! >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: Did not find target path ! >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
 GOTO :SUBRTCMNPATHSET
 
 :SUBRTCMNPATHFOUND
-@ECHO Found target path here:  %testthisfqpn% >> "%_scriptLOGFQPN%"
+@ECHO: Found target path here:  %testthisfqpn% >> "%_scriptLOGFQPN%"
 SET "subroutinecommonpath=%testthispath%"
 SET "subroutinecommonfqpn=%testthisfqpn%"
 
@@ -275,22 +275,22 @@ REM * -------------------------------------------------------------------------
 REM * Log Current Values
 REM * -------------------------------------------------------------------------
 
-@ECHO. >> "%_scriptLOGFQPN%"
-@ECHO subroutinescriptname   = %subroutinescriptname% >> "%_scriptLOGFQPN%"
-@ECHO subroutinescriptext    = %subroutinescriptext% >> "%_scriptLOGFQPN%"
-@ECHO subroutinescriptfile   = %subroutinescriptfile% >> "%_scriptLOGFQPN%"
-@ECHO subroutinecommonpath   = %subroutinecommonpath% >> "%_scriptLOGFQPN%"
-@ECHO subroutinecommonfqpn   = %subroutinecommonfqpn% >> "%_scriptLOGFQPN%"
-@ECHO testthispath           = %testthispath% >> "%_scriptLOGFQPN%"
-@ECHO testthisfqpn           = %testthisfqpn% >> "%_scriptLOGFQPN%"
-@ECHO ERRORRETURN            = %ERRORRETURN% >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO: subroutinescriptname   = %subroutinescriptname% >> "%_scriptLOGFQPN%"
+@ECHO: subroutinescriptext    = %subroutinescriptext% >> "%_scriptLOGFQPN%"
+@ECHO: subroutinescriptfile   = %subroutinescriptfile% >> "%_scriptLOGFQPN%"
+@ECHO: subroutinecommonpath   = %subroutinecommonpath% >> "%_scriptLOGFQPN%"
+@ECHO: subroutinecommonfqpn   = %subroutinecommonfqpn% >> "%_scriptLOGFQPN%"
+@ECHO: testthispath           = %testthispath% >> "%_scriptLOGFQPN%"
+@ECHO: testthisfqpn           = %testthisfqpn% >> "%_scriptLOGFQPN%"
+@ECHO: ERRORRETURN            = %ERRORRETURN% >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
 
-@ECHO. >> "%_scriptLOGFQPN%"
-@ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO Subroutine sub_CONFIGSCRIPTPATHS Finished >> "%_scriptLOGFQPN%"
-@ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: Subroutine sub_CONFIGSCRIPTPATHS Finished >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
 
 SET "testthispath="
 SET "testthisfqpn="
@@ -310,7 +310,7 @@ REM ----------------------------------------------------------------------------
 
 :cleanup_sub_CONFIGSCRIPTPATHS
 
-@ECHO CLEAN UP sub_CONFIGSCRIPTPATHS
+@ECHO: CLEAN UP sub_CONFIGSCRIPTPATHS
 
 SET "subroutinecommonpath=" 
 SET "subroutinecommonfqpn="
@@ -356,27 +356,27 @@ SET "_scriptLOGFQPN=%_scriptLOGSPATH%\%_scriptLOGSFILE%"
 IF NOT EXIST "%_scriptLOGSDIR%" MKDIR "%_scriptLOGSDIR%"
 IF NOT EXIST "%_scriptLOGSPATH%" MKDIR "%_scriptLOGSPATH%"
 
-@ECHO. > "%_scriptLOGFQPN%"
+@ECHO: > "%_scriptLOGFQPN%"
 
 REM =====================================================================================
 REM =====================================================================================
 
-@ECHO ===================================================================================== >> "%_scriptLOGFQPN%"
-@ECHO Script Name:  %_LOCALSCRIPTNAME% >> "%_scriptLOGFQPN%"
-@ECHO DATE:  %_LOCALSCRIPTDATE%  TIME:  %_LOCALSCRIPTTIME% >> "%_scriptLOGFQPN%"
-@ECHO VERSION:  %_LOCALSCRIPTVERSION%  REVISION:  %_LOCALSCRIPTREVISION% >> "%_scriptLOGFQPN%"
-@ECHO ===================================================================================== >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: ===================================================================================== >> "%_scriptLOGFQPN%"
+@ECHO: Script Name:  %_LOCALSCRIPTNAME% >> "%_scriptLOGFQPN%"
+@ECHO: DATE:  %_LOCALSCRIPTDATE%  TIME:  %_LOCALSCRIPTTIME% >> "%_scriptLOGFQPN%"
+@ECHO: VERSION:  %_LOCALSCRIPTVERSION%  REVISION:  %_LOCALSCRIPTREVISION% >> "%_scriptLOGFQPN%"
+@ECHO: ===================================================================================== >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
 
 REM =====================================================================================
 REM =====================================================================================
 
-@ECHO _scriptLOGSDIR         ="%_scriptLOGSDIR%" >> "%_scriptLOGFQPN%"
-@ECHO _scriptLOGSPATH        ="%_scriptLOGSPATH%" >> "%_scriptLOGFQPN%"
-@ECHO _scriptLOGSFILE        ="%_scriptLOGSFILE%" >> "%_scriptLOGFQPN%"
-@ECHO _scriptLOGFQPN         ="%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: _scriptLOGSDIR         ="%_scriptLOGSDIR%" >> "%_scriptLOGFQPN%"
+@ECHO: _scriptLOGSPATH        ="%_scriptLOGSPATH%" >> "%_scriptLOGFQPN%"
+@ECHO: _scriptLOGSFILE        ="%_scriptLOGSFILE%" >> "%_scriptLOGFQPN%"
+@ECHO: _scriptLOGFQPN         ="%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
 
 
 REM =====================================================================================
@@ -459,29 +459,29 @@ REM * -------------------------------------------------------------------------
 REM * Log Results
 REM * -------------------------------------------------------------------------
 
-@ECHO. >> "%_scriptLOGFQPN%"
-@ECHO Time Zone value processing results: >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
-@ECHO _TZTIMEOFYEAR          = "%_TZTIMEOFYEAR%" >> "%_scriptLOGFQPN%"
-@ECHO _TZTYPE                = "%_TZTYPE%" >> "%_scriptLOGFQPN%"
-@ECHO _TZCURRENTNAME         = "%_TZCURRENTNAME%" >> "%_scriptLOGFQPN%"
-@ECHO _TZABR                 = "%_TZABR%" >> "%_scriptLOGFQPN%"
-@ECHO _TZABRSTZ              = "%_TZABRSTZ%" >> "%_scriptLOGFQPN%"
-@ECHO _TZABRDTZ              = "%_TZABRDTZ%" >> "%_scriptLOGFQPN%"
-@ECHO _TZCURRENTNAMENOQUOTES = "%_TZCURRENTNAMENOQUOTES%" >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO: Time Zone value processing results: >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO: _TZTIMEOFYEAR          = "%_TZTIMEOFYEAR%" >> "%_scriptLOGFQPN%"
+@ECHO: _TZTYPE                = "%_TZTYPE%" >> "%_scriptLOGFQPN%"
+@ECHO: _TZCURRENTNAME         = "%_TZCURRENTNAME%" >> "%_scriptLOGFQPN%"
+@ECHO: _TZABR                 = "%_TZABR%" >> "%_scriptLOGFQPN%"
+@ECHO: _TZABRSTZ              = "%_TZABRSTZ%" >> "%_scriptLOGFQPN%"
+@ECHO: _TZABRDTZ              = "%_TZABRDTZ%" >> "%_scriptLOGFQPN%"
+@ECHO: _TZCURRENTNAMENOQUOTES = "%_TZCURRENTNAMENOQUOTES%" >> "%_scriptLOGFQPN%"
 
-@ECHO. >> "%_scriptLOGFQPN%"
-@ECHO Date Time Time Zone suffix value results: >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
-@ECHO _DTTZ_SUFFIX_DATE      = "%_DTTZ_SUFFIX_DATE%" >> "%_scriptLOGFQPN%"
-@ECHO _DTTZ_SUFFIX_DATEDASH  = "%_DTTZ_SUFFIX_DATEDASH%" >> "%_scriptLOGFQPN%"
-@ECHO _DTTZ_SUFFIX_TIME      = "%_DTTZ_SUFFIX_TIME%" >> "%_scriptLOGFQPN%"
-@ECHO _DTTZ_SUFFIX_DTG       = "%_DTTZ_SUFFIX_DTG%" >> "%_scriptLOGFQPN%"
-@ECHO _DTTZ_SUFFIX_DTGDASH   = "%_DTTZ_SUFFIX_DTGDASH%" >> "%_scriptLOGFQPN%"
-@ECHO _DTTZ_SUFFIX_TIMETZ    = "%_DTTZ_SUFFIX_TIMETZ%" >> "%_scriptLOGFQPN%"
-@ECHO _DTTZ_SUFFIX_DTGTZ     = "%_DTTZ_SUFFIX_DTGTZ%" >> "%_scriptLOGFQPN%"
-@ECHO _DTTZ_SUFFIX_DTGTZDASH = "%_DTTZ_SUFFIX_DTGTZDASH%" >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO: Date Time Time Zone suffix value results: >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO: _DTTZ_SUFFIX_DATE      = "%_DTTZ_SUFFIX_DATE%" >> "%_scriptLOGFQPN%"
+@ECHO: _DTTZ_SUFFIX_DATEDASH  = "%_DTTZ_SUFFIX_DATEDASH%" >> "%_scriptLOGFQPN%"
+@ECHO: _DTTZ_SUFFIX_TIME      = "%_DTTZ_SUFFIX_TIME%" >> "%_scriptLOGFQPN%"
+@ECHO: _DTTZ_SUFFIX_DTG       = "%_DTTZ_SUFFIX_DTG%" >> "%_scriptLOGFQPN%"
+@ECHO: _DTTZ_SUFFIX_DTGDASH   = "%_DTTZ_SUFFIX_DTGDASH%" >> "%_scriptLOGFQPN%"
+@ECHO: _DTTZ_SUFFIX_TIMETZ    = "%_DTTZ_SUFFIX_TIMETZ%" >> "%_scriptLOGFQPN%"
+@ECHO: _DTTZ_SUFFIX_DTGTZ     = "%_DTTZ_SUFFIX_DTGTZ%" >> "%_scriptLOGFQPN%"
+@ECHO: _DTTZ_SUFFIX_DTGTZDASH = "%_DTTZ_SUFFIX_DTGTZDASH%" >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
 
 
 REM * -------------------------------------------------------------------------
@@ -548,15 +548,15 @@ SET "_localLOGFILE="
 SET "_remoteLOGFILE="
 SET "_localLOGFILE=%_scriptLOGFQPN%"
 
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 @ECHO:Executing script "%subroutinecommonfqpn%" >> "%_scriptLOGFQPN%"
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
 CALL "%subroutinecommonfqpn%"
 
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 @ECHO:Script "%subroutinecommonfqpn%" Completed >> "%_scriptLOGFQPN%"
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
 REM * -----------------------------------------------------------------------------------
 REM * Restore Local Log File value _scriptLOGFQPN and retain remote subroutine _scriptLOGFQPN value
@@ -584,11 +584,11 @@ REM ============================================================================
 REM =====================================================================================
 REM =====================================================================================
 
-@ECHO _scriptLOGSDIR         ="%_scriptLOGSDIR%" >> "%_scriptLOGFQPN%"
-@ECHO _scriptLOGSPATH        ="%_scriptLOGSPATH%" >> "%_scriptLOGFQPN%"
-@ECHO _scriptLOGSFILE        ="%_scriptLOGSFILE%" >> "%_scriptLOGFQPN%"
-@ECHO _scriptLOGFQPN         ="%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: _scriptLOGSDIR         ="%_scriptLOGSDIR%" >> "%_scriptLOGFQPN%"
+@ECHO: _scriptLOGSPATH        ="%_scriptLOGSPATH%" >> "%_scriptLOGFQPN%"
+@ECHO: _scriptLOGSFILE        ="%_scriptLOGSFILE%" >> "%_scriptLOGFQPN%"
+@ECHO: _scriptLOGFQPN         ="%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
 
 REM =====================================================================================
 REM CONFIGURE STANDARD LOCAL VARIABLES
@@ -600,7 +600,7 @@ SET "_HOST_NAME=%COMPUTERNAME%"
 
 SET "_JUSTDOIT="
 REM CHECK IF WE ARE CLEANING UP AFTER OURSELVES
-@ECHO Parameter 1 = %1 >> "%_scriptLOGFQPN%"
+@ECHO: Parameter 1 = %1 >> "%_scriptLOGFQPN%"
 if "%~1"=="" GOTO :NOCALLPARM1
 if %1=="--CLEANUP--" GOTO :CLEANUP_SUBROUTINES
 IF %1=="--AUTO--" SET "_JUSTDOIT=TRUE"
@@ -616,12 +616,12 @@ SET _scriptLOGSPATH=%_scriptLOGSDIR%
 SET "_scriptLOGSFILE=log_%_LOCALSCRIPTNAME%_%DATETIMEGRP%.log"
 SET "_scriptLOGFQPN=%_scriptLOGSPATH%\%_scriptLOGSFILE%"
 
-@ECHO _scriptLOGSDIR         ="%_scriptLOGSDIR%" >> "%_scriptLOGFQPN%"
-@ECHO _scriptLOGSPATH        ="%_scriptLOGSPATH%" >> "%_scriptLOGFQPN%"
-@ECHO _scriptLOGSFILE        ="%_scriptLOGSFILE%" >> "%_scriptLOGFQPN%"
-@ECHO _scriptLOGFQPN         ="%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%"
-@ECHO _tempLOGFILE           ="%_tempLOGFILE%" >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: _scriptLOGSDIR         ="%_scriptLOGSDIR%" >> "%_scriptLOGFQPN%"
+@ECHO: _scriptLOGSPATH        ="%_scriptLOGSPATH%" >> "%_scriptLOGFQPN%"
+@ECHO: _scriptLOGSFILE        ="%_scriptLOGSFILE%" >> "%_scriptLOGFQPN%"
+@ECHO: _scriptLOGFQPN         ="%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%"
+@ECHO: _tempLOGFILE           ="%_tempLOGFILE%" >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
 
 TYPE "%_tempLOGFILE%" > "%_scriptLOGFQPN%"
 
@@ -640,10 +640,10 @@ REM CD /D "%_scriptTempWORKDIR%"
 
 REM PUSHD "%_scriptTempWORKDIR%" 
 
-@ECHO Backup Scripts to WIP Folders
-@ECHO.
-@ECHO Backup Scripts to WIP Folders >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: Backup Scripts to WIP Folders
+@ECHO:
+@ECHO: Backup Scripts to WIP Folders >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
 
 REM IF "%_JUSTDOIT%"=="TRUE" GOTO :WEAREGOODTOGO
 
@@ -694,12 +694,12 @@ REM * -------------------------------------------------------------------------
 REM * Set subroutine local variables
 REM * -------------------------------------------------------------------------
 
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 @ECHO:Source         = "%_sublocalSource%" >> "%_scriptLOGFQPN%"
 @ECHO:Target         = "%_sublocalTarget%" >> "%_scriptLOGFQPN%"
 @ECHO:XcopyParms     = "%_sublocalXcopyParms%" >> "%_scriptLOGFQPN%"
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
 IF EXIST "%_sublocalSource%" (
 	REM Source found
@@ -709,7 +709,7 @@ IF EXIST "%_sublocalSource%" (
 	
 	@ECHO:XCopying using "%_sublocalXcopyParms%" from "%_sublocalSource%" to "%_sublocalTarget%"
 	@ECHO:XCopying from Source to Target using XcopyParms >> "%_scriptLOGFQPN%"
-	@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+	@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 	
 	XCOPY "%_sublocalSource%" "%_sublocalTarget%" %_sublocalXcopyParms% >> "%_scriptLOGFQPN%"
 	
@@ -720,7 +720,7 @@ IF EXIST "%_sublocalSource%" (
 	@ECHO:Source does not exist "%_sublocalSource%" ! >> "%_scriptLOGFQPN%"
 )
 
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
 REM * -----------------------------------------------------------------------------------
 REM * Clean-up subroutine local variables
@@ -767,19 +767,19 @@ REM * -------------------------------------------------------------------------
 REM * Set subroutine local variables
 REM * -------------------------------------------------------------------------
 
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 @ECHO:Source         = "%_sublocalSource%" >> "%_scriptLOGFQPN%"
 @ECHO:Target         = "%_sublocalTarget%" >> "%_scriptLOGFQPN%"
 @ECHO:CopyParms     = "%_sublocalCopyParms%" >> "%_scriptLOGFQPN%"
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
 IF EXIST "%_sublocalSource%" (
 	REM Source found
 	
 	@ECHO:Copying using "%_sublocalCopyParms%" from "%_sublocalSource%" to "%_sublocalTarget%"
 	@ECHO:Copying from Source to Target using CopyParms >> "%_scriptLOGFQPN%"
-	@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+	@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 	
 	COPY %_sublocalCopyParms% "%_sublocalSource%" "%_sublocalTarget%" >> "%_scriptLOGFQPN%"
 	
@@ -790,7 +790,7 @@ IF EXIST "%_sublocalSource%" (
 	@ECHO:Source does not exist "%_sublocalSource%" ! >> "%_scriptLOGFQPN%"
 )
 
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
 REM * -----------------------------------------------------------------------------------
 REM * Clean-up subroutine local variables
@@ -955,7 +955,7 @@ REM -----------------------------------------------------------------
 REM -----------------------------------------------------------------
 REM -----------------------------------------------------------------
 
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
 SET XCOPYPARMS=/v/S/E/I/F/H/R/K/Y
 
@@ -968,8 +968,8 @@ REM This needs a solution, but probably also more coding
 REM CALL :sub_XCopySourcToTargetwithXcopyParms %XCOPYPARMS% ".\scripts\SMS\help.v??.??.??\*.help" ".\scripts.wip\SMS.wip\help.v??.??.??\*.help"
 
 
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
 REM SET XCOPYPARMS=/v/I/F/H/R/K/Y
 SET COPYPARMS=/V/Y
@@ -1017,26 +1017,232 @@ IF NOT EXIST "%TARGETFILE001M%" (
 )
 
 
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+REM * -----------------------------------------------------------------------------------
+REM * -----------------------------------------------------------------------------------
 
-@ECHO.
-@ECHO Remove unwanted files that are copied to __gaia >> "%_scriptLOGFQPN%"
-@ECHO.
+
+
+GOTO :SKIPARCHIVESUBROUTINES
+
+REM =====================================================================================
+REM -------------------------------------------------------------------------------------
+REM -------------------------------------------------------------------------------------
+REM START OF MAIN SUBROUTINES
+REM -------------------------------------------------------------------------------------
+REM -------------------------------------------------------------------------------------
+
+
+REM =====================================================================================
+REM -------------------------------------------------------------------------------------
+REM START SUBROUTINE:  sub_MakeArchiveVersionFolder  :  
+REM -------------------------------------------------------------------------------------
+
+:sub_MakeArchiveVersionFolder
+
+REM * -------------------------------------------------------------------------
+REM * Set subroutine local variables
+REM * -------------------------------------------------------------------------
+
+SET "_sublocaltarget=%~1"
+SET "_sublocalversion=%~2"
+
+REM * -------------------------------------------------------------------------
+REM * Set subroutine local variables
+REM * -------------------------------------------------------------------------
+
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: Target        = "%_sublocalTarget%" >> "%_scriptLOGFQPN%"
+@ECHO: Version       = "%_sublocalversion%" >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+
+IF EXIST "%_sublocaltarget%" @ECHO: Target folder "%_sublocaltarget%" exists!  >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%_sublocaltarget%" @ECHO: Target folder "%_sublocaltarget%" does NOT exist!  Creating... >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%_sublocaltarget%" MKDIR "%_sublocaltarget%" >> "%_scriptLOGFQPN%"
+
+IF EXIST "%_sublocaltarget%\%_sublocalversion%" @ECHO: Target folder "%_sublocaltarget%\%_sublocalversion%" exists!  >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%_sublocaltarget%\%_sublocalversion%" @ECHO: Target folder "%_sublocaltarget%\%_sublocalversion%" does NOT exist!  Creating... >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%_sublocaltarget%\%_sublocalversion%" MKDIR "%_sublocaltarget%\%_sublocalversion%" >> "%_scriptLOGFQPN%"
+
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+
+REM * -----------------------------------------------------------------------------------
+REM * Clean-up subroutine local variables
+REM * -----------------------------------------------------------------------------------
+SET "_sublocaltarget="
+SET "_sublocalversion="
+
+REM * ===================================================================================
+REM * Log the results
+REM * ===================================================================================
+
+
+EXIT /B 0
+
+REM -------------------------------------------------------------------------------------
+REM SUBROUTINE IMPLEMENTATION ELEMENTS : sub_MakeArchiveVersionFolder
+REM -------------------------------------------------------------------------------------
+
+REM CALL :sub_MakeArchiveVersionFolder TARGETFOLDER VERSIONVALUE
+
+REM -------------------------------------------------------------------------------------
+REM END SUBROUTINE: sub_MakeArchiveVersionFolder
+REM -------------------------------------------------------------------------------------
+REM =====================================================================================
+
+
+REM -------------------------------------------------------------------------------------
+REM -------------------------------------------------------------------------------------
+REM END OF MAIN SUBROUTINES
+REM -------------------------------------------------------------------------------------
+REM -------------------------------------------------------------------------------------
+REM =====================================================================================
+
+
+:SKIPARCHIVESUBROUTINES
+
+REM -----------------------------------------------------------------
+REM -----------------------------------------------------------------
+
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+
+SET "TARGETFOLDERROOT=.."
+SET "TARGETFOLDERBASE=devops.dev.archive"
+SET "TARGETFOLDERMAIN=%TARGETFOLDERROOT%\%TARGETFOLDERBASE%"
+
+REM .sh.backup
+REM common.wip.archive
+REM csv_tools.wip.archive
+REM export_import.wip.archive
+REM Session_Cleanup.wip.archive
+REM zzz_testing.wip.archive
+REM _api_subscripts.archive
+REM _templates.wip.archive
+REM __folder_template.archive
+REM __root.archive
+REM __scripting_tools.archive
+REM __Updates.archive
+REM __Windows (CMD).archive
+
+
+IF "%VERSVALUE%"=="" GOTO :SkipArchiveFolderCheck
+
+@ECHO:
+@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO: Check on %TARGETFOLDERMAIN% for version specific folders in subfolders 
+@ECHO: Check on %TARGETFOLDERMAIN% for version specific folders in subfolders >> "%_scriptLOGFQPN%"
+@ECHO:
+@ECHO: >> "%_scriptLOGFQPN%"
+
+IF NOT EXIST "%TARGETFOLDERMAIN%" GOTO :SkipArchiveFolderCheck
+
+SET "TARGETFOLDERWORK=%TARGETFOLDERMAIN%\.sh.backup"
+
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!  >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" CALL :sub_MakeArchiveVersionFolder "%TARGETFOLDERWORK%" "%VERSVALUE%"
+
+SET "TARGETFOLDERWORK=%TARGETFOLDERMAIN%\__folder_template.archive"
+
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!  >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" CALL :sub_MakeArchiveVersionFolder "%TARGETFOLDERWORK%" "%VERSVALUE%"
+
+SET "TARGETFOLDERWORK=%TARGETFOLDERMAIN%\__root.archive"
+
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!  >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" CALL :sub_MakeArchiveVersionFolder "%TARGETFOLDERWORK%" "%VERSVALUE%"
+
+SET "TARGETFOLDERWORK=%TARGETFOLDERMAIN%\__scripting_tools.archive"
+
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!  >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" CALL :sub_MakeArchiveVersionFolder "%TARGETFOLDERWORK%" "%VERSVALUE%"
+
+SET "TARGETFOLDERWORK=%TARGETFOLDERMAIN%\__Updates.archive"
+
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!  >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" CALL :sub_MakeArchiveVersionFolder "%TARGETFOLDERWORK%" "%VERSVALUE%"
+
+SET "TARGETFOLDERWORK=%TARGETFOLDERMAIN%\__Windows (CMD).archive"
+
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!  >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" CALL :sub_MakeArchiveVersionFolder "%TARGETFOLDERWORK%" "%VERSVALUE%"
+
+SET "TARGETFOLDERWORK=%TARGETFOLDERMAIN%\_api_subscripts.archive"
+
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!  >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" CALL :sub_MakeArchiveVersionFolder "%TARGETFOLDERWORK%" "%VERSVALUE%"
+
+SET "TARGETFOLDERWORK=%TARGETFOLDERMAIN%\_templates.wip.archive"
+
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!  >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" CALL :sub_MakeArchiveVersionFolder "%TARGETFOLDERWORK%" "%VERSVALUE%"
+
+SET "TARGETFOLDERWORK=%TARGETFOLDERMAIN%\common.wip.archive"
+
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!  >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" CALL :sub_MakeArchiveVersionFolder "%TARGETFOLDERWORK%" "%VERSVALUE%"
+
+SET "TARGETFOLDERWORK=%TARGETFOLDERMAIN%\csv_tools.wip.archive"
+
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!  >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" CALL :sub_MakeArchiveVersionFolder "%TARGETFOLDERWORK%" "%VERSVALUE%"
+
+SET "TARGETFOLDERWORK=%TARGETFOLDERMAIN%\export_import.wip.archive"
+
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!  >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" CALL :sub_MakeArchiveVersionFolder "%TARGETFOLDERWORK%" "%VERSVALUE%"
+
+SET "TARGETFOLDERWORK=%TARGETFOLDERMAIN%\Session_Cleanup.wip.archive"
+
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!  >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" CALL :sub_MakeArchiveVersionFolder "%TARGETFOLDERWORK%" "%VERSVALUE%"
+
+SET "TARGETFOLDERWORK=%TARGETFOLDERMAIN%\zzz_testing.wip.archive"
+
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!
+IF EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" @ECHO: Target folder "%TARGETFOLDERWORK%\%VERSVALUE%" exists!  >> "%_scriptLOGFQPN%"
+IF NOT EXIST "%TARGETFOLDERWORK%\%VERSVALUE%" CALL :sub_MakeArchiveVersionFolder "%TARGETFOLDERWORK%" "%VERSVALUE%"
+
+
+
+:SkipArchiveFolderCheck
+
+
+REM @ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+REM @ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+
+REM @ECHO:
+REM @ECHO: >> "%_scriptLOGFQPN%"
+REM @ECHO: Remove unwanted files that are copied to __gaia 
+REM @ECHO: Remove unwanted files that are copied to __gaia >> "%_scriptLOGFQPN%"
+REM @ECHO:
+REM @ECHO: >> "%_scriptLOGFQPN%"
 
 REM DEL /F /Q ".\__gaia\updatescripts.sample.sh" >> "%_scriptLOGFQPN%"
 REM DEL /F /Q ".\__gaia\updatescripts.sample.*.sh" >> "%_scriptLOGFQPN%"
 
 
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO Updates files >> "%_scriptLOGFQPN%"
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: Updates files >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
 DIR "%TARGETUPDATEFOLDER%" >> "%_scriptLOGFQPN%"
 
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
 
 REM =====================================================================================
@@ -1062,10 +1268,10 @@ REM ============================================================================
 REM =====================================================================================
 
 
-@ECHO.
-@ECHO Log File : "%_scriptLOGFQPN%"
-@ECHO Script Completed : %_LOCALSCRIPTNAME%
-@ECHO.
+@ECHO:
+@ECHO: Log File : "%_scriptLOGFQPN%"
+@ECHO: Script Completed : %_LOCALSCRIPTNAME%
+@ECHO:
 
 PAUSE
 

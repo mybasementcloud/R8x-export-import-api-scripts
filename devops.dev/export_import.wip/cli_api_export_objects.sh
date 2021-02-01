@@ -13,11 +13,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.03
-ScriptRevision=010
-ScriptDate=2021-01-29
-TemplateVersion=00.60.03
-APISubscriptsVersion=00.60.03
+ScriptVersion=00.60.04
+ScriptRevision=000
+ScriptDate=2021-01-31
+TemplateVersion=00.60.04
+APISubscriptsVersion=00.60.04
 APISubscriptsRevision=006
 
 #
@@ -980,7 +980,7 @@ export localCLIparms=false
 # processcliremains - Local command line parameter processor
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-31 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 processcliremains () {
@@ -1004,7 +1004,6 @@ processcliremains () {
             shift
             for OPT ; do
                 # MODIFIED 2019-03-08
-                #LOCALREMAINS="${LOCALREMAINS} \"${OPT}\""
                 LOCALREMAINS="${LOCALREMAINS} ${OPT}"
             done
             break
@@ -1029,7 +1028,6 @@ processcliremains () {
                 # Anything unknown is recorded for later
                 * )
                     # MODIFIED 2019-03-08
-                    #LOCALREMAINS="${LOCALREMAINS} \"${OPT}\""
                     LOCALREMAINS="${LOCALREMAINS} ${OPT}"
                     break
                     ;;
@@ -1052,11 +1050,12 @@ processcliremains () {
     eval set -- ${LOCALREMAINS}
     
     export CLIparm_local1=${CLIparm_local1}
-
+    
+    return 0
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-31
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -2319,7 +2318,7 @@ fi
 # Clean-up and exit
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-31 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 echo 'CLI Operations Completed' | tee -a -i ${logfilepath}
@@ -2332,13 +2331,15 @@ if ${APISCRIPTVERBOSE} ; then
     #ls -alh ${APICLIpathroot} | tee -a -i ${logfilepath}
     #echo | tee -a -i ${logfilepath}
     
-    if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
-        echo 'Files in >'"${APICLIlogpathbase}"'<' | tee -a -i ${logfilepath}
-        ls -alhR ${APICLIpathbase} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+    if [ x"${APICLIlogpathbase}" != x"" ] ; then
+        if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
+            echo 'Files in ${APICLIlogpathbase} >'"${APICLIlogpathbase}"'<' | tee -a -i ${logfilepath}
+            ls -alhR ${APICLIlogpathbase} | tee -a -i ${logfilepath}
+            echo | tee -a -i ${logfilepath}
+        fi
     fi
     
-    echo 'Files in >'"${APICLIpathbase}"'<' | tee -a -i ${logfilepath}
+    echo 'Files in ${APICLIpathbase} >'"${APICLIpathbase}"'<' | tee -a -i ${logfilepath}
     ls -alhR ${APICLIpathbase} | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
 else
@@ -2349,13 +2350,15 @@ else
     #ls -alh ${APICLIpathroot} >> ${logfilepath}
     #echo >> ${logfilepath}
     
-    if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
-        echo 'Files in >'"${APICLIlogpathbase}"'<' >> ${logfilepath}
-        ls -alhR ${APICLIpathbase} >> ${logfilepath}
-        echo >> ${logfilepath}
+    if [ x"${APICLIlogpathbase}" != x"" ] ; then
+        if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
+            echo 'Files in ${APICLIlogpathbase} >'"${APICLIlogpathbase}"'<' >> ${logfilepath}
+            ls -alhR ${APICLIlogpathbase} >> ${logfilepath}
+            echo >> ${logfilepath}
+        fi
     fi
     
-    echo 'Files in >'"${APICLIpathbase}"'<' >> ${logfilepath}
+    echo 'Files in ${APICLIpathbase} >'"${APICLIpathbase}"'<' >> ${logfilepath}
     ls -alhR ${APICLIpathbase} >> ${logfilepath}
     echo >> ${logfilepath}
 fi
@@ -2366,7 +2369,7 @@ echo 'Log output in file   : '"${logfilepath}" | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-01-18
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-31
 
 
 # =================================================================================================

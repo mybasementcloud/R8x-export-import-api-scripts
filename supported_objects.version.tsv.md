@@ -22,6 +22,9 @@ The columns contents are as follows:
 - OBJECT :  
     This is the specific object type, in plural form, as handled by the scripts.  Plural is used, since the general show command for listing all objects of that type is via the plural of the object type.  Some are custom object types created to handle an objects elements, like a group's group members.
 
+- Recommended Limit :  
+    This is the recommended limit value for the number of objects to process in a specific export operation.  This value will be refined and may get more specific details, like values for MDSM object limits, since there are issues with large object in high volume queries due to imposed limitations in R81 (e.g. application-site object)
+
 - Minimum Version :  
     This is the minimum version of the API that is required to operate on the Check Point Management host to utilize the specific object type.  Scripts are writen to identify and handle only those object types that are available to that Management Host's API version installed.  Provisions to specifically indicate operational API version during execution are not present, so the specific Management Host's installed release version API version level is used, and this API version level is subject to modification by Jumbo HotFix installation.
 

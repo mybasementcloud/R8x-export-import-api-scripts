@@ -13,11 +13,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.03
-ScriptRevision=010
-ScriptDate=2021-01-29
-TemplateVersion=00.60.03
-APISubscriptsVersion=00.60.03
+ScriptVersion=00.60.04
+ScriptRevision=000
+ScriptDate=2021-01-31
+TemplateVersion=00.60.04
+APISubscriptsVersion=00.60.04
 APISubscriptsRevision=006
 
 #
@@ -980,7 +980,7 @@ export localCLIparms=false
 # processcliremains - Local command line parameter processor
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-31 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 processcliremains () {
@@ -1004,7 +1004,6 @@ processcliremains () {
             shift
             for OPT ; do
                 # MODIFIED 2019-03-08
-                #LOCALREMAINS="${LOCALREMAINS} \"${OPT}\""
                 LOCALREMAINS="${LOCALREMAINS} ${OPT}"
             done
             break
@@ -1029,7 +1028,6 @@ processcliremains () {
                 # Anything unknown is recorded for later
                 * )
                     # MODIFIED 2019-03-08
-                    #LOCALREMAINS="${LOCALREMAINS} \"${OPT}\""
                     LOCALREMAINS="${LOCALREMAINS} ${OPT}"
                     break
                     ;;
@@ -1052,11 +1050,12 @@ processcliremains () {
     eval set -- ${LOCALREMAINS}
     
     export CLIparm_local1=${CLIparm_local1}
-
+    
+    return 0
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-31
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -2255,9 +2254,9 @@ DeleteSimpleObjects () {
         return 0
     fi
     
-    export MgmtCLI_Base_OpParms="-f json -s ${APICLIsessionfile}"
-    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
-    export MgmtCLI_Delete_OpParms="details-level \"${APICLIdetaillvl}\" ${MgmtCLI_IgnoreErr_OpParms} ${MgmtCLI_Base_OpParms}"
+    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}
+    export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
+    export MgmtCLI_Delete_OpParms='details-level "'${APICLIdetaillvl}'" '${MgmtCLI_IgnoreErr_OpParms}' '${MgmtCLI_Base_OpParms}
     
     echo | tee -a -i ${logfilepath}
     echo "Delete ${APICLIobjecttype} using CSV File : ${APICLIDeleteCSVfile}" | tee -a -i ${logfilepath}
@@ -2353,9 +2352,130 @@ CheckAPIVersionAndExecuteOperation () {
 # handle simple objects
 # -------------------------------------------------------------------------------------------------
 
+
 echo | tee -a -i ${logfilepath}
 echo ${APICLIdetaillvl}' CSV delete - simple objects - Delete using CSV starting!' | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
+
+
+# -------------------------------------------------------------------------------------------------
+# access-roles
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=access-role
+export APICLIobjectstype=access-roles
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Users
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# ADDED 2021-01-31 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+echo | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo 'Users' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2021-01-31
+
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# user-groups
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user-group
+export APICLIobjectstype=user-groups
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# user-templates
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# users
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=user
+export APICLIobjectstype=users
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# identity-tags
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=identity-tag
+export APICLIobjectstype=identity-tags
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -2373,317 +2493,10 @@ echo | tee -a -i ${logfilepath}
 
 
 # -------------------------------------------------------------------------------------------------
-# group-with-exclusion objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=group-with-exclusion
-export APICLIobjectstype=groups-with-exclusion
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# group objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=group
-export APICLIobjectstype=groups
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# host objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=true
-export APICLIobjecttype=host
-export APICLIobjectstype=hosts
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# network objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=true
-export APICLIobjecttype=network
-export APICLIobjectstype=networks
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# wildcard objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.2
-export APIobjectcansetifexists=false
-export APICLIobjecttype=wildcard
-export APICLIobjectstype=wildcards
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# address-range objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=true
-export APICLIobjecttype=address-range
-export APICLIobjectstype=address-ranges
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# multicast-address-ranges objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=true
-export APICLIobjecttype=multicast-address-range
-export APICLIobjectstype=multicast-address-ranges
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# dns-domain objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=dns-domain
-export APICLIobjectstype=dns-domains
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# security-zones objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=security-zone
-export APICLIobjectstype=security-zones
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# dynamic-objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=dynamic-object
-export APICLIobjectstype=dynamic-objects
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# tags
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=tag
-export APICLIobjectstype=tags
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# simple-clusters
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6
-export APIobjectcansetifexists=false
-export APICLIobjecttype=simple-cluster
-export APICLIobjectstype=simple-clusters
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# simple-gateways
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=simple-gateway
-export APICLIobjectstype=simple-gateways
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# checkpoint-hosts
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=true
-export APICLIobjecttype=checkpoint-hosts
-export APICLIobjectstype=checkpoint-hosts
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# time_groups
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=time-group
-export APICLIobjectstype=time-groups
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# times
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=time
-export APICLIobjectstype=times
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# access-roles
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=access-role
-export APICLIobjectstype=access-roles
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# opsec-applications
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=opsec-application
-export APICLIobjectstype=opsec-applications
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# trusted-client objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=trusted-client
-export APICLIobjectstype=trusted-clients
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# lsv-profile objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6
-export APIobjectcansetifexists=false
-export APICLIobjecttype=lsv-profile
-export APICLIobjectstype=lsv-profiles
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# gsn-handover-group objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=gsn-handover-group
-export APICLIobjectstype=gsn-handover-groups
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# access-point-name objects
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=access-point-names
-export APICLIobjectstype=access-point-names
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
 # tacacs-groups objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-group
@@ -2698,10 +2511,311 @@ CheckAPIVersionAndExecuteOperation
 # tacacs-server objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-server
 export APICLIobjectstype=tacacs-servers
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# group-with-exclusion objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=group-with-exclusion
+export APICLIobjectstype=groups-with-exclusion
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# group objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=group
+export APICLIobjectstype=groups
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# host objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
+export APICLIobjecttype=host
+export APICLIobjectstype=hosts
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# network objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
+export APICLIobjecttype=network
+export APICLIobjectstype=networks
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# wildcard objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.2
+export APIobjectcansetifexists=false
+export APICLIobjecttype=wildcard
+export APICLIobjectstype=wildcards
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# address-range objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
+export APICLIobjecttype=address-range
+export APICLIobjectstype=address-ranges
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# multicast-address-ranges objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=true
+export APICLIobjecttype=multicast-address-range
+export APICLIobjectstype=multicast-address-ranges
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# dns-domain objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=dns-domain
+export APICLIobjectstype=dns-domains
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# security-zones objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=security-zone
+export APICLIobjectstype=security-zones
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# dynamic-objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=dynamic-object
+export APICLIobjectstype=dynamic-objects
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# simple-clusters
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.6
+export APIobjectcansetifexists=false
+export APICLIobjecttype=simple-cluster
+export APICLIobjectstype=simple-clusters
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# simple-gateways
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=simple-gateway
+export APICLIobjectstype=simple-gateways
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# checkpoint-hosts
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=true
+export APICLIobjecttype=checkpoint-hosts
+export APICLIobjectstype=checkpoint-hosts
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# time_groups
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=time-group
+export APICLIobjectstype=time-groups
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# times
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=time
+export APICLIobjectstype=times
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# opsec-applications
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=opsec-application
+export APICLIobjectstype=opsec-applications
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# trusted-client objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=trusted-client
+export APICLIobjectstype=trusted-clients
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# lsv-profile objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.6
+export APIobjectcansetifexists=false
+export APICLIobjecttype=lsv-profile
+export APICLIobjectstype=lsv-profiles
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# gsn-handover-group objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=gsn-handover-group
+export APICLIobjectstype=gsn-handover-groups
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# access-point-name objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.6.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=access-point-names
+export APICLIobjectstype=access-point-names
 export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
@@ -2730,6 +2844,7 @@ echo | tee -a -i ${logfilepath}
 # service-groups objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-group
@@ -2744,6 +2859,7 @@ CheckAPIVersionAndExecuteOperation
 # services-tcp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-tcp
@@ -2758,6 +2874,7 @@ CheckAPIVersionAndExecuteOperation
 # services-udp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-udp
@@ -2772,6 +2889,7 @@ CheckAPIVersionAndExecuteOperation
 # services-icmp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-icmp
@@ -2786,6 +2904,7 @@ CheckAPIVersionAndExecuteOperation
 # services-icmp6 objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-icmp6
@@ -2800,6 +2919,7 @@ CheckAPIVersionAndExecuteOperation
 # services-sctp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-sctp
@@ -2814,6 +2934,7 @@ CheckAPIVersionAndExecuteOperation
 # services-other objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-other
@@ -2828,6 +2949,7 @@ CheckAPIVersionAndExecuteOperation
 # services-dce-rpc objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-dce-rpc
@@ -2842,6 +2964,7 @@ CheckAPIVersionAndExecuteOperation
 # services-rpc objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-rpc
@@ -2860,6 +2983,7 @@ CheckAPIVersionAndExecuteOperation
 # services-gtp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-gtp
@@ -2878,6 +3002,7 @@ CheckAPIVersionAndExecuteOperation
 # service-citrix-tcp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-citrix-tcp
@@ -2892,6 +3017,7 @@ CheckAPIVersionAndExecuteOperation
 # service-compound-tcp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-compound-tcp
@@ -2911,6 +3037,7 @@ CheckAPIVersionAndExecuteOperation
 # application-site-groups objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-group
@@ -2931,6 +3058,7 @@ CheckAPIVersionAndExecuteOperation
 # application-site-categories objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-category
@@ -2951,6 +3079,7 @@ CheckAPIVersionAndExecuteOperation
 # application-sites objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site
@@ -2961,102 +3090,19 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
 # -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Users
-# -------------------------------------------------------------------------------------------------
+# tags
 # -------------------------------------------------------------------------------------------------
 
-echo | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo 'Users' | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
-
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# user-groups
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6.1
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
-export APICLIobjecttype=user-group
-export APICLIobjectstype=user-groups
+export APICLIobjecttype=tag
+export APICLIobjectstype=tags
 export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
-
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# users
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=user
-export APICLIobjectstype=users
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# user-templates
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=user-template
-export APICLIobjectstype=user-templates
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# identity-tags
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APICLIobjecttype=identity-tag
-export APICLIobjectstype=identity-tags
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3181,7 +3227,7 @@ fi
 # Clean-up and exit
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-01-31 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 echo 'CLI Operations Completed' | tee -a -i ${logfilepath}
@@ -3194,13 +3240,15 @@ if ${APISCRIPTVERBOSE} ; then
     #ls -alh ${APICLIpathroot} | tee -a -i ${logfilepath}
     #echo | tee -a -i ${logfilepath}
     
-    if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
-        echo 'Files in >'"${APICLIlogpathbase}"'<' | tee -a -i ${logfilepath}
-        ls -alhR ${APICLIpathbase} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+    if [ x"${APICLIlogpathbase}" != x"" ] ; then
+        if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
+            echo 'Files in ${APICLIlogpathbase} >'"${APICLIlogpathbase}"'<' | tee -a -i ${logfilepath}
+            ls -alhR ${APICLIlogpathbase} | tee -a -i ${logfilepath}
+            echo | tee -a -i ${logfilepath}
+        fi
     fi
     
-    echo 'Files in >'"${APICLIpathbase}"'<' | tee -a -i ${logfilepath}
+    echo 'Files in ${APICLIpathbase} >'"${APICLIpathbase}"'<' | tee -a -i ${logfilepath}
     ls -alhR ${APICLIpathbase} | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
 else
@@ -3211,13 +3259,15 @@ else
     #ls -alh ${APICLIpathroot} >> ${logfilepath}
     #echo >> ${logfilepath}
     
-    if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
-        echo 'Files in >'"${APICLIlogpathbase}"'<' >> ${logfilepath}
-        ls -alhR ${APICLIpathbase} >> ${logfilepath}
-        echo >> ${logfilepath}
+    if [ x"${APICLIlogpathbase}" != x"" ] ; then
+        if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
+            echo 'Files in ${APICLIlogpathbase} >'"${APICLIlogpathbase}"'<' >> ${logfilepath}
+            ls -alhR ${APICLIlogpathbase} >> ${logfilepath}
+            echo >> ${logfilepath}
+        fi
     fi
     
-    echo 'Files in >'"${APICLIpathbase}"'<' >> ${logfilepath}
+    echo 'Files in ${APICLIpathbase} >'"${APICLIpathbase}"'<' >> ${logfilepath}
     ls -alhR ${APICLIpathbase} >> ${logfilepath}
     echo >> ${logfilepath}
 fi
@@ -3228,7 +3278,7 @@ echo 'Log output in file   : '"${logfilepath}" | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-01-18
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-31
 
 
 # =================================================================================================

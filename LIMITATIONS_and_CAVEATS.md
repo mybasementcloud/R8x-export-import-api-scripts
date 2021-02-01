@@ -23,25 +23,25 @@ If the object does not provide a method to output a required key value during ex
 Currently RADIUS server object and RADIUS servers group object types do not exist, so details about RADIUS configuration for neither export, nor import are possible as of current implementation of API 1.7.
 
 ### User Objects
-    1.) "authentication-method" significantly impacts export approach for user objects, thus the key "authentication-method" and values for it are not included in the basic user object export.  Instead they are handled in "authentication-method" specific complex object export, one CSV for each "authentication-method"
+- "authentication-method" significantly impacts export approach for user objects, thus the key "authentication-method" and values for it are not included in the basic user object export.  Instead they are handled in "authentication-method" specific complex object export, one CSV for each "authentication-method"
 
-    2.)  RADIUS "authentication-method" supports import when the RADIUS server is set to "ANY"
+- RADIUS "authentication-method" supports import when the RADIUS server is set to "ANY"
 
-    3.)  TACACS "authentication-method" DOES NOT support import when the RADIUS server is set to "ANY"
+- TACACS "server-type" DOES NOT support import when the TACACS server is set to "TACACS+", because the exported information is "TACACS_PLUS_" which is not the expected values
 
-    4.)  Users with "authentication-method" "check point password" will get a generic complex password set in the CSV file, since the export of their password or even a hash is not avialable.  To import that user with a defined password for authentication, the CSV used for the import must be MANUALLY EDITED to reflect the desired actual password.  Careless import may clobber existing authentication settings and user known password.  CAVEAT EMPTOR!
+- Users with "authentication-method" "check point password" will get a generic complex password set in the CSV file, since the export of their password or even a hash is not avialable.  To import that user with a defined password for authentication, the CSV used for the import must be MANUALLY EDITED to reflect the desired actual password.  Careless import may clobber existing authentication settings and user known password.  CAVEAT EMPTOR!
 
-    5.)  Certificates are currently not handled, export may not be plausible
+- Certificates are currently not handled, export may not be plausible
 
 ### User-Template Objects
-    1.) "authentication-method" significantly impacts export approach for user-template objects.  Unlike user objects, the basic details about the "authentication-method" are exportable and importable--with caveats
+- "authentication-method" significantly impacts export approach for user-template objects.  Unlike user objects, the basic details about the "authentication-method" are exportable and importable--with caveats
 
-    2.)  RADIUS "authentication-method" DOES NOT support import when the RADIUS server is set to "ANY"
+- RADIUS "authentication-method" DOES NOT support import when the RADIUS server is set to "ANY"
 
-    3.)  TACACS "authentication-method" DOES NOT support import when the RADIUS server is set to "ANY"
+- TACACS "server-type" DOES NOT support import when the TACACS server is set to "TACACS+", because the exported information is "TACACS_PLUS_" which is not the expected values
 
 ### User and User-Template Objects
-    1.) Locations currently not handled, as this requires a concept and approach
+- Locations currently not handled, as this requires a concept and approach
 
-    2.) Times currently not handled, as this requires a concept and approach
+- Times currently not handled, as this requires a concept and approach
     

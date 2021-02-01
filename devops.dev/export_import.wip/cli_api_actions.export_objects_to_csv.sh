@@ -13,11 +13,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.03
-ScriptRevision=010
-ScriptDate=2021-01-29
-TemplateVersion=00.60.03
-APISubscriptsVersion=00.60.03
+ScriptVersion=00.60.04
+ScriptRevision=000
+ScriptDate=2021-01-31
+TemplateVersion=00.60.04
+APISubscriptsVersion=00.60.04
 APISubscriptsRevision=006
 
 #
@@ -604,8 +604,8 @@ ExportObjectsToCSVviaJQ () {
         return ${errorreturn}
     fi
     
-    export MgmtCLI_Base_OpParms="-f json -s ${APICLIsessionfile}"
-    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
+    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}
+    export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
     
     export MgmtCLI_Show_OpParms="details-level full ${MgmtCLI_Base_OpParms}"
     
@@ -620,7 +620,7 @@ ExportObjectsToCSVviaJQ () {
     export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
     export notsystemobjectselector='select(."domain"."name" as $a | ['${systemobjectdomains}'] | index($a) | not)'
     
-    objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+    objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
     
     objectstoshow=${objectstotal}
     
@@ -719,7 +719,7 @@ GetNumberOfObjectsviaJQ () {
         echo | tee -a -i ${logfilepath}
     fi
     
-    objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+    objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
     errorreturn=$?
     
     if [ ${errorreturn} != 0 ] ; then
@@ -842,6 +842,7 @@ echo | tee -a -i ${logfilepath}
 # host objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=host
@@ -863,7 +864,7 @@ export CSVJQparms='.["ipv4-address"], .["ipv6-address"]'
 export CSVJQparms=${CSVJQparms}', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"]'
 export CSVJQparms=${CSVJQparms}', .["nat-settings"]["ipv4-address"], .["nat-settings"]["ipv6-address"], .["nat-settings"]["method"]'
 
-objectstotal_hosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_hosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_hosts="${objectstotal_hosts}"
 export number_of_objects=${number_hosts}
 
@@ -874,6 +875,7 @@ CheckAPIVersionAndExecuteOperation
 # host objects - NO NAT Details
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=host
@@ -895,7 +897,7 @@ export CSVJQparms='.["ipv4-address"], .["ipv6-address"]'
 #export CSVJQparms=${CSVJQparms}', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"]'
 #export CSVJQparms=${CSVJQparms}', .["nat-settings"]["ipv4-address"], .["nat-settings"]["ipv6-address"], .["nat-settings"]["method"]'
 
-objectstotal_hosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_hosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_hosts="${objectstotal_hosts}"
 export number_of_objects=${number_hosts}
 
@@ -906,6 +908,7 @@ CheckAPIVersionAndExecuteOperation
 # network objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=network
@@ -926,7 +929,7 @@ export CSVJQparms=
 export CSVJQparms='.["broadcast"], .["subnet4"], .["mask-length4"], .["subnet6"], .["mask-length6"]'
 export CSVJQparms=${CSVJQparms}', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"], .["nat-settings"]["method"]'
 
-objectstotal_networks=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_networks=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_networks="$objectstotal_networks"
 export number_of_objects=${number_networks}
 
@@ -937,6 +940,7 @@ CheckAPIVersionAndExecuteOperation
 # wildcard objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.2
 export APIobjectcansetifexists=false
 export APICLIobjecttype=wildcard
@@ -955,7 +959,7 @@ export CSVFileHeader='"ipv4-address","ipv4-mask-wildcard","ipv6-address","ipv6-m
 export CSVJQparms=
 export CSVJQparms='.["ipv4-address"], .["ipv4-mask-wildcard"], .["ipv6-address"], .["ipv6-mask-wildcard"]'
 
-objectstotal_wildcards=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_wildcards=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_wildcards="${objectstotal_wildcards}"
 export number_of_objects=${number_wildcards}
 
@@ -966,6 +970,7 @@ CheckAPIVersionAndExecuteOperation
 # group objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=group
@@ -984,7 +989,7 @@ export CSVFileHeader=
 export CSVJQparms=
 #export CSVJQparms='.["name"], .["color"], .["comments"]'
 
-objectstotal_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_groups="${objectstotal_groups}"
 export number_of_objects=${number_groups}
 
@@ -995,6 +1000,7 @@ CheckAPIVersionAndExecuteOperation
 # groups-with-exclusion
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=group-with-exclusion
@@ -1013,7 +1019,7 @@ export CSVFileHeader='"include","except"'
 export CSVJQparms=
 export CSVJQparms='.["include"]["name"], .["except"]["name"]'
 
-objectstotal_groupswithexclusion=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_groupswithexclusion=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_groupswithexclusion="${objectstotal_groupswithexclusion}"
 export number_of_objects=${number_groupswithexclusion}
 
@@ -1024,6 +1030,7 @@ CheckAPIVersionAndExecuteOperation
 # address-range objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=address-range
@@ -1044,7 +1051,7 @@ export CSVJQparms=
 export CSVJQparms='.["ipv4-address-first"], .["ipv4-address-last"]'
 export CSVJQparms=${CSVJQparms}', .["ipv6-address-first"], .["ipv6-address-last"]'
 
-objectstotal_addressranges=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_addressranges=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_addressranges="${objectstotal_addressranges}"
 export number_of_objects=${number_addressranges}
 
@@ -1055,6 +1062,7 @@ CheckAPIVersionAndExecuteOperation
 # multicast-address-range objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=multicast-address-range
@@ -1075,7 +1083,7 @@ export CSVJQparms=
 export CSVJQparms='.["ipv4-address-first"], .["ipv4-address-last"]'
 export CSVJQparms=${CSVJQparms}', .["ipv6-address-first"], .["ipv6-address-last"]'
 
-objectstotal_multicastaddressranges=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_multicastaddressranges=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_multicastaddressranges="${objectstotal_multicastaddressranges}"
 export number_of_objects=${number_multicastaddressranges}
 
@@ -1086,6 +1094,7 @@ CheckAPIVersionAndExecuteOperation
 # dns-domain objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=dns-domain
@@ -1104,7 +1113,7 @@ export CSVFileHeader='"is-sub-domain"'
 export CSVJQparms=
 export CSVJQparms='.["is-sub-domain"]'
 
-objectstotal_dnsdomains=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_dnsdomains=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_dnsdomains="${objectstotal_dnsdomains}"
 export number_of_objects=${number_dnsdomains}
 
@@ -1115,6 +1124,7 @@ CheckAPIVersionAndExecuteOperation
 # security-zone objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=security-zone
@@ -1137,7 +1147,7 @@ export CSVJQparms=
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_securityzones=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_securityzones=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_securityzones="${objectstotal_securityzones}"
 export number_of_objects=${number_securityzones}
 
@@ -1148,6 +1158,7 @@ CheckAPIVersionAndExecuteOperation
 # dynamic-object objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=dynamic-object
@@ -1170,7 +1181,7 @@ export CSVJQparms=
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_dynamicobjects=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_dynamicobjects=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_dynamicobjects="${objectstotal_dynamicobjects}"
 export number_of_objects=${number_dynamicobjects}
 
@@ -1181,6 +1192,7 @@ CheckAPIVersionAndExecuteOperation
 # tag objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=tag
@@ -1203,7 +1215,7 @@ export CSVJQparms=
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_tags=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_tags=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_tags="${objectstotal_tags}"
 export number_of_objects=${number_tags}
 
@@ -1214,6 +1226,7 @@ CheckAPIVersionAndExecuteOperation
 # simple-gateway objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=simple-gateway
@@ -1236,7 +1249,7 @@ export CSVJQparms=
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_simplegateways=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_simplegateways=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_simplegateways="${objectstotal_simplegateways}"
 export number_of_objects=${number_simplegateways}
 
@@ -1247,6 +1260,7 @@ CheckAPIVersionAndExecuteOperation
 # simple-cluster objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6
 export APIobjectcansetifexists=false
 export APICLIobjecttype=simple-cluster
@@ -1269,7 +1283,7 @@ export CSVJQparms=
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_simpleclusters=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_simpleclusters=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_simpleclusters="${objectstotal_simpleclusters}"
 export number_of_objects=${number_simpleclusters}
 
@@ -1280,6 +1294,7 @@ CheckAPIVersionAndExecuteOperation
 # checkpoint-host objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=checkpoint-hosts
@@ -1302,7 +1317,7 @@ export CSVJQparms=
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_checkpointhosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_checkpointhosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_checkpointhosts="${objectstotal_checkpointhosts}"
 export number_of_objects=${number_checkpointhosts}
 
@@ -1313,6 +1328,7 @@ CheckAPIVersionAndExecuteOperation
 # time objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=time
@@ -1338,7 +1354,7 @@ export CSVJQparms=${CSVJQparms}', .["end"]["date"], .["end"]["time"], .["end"]["
 export CSVJQparms=${CSVJQparms}', .["recurrence"]["pattern"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_times=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_times=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_times="${objectstotal_times}"
 export number_of_objects=${number_times}
 
@@ -1349,6 +1365,7 @@ CheckAPIVersionAndExecuteOperation
 # time_group objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=time-group
@@ -1371,7 +1388,7 @@ export CSVJQparms=
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_time_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_time_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_time_groups="${objectstotal_time_groups}"
 export number_of_objects=${number_time_groups}
 
@@ -1382,6 +1399,7 @@ CheckAPIVersionAndExecuteOperation
 # access-role objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=access-role
@@ -1404,7 +1422,7 @@ export CSVJQparms=
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_access_roles=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_access_roles=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_access_roles="${objectstotal_access_roles}"
 export number_of_objects=${number_access_roles}
 
@@ -1415,6 +1433,7 @@ CheckAPIVersionAndExecuteOperation
 # opsec-application objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=opsec-application
@@ -1443,7 +1462,7 @@ export CSVJQparms=${CSVJQparms}', .["lea"]["enabled"], .["lea"]["access-permissi
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_opsec_applications=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_opsec_applications=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_opsec_applications="${objectstotal_opsec_applications}"
 export number_of_objects=${number_opsec_applications}
 
@@ -1454,6 +1473,7 @@ CheckAPIVersionAndExecuteOperation
 # trusted-client objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=trusted-client
@@ -1476,7 +1496,7 @@ export CSVJQparms=
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_trustedclients=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_trustedclients=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_trustedclients="${objectstotal_trustedclients}"
 export number_of_objects=${number_trustedclients}
 
@@ -1487,6 +1507,7 @@ CheckAPIVersionAndExecuteOperation
 # lsv-profile objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6
 export APIobjectcansetifexists=false
 export APICLIobjecttype=lsv-profile
@@ -1509,7 +1530,7 @@ export CSVJQparms=
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_lsvprofiles=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_lsvprofiles=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_lsvprofiles="${objectstotal_lsvprofiles}"
 export number_of_objects=${number_number_lsvprofiles}
 
@@ -1520,6 +1541,7 @@ CheckAPIVersionAndExecuteOperation
 # gsn-handover-group objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=gsn-handover-group
@@ -1542,7 +1564,7 @@ export CSVJQparms=
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_gsnhandovergroups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_gsnhandovergroups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_gsnhandovergroups="${objectstotal_gsnhandovergroups}"
 export number_of_objects=${number_gsnhandovergroups}
 
@@ -1553,6 +1575,7 @@ CheckAPIVersionAndExecuteOperation
 # access-point-name objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=access-point-names
@@ -1575,7 +1598,7 @@ export CSVJQparms=
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_accesspointnames=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_accesspointnames=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_accesspointnames="${objectstotal_accesspointnames}"
 export number_of_objects=${number_accesspointnames}
 
@@ -1588,6 +1611,7 @@ CheckAPIVersionAndExecuteOperation
 
 # MODIFIED 2021-01-29 -
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-server
@@ -1623,7 +1647,7 @@ export CSVJQparms=${CSVJQparms}', ""'
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_tacacsservers=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_tacacsservers=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_tacacsservers="${objectstotal_tacacsservers}"
 export number_of_objects=${number_tacacsservers}
 
@@ -1634,6 +1658,7 @@ CheckAPIVersionAndExecuteOperation
 # tacacs-groups objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-group
@@ -1650,7 +1675,7 @@ export CSVFileHeader=
 
 export CSVJQparms=
 
-objectstotal_tacacsgroups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_tacacsgroups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_tacacsgroups="${objectstotal_tacacsgroups}"
 export number_of_objects=${number_tacacsgroups}
 
@@ -1676,6 +1701,7 @@ echo | tee -a -i ${logfilepath}
 # services-tcp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-tcp
@@ -1702,7 +1728,7 @@ export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installa
 export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
 #export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
 
-objectstotal_services_tcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_services_tcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_tcp="${objectstotal_services_tcp}"
 export number_of_objects=${number_services_tcp}
 
@@ -1713,6 +1739,7 @@ CheckAPIVersionAndExecuteOperation
 # services-udp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-udp
@@ -1739,7 +1766,7 @@ export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installa
 export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
 #export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
 
-objectstotal_services_udp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_services_udp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_udp="${objectstotal_services_udp}"
 export number_of_objects=${number_services_udp}
 
@@ -1750,6 +1777,7 @@ CheckAPIVersionAndExecuteOperation
 # services-icmp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-icmp
@@ -1774,7 +1802,7 @@ export CSVJQparms='.["icmp-code"], .["icmp-type"], .["keep-connections-open-afte
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_services_icmp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_services_icmp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_icmp="${objectstotal_services_icmp}"
 export number_of_objects=${number_services_icmp}
 
@@ -1785,6 +1813,7 @@ CheckAPIVersionAndExecuteOperation
 # services-icmp6 objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-icmp6
@@ -1809,7 +1838,7 @@ export CSVJQparms='.["icmp-code"], .["icmp-type"], .["keep-connections-open-afte
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_services_icmp6=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_services_icmp6=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_icmp6="${objectstotal_services_icmp6}"
 export number_of_objects=${number_services_icmp6}
 
@@ -1820,6 +1849,7 @@ CheckAPIVersionAndExecuteOperation
 # services-sctp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-sctp
@@ -1846,7 +1876,7 @@ export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installa
 export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
 #export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
 
-objectstotal_services_sctp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_services_sctp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_sctp="${objectstotal_services_sctp}"
 export number_of_objects=${number_services_sctp}
 
@@ -1857,6 +1887,7 @@ CheckAPIVersionAndExecuteOperation
 # services-other objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-other
@@ -1885,7 +1916,7 @@ export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installa
 export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
 #export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
 
-objectstotal_services_other=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_services_other=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_other="${objectstotal_services_other}"
 export number_of_objects=${number_services_other}
 
@@ -1896,6 +1927,7 @@ CheckAPIVersionAndExecuteOperation
 # services-dce-rpc objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-dce-rpc
@@ -1920,7 +1952,7 @@ export CSVJQparms='.["interface-uuid"], .["keep-connections-open-after-policy-in
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_services_dce_rpc=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_services_dce_rpc=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_dce_rpc="${objectstotal_services_dce_rpc}"
 export number_of_objects=${number_services_dce_rpc}
 
@@ -1931,6 +1963,7 @@ CheckAPIVersionAndExecuteOperation
 # services-rpc objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-rpc
@@ -1955,7 +1988,7 @@ export CSVJQparms='.["program-number"], .["keep-connections-open-after-policy-in
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_services_rpc=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_services_rpc=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_services_rpc="${objectstotal_services_rpc}"
 export number_of_objects=${number_services_rpc}
 
@@ -1966,6 +1999,7 @@ CheckAPIVersionAndExecuteOperation
 # service-gtp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-gtp
@@ -1979,34 +2013,100 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-export CSVFileHeader='"version","allow-usage-of-static-ip","cs-fallback-and-srvcc","radio-access-technology"'
-export CSVFileHeader=${CSVFileHeader}',"restoration-and-recovery","reverse-service","trace-management"'
-export CSVFileHeader=${CSVFileHeader}',"access-point-name.enable","access-point-name.apn","apply-access-policy-on-user-traffic.enable","apply-access-policy-on-user-traffic.add-imsi-field-to-log"'
-export CSVFileHeader=${CSVFileHeader}',"imsi-prefix.enable","imsi-prefix.prefix","interface-profile.profile","interface-profile.custom-message-types"'
-export CSVFileHeader=${CSVFileHeader}',"ldap-group.enable","ldap-group.group","ldap-group.according-to"'
-export CSVFileHeader=${CSVFileHeader}',"ms-isdn.enable","ms-isdn.ms-isdn","selection-mode.enable","selection-mode.mode"'
-export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.utran","radio-access-technology.geran","radio-access-technology.wlan","radio-access-technology.gan"'
-export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.hspa-evolution","radio-access-technology.eutran","radio-access-technology.virtual","radio-access-technology.nb-iot"'
-export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.other-types-range.enable","radio-access-technology.other-types-range.types"'
+export CSVFileHeader='"version"'
+
+export CSVFileHeader=${CSVFileHeader}',"allow-usage-of-static-ip"'
+export CSVFileHeader=${CSVFileHeader}',"cs-fallback-and-srvcc"'
+
+export CSVFileHeader=${CSVFileHeader}',"restoration-and-recovery"'
+export CSVFileHeader=${CSVFileHeader}',"reverse-service"'
+export CSVFileHeader=${CSVFileHeader}',"trace-management"'
+
+export CSVFileHeader=${CSVFileHeader}',"access-point-name.enable"'
+export CSVFileHeader=${CSVFileHeader}',"access-point-name.apn"'
+
+export CSVFileHeader=${CSVFileHeader}',"apply-access-policy-on-user-traffic.enable"'
+export CSVFileHeader=${CSVFileHeader}',"apply-access-policy-on-user-traffic.add-imsi-field-to-log"'
+
+export CSVFileHeader=${CSVFileHeader}',"imsi-prefix.enable"'
+export CSVFileHeader=${CSVFileHeader}',"imsi-prefix.prefix"'
+
+export CSVFileHeader=${CSVFileHeader}',"interface-profile.profile"'
+export CSVFileHeader=${CSVFileHeader}',"interface-profile.custom-message-types"'
+
+export CSVFileHeader=${CSVFileHeader}',"ldap-group.enable"'
+export CSVFileHeader=${CSVFileHeader}',"ldap-group.group"'
+export CSVFileHeader=${CSVFileHeader}',"ldap-group.according-to"'
+
+export CSVFileHeader=${CSVFileHeader}',"ms-isdn.enable"'
+export CSVFileHeader=${CSVFileHeader}',"ms-isdn.ms-isdn"'
+export CSVFileHeader=${CSVFileHeader}',"selection-mode.enable"'
+export CSVFileHeader=${CSVFileHeader}',"selection-mode.mode"'
+
+export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.utran"'
+export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.geran"'
+export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.wlan"'
+export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.gan"'
+export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.hspa-evolution"'
+export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.eutran"'
+export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.virtual"'
+export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.nb-iot"'
+
+export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.other-types-range.enable"'
+export CSVFileHeader=${CSVFileHeader}',"radio-access-technology.other-types-range.types"'
+
 #export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
 #export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-export CSVJQparms='.["version"], .["allow-usage-of-static-ip"], .["cs-fallback-and-srvcc"], .["radio-access-technology"]'
-export CSVJQparms=${CSVJQparms}', .["restoration-and-recovery"], .["reverse-service"], .["trace-management"]'
-export CSVJQparms=${CSVJQparms}', .["access-point-name"]["enable"], .["access-point-name"]["apn"], .["apply-access-policy-on-user-traffic"]["enable"], .["apply-access-policy-on-user-traffic"]["add-imsi-field-to-log"]'
-export CSVJQparms=${CSVJQparms}', .["imsi-prefix"]["enable"], .["imsi-prefix"]["prefix"], .["interface-profile"]["profile"], .["interface-profile"]["custom-message-types"]'
-export CSVJQparms=${CSVJQparms}', .["ldap-group"]["enable"], .["ldap-group"]["group"], .["ldap-group"]["according-to"]'
-export CSVJQparms=${CSVJQparms}', .["ms-isdn"]["enable"], .["ms-isdn"]["ms-isdn"], .["selection-mode"]["enable"], .["selection-mode"]["mode"]'
-export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["utran"], .["radio-access-technology"]["geran"], .["radio-access-technology"]["wlan"], .["radio-access-technology"]["gan"]'
-export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["hspa-evolution"], .["radio-access-technology"]["eutran"], .["radio-access-technology"]["virtual"], .["radio-access-technology"]["nb-iot"]'
-export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["other-types-range"]["enable"], .["radio-access-technology"]["other-types-range"]["types"]'
+export CSVJQparms='.["version"]'
+
+export CSVJQparms=${CSVJQparms}', .["allow-usage-of-static-ip"]'
+export CSVJQparms=${CSVJQparms}', .["cs-fallback-and-srvcc"]'
+
+export CSVJQparms=${CSVJQparms}', .["restoration-and-recovery"]'
+export CSVJQparms=${CSVJQparms}', .["reverse-service"]'
+export CSVJQparms=${CSVJQparms}', .["trace-management"]'
+
+export CSVJQparms=${CSVJQparms}', .["access-point-name"]["enable"]'
+export CSVJQparms=${CSVJQparms}', .["access-point-name"]["apn"]["name"]'
+
+export CSVJQparms=${CSVJQparms}', .["apply-access-policy-on-user-traffic"]["enable"]'
+export CSVJQparms=${CSVJQparms}', .["apply-access-policy-on-user-traffic"]["add-imsi-field-to-log"]'
+
+export CSVJQparms=${CSVJQparms}', .["imsi-prefix"]["enable"]'
+export CSVJQparms=${CSVJQparms}', .["imsi-prefix"]["prefix"]'
+
+export CSVJQparms=${CSVJQparms}', .["interface-profile"]["profile"]["name"]'
+export CSVJQparms=${CSVJQparms}', .["interface-profile"]["custom-message-types"]'
+
+export CSVJQparms=${CSVJQparms}', .["ldap-group"]["enable"]'
+export CSVJQparms=${CSVJQparms}', .["ldap-group"]["group"]["name"]'
+export CSVJQparms=${CSVJQparms}', .["ldap-group"]["according-to"]'
+
+export CSVJQparms=${CSVJQparms}', .["ms-isdn"]["enable"]'
+export CSVJQparms=${CSVJQparms}', .["ms-isdn"]["ms-isdn"]'
+export CSVJQparms=${CSVJQparms}', .["selection-mode"]["enable"]'
+export CSVJQparms=${CSVJQparms}', .["selection-mode"]["mode"]'
+
+export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["utran"]'
+export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["geran"]'
+export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["wlan"]'
+export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["gan"]'
+export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["hspa-evolution"]'
+export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["eutran"]'
+export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["virtual"]'
+export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["nb-iot"]'
+
+export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["other-types-range"]["enable"]'
+export CSVJQparms=${CSVJQparms}', .["radio-access-technology"]["other-types-range"]["types"]'
+
 #export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_servicescitrixtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_servicescitrixtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_servicescitrixtcp="${objectstotal_servicescitrixtcp}"
 export number_of_objects=${number_servicescitrixtcp}
 
@@ -2017,6 +2117,7 @@ CheckAPIVersionAndExecuteOperation
 # service-citrix-tcp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-citrix-tcp
@@ -2041,7 +2142,7 @@ export CSVJQparms='.["application"]'
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_servicescitrixtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_servicescitrixtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_servicescitrixtcp="${objectstotal_servicescitrixtcp}"
 export number_of_objects=${number_servicescitrixtcp}
 
@@ -2052,6 +2153,7 @@ CheckAPIVersionAndExecuteOperation
 # service-compound-tcp objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-compound-tcp
@@ -2076,7 +2178,7 @@ export CSVJQparms='.["compound-service"], .["keep-connections-open-after-policy-
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_servicescompoundtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_servicescompoundtcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_servicescompoundtcp="${objectstotal_servicescompoundtcp}"
 export number_of_objects=${number_servicescompoundtcp}
 
@@ -2087,6 +2189,7 @@ CheckAPIVersionAndExecuteOperation
 # service-groups objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-group
@@ -2103,7 +2206,7 @@ export CSVFileHeader=
 
 export CSVJQparms=
 
-objectstotal_service_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_service_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_service_groups="${objectstotal_service_groups}"
 export number_of_objects=${number_service_groups}
 
@@ -2119,6 +2222,7 @@ CheckAPIVersionAndExecuteOperation
 # application-sites objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site
@@ -2161,7 +2265,7 @@ export CSVJQparms=${CSVJQparms}', .["description"]'
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_application_sites=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_application_sites=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_application_sites="${objectstotal_application_sites}"
 export number_of_objects=${number_application_sites}
 
@@ -2177,6 +2281,7 @@ CheckAPIVersionAndExecuteOperation
 # application-site-categories objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-category
@@ -2201,7 +2306,7 @@ if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
     export CSVJQparms='.["user-defined"]'
 fi
 
-objectstotal_application_site_categories=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_application_site_categories=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_application_site_categories="${objectstotal_application_site_categories}"
 export number_of_objects=${number_application_site_categories}
 
@@ -2217,6 +2322,7 @@ CheckAPIVersionAndExecuteOperation
 # application-site-groups objects
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-group
@@ -2233,7 +2339,7 @@ export CSVFileHeader=
 
 export CSVJQparms=
 
-objectstotal_application_site_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_application_site_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_application_site_groups="${objectstotal_application_site_groups}"
 export number_of_objects=${number_application_site_groups}
 
@@ -2244,14 +2350,16 @@ CheckAPIVersionAndExecuteOperation
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-19
 
 
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # Users
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
+
+# ADDED 2021-01-31 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 echo | tee -a -i ${logfilepath}
 echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
@@ -2262,7 +2370,7 @@ echo '--------------------------------------------------------------------------
 echo | tee -a -i ${logfilepath}
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2021-01-31
 
 # -------------------------------------------------------------------------------------------------
 # user objects
@@ -2271,6 +2379,7 @@ echo | tee -a -i ${logfilepath}
 # MODIFIED 2021-01-28\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -2301,7 +2410,7 @@ export CSVJQparms='.["template"], .["e-mail"], .["phone-number"]'
 export CSVJQparms=${CSVJQparms}', .["encryption"]["ike"], .["encryption"]["public-key"], .["encryption"]["shared-secret"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_users=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_users=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_users="${objectstotal_users}"
 export number_of_objects=${number_users}
 
@@ -2312,6 +2421,7 @@ CheckAPIVersionAndExecuteOperation
 # MODIFIED 2021-01-28\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -2342,7 +2452,7 @@ export CSVJQparms=${CSVJQparms}', .["expiration-date"]["iso-8601"]'
 export CSVJQparms=${CSVJQparms}', .["encryption"]["ike"], .["encryption"]["public-key"], .["encryption"]["shared-secret"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_users=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_users=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_users="${objectstotal_users}"
 export number_of_objects=${number_users}
 
@@ -2359,6 +2469,7 @@ CheckAPIVersionAndExecuteOperation
 # MODIFIED 2021-01-28\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-group
@@ -2381,7 +2492,7 @@ export CSVJQparms='.["email"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_user_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_user_groups=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_user_groups="${objectstotal_user_groups}"
 export number_of_objects=${number_user_groups}
 
@@ -2397,6 +2508,7 @@ CheckAPIVersionAndExecuteOperation
 # MODIFIED 2021-01-28\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -2425,7 +2537,7 @@ export CSVJQparms=${CSVJQparms}', .["encryption"]["ike"], .["encryption"]["publi
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_user_templates=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_user_templates=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_user_templates="${objectstotal_user_templates}"
 export number_of_objects=${number_user_templates}
 
@@ -2436,6 +2548,7 @@ CheckAPIVersionAndExecuteOperation
 # MODIFIED 2021-01-28\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -2462,7 +2575,7 @@ export CSVJQparms=${CSVJQparms}', .["encryption"]["ike"], .["encryption"]["publi
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_user_templates=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_user_templates=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_user_templates="${objectstotal_user_templates}"
 export number_of_objects=${number_user_templates}
 
@@ -2478,6 +2591,7 @@ CheckAPIVersionAndExecuteOperation
 # MODIFIED 2021-01-28\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=identity-tag
@@ -2500,7 +2614,7 @@ export CSVJQparms='.["external-identifier"]'
 #export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
-objectstotal_identity_tags=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_identity_tags=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_identity_tags="${objectstotal_identity_tags}"
 export number_of_objects=${number_identity_tags}
 
@@ -2734,10 +2848,10 @@ PopulateArrayOfObjectsType () {
     
     if ${NoSystemObjects} ; then
         # Ignore System Objects
-        MGMT_CLI_OBJECTSTYPE_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentobjecttypesoffset} details-level "full" -s ${APICLIsessionfile} -f json | ${JQ} '.objects[] | '"${notsystemobjectselector}"' | .name | @sh' -r`"
+        MGMT_CLI_OBJECTSTYPE_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentobjecttypesoffset} details-level full -s ${APICLIsessionfile} -f json | ${JQ} '.objects[] | '"${notsystemobjectselector}"' | .name | @sh' -r`"
     else   
         # Don't Ignore System Objects
-        MGMT_CLI_OBJECTSTYPE_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentobjecttypesoffset} details-level "standard" -s ${APICLIsessionfile} -f json | ${JQ} ".objects[].name | @sh" -r`"
+        MGMT_CLI_OBJECTSTYPE_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentobjecttypesoffset} details-level standard -s ${APICLIsessionfile} -f json | ${JQ} ".objects[].name | @sh" -r`"
     fi
     
     # break the string into an array - each element of the array is a line in the original string
@@ -2778,12 +2892,12 @@ GetArrayOfObjectsType () {
     
     ALLOBJECTSTYPARRAY=()
     
-    export MgmtCLI_Base_OpParms="-f json -s ${APICLIsessionfile}"
-    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
+    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}
+    export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
     
-    export MgmtCLI_Show_OpParms="details-level \"${APICLIdetaillvl}\" ${MgmtCLI_Base_OpParms}"
+    export MgmtCLI_Show_OpParms='details-level "'${APICLIdetaillvl}'" '${MgmtCLI_Base_OpParms}
     
-    objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" ${MgmtCLI_Base_OpParms} | ${JQ} ".total")
+    objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard ${MgmtCLI_Base_OpParms} | ${JQ} ".total")
     
     objectstoshow=${objectstotal}
     
@@ -3005,7 +3119,7 @@ GenericComplexObjectsMembersHandler () {
     
     errorreturn=0
     
-    objectstotal_object=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+    objectstotal_object=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
     export number_object="${objectstotal_object}"
     
     if [ ${number_object} -le 0 ] ; then
@@ -3042,6 +3156,7 @@ GenericComplexObjectsMembersHandler () {
 # Generic OBJECT Members : Group Members
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=group
@@ -3065,6 +3180,7 @@ GenericComplexObjectsMembersHandler
 # Generic OBJECT Members : Time Group Members
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=time-group
@@ -3088,6 +3204,7 @@ GenericComplexObjectsMembersHandler
 # Generic OBJECT Members : TACACS Group Members
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-group
@@ -3111,6 +3228,7 @@ GenericComplexObjectsMembersHandler
 # Generic OBJECT Members : Service Group Members
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-group
@@ -3134,6 +3252,7 @@ GenericComplexObjectsMembersHandler
 # Generic OBJECT Members : Application Site Group Members
 # -------------------------------------------------------------------------------------------------
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-group
@@ -3159,6 +3278,7 @@ GenericComplexObjectsMembersHandler
 
 # MODIFIED 2021-01-18 -
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-group
@@ -3251,10 +3371,10 @@ PopulateArrayOfHostInterfaces () {
     
     if ${NoSystemObjects} ; then
         # Ignore System Objects
-        MGMT_CLI_HOSTS_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level "full" -s ${APICLIsessionfile} -f json | ${JQ} '.objects[] | '"${notsystemobjectselector}"' | .name | @sh' -r`"
+        MGMT_CLI_HOSTS_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level full -s ${APICLIsessionfile} -f json | ${JQ} '.objects[] | '"${notsystemobjectselector}"' | .name | @sh' -r`"
     else
         # Don't Ignore System Objects
-        MGMT_CLI_HOSTS_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level "standard" -s ${APICLIsessionfile} -f json | ${JQ} '.objects[].name | @sh' -r`"
+        MGMT_CLI_HOSTS_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level standard -s ${APICLIsessionfile} -f json | ${JQ} '.objects[].name | @sh' -r`"
     fi
     
     # break the string into an array - each element of the array is a line in the original string
@@ -3284,8 +3404,8 @@ PopulateArrayOfHostInterfaces () {
             #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"', ' | tee -a -i ${logfilepath}
         fi
         
-        #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level "full" -s ${APICLIsessionfile} -f json | ${JQ} ".interfaces | length")
-        INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${line})" details-level "full" -s ${APICLIsessionfile} -f json | ${JQ} ".interfaces | length")
+        #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level full -s ${APICLIsessionfile} -f json | ${JQ} ".interfaces | length")
+        INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} -f json | ${JQ} ".interfaces | length")
         
         NUM_HOST_INTERFACES=${INTERFACES_COUNT}
         
@@ -3344,12 +3464,12 @@ GetArrayOfHostInterfaces () {
     HOSTSARR=()
     ALLHOSTSARR=()
     
-    export MgmtCLI_Base_OpParms="-f json -s ${APICLIsessionfile}"
-    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
+    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}
+    export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
     
-    export MgmtCLI_Show_OpParms="details-level \"${APICLIdetaillvl}\" ${MgmtCLI_Base_OpParms}"
+    export MgmtCLI_Show_OpParms='details-level "'${APICLIdetaillvl}'" '${MgmtCLI_Base_OpParms}
     
-    objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" ${MgmtCLI_Base_OpParms} | ${JQ} ".total")
+    objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard ${MgmtCLI_Base_OpParms} | ${JQ} ".total")
     
     objectstoshow=${objectstotal}
     
@@ -3609,6 +3729,7 @@ GetHostInterfaces () {
 
 # MODIFIED 2021-01-27 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=host
@@ -3640,7 +3761,7 @@ export CSVJQparms=${CSVJQparms}', .["interfaces"]['${COUNTER}']["color"], .["int
 # MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-objectstotal_hosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_hosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_hosts="${objectstotal_hosts}"
 
 if [ ${number_hosts} -le 0 ] ; then
@@ -3720,8 +3841,8 @@ ExportUserAuthenticationsToCSVviaJQ () {
         return ${errorreturn}
     fi
     
-    export MgmtCLI_Base_OpParms="-f json -s ${APICLIsessionfile}"
-    export MgmtCLI_IgnoreErr_OpParms="ignore-warnings true ignore-errors true --ignore-errors true"
+    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}
+    export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
     
     export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
     
@@ -3761,7 +3882,7 @@ ExportUserAuthenticationsToCSVviaJQ () {
     echo '  '${APICLIobjectstype}' - Selection criteria '${userauthobjectselector} | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     
-    objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+    objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
     
     objectstoshow=${objectstotal}
     
@@ -3788,7 +3909,7 @@ ExportUserAuthenticationsToCSVviaJQ () {
         #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentuseroffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
         #errorreturn=$?
         
-        mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentuseroffset} details-level "full" -s ${APICLIsessionfile} -f json | ${JQ} '.objects[] | '"${userauthobjectselector}"' | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
+        mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentuseroffset} details-level full -s ${APICLIsessionfile} -f json | ${JQ} '.objects[] | '"${userauthobjectselector}"' | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
         errorreturn=$?
         
         if [ ${errorreturn} != 0 ] ; then
@@ -3876,6 +3997,7 @@ GetUserAuthentications () {
 
 # MODIFIED 2021-01-28 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -3903,7 +4025,7 @@ export APICLIobjectstype=users
 # MODIFIED 2021-01-28 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-objectstotal_users=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_users=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_users="${objectstotal_users}"
 
 if [ ${number_users} -le 0 ] ; then
@@ -4177,6 +4299,7 @@ fi
 
 # MODIFIED 2021-01-28 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -4204,7 +4327,7 @@ export APICLIobjectstype=user-templates
 # MODIFIED 2021-01-28 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-objectstotal_user_templates=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_user_templates=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_user_templates="${objectstotal_user_templates}"
 
 if [ ${number_user_templates} -le 0 ] ; then
@@ -4482,6 +4605,7 @@ fi
 
 # MODIFIED 2021-01-28 - 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -4509,7 +4633,7 @@ export APICLIobjectstype=user-templates
 # MODIFIED 2021-01-28 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-objectstotal_user_templates=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level "standard" -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+objectstotal_user_templates=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_user_templates="${objectstotal_user_templates}"
 
 if [ ${number_user_templates} -le 0 ] ; then
