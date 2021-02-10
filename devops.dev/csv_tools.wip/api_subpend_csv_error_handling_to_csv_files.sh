@@ -13,11 +13,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.04
-ScriptRevision=000
-ScriptDate=2021-01-31
-TemplateVersion=00.60.04
-APISubscriptsVersion=00.60.04
+ScriptVersion=00.60.05
+ScriptRevision=010
+ScriptDate=2021-02-10
+TemplateVersion=00.60.05
+APISubscriptsVersion=00.60.05
 APISubscriptsRevision=006
 
 #
@@ -419,11 +419,13 @@ ForceShowTempLogFile () {
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ REMOVED 2020-11-16
+
+
 # -------------------------------------------------------------------------------------------------
 # GetScriptSourceFolder - Get the actual source folder for the running script
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-09-30 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-02-09 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 GetScriptSourceFolder () {
@@ -456,6 +458,7 @@ GetScriptSourceFolder () {
     echo "DIR is '${DIR}'" >> ${logfilepath}
     
     export ScriptSourceFolder=${DIR}
+    echo "ScriptSourceFolder is '${ScriptSourceFolder}'" >> ${logfilepath}
     
     echo >> ${logfilepath}
     
@@ -463,7 +466,7 @@ GetScriptSourceFolder () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-30
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-02-09
 
 
 # REMOVED 2020-11-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -648,7 +651,7 @@ BasicScriptSetupAPIScripts "$@"
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-02-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -673,6 +676,11 @@ BasicScriptSetupAPIScripts "$@"
 #
 # -o <output_path> | --output <output_path> | -o=<output_path> | --output=<output_path> 
 # -c <csv_path> | --csv <csv_path> | -c=<csv_path> | --csv=<csv_path>'
+#
+# --NOHUP
+# --NOHUP-Script <NOHUP_SCRIPT_NAME> | --NOHUP-Script=<NOHUP_SCRIPT_NAME>
+# --NOHUP-DTG <NOHUP_SCRIPT_DATE_TIME_GROUP> | --NOHUP-DTG=<NOHUP_SCRIPT_DATE_TIME_GROUP>
+#
 #
 
 # MODIFIED 2020-09-30
@@ -721,13 +729,29 @@ else
     export NOWAIT=false
 fi
 
+# ADDED 2021-02-06 -
+# Provide capability to work with NOHUP mode script do_script_nohup from "bash 4 Check Point" scripts
+
+export CLIparm_NOHUP=false
+export CLIparm_NOHUPScriptName=
+export CLIparm_NOHUPDTG=
+
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
-# MODIFIED 2021-01-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-06
+# MODIFIED 2021-02-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
 # Specific Scripts Command Line Parameters
+#
+# --type-of-export <export_type> | --type-of-export=<export_type>
+#  Supported <export_type> values for export to CSV :  <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">
+#    "standard" {DEFAULT} :  Standard Export of all supported object key values
+#    "name-only"          :  Export of just the name key value for object
+#    "name-and-uid"       :  Export of name and uid key value for object
+#    "uid-only"           :  Export of just the uid key value of objects
+#    "rename-to-new-name" :  Export of name key value for object rename
+#    For an export for a delete operation via CSV, use "name-only"
 #
 # -f <format[all|csv|json]> | --format <format[all|csv|json]> | -f=<format[all|csv|json]> | --format=<format[all|csv|json]> 
 #
@@ -736,25 +760,38 @@ fi
 # --DEVOPSRESULTS | --RESULTS
 # --DEVOPSRESULTSPATH <results_path> | --RESULTSPATH <results_path> | --DEVOPSRESULTSPATH=<results_path> | --RESULTSPATH=<results_path> 
 #
-# -x <export_path> | --export <export_path> | -x=<export_path> | --export=<export_path> 
-# -i <import_path> | --import-path <import_path> | -i=<import_path> | --import-path=<import_path> 
-# -k <delete_path> | --delete-path <delete_path> | -k=<delete_path> | --delete-path=<delete_path> 
-#
 # --NSO | --no-system-objects
 # --SO | --system-objects
+#
+# --NOSYS | --CREATORISNOTSYSTEM
+#
+# --CSVERR | --CSVADDEXPERRHANDLE
 #
 # --5-TAGS | --CSVEXPORT05TAGS
 # --10-TAGS | --CSVEXPORT10TAGS
 # --NO-TAGS | --CSVEXPORTNOTAGS
 #
-# --CLEANUPWIP
-# --NODOMAINFOLDERS
-# --CSVADDEXPERRHANDLE
-#
 # --CSVEXPORTDATADOMAIN
 # --CSVEXPORTDATACREATOR
 # --CSVEXPORTDATAALL
 #
+# --KEEPCSVWIP
+# --CLEANUPCSVWIP
+# --NODOMAINFOLDERS
+#
+# -x <export_path> | --export-path <export_path> | -x=<export_path> | --export-path=<export_path> 
+# -i <import_path> | --import-path <import_path> | -i=<import_path> | --import-path=<import_path> 
+# -k <delete_path> | --delete-path <delete_path> | -k=<delete_path> | --delete-path=<delete_path> 
+#
+
+# Type of Object Export  :  --type-of-export <export_type> | --type-of-export=<export_type>
+#  export_type :  <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">
+#      For an export for a delete operation via CSV, use "name-only"
+#
+#export TypeOfExport="standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name"
+export TypeOfExport="standard"
+export CLIparm_TypeOfExport=${TypeOfExport}
+export ExportTypeIsStandard=true
 
 # ADDED 2020-11-23 -
 # Define output format from all, csv, or json
@@ -774,13 +811,42 @@ export CLIparm_detailslevelstandard=true
 # ADDED 2020-11-23 -
 # Determine utilization of devops.results folder in parent folder
 
-export CLIparm_UseDevOpsResults=false
 export UseDevOpsResults=false
+export CLIparm_UseDevOpsResults=${UseDevOpsResults}
 export CLIparm_resultspath=
 
-export CLIparm_exportpath=
-export CLIparm_importpath=
-export CLIparm_deletepath=
+# MODIFIED 2018-06-24 -
+#export CLIparm_NoSystemObjects=true
+export NoSystemObjects=false
+export CLIparm_NoSystemObjects=${NoSystemObjects}
+
+# Ignore object where Creator is System  :  --NOSYS | --CREATORISNOTSYSTEM
+#
+#export CreatorIsNotSystem=false|true
+export CreatorIsNotSystem=false
+export CLIparm_CreatorIsNotSystem=${CreatorIsNotSystem}
+
+export CLIparm_CSVADDEXPERRHANDLE=
+
+# --CSVERR | --CSVADDEXPERRHANDLE
+#
+if [ -z "${CSVADDEXPERRHANDLE}" ]; then
+    # CSVADDEXPERRHANDLE mode not set from shell level
+    export CSVADDEXPERRHANDLE=false
+    export CLIparm_CSVADDEXPERRHANDLE=${CSVADDEXPERRHANDLE}
+elif [ x"`echo "${CSVADDEXPERRHANDLE}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    # CSVADDEXPERRHANDLE mode set OFF from shell level
+    export CSVADDEXPERRHANDLE=false
+    export CLIparm_CSVADDEXPERRHANDLE=${CSVADDEXPERRHANDLE}
+elif [ x"`echo "${CSVADDEXPERRHANDLE}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # CSVADDEXPERRHANDLE mode set ON from shell level
+    export CSVADDEXPERRHANDLE=true
+    export CLIparm_CSVADDEXPERRHANDLE=${CSVADDEXPERRHANDLE}
+else
+    # CLEANUPCSVWIP mode set to wrong value from shell level
+    export CSVADDEXPERRHANDLE=false
+    export CLIparm_CSVADDEXPERRHANDLE=${CSVADDEXPERRHANDLE}
+fi
 
 # ADDED 2021-01-16 -
 # Define number tags to export to CSV :  5, 10, none
@@ -792,74 +858,6 @@ export CLIparm_CSVEXPORT05TAGS=${CSVEXPORT05TAGS}
 export CLIparm_CSVEXPORT10TAGS=${CSVEXPORT10TAGS}
 export CLIparm_CSVEXPORTNOTAGS=${CSVEXPORTNOTAGS}
 
-# MODIFIED 2018-06-24 -
-#export CLIparm_NoSystemObjects=true
-export CLIparm_NoSystemObjects=false
-
-export CLIparm_CLEANUPWIP=
-export CLIparm_NODOMAINFOLDERS=
-export CLIparm_CSVADDEXPERRHANDLE=
-
-# --CLEANUPWIP
-#
-if [ -z "${CLEANUPWIP}" ]; then
-    # CLEANUPWIP mode not set from shell level
-    export CLIparm_CLEANUPWIP=false
-    export CLEANUPWIP=false
-elif [ x"`echo "${CLEANUPWIP}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
-    # CLEANUPWIP mode set OFF from shell level
-    export CLIparm_CLEANUPWIP=false
-    export CLEANUPWIP=false
-elif [ x"`echo "${CLEANUPWIP}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
-    # CLEANUPWIP mode set ON from shell level
-    export CLIparm_CLEANUPWIP=true
-    export CLEANUPWIP=true
-else
-    # CLEANUPWIP mode set to wrong value from shell level
-    export CLIparm_CLEANUPWIP=false
-    export CLEANUPWIP=false
-fi
-
-# --NODOMAINFOLDERS
-#
-if [ -z "${NODOMAINFOLDERS}" ]; then
-    # NODOMAINFOLDERS mode not set from shell level
-    export CLIparm_NODOMAINFOLDERS=false
-    export NODOMAINFOLDERS=false
-elif [ x"`echo "${NODOMAINFOLDERS}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
-    # NODOMAINFOLDERS mode set OFF from shell level
-    export CLIparm_NODOMAINFOLDERS=false
-    export NODOMAINFOLDERS=false
-elif [ x"`echo "${NODOMAINFOLDERS}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
-    # NODOMAINFOLDERS mode set ON from shell level
-    export CLIparm_NODOMAINFOLDERS=true
-    export NODOMAINFOLDERS=true
-else
-    # NODOMAINFOLDERS mode set to wrong value from shell level
-    export CLIparm_NODOMAINFOLDERS=false
-    export NODOMAINFOLDERS=false
-fi
-
-# --CSVADDEXPERRHANDLE
-#
-if [ -z "${CSVADDEXPERRHANDLE}" ]; then
-    # CSVADDEXPERRHANDLE mode not set from shell level
-    export CLIparm_CSVADDEXPERRHANDLE=false
-    export CSVADDEXPERRHANDLE=false
-elif [ x"`echo "${CSVADDEXPERRHANDLE}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
-    # CSVADDEXPERRHANDLE mode set OFF from shell level
-    export CLIparm_CSVADDEXPERRHANDLE=false
-    export CSVADDEXPERRHANDLE=false
-elif [ x"`echo "${CSVADDEXPERRHANDLE}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
-    # CSVADDEXPERRHANDLE mode set ON from shell level
-    export CLIparm_CSVADDEXPERRHANDLE=true
-    export CSVADDEXPERRHANDLE=true
-else
-    # CLEANUPWIP mode set to wrong value from shell level
-    export CLIparm_CSVADDEXPERRHANDLE=false
-    export CSVADDEXPERRHANDLE=false
-fi
-
 # ADDED 2020-09-30 -
 # --CSVEXPORTDATADOMAIN :  Export Data Domain information to CSV
 # --CSVEXPORTDATACREATOR :  Export Data Creator and other MetaData to CSV
@@ -868,8 +866,106 @@ fi
 export CLIparm_CSVEXPORTDATADOMAIN=false
 export CLIparm_CSVEXPORTDATACREATOR=false
 
+export CLIparm_KEEPCSVWIP=
+export CLIparm_CLEANUPCSVWIP=
+
+# --KEEPCSVWIP
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-16
+if [ -z "${KEEPCSVWIP}" ]; then
+    # KEEPCSVWIP mode not set from shell level, default to not set
+    export KEEPCSVWIP=
+    export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+elif [ x"`echo "${KEEPCSVWIP}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # KEEPCSVWIP mode set ON from shell level
+    export KEEPCSVWIP=true
+    export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+elif [ x"`echo "${KEEPCSVWIP}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    # CLEANUPCSVWIP mode set OFF from shell level
+    export KEEPCSVWIP=false
+    export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+else
+    # CLEANUPCSVWIP mode set to wrong value from shell level, default to not set
+    export KEEPCSVWIP=
+    export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+fi
+
+# --CLEANUPCSVWIP
+#
+if [ -z "${CLEANUPCSVWIP}" ]; then
+    # CLEANUPCSVWIP mode not set from shell level, set default TRUE
+    export CLEANUPCSVWIP=true
+    export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+elif [ x"`echo "${CLEANUPCSVWIP}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    # CLEANUPCSVWIP mode set OFF from shell level
+    export CLEANUPCSVWIP=false
+    export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+elif [ x"`echo "${CLEANUPCSVWIP}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # CLEANUPCSVWIP mode set ON from shell level
+    export CLEANUPCSVWIP=true
+    export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+else
+    # CLEANUPCSVWIP mode set to wrong value from shell level, set default TRUE
+    export CLEANUPCSVWIP=true
+    export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+fi
+
+if [ x"${KEEPCSVWIP}" == x"" ] ; then
+    # KEEPCSVWIP was NOT set so check what we configured for CLEANUPCSVWIP
+    if ${CLEANUPCSVWIP} ; then
+        # CLEANUPCSVWIP mode set ON
+        export KEEPCSVWIP=false
+        export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+        export CLEANUPCSVWIP=true
+        export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+    else
+        # CLEANUPCSVWIP mode set OFF
+        export KEEPCSVWIP=true
+        export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+        export CLEANUPCSVWIP=false
+        export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+    fi
+elif ${KEEPCSVWIP} ; then
+    # KEEPCSVWIP was set true, so override everything
+    export KEEPCSVWIP=true
+    export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+    export CLEANUPCSVWIP=false
+    export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+else
+    # KEEPCSVWIP was set false, so override everything
+    export KEEPCSVWIP=false
+    export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+    export CLEANUPCSVWIP=true
+    export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+fi
+
+export CLIparm_NODOMAINFOLDERS=
+
+# --NODOMAINFOLDERS
+#
+if [ -z "${NODOMAINFOLDERS}" ]; then
+    # NODOMAINFOLDERS mode not set from shell level
+    export NODOMAINFOLDERS=false
+    export CLIparm_NODOMAINFOLDERS=${NODOMAINFOLDERS}
+elif [ x"`echo "${NODOMAINFOLDERS}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    # NODOMAINFOLDERS mode set OFF from shell level
+    export NODOMAINFOLDERS=false
+    export CLIparm_NODOMAINFOLDERS=${NODOMAINFOLDERS}
+elif [ x"`echo "${NODOMAINFOLDERS}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # NODOMAINFOLDERS mode set ON from shell level
+    export NODOMAINFOLDERS=true
+    export CLIparm_NODOMAINFOLDERS=${NODOMAINFOLDERS}
+else
+    # NODOMAINFOLDERS mode set to wrong value from shell level
+    export NODOMAINFOLDERS=false
+    export CLIparm_NODOMAINFOLDERS=${NODOMAINFOLDERS}
+fi
+
+export CLIparm_exportpath=
+export CLIparm_importpath=
+export CLIparm_deletepath=
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-04
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1000,7 +1096,7 @@ processcliremains () {
 # dumpcliparmparselocalresults
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-02-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 dumpcliparmparselocalresults () {
@@ -1009,67 +1105,45 @@ dumpcliparmparselocalresults () {
     # Testing - Dump acquired local values
     #
     #
-    localworkoutputfile=/var/tmp/localworkoutputfile.2.${DATEDTGS}.txt
-    echo > $localworkoutputfile
     
+    #
     # Screen width template for sizing, default width of 80 characters assumed
     #
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+    #printf "%-40s = %s\n" 'X' "${X}" >> ${templogfilepath}
+    #
     
-    echo 'Local CLI Parameters :' >> $localworkoutputfile
-    echo >> $localworkoutputfile
+    echo >> ${templogfilepath}
+    echo '--------------------------------------------------------------------------' >> ${templogfilepath}
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ' >> ${templogfilepath}
+    echo >> ${templogfilepath}
+    echo 'Local CLI Parameters :' >> ${templogfilepath}
+    echo >> ${templogfilepath}
     
-    #echo 'CLIparm_local1          = '${CLIparm_local1} >> $localworkoutputfile
-    #echo 'CLIparm_local2          = '$CLIparm_local2 >> $localworkoutputfile
+    #
+    # Screen width template for sizing, default width of 80 characters assumed
+    #
+    #printf "%-40s = %s\n" 'X' "${X}" >> ${templogfilepath}
+    #
+    #printf "%-40s = %s\n" 'CLIparm_local1' "${CLIparm_local1}" >> ${templogfilepath}
+    #printf "%-40s = %s\n" 'CLIparm_local2' "${CLIparm_local2}" >> ${templogfilepath}
     
-    #                  1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #       01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     
-    echo  >> $localworkoutputfile
-    echo 'LOCALREMAINS            = '${LOCALREMAINS} >> $localworkoutputfile
+    echo  >> ${templogfilepath}
+    echo 'LOCALREMAINS            = '${LOCALREMAINS} >> ${templogfilepath}
     
-    if ${APISCRIPTVERBOSE} ; then
-        # Verbose mode ON
-        
-        echo | tee -a -i ${logfilepath}
-        cat $localworkoutputfile | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        for i ; do echo - $i | tee -a -i ${logfilepath} ; done
-        echo | tee -a -i ${logfilepath}
-        echo 'CLI parms - number :  '"$#"' parms :  >'"$@"'<' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        
-        #if ! ${NOWAIT} ; then
-            #read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
-            #echo
-        #fi
-        
-        #echo | tee -a -i ${logfilepath}
-        echo "End of local execution" | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        
-    else
-        # Verbose mode OFF
-        
-        echo >> ${logfilepath}
-        cat $localworkoutputfile >> ${logfilepath}
-        echo >> ${logfilepath}
-        for i ; do echo - $i >> ${logfilepath} ; done
-        echo >> ${logfilepath}
-        echo 'CLI parms - number :  '"$#"' parms :  >'"$@"'<' >> ${logfilepath}
-        echo >> ${logfilepath}
-        
-    fi
+    echo >> ${templogfilepath}
+    echo 'Local CLI parms - number :  '"$#"' parms :  >'"$@"'<' >> ${templogfilepath}
+    for i ; do echo - $i >> ${templogfilepath} ; done
+    echo >> ${templogfilepath}
     
-    rm $localworkoutputfile
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ' >> ${templogfilepath}
+    echo '--------------------------------------------------------------------------' >> ${templogfilepath}
+    echo >> ${templogfilepath}
 }
 
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-03
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1138,7 +1212,7 @@ dumprawcliremains () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-12-17 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-02-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 dumpcliparmparseresults () {
@@ -1147,132 +1221,133 @@ dumpcliparmparseresults () {
     # Testing - Dump aquired values
     #
     
-    workoutputfile=/var/tmp/workoutputfile.1.${DATEDTGS}.txt
-    echo > ${workoutputfile}
+    SetupTempLogFile
     
-    #
-    # Screen width template for sizing, default width of 80 characters assumed
-    #
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-    #printf "%-40s = %s\n" 'X' "${X}" >> ${workoutputfile}
+    #printf "%-40s = %s\n" 'X' "${X}" >> ${templogfilepath}
     #
     
-    echo 'CLI Parameters :' >> ${workoutputfile}
-    echo >> ${workoutputfile}
+    echo 'CLI Parameters :' >> ${templogfilepath}
+    echo >> ${templogfilepath}
     
-    if ${UseR8XAPI} ; then
-        
-        #
-        # Screen width template for sizing, default width of 80 characters assumed
-        #
-        #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-        #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-        #printf "%-40s = %s\n" 'X' "${X}" >> ${workoutputfile}
-        
-        printf "%-40s = %s\n" 'CLIparm_rootuser' "${CLIparm_rootuser}" >> ${workoutputfile}
-        printf "%-40s = %s\n" 'CLIparm_user' "${CLIparm_user}" >> ${workoutputfile}
-        printf "%-40s = %s\n" 'CLIparm_password' "${CLIparm_password}" >> ${workoutputfile}
-        
-        printf "%-40s = %s\n" 'CLIparm_api_key' "${CLIparm_api_key}" >> ${workoutputfile}
-        printf "%-40s = %s\n" 'CLIparm_use_api_key' "${CLIparm_use_api_key}" >> ${workoutputfile}
-        
-        printf "%-40s = %s\n" 'CLIparm_websslport' "${CLIparm_websslport}" >> ${workoutputfile}
-        printf "%-40s = %s\n" 'CLIparm_mgmt' "${CLIparm_mgmt}" >> ${workoutputfile}
-        printf "%-40s = %s\n" 'CLIparm_domain' "${CLIparm_domain}" >> ${workoutputfile}
-        printf "%-40s = %s\n" 'CLIparm_sessionidfile' "${CLIparm_sessionidfile}" >> ${workoutputfile}
-        printf "%-40s = %s\n" 'CLIparm_sessiontimeout' "${CLIparm_sessiontimeout}" >> ${workoutputfile}
-        
-    fi
+    echo >> ${templogfilepath}
+    printf "%-40s = %s\n" 'SHOWHELP' "${SHOWHELP}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'SCRIPTVERBOSE' "${SCRIPTVERBOSE}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'APISCRIPTVERBOSE' "${APISCRIPTVERBOSE}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'NOWAIT' "${NOWAIT}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_NOWAIT' "${CLIparm_NOWAIT}" >> ${templogfilepath}
     
-    # Screen width template for sizing, default width of 80 characters assumed
-    #
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+    # ADDED 2021-02-06 -
+    echo  >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_NOHUP' "${CLIparm_NOHUP}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_NOHUPScriptName' "${CLIparm_NOHUPScriptName}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_NOHUPDTG' "${CLIparm_NOHUPDTG}" >> ${templogfilepath}
     
-    printf "%-40s = %s\n" 'CLIparm_logpath' "${CLIparm_logpath}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CLIparm_outputpath' "${CLIparm_outputpath}" >> ${workoutputfile}
+    #printf "%-40s = %s\n" 'X' "${X}" >> ${templogfilepath}
     
-    echo >> ${workoutputfile}
-    printf "%-40s = %s\n" 'SHOWHELP' "${SHOWHELP}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'SCRIPTVERBOSE' "${SCRIPTVERBOSE}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'APISCRIPTVERBOSE' "${APISCRIPTVERBOSE}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'NOWAIT' "${NOWAIT}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CLIparm_NOWAIT' "${CLIparm_NOWAIT}" >> ${workoutputfile}
+    printf "%-40s = %s\n" 'CLIparm_rootuser' "${CLIparm_rootuser}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_user' "${CLIparm_user}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_password' "${CLIparm_password}" >> ${templogfilepath}
     
-    echo >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CLIparm_format' "${CLIparm_format}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CLIparm_formatall' "${CLIparm_formatall}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CLIparm_formatcsv' "${CLIparm_formatcsv}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CLIparm_formatjson' "${CLIparm_formatjson}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CLIparm_detailslevel' "${CLIparm_detailslevel}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CLIparm_detailslevelall' "${CLIparm_detailslevelall}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CLIparm_detailslevelfull' "${CLIparm_detailslevelfull}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CLIparm_detailslevelstandard' "${CLIparm_detailslevelstandard}" >> ${workoutputfile}
+    printf "%-40s = %s\n" 'CLIparm_api_key' "${CLIparm_api_key}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_use_api_key' "${CLIparm_use_api_key}" >> ${templogfilepath}
     
-    echo >> ${workoutputfile}
+    printf "%-40s = %s\n" 'CLIparm_websslport' "${CLIparm_websslport}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_mgmt' "${CLIparm_mgmt}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_domain' "${CLIparm_domain}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_sessionidfile' "${CLIparm_sessionidfile}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_sessiontimeout' "${CLIparm_sessiontimeout}" >> ${templogfilepath}
     
-    printf "%-40s = %s\n" 'CLIparm_UseDevOpsResults' "${CLIparm_UseDevOpsResults}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CLIparm_resultspath' "${CLIparm_resultspath}" >> ${workoutputfile}
+    printf "%-40s = %s\n" 'CLIparm_logpath' "${CLIparm_logpath}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_outputpath' "${CLIparm_outputpath}" >> ${templogfilepath}
     
-    #
-    # Screen width template for sizing, default width of 80 characters assumed
-    #
-    #                  1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #       01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+    echo >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_NoSystemObjects' "${CLIparm_NoSystemObjects}" >> ${templogfilepath}
     
-    if ${script_use_export} ; then
-        printf "%-40s = %s\n" 'CLIparm_exportpath' "${CLIparm_exportpath}" >> ${workoutputfile}
-    fi
-    if ${script_use_import} ; then
-        printf "%-40s = %s\n" 'CLIparm_importpath' "${CLIparm_importpath}" >> ${workoutputfile}
-    fi
-    if ${script_use_delete} ; then
-        printf "%-40s = %s\n" 'CLIparm_deletepath' "${CLIparm_deletepath}" >> ${workoutputfile}
-    fi
-    if ${script_use_csvfile} ; then
-        printf "%-40s = %s\n" 'CLIparm_csvpath' "${CLIparm_csvpath}" >> ${workoutputfile}
-    fi
+    # ADDED 2021-02-03 -
+    echo >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_CreatorIsNotSystem' "${CLIparm_CreatorIsNotSystem}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CreatorIsNotSystem' "${CreatorIsNotSystem}" >> ${templogfilepath}
     
-    printf "%-40s = %s\n" 'CLIparm_NoSystemObjects' "${CLIparm_NoSystemObjects}" >> ${workoutputfile}
+    echo  >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CSVADDEXPERRHANDLE' "${CSVADDEXPERRHANDLE}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_CSVADDEXPERRHANDLE' "${CLIparm_CSVADDEXPERRHANDLE}" >> ${templogfilepath}
+    
+    # ADDED 2021-02-03 -
+    echo >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_TypeOfExport' "${CLIparm_TypeOfExport}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'TypeOfExport' "${TypeOfExport}" >> ${templogfilepath}
+    
+    echo >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_format' "${CLIparm_format}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_formatall' "${CLIparm_formatall}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_formatcsv' "${CLIparm_formatcsv}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_formatjson' "${CLIparm_formatjson}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_detailslevel' "${CLIparm_detailslevel}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_detailslevelall' "${CLIparm_detailslevelall}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_detailslevelfull' "${CLIparm_detailslevelfull}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_detailslevelstandard' "${CLIparm_detailslevelstandard}" >> ${templogfilepath}
+    
+    echo >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_UseDevOpsResults' "${CLIparm_UseDevOpsResults}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_resultspath' "${CLIparm_resultspath}" >> ${templogfilepath}
     
     # ADDED 2021-01-16 -
     
-    echo  >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CSVEXPORT05TAGS' "${CSVEXPORT05TAGS}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CSVEXPORT10TAGS' "${CSVEXPORT10TAGS}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CSVEXPORTNOTAGS' "${CSVEXPORTNOTAGS}" >> ${workoutputfile}
-    if ${UseR8XAPI} ; then
-        printf "%-40s = %s\n" 'CLIparm_CSVEXPORT05TAGS' "${CLIparm_CSVEXPORT05TAGS}" >> ${workoutputfile}
-        printf "%-40s = %s\n" 'CLIparm_CSVEXPORT10TAGS' "${CLIparm_CSVEXPORT10TAGS}" >> ${workoutputfile}
-        printf "%-40s = %s\n" 'CLIparm_CSVEXPORTNOTAGS' "${CLIparm_CSVEXPORTNOTAGS}" >> ${workoutputfile}
+    echo  >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CSVEXPORT05TAGS' "${CSVEXPORT05TAGS}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_CSVEXPORT05TAGS' "${CLIparm_CSVEXPORT05TAGS}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CSVEXPORT10TAGS' "${CSVEXPORT10TAGS}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_CSVEXPORT10TAGS' "${CLIparm_CSVEXPORT10TAGS}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CSVEXPORTNOTAGS' "${CSVEXPORTNOTAGS}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_CSVEXPORTNOTAGS' "${CLIparm_CSVEXPORTNOTAGS}" >> ${templogfilepath}
+    
+    echo  >> ${templogfilepath}
+    printf "%-40s = %s\n" 'KEEPCSVWIP' "${KEEPCSVWIP}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_KEEPCSVWIP' "${CLIparm_KEEPCSVWIP}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLEANUPCSVWIP' "${CLEANUPCSVWIP}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_CLEANUPCSVWIP' "${CLIparm_CLEANUPCSVWIP}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'NODOMAINFOLDERS' "${NODOMAINFOLDERS}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_NODOMAINFOLDERS' "${CLIparm_NODOMAINFOLDERS}" >> ${templogfilepath}
+    
+    printf "%-40s = %s\n" 'CLIparm_CSVEXPORTDATADOMAIN' "${CLIparm_CSVEXPORTDATADOMAIN}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_CSVEXPORTDATACREATOR' "${CLIparm_CSVEXPORTDATACREATOR}" >> ${templogfilepath}
+    
+    if ${script_use_export} ; then
+        printf "%-40s = %s\n" 'CLIparm_exportpath' "${CLIparm_exportpath}" >> ${templogfilepath}
+    fi
+    if ${script_use_import} ; then
+        printf "%-40s = %s\n" 'CLIparm_importpath' "${CLIparm_importpath}" >> ${templogfilepath}
+    fi
+    if ${script_use_delete} ; then
+        printf "%-40s = %s\n" 'CLIparm_deletepath' "${CLIparm_deletepath}" >> ${templogfilepath}
+    fi
+    if ${script_use_csvfile} ; then
+        printf "%-40s = %s\n" 'CLIparm_csvpath' "${CLIparm_csvpath}" >> ${templogfilepath}
     fi
     
-    echo  >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CLEANUPWIP' "${CLEANUPWIP}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'NODOMAINFOLDERS' "${NODOMAINFOLDERS}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CSVADDEXPERRHANDLE' "${CSVADDEXPERRHANDLE}" >> ${workoutputfile}
-    if ${UseR8XAPI} ; then
-        printf "%-40s = %s\n" 'CLIparm_CLEANUPWIP' "${CLIparm_CLEANUPWIP}" >> ${workoutputfile}
-        printf "%-40s = %s\n" 'CLIparm_NODOMAINFOLDERS' "${CLIparm_NODOMAINFOLDERS}" >> ${workoutputfile}
-        printf "%-40s = %s\n" 'CLIparm_CSVADDEXPERRHANDLE' "${CLIparm_CSVADDEXPERRHANDLE}" >> ${workoutputfile}
-    fi
+    echo >> ${templogfilepath}
+    printf "%-40s = %s\n" 'remains' "${REMAINS}" >> ${templogfilepath}
     
-    printf "%-40s = %s\n" 'CLIparm_CSVEXPORTDATADOMAIN' "${CLIparm_CSVEXPORTDATADOMAIN}" >> ${workoutputfile}
-    printf "%-40s = %s\n" 'CLIparm_CSVEXPORTDATACREATOR' "${CLIparm_CSVEXPORTDATACREATOR}" >> ${workoutputfile}
-    
-    echo >> ${workoutputfile}
-    printf "%-40s = %s\n" 'remains' "${REMAINS}" >> ${workoutputfile}
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-06
+# MODIFIED 2021-02-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+    # Improved local CLI parameter dump handler
     
     if ${localCLIparms}; then
         dumpcliparmparselocalresults ${REMAINS}
     fi
     
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-03
+# MODIFIED 2021-02-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+    
+    HandleShowTempLogFile
+    
     if ${APISCRIPTVERBOSE} ; then
         # Verbose mode ON
         
-        echo | tee -a -i ${logfilepath}
-        cat ${workoutputfile} | tee -a -i ${logfilepath}
         echo | tee -a -i ${logfilepath}
         echo 'Number parms :  '"$#" | tee -a -i ${logfilepath}
         echo 'Raw parms    : > '"$@"' <' | tee -a -i ${logfilepath}
@@ -1288,8 +1363,6 @@ dumpcliparmparseresults () {
         # Verbose mode ON
         
         echo >> ${logfilepath}
-        cat ${workoutputfile} >> ${logfilepath}
-        echo >> ${logfilepath}
         echo 'Number parms :  '"$#" >> ${logfilepath}
         echo 'Raw parms    : > '"$@"' <' >> ${logfilepath}
         
@@ -1301,11 +1374,11 @@ dumpcliparmparseresults () {
         
         echo >> ${logfilepath}
     fi
-
+    
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-12-17
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-03
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1409,11 +1482,8 @@ doshowlocalhelp () {
 # START:  Common Help display proceedure
 # -------------------------------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------------------------------
-# Help display proceedure
-# -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-11-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-02-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Show help information
@@ -1424,6 +1494,9 @@ doshowhelp () {
     #
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+    #
+    # MODIFIED 2021-02-06 -
+    
     echo
     echo -n $0' [-?][-v]'
     echo -n '|[-r]|[[-u <admin_name>]|[-p <password>]]|[--api-key <api_key_value>]'
@@ -1435,9 +1508,23 @@ doshowhelp () {
     echo -n '|[-l <log_path>]'
     echo -n '|[-o <output_path>]'
     
+    echo -n '|[-t <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">]'
+    
     echo -n '|[-f <all|csv|json>]|[--details <all|full|standard>]'
     
     echo -n '|[--RESULTS]|[--RESULTSPATH <results_path>]'
+    
+    echo -n '|[--SO|--NSO]'
+    echo -n '|[--NOSYS]'
+    
+    echo -n '|[--CSVERR']
+    
+    echo -n '|[--5-TAGS|--10-TAGS|--NO-TAGS]'
+    
+    echo -n '|[--CSVEXPORTDATADOMAIN|--CSVEXPORTDATACREATOR|--CSVALL]'
+    
+    echo -n '|[--CLEANUPCSVWIP]'
+    echo -n '|[--NODOMAINFOLDERS]'
     
     if ${script_use_export} ; then
         echo -n '|[-x <export_path>]'
@@ -1451,10 +1538,17 @@ doshowhelp () {
     if ${script_use_csvfile} ; then
         echo -n '|[-c <csv_path>]'
     fi
-    echo -n '|[--SO|--NSO]'
     
+    echo -n '|[--NOHUP]'
+    echo -n '|[--NOHUP-Script <NOHUP_SCRIPT_NAME>]'
+    echo -n '|[--NOHUP-DTG <NOHUP_SCRIPT_DATE_TIME_GROUP>]'
     echo
     
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+    #
+    # MODIFIED 2021-02-06 -
+    #
     echo
     echo ' Script Version:  '${ScriptVersion}'  Date:  '${ScriptDate}
     echo
@@ -1462,6 +1556,8 @@ doshowhelp () {
     echo
     echo '  Show Help                  -? | --help'
     echo '  Verbose mode               -v | --verbose'
+    echo
+    echo '  No waiting in verbose mode --NOWAIT'
     echo
     
     echo '  Authenticate as root       -r | --root'
@@ -1478,26 +1574,51 @@ doshowhelp () {
     echo '                             -m=<server_IP> | --management=<server_IP>'
     echo '  Set Management Domain      -d <domain> | --domain <domain> |'
     echo '                             -d=<domain> | --domain=<domain>'
+    echo
+    
     echo '  Set session file path      -s <session_file_filepath> |'
     echo '                             --session-file <session_file_filepath> |'
     echo '                             -s=<session_file_filepath> |'
     echo '                             --session-file=<session_file_filepath>'
-    echo '  Set session timeout value  --session-timeout <session_time_out> |'
-    echo '                             --session-timeout=<session_time_out>'
-    echo '      Default = 600 seconds, allowed range of values 10 - 3600 seconds'
     echo
     
+    echo '  Set session timeout value  --session-timeout <session_time_out> |'
+    echo '                             --session-timeout=<session_time_out>'
+    echo
+    echo '      Default = 600 seconds, allowed range of values 10 - 3600 seconds'
+    echo
     
     echo '  Set log file path          -l <log_path> | --log-path <log_path> |'
     echo '                             -l=<log_path> | --log-path=<log_path>'
     echo '  Set output file path       -o <output_path> | --output <output_path> |'
     echo '                             -o=<output_path> | --output=<output_path>'
     echo
-    echo '  No waiting in verbose mode --NOWAIT'
+    
+    echo '  session_file_filepath = fully qualified file path for session file'
+    echo '  log_path = fully qualified folder path for log files'
+    echo '  output_path = fully qualified folder path for output files'
     echo
     
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+    
+    echo
+    echo ' Extended Command Line Parameters: '
+    echo
+    echo '  Type of Object Export     -t <export_type> |-t <export_type> |'
+    echo '                            --type-of-export <export_type>|'
+    echo '                            --type-of-export=<export_type>'
+    echo
+    echo '  Supported <export_type> values for export to CSV :'
+    echo '    <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">'
+    echo '    "standard"           :  Standard Export of all supported object key values'
+    echo '    "name-only"          :  Export of just the name key value for object'
+    echo '    "name-and-uid"       :  Export of name and uid key value for object'
+    echo '    "uid-only"           :  Export of just the uid key value of objects'
+    echo '    "rename-to-new-name" :  Export of name key value for object rename'
+    echo
+    echo '    For an export for a delete operation via CSV, use "name-only"'
+    echo
     
     echo '  Format for export          -f <all|csv|json> | --format <all|csv|json> |'
     echo '                             -f=<all|csv|json> | --format=<all|csv|json>'
@@ -1507,15 +1628,48 @@ doshowhelp () {
     echo '                             --details=<all|full|standard> |'
     echo '                             --DETAILSLEVEL=<all|full|standard>  |'
     
-    echo '  Use devops results path    --DEVOPSRESULTS | --RESULTS'
-    echo '  Set results output path    --DEVOPSRESULTSPATH <results_path> |'
-    echo '                             --RESULTSPATH <results_path> |'
-    echo '                             --DEVOPSRESULTSPATH=<results_path> |'
+    echo '  Use devops results path    --RESULTS | --DEVOPSRESULTS'
+    echo '  Set results output path    --RESULTSPATH <results_path> |'
     echo '                             --RESULTSPATH=<results_path> |'
+    echo '                             --DEVOPSRESULTSPATH <results_path> |'
+    echo '                             --DEVOPSRESULTSPATH=<results_path> |'
+    echo
+    echo '  results_path = fully qualified folder path for devops results folder'
+    echo
     
+    echo '  Export System Objects      --SO | --system-objects  {default mode}'
+    echo '  NO System Objects Export   --NSO | --no-system-objects'
+    echo
+    echo '  Ignore object where Creator is "System", active with --NSO'
+    echo '                             --NOSYS | --CREATORISNOTSYSTEM'
+    echo
+    
+    echo '  CSV export add err handler --CSVERR | --CSVADDEXPERRHANDLE'
+    echo
+    
+    echo '  Export 5 Tags for object   --5-TAGS | --CSVEXPORT05TAGS'
+    echo '  Export 10 Tags for object  --10-TAGS | --CSVEXPORT10TAGS'
+    echo '  Export NO Tags for object  --NO-TAGS | --CSVEXPORTNOTAGS'
+    echo
+    
+    echo '  Export Data Domain info    --CSVEXPORTDATADOMAIN  (*)'
+    echo '  Export Data Creator info   --CSVEXPORTDATACREATOR  (*)'
+    echo '  Export Data Domain and Data Creator info'
+    echo '                             --CSVALL|--CSVEXPORTDATAALL  (*)'
+    echo
+    echo '  (*)  use of these will generate FOR_REFERENCE_ONLY CSV export !'
+    echo
+    
+    echo '  Keep CSV WIP folders       --KEEPCSVWIP'
+    echo '  Remove CSV WIP folders     --CLEANUPCSVWIP   !! Default Action'
+    echo '  No domain name in folders  --NODOMAINFOLDERS'
+    echo
+    
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     if ${script_use_export} ; then
-        echo '  Set export file path       -x <export_path> | --export <export_path> |'
-        echo '                             -x=<export_path> | --export=<export_path>'
+        echo '  Set export file path       -x <export_path> | --export-path <export_path> |'
+        echo '                             -x=<export_path> | --export-path=<export_path>'
     fi
     if ${script_use_import} ; then
         echo '  Set import file path       -i <import_path> | --import-path <import_path> |'
@@ -1529,29 +1683,6 @@ doshowhelp () {
         echo '  Set csv file path          -c <csv_path> | --csv <csv_path |'
         echo '                             -c=<csv_path> | --csv=<csv_path>'
     fi
-    echo
-    echo '  NO System Objects Export   --NSO | --no-system-objects  {default mode}'
-    echo '  Export System Objects      --SO | --system-objects'
-    echo
-    echo '  Export 5 Tags for object   --5-TAGS | --CSVEXPORT05TAGS'
-    echo '  Export 10 Tags for object  --10-TAGS | --CSVEXPORT10TAGS'
-    echo '  Export NO Tags for object  --NO-TAGS | --CSVEXPORTNOTAGS'
-    echo
-    echo '  Remove WIP folders after   --CLEANUPWIP'
-    echo '  No domain name in folders  --NODOMAINFOLDERS'
-    echo '  CSV export add err handler --CSVADDEXPERRHANDLE'
-    echo
-    echo '  Export Data Domain info    --CSVEXPORTDATADOMAIN'
-    echo '  Export Data Creator info   --CSVEXPORTDATACREATOR'
-    echo '  Export Data Domain and Data Creator info'
-    echo '                             --CSVEXPORTDATAALL'
-    echo
-    
-    echo '  session_file_filepath = fully qualified file path for session file'
-    
-    echo '  log_path = fully qualified folder path for log files'
-    echo '  output_path = fully qualified folder path for output files'
-    echo '  results_path = fully qualified folder path for devops results folder'
     
     if ${script_use_export} ; then
         echo '  export_path = fully qualified folder path for export files'
@@ -1565,6 +1696,11 @@ doshowhelp () {
     if ${script_use_csvfile} ; then
         echo '  csv_path = fully qualified file path for csv file'
     fi
+    
+    echo '  Operating in nohup mode    --NOHUP'
+    echo '  nohup script as called     --NOHUP-Script <NOHUP_SCRIPT_NAME> | --NOHUP-Script=<NOHUP_SCRIPT_NAME>'
+    echo '  nohup date-time-group      --NOHUP-DTG <NOHUP_SCRIPT_DATE_TIME_GROUP> | --NOHUP-DTG=<NOHUP_SCRIPT_DATE_TIME_GROUP>'
+    echo
     
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
@@ -1585,6 +1721,9 @@ doshowhelp () {
     echo '        System Objects during operation, so all System Objects are collected'
     echo
     
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+    
     echo ' Example: General :'
     echo
     echo ' ]# '${ScriptName}' -v --NOWAIT -P 4434 -m 192.168.1.1 -d "System Data" -s "/var/tmp/id.txt" --RESULTS --NSO'
@@ -1597,28 +1736,39 @@ doshowhelp () {
     echo
     echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" -P 4434 --NSO --format json --details all'
     echo
-    echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" --SO --format=all --details=full'
+    echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" --SO --format=all --details=full --CSVALL'
+    echo
+    echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" --SO --format=all --details=full --NOHUP --NOHUP-DTG 2027-11-11-2323CST'
     
+    #                  1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #        01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     
     if ${script_use_export} ; then
+        echo
         echo ' Example: Export:'
         echo
         echo ' ]# '${ScriptName}' -u fooAdmin -p voodoo -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump" -x "/var/tmp/script_dump/export"'
-        echo
+        echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --type-of-export "names-only" -x "/var/tmp/script_dump/export4delete"'
+        echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --5-TAGS --CSVADDEXPERRHANDL --CLEANUPCSVWIP'
+        echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --10-TAGS --CSVADDEXPERRHANDL'
+        echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --CREATORISNOTSYSTEM --10-TAGS --CSVADDEXPERRHANDL'
+        echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --10-TAGS --CSVERR --CSVALL'
     fi
     
     if ${script_use_import} ; then
-        echo ' Example: Import:'
         echo
-        echo ' ]# '${ScriptName}' -u fooAdmin -p voodoo -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump" -i "/var/tmp/import"'
+        echo ' Example: Import | Set Update | Rename To New Name:'
         echo
+        echo ' ]# '${ScriptName}' -u fooAdmin -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump" -i "/var/tmp/import"'
+        echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS -i "/var/tmp/import"'
     fi
     
     if ${script_use_delete} ; then
+        echo
         echo ' Example: Delete:'
         echo
-        echo ' ]# '${ScriptName}' -u fooAdmin -p voodoo -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump" -x "/var/tmp/script_dump/export" -k "/var/tmp/delete"'
-        echo
+        echo ' ]# '${ScriptName}' -u fooAdmin -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump" -x "/var/tmp/script_dump/export" -k "/var/tmp/delete"'
+        echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS -x "/var/tmp/script_dump/export4delete" -k "/var/tmp/delete"'
     fi
     
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
@@ -1629,7 +1779,7 @@ doshowhelp () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-23
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-03
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1708,12 +1858,12 @@ ProcessCommandLIneParameterVerboseEnable () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-11-19 
+# MODIFIED 2021-02-03 - 
 #
 
 ProcessCommandLineParametersAndSetValues () {
     
-    # MODIFIED 2021-01-31 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    # MODIFIED 2021-02-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
     #rawcliparmdump=false
@@ -1865,6 +2015,27 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_outputpath="$2"
                     shift
                     ;;
+                --NOHUP )
+                    CLIparm_NOHUP=true
+                    ;;
+                # Handle --flag=value opts like this
+                # and --flag value opts like this
+                --NOHUP-Script=* )
+                    CLIparm_NOHUPScriptName="${OPT#*=}"
+                    #shift
+                    ;;
+                --NOHUP-Script )
+                    CLIparm_NOHUPScriptName="$2"
+                    shift
+                    ;;
+                --NOHUP-DTG=* )
+                    CLIparm_NOHUPDTG="${OPT#*=}"
+                    #shift
+                    ;;
+                --NOHUP-DTG )
+                    CLIparm_NOHUPDTG="$2"
+                    shift
+                    ;;
                 # 
                 # This section is specific to this script focus
                 # 
@@ -1876,14 +2047,12 @@ ProcessCommandLineParametersAndSetValues () {
                     ;;
                 --NSO | --no-system-objects )
                     CLIparm_NoSystemObjects=true
+                    CLIparm_CreatorIsNotSystem=true
                     ;;
-                --CLEANUPWIP )
-                    CLIparm_CLEANUPWIP=true
+                --NOSYS | --CREATORISNOTSYSTEM )
+                    CLIparm_CreatorIsNotSystem=true
                     ;;
-                --NODOMAINFOLDERS )
-                    CLIparm_NODOMAINFOLDERS=true
-                    ;;
-                --CSVADDEXPERRHANDLE )
+                --CSVERR | --CSVADDEXPERRHANDLE )
                     CLIparm_CSVADDEXPERRHANDLE=true
                     ;;
                 # ADDED 2020-09-30 -
@@ -1893,7 +2062,7 @@ ProcessCommandLineParametersAndSetValues () {
                 --CSVEXPORTDATACREATOR )
                     CLIparm_CSVEXPORTDATACREATOR=true
                     ;;
-                --CSVEXPORTDATAALL )
+                --CSVALL | --CSVEXPORTDATAALL )
                     CLIparm_CSVEXPORTDATADOMAIN=true
                     CLIparm_CSVEXPORTDATACREATOR=true
                     ;;
@@ -1913,13 +2082,32 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_CSVEXPORT10TAGS=false
                     CLIparm_CSVEXPORTNOTAGS=true
                     ;;
+                --KEEPCSVWIP )
+                    CLIparm_KEEPCSVWIP=true
+                    CLIparm_CLEANUPCSVWIP=
+                    ;;
+                --CLEANUPCSVWIP )
+                    CLIparm_CLEANUPCSVWIP=true
+                    CLIparm_KEEPCSVWIP=
+                    ;;
+                --NODOMAINFOLDERS )
+                    CLIparm_NODOMAINFOLDERS=true
+                    ;;
                 # Handle --flag=value opts like this
                 # and --flag value opts like this
+                -t=* | --type-of-export=* )
+                    CLIparm_TypeOfExport="${OPT#*=}"
+                    #shift
+                    ;;
+                -t | --type-of-export )
+                    CLIparm_TypeOfExport="$2"
+                    shift
+                    ;;
                 -f=* | --format=* )
                     CLIparm_format="${OPT#*=}"
                     #shift
                     ;;
-                -f | --format* )
+                -f | --format )
                     CLIparm_format="$2"
                     shift
                     ;;
@@ -1927,7 +2115,7 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_detailslevel="${OPT#*=}"
                     #shift
                     ;;
-                --details* | --DETAILSLEVEL* )
+                --details | --DETAILSLEVEL )
                     CLIparm_detailslevel="$2"
                     shift
                     ;;
@@ -1935,15 +2123,15 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_resultspath="${OPT#*=}"
                     #shift
                     ;;
-                --RESULTSPATH* | --DEVOPSRESULTSPATH* )
+                --RESULTSPATH* | --DEVOPSRESULTSPATH )
                     CLIparm_resultspath="$2"
                     shift
                     ;;
-                -x=* | --export=* )
+                -x=* | --export-path=* )
                     CLIparm_exportpath="${OPT#*=}"
                     #shift
                     ;;
-                -x | --export )
+                -x | --export-path )
                     CLIparm_exportpath="$2"
                     shift
                     ;;
@@ -1997,29 +2185,85 @@ ProcessCommandLineParametersAndSetValues () {
     eval set -- ${REMAINS}
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-31
-    # MODIFIED 2021-01-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-06
+    # MODIFIED 2021-02-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
     export SHOWHELP=${SHOWHELP}
-    export CLIparm_websslport=${CLIparm_websslport}
+    
+    export NOWAIT=${NOWAIT}
+    export CLIparm_NOWAIT=${CLIparm_NOWAIT}
+    
     export CLIparm_rootuser=${CLIparm_rootuser}
     export CLIparm_user=${CLIparm_user}
     export CLIparm_password=${CLIparm_password}
-    export CLIparm_mgmt=${CLIparm_mgmt}
-    export CLIparm_domain=${CLIparm_domain}
-    export CLIparm_sessionidfile=${CLIparm_sessionidfile}
-    export CLIparm_sessiontimeout=${CLIparm_sessiontimeout}
-    export CLIparm_logpath=${CLIparm_logpath}
     
     # ADDED 2020-08-19 -
     export CLIparm_api_key=${CLIparm_api_key}
     export CLIparm_use_api_key=${CLIparm_use_api_key}
     
+    export CLIparm_websslport=${CLIparm_websslport}
+    export CLIparm_mgmt=${CLIparm_mgmt}
+    export CLIparm_domain=${CLIparm_domain}
+    
+    export CLIparm_sessionidfile=${CLIparm_sessionidfile}
+    export CLIparm_sessiontimeout=${CLIparm_sessiontimeout}
+    
+    export CLIparm_logpath=${CLIparm_logpath}
     export CLIparm_outputpath=${CLIparm_outputpath}
     
-    export NOWAIT=${NOWAIT}
-    export CLIparm_NOWAIT=${CLIparm_NOWAIT}
+    # ADDED 2021-02-06 -
+    export CLIparm_NOHUP=${CLIparm_NOHUP}
+    export CLIparm_NOHUPScriptName=${CLIparm_NOHUPScriptName}
+    export CLIparm_NOHUPDTG=${CLIparm_NOHUPDTG}
+    
+    # MODIFIED 2021-02-04 -
+    export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
+    #export TypeOfExport=${CLIparm_TypeOfExport}
+    #export ExportTypeIsStandard=true
+    
+    case "${CLIparm_TypeOfExport}" in
+        # a "Standard" export operation
+        'standard' )
+            export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
+            export TypeOfExport=${CLIparm_TypeOfExport}
+            export ExportTypeIsStandard=true
+            ;;
+        # a "name-only" export operation
+        'name-only' )
+            export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
+            export TypeOfExport=${CLIparm_TypeOfExport}
+            export ExportTypeIsStandard=false
+            ;;
+        # a "name-and-uid" export operation
+        'name-and-uid' )
+            export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
+            export TypeOfExport=${CLIparm_TypeOfExport}
+            export ExportTypeIsStandard=false
+            ;;
+        # a "uid-only" export operation
+        'uid-only' )
+            export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
+            export TypeOfExport=${CLIparm_TypeOfExport}
+            export ExportTypeIsStandard=false
+            ;;
+        # a "rename-to-new-nam" export operation
+        'rename-to-new-name' )
+            export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
+            export TypeOfExport=${CLIparm_TypeOfExport}
+            export ExportTypeIsStandard=false
+            ;;
+        # Anything unknown is handled as "standard"
+        * )
+            export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
+            export TypeOfExport=${CLIparm_TypeOfExport}
+            export ExportTypeIsStandard=true
+            # Wait what?  Not an expected format
+            echo 'INVALID EXPORT-TYPE PROVIDED IN CLI PARAMETERS!  EXPORT-TYPE = '${CLIparm_TypeOfExport} | tee -a -i ${logfilepath}
+            echo | tee -a -i ${logfilepath}
+            SHOWHELP=true
+            ;;
+    esac
     
     # ADDED 2020-11-23 -
     export CLIparm_format=${CLIparm_format}
@@ -2085,13 +2329,14 @@ ProcessCommandLineParametersAndSetValues () {
     export UseDevOpsResults=${CLIparm_UseDevOpsResults}
     export CLIparm_resultspath=${CLIparm_resultspath}
     
-    export CLIparm_exportpath=${CLIparm_exportpath}
-    export CLIparm_importpath=${CLIparm_importpath}
-    export CLIparm_deletepath=${CLIparm_deletepath}
-    
-    export CLIparm_csvpath=${CLIparm_csvpath}
-    
     export CLIparm_NoSystemObjects=${CLIparm_NoSystemObjects}
+    # ADDED 2021-02-03 -
+    export CLIparm_CreatorIsNotSystem=${CLIparm_CreatorIsNotSystem}
+    export CreatorIsNotSystem=${CLIparm_CreatorIsNotSystem}
+    
+    # ADDED 2018-05-03-2 -
+    export CLIparm_CSVADDEXPERRHANDLE=${CLIparm_CSVADDEXPERRHANDLE}
+    export CSVADDEXPERRHANDLE=${CLIparm_CSVADDEXPERRHANDLE}
     
     # ADDED 2021-01-16 -
     export CLIparm_CSVEXPORT05TAGS=${CLIparm_CSVEXPORT05TAGS}
@@ -2102,18 +2347,71 @@ ProcessCommandLineParametersAndSetValues () {
     export CSVEXPORTNOTAGS=${CLIparm_CSVEXPORTNOTAGS}
     
     # ADDED 2018-05-03-2 -
-    export CLIparm_CLEANUPWIP=${CLIparm_CLEANUPWIP}
-    export CLIparm_NODOMAINFOLDERS=${CLIparm_NODOMAINFOLDERS}
-    export CLIparm_CSVADDEXPERRHANDLE=${CLIparm_CSVADDEXPERRHANDLE}
-    export CSVADDEXPERRHANDLE=${CLIparm_CSVADDEXPERRHANDLE}
-    
     export CLIparm_CSVEXPORTDATADOMAIN=${CLIparm_CSVEXPORTDATADOMAIN}
     export CLIparm_CSVEXPORTDATACREATOR=${CLIparm_CSVEXPORTDATADOMAIN}
     
+    # ADDED 2018-05-03-2 -
+    export CLIparm_KEEPCSVWIP=${CLIparm_KEEPCSVWIP}
+    export CLIparm_CLEANUPCSVWIP=${CLIparm_CLEANUPCSVWIP}
+    
+    if [ x"${CLIparm_KEEPCSVWIP}" == x"" ] ; then
+        # CLIparm_KEEPCSVWIP was unset so check what we configured for CLEANUPCSVWIP
+        if ${CLIparm_CLEANUPCSVWIP} ; then
+            # CLIparm_CLEANUPCSVWIP mode set ON
+            export KEEPCSVWIP=false
+            export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+            export CLEANUPCSVWIP=true
+            export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+        else
+            # CLIparm_CLEANUPCSVWIP mode set OFF
+            export KEEPCSVWIP=true
+            export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+            export CLEANUPCSVWIP=false
+            export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+        fi
+    elif [ x"${CLIparm_CLEANUPCSVWIP}" == x"" ] ; then
+        # CLEANUPCSVWIP was unset true, so override everything
+        if ${CLIparm_KEEPCSVWIP} ; then
+            # CLIparm_KEEPCSVWIP mode set ON
+            export KEEPCSVWIP=true
+            export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+            export CLEANUPCSVWIP=false
+            export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+        else
+            # CLIparm_KEEPCSVWIP mode set OFF
+            export KEEPCSVWIP=false
+            export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+            export CLEANUPCSVWIP=true
+            export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+        fi
+    else
+        # Check if KEEPCSVWIP was set to determine override
+        if ${CLIparm_KEEPCSVWIP} ; then
+            # CLIparm_KEEPCSVWIP mode set ON
+            export KEEPCSVWIP=true
+            export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+            export CLEANUPCSVWIP=false
+            export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+        else
+            # CLIparm_KEEPCSVWIP mode set OFF
+            export KEEPCSVWIP=false
+            export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+            export CLEANUPCSVWIP=true
+            export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+        fi
+    fi
+    
+    export CLIparm_NODOMAINFOLDERS=${CLIparm_NODOMAINFOLDERS}
+    
+    export CLIparm_exportpath=${CLIparm_exportpath}
+    export CLIparm_importpath=${CLIparm_importpath}
+    export CLIparm_deletepath=${CLIparm_deletepath}
+    
+    export CLIparm_csvpath=${CLIparm_csvpath}
     export REMAINS=${REMAINS}
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-16
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-06
     
     return 0
 }
@@ -4395,7 +4693,7 @@ fi
 # Clean-up and exit
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-31 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-02-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 echo 'CLI Operations Completed' | tee -a -i ${logfilepath}
@@ -4440,13 +4738,20 @@ else
     echo >> ${logfilepath}
 fi
 
+if ${CLIparm_NOHUP} ; then
+    # Cleanup Potential file indicating script is active for nohup mode
+    if [ -r ${script2nohupactive} ] ; then
+        rm ${script2nohupactive} >> ${logfilepath} 2>&1
+    fi
+fi
+
 echo | tee -a -i ${logfilepath}
 echo 'Results in directory : '"${APICLIpathbase}" | tee -a -i ${logfilepath}
 echo 'Log output in file   : '"${logfilepath}" | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-31
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-06
 
 
 # =================================================================================================

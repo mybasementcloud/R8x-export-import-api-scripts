@@ -1,6 +1,6 @@
 @ECHO OFF
 REM
-REM Script :  Code Snipet Open File Types in Text File Editor
+REM Script :  Open File Types in Text File Editor - bash scripting 
 REM
 REM # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/
 REM #
@@ -15,22 +15,24 @@ REM #
 REM #
 
 SET _LOCALSCRIPTNAME=zzOpenFileTypesInTextFileEditor.bash
-SET _LOCALSCRIPTDATE=2021-01-18
-SET _LOCALSCRIPTTIME=1215CST
-SET _LOCALSCRIPTVERSION=03.02.00
+SET _LOCALSCRIPTDATE=2021-02-09
+SET _LOCALSCRIPTTIME=1530CDT
+SET _LOCALSCRIPTVERSION=v06.01.00
 SET _LOCALSCRIPTREVISION=000
 
+SET "_LOCALSCRIPTDESCRIPTION=Open File Types in Text File Editor - bash scripting"
+SET "_LOCALSCRIPTDESCRIPTIONSHORT=Open File Types in Text File Editor, bash scripting"
 
-@ECHO.
-@ECHO =====================================================================================
-@ECHO =====================================================================================
-@ECHO Script Name:  %_LOCALSCRIPTNAME%
-@ECHO VERSION:  %_LOCALSCRIPTVERSION%  REVISION:  %_LOCALSCRIPTREVISION%  DATE:  %_LOCALSCRIPTDATE%  TIME:  %_LOCALSCRIPTTIME%
-@ECHO SCRIPT CALLED     :  %0
-@ECHO SCRIPT PARAMETERS :  %*
-@ECHO =====================================================================================
-@ECHO.
-@ECHO.
+@ECHO:
+@ECHO: =====================================================================================
+@ECHO: =====================================================================================
+@ECHO: Script Name:  %_LOCALSCRIPTNAME%
+@ECHO: VERSION:  %_LOCALSCRIPTVERSION%  REVISION:  %_LOCALSCRIPTREVISION%  DATE:  %_LOCALSCRIPTDATE%  TIME:  %_LOCALSCRIPTTIME%
+@ECHO: SCRIPT CALLED     :  %0
+@ECHO: SCRIPT PARAMETERS :  %*
+@ECHO: =====================================================================================
+@ECHO:
+@ECHO:
 
 
 REM CHECK IF WE ARE CLEANING UP AFTER OURSELVES
@@ -45,6 +47,81 @@ REM ============================================================================
 REM =====================================================================================
 REM START OF SUBROUTINES
 REM =====================================================================================
+REM =====================================================================================
+
+
+REM =====================================================================================
+REM -------------------------------------------------------------------------------------
+REM START SUBROUTINE:  sub_SETLOGSLOCATION :  Configure logs folder FQDN
+REM -------------------------------------------------------------------------------------
+
+REM ADDED 2021-02-07
+
+:sub_SETLOGSLOCATION
+
+REM ----------------------------------------------------------------
+REM Find __LOGS folder
+REM ----------------------------------------------------------------
+
+SET "LOGGINGPATH="
+
+if exist ".\__LOGS" GOTO :SETLOGSFOLDER_CURRENT
+if exist "..\__LOGS" GOTO :SETLOGSFOLDER_PARENT
+if exist "\__LOGS" GOTO :SETLOGSFOLDER_ROOT
+
+GOTO :LASTCHKLOGS
+
+:SETLOGSFOLDER_CURRENT
+SET "LOGGINGPATH=.\__LOGS"
+PUSHD "%LOGGINGPATH%"
+SET "LOGGINGPATH=%CD%"
+POPD
+GOTO :LASTCHKLOGS
+
+:SETLOGSFOLDER_PARENT
+SET "LOGGINGPATH=..\__LOGS"
+PUSHD "%LOGGINGPATH%"
+SET "LOGGINGPATH=%CD%"
+POPD
+GOTO :LASTCHKLOGS
+
+:SETLOGSFOLDER_ROOT
+SET "LOGGINGPATH=\__LOGS"
+PUSHD "%LOGGINGPATH%"
+SET "LOGGINGPATH=%CD%"
+POPD
+GOTO :LASTCHKLOGS
+
+:LASTCHKLOGS
+IF NOT "%LOGGINGPATH%"=="" GOTO :LOGSCHKDONE
+SET "LOGGINGPATH=%TEMP%"
+
+REM ----------------------------------------------------------------
+
+:LOGSCHKDONE
+
+@ECHO: Current Logging Path : "%LOGGINGPATH%"
+@ECHO:
+
+REM ----------------------------------------------------------------
+
+
+EXIT /B 0
+
+REM ----------------------------------------------------------------
+REM ----------------------------------------------------------------
+
+
+REM -------------------------------------------------------------------------------------
+REM SUBROUTINE IMPLEMENTATION ELEMENTS : sub_SETLOGSLOCATION
+REM -------------------------------------------------------------------------------------
+
+REM SET "LOGGINGPATH="
+REM CALL :sub_SETLOGSLOCATION
+
+REM -------------------------------------------------------------------------------------
+REM END SUBROUTINE: sub_SETLOGSLOCATION
+REM -------------------------------------------------------------------------------------
 REM =====================================================================================
 
 
@@ -132,6 +209,8 @@ SET "_LOCALSCRIPTTIME="
 SET "_LOCALSCRIPTVERSION="
 SET "_LOCALSCRIPTREVISION="
 
+SET "_HOST_NAME="
+
 
 EXIT /B 0
 
@@ -206,7 +285,7 @@ REM ----------------------------------------------------------------------------
 
 :cleanup_sub_SetTextFileEditorValue
 
-@ECHO CLEAN UP sub_SetTextFileEditorValue
+@ECHO: CLEAN UP sub_SetTextFileEditorValue
 
 SET "FILEEDITORNAME="
 SET "FILEEDITOR="
@@ -215,6 +294,142 @@ EXIT /B 0
 
 REM -------------------------------------------------------------------------------------
 REM END SUBROUTINE:  sub_SetTextFileEditorValue
+REM -------------------------------------------------------------------------------------
+REM =====================================================================================
+
+
+REM =====================================================================================
+REM -------------------------------------------------------------------------------------
+REM START SUBROUTINE:  sub_CLEARCONFIGSCRIPTPATHSVARS  :  Clear sub_CONFIGSCRIPTPATHS Working Variables
+REM -------------------------------------------------------------------------------------
+
+:sub_CLEARCONFIGSCRIPTPATHSVARS
+
+REM * -------------------------------------------------------------------------
+REM * Clear sub_CONFIGSCRIPTPATHS Working Variables
+REM * -------------------------------------------------------------------------
+
+SET "subroutinescriptname="
+SET "subroutinescriptext="
+SET "subroutinescriptfile="
+SET "subroutinecommonpath=" 
+SET "subroutinecommonfqpn=" 
+
+
+EXIT /B 0
+
+REM -------------------------------------------------------------------------------------
+REM SUBROUTINE IMPLEMENTATION ELEMENTS : sub_CLEARCONFIGSCRIPTPATHSVARS
+REM -------------------------------------------------------------------------------------
+
+REM CALL :sub_CLEARCONFIGSCRIPTPATHSVARS
+
+REM -------------------------------------------------------------------------------------
+REM END SUBROUTINE: sub_CLEARCONFIGSCRIPTPATHSVARS
+REM -------------------------------------------------------------------------------------
+REM =====================================================================================
+
+
+REM =====================================================================================
+REM -------------------------------------------------------------------------------------
+REM START SUBROUTINE:  sub_CONFIGSCRIPTPATHS  :  Configure Script Paths
+REM -------------------------------------------------------------------------------------
+
+:sub_CONFIGSCRIPTPATHS
+
+REM * -------------------------------------------------------------------------
+REM * Subroutine Operations
+REM * -------------------------------------------------------------------------
+
+@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: Subroutine sub_CONFIGSCRIPTPATHS Start >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO. >> "%_scriptLOGFQPN%"
+
+SET "subroutinecommonpath=" 
+SET "subroutinecommonfqpn="
+SET "ERRORRETURN=0"
+
+SET "testthispath=.\_Common\__SUBROUTINES"
+SET "testthisfqpn=%testthispath%\%subroutinescriptfile%"
+IF EXIST "%testthisfqpn%" GOTO :SUBRTCMNPATHFOUND
+IF NOT EXIST "%testthisfqpn%" @ECHO Did not find target path here:  %testthisfqpn% >> "%_scriptLOGFQPN%"
+
+SET "testthispath=R:\_Common\__SUBROUTINES"
+SET "testthisfqpn=%testthispath%\%subroutinescriptfile%"
+IF EXIST "%testthisfqpn%" GOTO :SUBRTCMNPATHFOUND
+IF NOT EXIST "%testthisfqpn%" @ECHO Did not find target path here:  %testthisfqpn% >> "%_scriptLOGFQPN%"
+
+SET "testthispath=S:\Updates\Software\_Common\__SUBROUTINES"
+SET "testthisfqpn=%testthispath%\%subroutinescriptfile%"
+IF EXIST "%testthisfqpn%" GOTO :SUBRTCMNPATHFOUND
+IF NOT EXIST "%testthisfqpn%" @ECHO Did not find target path here:  %testthisfqpn% >> "%_scriptLOGFQPN%"
+
+SET "ERRORRETURN=100"
+@ECHO: Did not find target path ! >> "%_scriptLOGFQPN%"
+@ECHO. >> "%_scriptLOGFQPN%"
+GOTO :SUBRTCMNPATHSET
+
+:SUBRTCMNPATHFOUND
+@ECHO: Found target path here:  %testthisfqpn% >> "%_scriptLOGFQPN%"
+SET "subroutinecommonpath=%testthispath%"
+SET "subroutinecommonfqpn=%testthisfqpn%"
+
+:SUBRTCMNPATHSET
+
+REM * -------------------------------------------------------------------------
+REM * Log Current Values
+REM * -------------------------------------------------------------------------
+
+@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: subroutinescriptname   = %subroutinescriptname% >> "%_scriptLOGFQPN%"
+@ECHO: subroutinescriptext    = %subroutinescriptext% >> "%_scriptLOGFQPN%"
+@ECHO: subroutinescriptfile   = %subroutinescriptfile% >> "%_scriptLOGFQPN%"
+@ECHO: subroutinecommonpath   = %subroutinecommonpath% >> "%_scriptLOGFQPN%"
+@ECHO: subroutinecommonfqpn   = %subroutinecommonfqpn% >> "%_scriptLOGFQPN%"
+@ECHO: testthispath           = %testthispath% >> "%_scriptLOGFQPN%"
+@ECHO: testthisfqpn           = %testthisfqpn% >> "%_scriptLOGFQPN%"
+@ECHO: ERRORRETURN            = %ERRORRETURN% >> "%_scriptLOGFQPN%"
+@ECHO. >> "%_scriptLOGFQPN%"
+
+@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO: Subroutine sub_CONFIGSCRIPTPATHS Finished >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO. >> "%_scriptLOGFQPN%"
+
+SET "testthispath="
+SET "testthisfqpn="
+
+EXIT /B %ERRORRETURN%
+
+REM -------------------------------------------------------------------------------------
+REM SUBROUTINE IMPLEMENTATION ELEMENTS : sub_CONFIGSCRIPTPATHS
+REM -------------------------------------------------------------------------------------
+
+REM SET "xSetParameter1="
+REM CALL :sub_CONFIGSCRIPTPATHS
+
+REM -------------------------------------------------------------------------------------
+REM SUBROUTINE CLEANUP : sub_CONFIGSCRIPTPATHS
+REM -------------------------------------------------------------------------------------
+
+:cleanup_sub_CONFIGSCRIPTPATHS
+
+@ECHO: CLEAN UP sub_CONFIGSCRIPTPATHS
+
+SET "subroutinecommonpath=" 
+SET "subroutinecommonfqpn="
+REM SET "ERRORRETURN="
+
+SET "testthispath="
+SET "testthisfqpn="
+
+EXIT /B 0
+
+REM -------------------------------------------------------------------------------------
+REM END SUBROUTINE: sub_CONFIGSCRIPTPATHS
 REM -------------------------------------------------------------------------------------
 REM =====================================================================================
 
@@ -252,7 +467,7 @@ REM ----------------------------------------------------------------------------
 
 :cleanup_sub_REMOVEQUOTESFROMPARM_VERBOSE
 
-@ECHO CLEAN UP sub_REMOVEQUOTESFROMPARM_VERBOSE
+@ECHO: CLEAN UP sub_REMOVEQUOTESFROMPARM_VERBOSE
 
 SET "xPARMNOQUOTES="
 
@@ -273,7 +488,7 @@ REM ----------------------------------------------------------------------------
 
 :CLEANUP_SUBROUTINES
 
-@ECHO Call CLEAN UP Subroutines
+@ECHO: Call CLEAN UP Subroutines
 
 CALL :cleanup_sub_SetTextFileEditorValue
 CALL :cleanup_sub_REMOVEQUOTESFROMPARM_VERBOSE
@@ -284,7 +499,7 @@ REM * -------------------------------------------------------------------------
 REM * CLEAN UP Variables we wanted to keep for use by the callers
 REM * -------------------------------------------------------------------------
 
-@ECHO CLEAN UP Variables we wanted to keep for use by the callers
+@ECHO: CLEAN UP Variables we wanted to keep for use by the callers
 
 CALL :sub_CLEANUPRESULTVARS
 
@@ -292,7 +507,7 @@ REM * -------------------------------------------------------------------------
 REM * CLEAN UP Local Variables
 REM * -------------------------------------------------------------------------
 
-@ECHO CLEAN UP Local Variables
+@ECHO: CLEAN UP Local Variables
 
 CALL :sub_CLEANUPLOCALVARS
 
@@ -300,7 +515,7 @@ REM * -------------------------------------------------------------------------
 REM * CLEAN UP Local Standard Variables
 REM * -------------------------------------------------------------------------
 
-@ECHO CLEAN UP Local Standard Variables
+@ECHO: CLEAN UP Local Standard Variables
 
 CALL :sub_CLEANUPLOCALSTANDARDVARS
 
@@ -323,11 +538,12 @@ REM ============================================================================
 REM =====================================================================================
 REM =====================================================================================
 
+
 :STARTSCRIPT
 
 REM =====================================================================================
 REM =====================================================================================
-REM START CODE SNIPET MAIN OPERATIONS
+REM START MAIN OPERATIONS
 REM =====================================================================================
 REM =====================================================================================
 
@@ -340,31 +556,50 @@ CALL :sub_CLEANUPRESULTVARS
 CALL :sub_CLEANUPLOCALVARS
 
 REM * =========================================================================
-REM * Handle Logging Variables, Folders, Paths, and Files
+REM *  Handle Logging Variables, Folders, Paths, and Files
 REM * =========================================================================
 
+
+SET "LOGGINGPATH="
+CALL :sub_SETLOGSLOCATION
+
 REM SET _scriptLOGSDIR=C:\TEMP
-SET _scriptLOGSDIR=%TEMP%
-SET _scriptLOGSPATH=%_scriptLOGSDIR%
+REM SET _scriptLOGSDIR=%TEMP%
+SET "_scriptLOGSDIR=%LOGGINGPATH%"
+SET "_scriptLOGSPATH=%_scriptLOGSDIR%"
 SET "_scriptLOGSFILE=%_LOCALSCRIPTNAME%.log"
 SET "_scriptLOGFQPN=%_scriptLOGSPATH%\%_scriptLOGSFILE%"
 
 IF NOT EXIST "%_scriptLOGSDIR%" MKDIR "%_scriptLOGSDIR%"
 IF NOT EXIST "%_scriptLOGSPATH%" MKDIR "%_scriptLOGSPATH%"
 
-@ECHO. > "%_scriptLOGFQPN%"
+@ECHO: > "%_scriptLOGFQPN%"
+
 
 REM =====================================================================================
 REM =====================================================================================
 
-@ECHO ===================================================================================== >> "%_scriptLOGFQPN%"
-@ECHO Script Name:  %_LOCALSCRIPTNAME% >> "%_scriptLOGFQPN%"
-@ECHO VERSION:  %_LOCALSCRIPTVERSION%  REVISION:  %_LOCALSCRIPTREVISION%  DATE:  %_LOCALSCRIPTDATE%  TIME:  %_LOCALSCRIPTTIME% >> "%_scriptLOGFQPN%"
-@ECHO SCRIPT CALLED     :  %0 >> "%_scriptLOGFQPN%"
-@ECHO SCRIPT PARAMETERS :  %* >> "%_scriptLOGFQPN%"
-@ECHO ===================================================================================== >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO:===================================================================================== >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO SCRIPT Name:  %_LOCALSCRIPTNAME% >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO SCRIPT VERSION:  %_LOCALSCRIPTVERSION%  REVISION:  %_LOCALSCRIPTREVISION%  DATE:  %_LOCALSCRIPTDATE%  TIME:  %_LOCALSCRIPTTIME% >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO SCRIPT CALLED     :  %0 >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO SCRIPT PARAMETERS :  %* >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:===================================================================================== >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: >> "%_scriptLOGFQPN%" 2>>&1
+
+REM =====================================================================================
+REM =====================================================================================
+
+@ECHO: ============================================================================= >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: Script Logging Details - Initial >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _scriptLOGSDIR         ="%_scriptLOGSDIR%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _scriptLOGSPATH        ="%_scriptLOGSPATH%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _scriptLOGSFILE        ="%_scriptLOGSFILE%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _scriptLOGFQPN         ="%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: ============================================================================= >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: >> "%_scriptLOGFQPN%" 2>>&1
+
 
 REM =====================================================================================
 REM Configure Text File Editor value
@@ -375,6 +610,193 @@ CALL :sub_SetTextFileEditorValue
 REM =====================================================================================
 REM =====================================================================================
 
+
+REM * ===================================================================================
+REM * ===================================================================================
+REM * CodeSnipet :  Set Date and Time Group values
+REM * ===================================================================================
+REM * ===================================================================================
+
+GOTO :SETDTGTZSUFFIX
+
+REM =====================================================================================
+REM -------------------------------------------------------------------------------------
+REM -------------------------------------------------------------------------------------
+REM START OF CODE SNIPET SUBROUTINES
+REM -------------------------------------------------------------------------------------
+REM -------------------------------------------------------------------------------------
+
+
+REM =====================================================================================
+REM -------------------------------------------------------------------------------------
+REM START SUBROUTINE:  sub_CLEARDTGTZSUFFIXVARS  :  
+REM -------------------------------------------------------------------------------------
+
+:sub_CLEARDTGTZSUFFIXVARS
+
+REM * -------------------------------------------------------------------------
+REM * Variables we want to keep for use by the callers
+REM * -------------------------------------------------------------------------
+
+SET "_TZTYPE="
+SET "_TZTIMEOFYEAR="
+SET "_TZCURRENTNAME="
+SET "_TZABR="
+SET "_TZABRSTZ="
+SET "_TZABRDTZ="
+SET "_TZCURRENTNAMENOQUOTES="
+
+SET "_DTTZ_SUFFIX_DATE="
+SET "_DTTZ_SUFFIX_DATEDASH="
+SET "_DTTZ_SUFFIX_TIME="
+SET "_DTTZ_SUFFIX_DTG="
+SET "_DTTZ_SUFFIX_DTGDASH="
+SET "_DTTZ_SUFFIX_TIMETZ="
+SET "_DTTZ_SUFFIX_DTGTZ="
+SET "_DTTZ_SUFFIX_DTGTZDASH="
+
+
+EXIT /B 0
+
+REM -------------------------------------------------------------------------------------
+REM SUBROUTINE IMPLEMENTATION ELEMENTS : sub_CLEARDTGTZSUFFIXVARS
+REM -------------------------------------------------------------------------------------
+
+REM CALL :sub_CLEARDTGTZSUFFIXVARS
+
+REM -------------------------------------------------------------------------------------
+REM END SUBROUTINE: sub_CLEARDTGTZSUFFIXVARS
+REM -------------------------------------------------------------------------------------
+REM =====================================================================================
+
+
+REM =====================================================================================
+REM -------------------------------------------------------------------------------------
+REM START SUBROUTINE:  sub_LOGDTGTZSUFFIXRESULTS  :  Log Results
+REM -------------------------------------------------------------------------------------
+
+:sub_LOGDTGTZSUFFIXRESULTS
+
+REM * -------------------------------------------------------------------------
+REM * Log Results
+REM * -------------------------------------------------------------------------
+
+@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: Time Zone value processing results: >> "%_scriptLOGFQPN%"
+@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: _TZTIMEOFYEAR          = "%_TZTIMEOFYEAR%" >> "%_scriptLOGFQPN%"
+@ECHO: _TZTYPE                = "%_TZTYPE%" >> "%_scriptLOGFQPN%"
+@ECHO: _TZCURRENTNAME         = "%_TZCURRENTNAME%" >> "%_scriptLOGFQPN%"
+@ECHO: _TZABR                 = "%_TZABR%" >> "%_scriptLOGFQPN%"
+@ECHO: _TZABRSTZ              = "%_TZABRSTZ%" >> "%_scriptLOGFQPN%"
+@ECHO: _TZABRDTZ              = "%_TZABRDTZ%" >> "%_scriptLOGFQPN%"
+@ECHO: _TZCURRENTNAMENOQUOTES = "%_TZCURRENTNAMENOQUOTES%" >> "%_scriptLOGFQPN%"
+
+@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: Date Time Time Zone suffix value results: >> "%_scriptLOGFQPN%"
+@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO: _DTTZ_SUFFIX_DATE      = "%_DTTZ_SUFFIX_DATE%" >> "%_scriptLOGFQPN%"
+@ECHO: _DTTZ_SUFFIX_DATEDASH  = "%_DTTZ_SUFFIX_DATEDASH%" >> "%_scriptLOGFQPN%"
+@ECHO: _DTTZ_SUFFIX_TIME      = "%_DTTZ_SUFFIX_TIME%" >> "%_scriptLOGFQPN%"
+@ECHO: _DTTZ_SUFFIX_DTG       = "%_DTTZ_SUFFIX_DTG%" >> "%_scriptLOGFQPN%"
+@ECHO: _DTTZ_SUFFIX_DTGDASH   = "%_DTTZ_SUFFIX_DTGDASH%" >> "%_scriptLOGFQPN%"
+@ECHO: _DTTZ_SUFFIX_TIMETZ    = "%_DTTZ_SUFFIX_TIMETZ%" >> "%_scriptLOGFQPN%"
+@ECHO: _DTTZ_SUFFIX_DTGTZ     = "%_DTTZ_SUFFIX_DTGTZ%" >> "%_scriptLOGFQPN%"
+@ECHO: _DTTZ_SUFFIX_DTGTZDASH = "%_DTTZ_SUFFIX_DTGTZDASH%" >> "%_scriptLOGFQPN%"
+@ECHO. >> "%_scriptLOGFQPN%"
+
+
+REM * -------------------------------------------------------------------------
+
+EXIT /B 0
+
+REM -------------------------------------------------------------------------------------
+REM SUBROUTINE IMPLEMENTATION ELEMENTS : sub_LOGDTGTZSUFFIXRESULTS
+REM -------------------------------------------------------------------------------------
+
+REM CALL :sub_LOGDTGTZSUFFIXRESULTS
+
+REM -------------------------------------------------------------------------------------
+REM END SUBROUTINE: sub_LOGDTGTZSUFFIXRESULTS
+REM -------------------------------------------------------------------------------------
+REM =====================================================================================
+
+
+REM -------------------------------------------------------------------------------------
+REM -------------------------------------------------------------------------------------
+REM END OF CODE SNIPET SUBROUTINES
+REM -------------------------------------------------------------------------------------
+REM -------------------------------------------------------------------------------------
+REM =====================================================================================
+
+
+:SETDTGTZSUFFIX
+
+CALL :sub_CLEARCONFIGSCRIPTPATHSVARS
+
+REM * -------------------------------------------------------------------------
+REM * Set Local Variables
+REM * -------------------------------------------------------------------------
+
+SET "subroutinescriptname=subroutine.Set_DTG_SUFFIX.COMPACT"
+SET "subroutinescriptext=CMD"
+SET "subroutinescriptfile=%subroutinescriptname%.%subroutinescriptext%"
+SET "subroutinecommonpath=" 
+SET "subroutinecommonfqpn=" 
+
+REM * -------------------------------------------------------------------------
+REM * Variables set by call
+REM * -------------------------------------------------------------------------
+
+CALL :sub_CLEARDTGTZSUFFIXVARS
+
+REM * ===================================================================================
+REM * Configure basic variables and set appropriate subroutine paths
+REM * ===================================================================================
+
+CALL :sub_CONFIGSCRIPTPATHS
+
+REM * ===================================================================================
+REM * Call the operational subroutine to set the required values
+REM * ===================================================================================
+
+IF NOT EXIST "%subroutinecommonpath%" GOTO :ERRNOCOMMONSUBROUTINESPATH
+IF NOT EXIST "%subroutinecommonfqpn%" GOTO :ERRNOSUBROUTINESCRIPT
+
+REM * -----------------------------------------------------------------------------------
+REM * Protect Local Log File value _scriptLOGFQPN since that is used in the called subroutine
+REM * -----------------------------------------------------------------------------------
+SET "_localLOGFILE="
+SET "_remoteLOGFILE="
+SET "_localLOGFILE=%_scriptLOGFQPN%"
+
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO:Executing script "%subroutinecommonfqpn%" >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+
+CALL "%subroutinecommonfqpn%"
+
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO:Script "%subroutinecommonfqpn%" Completed >> "%_scriptLOGFQPN%"
+@ECHO: ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+
+REM * -----------------------------------------------------------------------------------
+REM * Restore Local Log File value _scriptLOGFQPN and retain remote subroutine _scriptLOGFQPN value
+REM * -----------------------------------------------------------------------------------
+SET "_remoteLOGFILE=%_scriptLOGFQPN%"
+SET "_scriptLOGFQPN=%_localLOGFILE%"
+
+REM * ===================================================================================
+REM * Log the results
+REM * ===================================================================================
+
+CALL :sub_LOGDTGTZSUFFIXRESULTS
+
+
+REM * =========================================================================
+REM * =========================================================================
+
+
 REM =====================================================================================
 REM =====================================================================================
 REM START MAIN OPERATIONS
@@ -384,23 +806,23 @@ REM ============================================================================
 REM =====================================================================================
 REM =====================================================================================
 
-@ECHO _scriptLOGSDIR         ="%_scriptLOGSDIR%" >> "%_scriptLOGFQPN%"
-@ECHO _scriptLOGSPATH        ="%_scriptLOGSPATH%" >> "%_scriptLOGFQPN%"
-@ECHO _scriptLOGSFILE        ="%_scriptLOGSFILE%" >> "%_scriptLOGFQPN%"
-@ECHO _scriptLOGFQPN         ="%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%"
+@ECHO: _scriptLOGSDIR         ="%_scriptLOGSDIR%" >> "%_scriptLOGFQPN%"
+@ECHO: _scriptLOGSPATH        ="%_scriptLOGSPATH%" >> "%_scriptLOGFQPN%"
+@ECHO: _scriptLOGSFILE        ="%_scriptLOGSFILE%" >> "%_scriptLOGFQPN%"
+@ECHO: _scriptLOGFQPN         ="%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%"
 @ECHO. >> "%_scriptLOGFQPN%"
 
 REM =====================================================================================
 REM CONFIGURE STANDARD LOCAL VARIABLES
 REM =====================================================================================
 
-SET _scriptTempWORKDIR=%_scriptLOGSDIR%
+SET "_scriptTempWORKDIR=%_scriptLOGSDIR%"
 SET "DATETIMEGRP=%_DTTZ_SUFFIX_DTGTZDASH%"
 SET "_HOST_NAME=%COMPUTERNAME%"
 
 SET "_JUSTDOIT="
 REM CHECK IF WE ARE CLEANING UP AFTER OURSELVES
-@ECHO Parameter 1 = %1 >> "%_scriptLOGFQPN%"
+@ECHO: Parameter 1 = %1 >> "%_scriptLOGFQPN%"
 if "%~1"=="" GOTO :NOCALLPARM1
 if %1=="--CLEANUP--" GOTO :CLEANUP_SUBROUTINES
 IF %1=="--AUTO--" SET "_JUSTDOIT=TRUE"
@@ -412,18 +834,35 @@ REM CONFIGURE LOCAL VARIABLES - UPDATED _scriptLOGFQPN
 REM =====================================================================================
 
 SET "_tempLOGFILE=%_scriptLOGFQPN%"
-SET _scriptLOGSPATH=%_scriptLOGSDIR%
+SET "_scriptLOGSPATH=%_scriptLOGSDIR%"
 SET "_scriptLOGSFILE=log_%_LOCALSCRIPTNAME%_%DATETIMEGRP%.log"
 SET "_scriptLOGFQPN=%_scriptLOGSPATH%\%_scriptLOGSFILE%"
 
-@ECHO _scriptLOGSDIR         ="%_scriptLOGSDIR%" >> "%_scriptLOGFQPN%"
-@ECHO _scriptLOGSPATH        ="%_scriptLOGSPATH%" >> "%_scriptLOGFQPN%"
-@ECHO _scriptLOGSFILE        ="%_scriptLOGSFILE%" >> "%_scriptLOGFQPN%"
-@ECHO _scriptLOGFQPN         ="%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%"
-@ECHO _tempLOGFILE           ="%_tempLOGFILE%" >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
-
 TYPE "%_tempLOGFILE%" > "%_scriptLOGFQPN%"
+IF /I NOT "%_tempLOGFILE%"=="%_scriptLOGFQPN%" GOTO :DONEXFERLOGFILE
+
+DEL /F/Q "%_tempLOGFILE%"
+
+:DONEXFERLOGFILE
+
+@ECHO: =============================================================================
+@ECHO: ============================================================================= >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: Script Logging Details - Final
+@ECHO: Script Logging Details - Final >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _scriptLOGSDIR         ="%_scriptLOGSDIR%"
+@ECHO:  _scriptLOGSDIR         ="%_scriptLOGSDIR%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _scriptLOGSPATH        ="%_scriptLOGSPATH%"
+@ECHO:  _scriptLOGSPATH        ="%_scriptLOGSPATH%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _scriptLOGSFILE        ="%_scriptLOGSFILE%"
+@ECHO:  _scriptLOGSFILE        ="%_scriptLOGSFILE%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _scriptLOGFQPN         ="%_scriptLOGFQPN%"
+@ECHO:  _scriptLOGFQPN         ="%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _tempLOGFILE           ="%_tempLOGFILE%"
+@ECHO:  _tempLOGFILE           ="%_tempLOGFILE%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: =============================================================================
+@ECHO: ============================================================================= >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:
 
 REM =====================================================================================
 REM CONFIGURE LOCAL VARIABLES
@@ -440,10 +879,10 @@ REM CD /D "%_scriptTempWORKDIR%"
 
 REM PUSHD "%_scriptTempWORKDIR%" 
 
-@ECHO Open File Types in Text File Editor?
-@ECHO.
-@ECHO Open File Types in Text File Editor? >> "%_scriptLOGFQPN%"
-@ECHO. >> "%_scriptLOGFQPN%"
+@ECHO:%_LOCALSCRIPTDESCRIPTIONSHORT%
+@ECHO:
+@ECHO:%_LOCALSCRIPTDESCRIPTIONSHORT% >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: >> "%_scriptLOGFQPN%" 2>>&1
 
 IF "%_JUSTDOIT%"=="TRUE" GOTO :WEAREGOODTOGO
 
@@ -459,6 +898,12 @@ REM SET "ENTERDATETIMEGRP="
 
 :WEAREGOODTOGO
 
+REM * ===================================================================================
+REM * ===================================================================================
+REM * Open File Types in Text File Editor
+REM * ===================================================================================
+REM * ===================================================================================
+
 GOTO :SKIPMAINSUBROUTINES
 
 REM =====================================================================================
@@ -467,6 +912,7 @@ REM ============================================================================
 REM START OF MAIN SUBROUTINES
 REM =====================================================================================
 REM =====================================================================================
+
 
 REM =====================================================================================
 REM -------------------------------------------------------------------------------------
@@ -539,7 +985,6 @@ IF /I "%_localWORKFOLDER%"=="__scripting_tools" GOTO :SKIPWORKACTION
 IF /I "%_localWORKFOLDER%"=="__Updates" GOTO :SKIPWORKACTION
 REM IF /I "%_localWORKFOLDER%"=="_code_snippets" GOTO :SKIPWORKACTION
 IF /I "%_localWORKFOLDER%"=="_Deprecated Scripts" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="_Deprecated_Scripts" GOTO :SKIPWORKACTION
 IF /I "%_localWORKFOLDER%"=="_fixes" GOTO :SKIPWORKACTION
 IF /I "%_localWORKFOLDER%"=="_research_scripts" GOTO :SKIPWORKACTION
 IF /I "%_localWORKFOLDER%"=="_scripting_tools" GOTO :SKIPWORKACTION
@@ -919,16 +1364,18 @@ REM * =========================================================================
 
 REM =====================================================================================
 REM =====================================================================================
-REM END CODE SNIPET MAIN OPERATIONS
+REM END MAIN OPERATIONS
 REM =====================================================================================
 REM =====================================================================================
 
-@ECHO.
-@ECHO Log File : "%_scriptLOGFQPN%"
-@ECHO Code Snipet Completed : %_LOCALSCRIPTNAME%
-@ECHO.
+
+@ECHO:
+@ECHO: Log File : "%_scriptLOGFQPN%"
+@ECHO: Script Completed : %_LOCALSCRIPTNAME%
+@ECHO:
 
 REM PAUSE
+
 
 REM * =========================================================================
 REM * =========================================================================
@@ -938,6 +1385,8 @@ REM * =========================================================================
 REM * =========================================================================
 REM * Variables we want to keep for use by the callers
 REM * =========================================================================
+
+REM CALL :sub_CLEARDTGTZSUFFIXVARS
 
 REM CALL :sub_CLEANUPRESULTVARS
 
@@ -979,9 +1428,9 @@ REM -----------------------------------------------------------------
 REM Execution Error:  Missing Common Subroutines Scripts path
 REM -----------------------------------------------------------------
 :ERRNOCOMMONSUBROUTINESPATH
-ECHO:
-ECHO: Execution Error:  Missing Common Subroutines Scripts path %subroutinecommonpath%
-ECHO:
+@ECHO:
+@ECHO: Execution Error:  Missing Common Subroutines Scripts path %subroutinecommonpath%
+@ECHO:
 SET ERRCRITICAL=COMMON_SUBROUTINES_SCRIPTS_PATH_NOT_FOUND
 GOTO :ERRDONE
 
@@ -990,9 +1439,9 @@ REM -----------------------------------------------------------------
 REM Execution Error:  Missing Subroutine Script
 REM -----------------------------------------------------------------
 :ERRNOSUBROUTINESCRIPT
-ECHO:
-ECHO: Execution Error:  Missing Subroutine Script %subroutinecommonfqpn%
-ECHO:
+@ECHO:
+@ECHO: Execution Error:  Missing Subroutine Script %subroutinecommonfqpn%
+@ECHO:
 SET ERRCRITICAL=SUBROUTINE_SCRIPT_NOT_FOUND
 GOTO :ERRDONE
 
@@ -1001,8 +1450,8 @@ REM -----------------------------------------------------------------
 REM Error:  Critical Error Already Set at Start
 REM -----------------------------------------------------------------
 :ERRCRITSET
-ECHO: Critical Error Set!  Critical Error = "ERRCRITICAL"
-ECHO:
+@ECHO: Critical Error Set!  Critical Error = "ERRCRITICAL"
+@ECHO:
 GOTO :ERRDONE
 
 
@@ -1016,6 +1465,7 @@ REM -----------------------------------------------------------------
 @ECHO: !!!!! Error Exit from Script %_LOCALSCRIPTNAME%, Error:  %ERRCRITICAL% >> "%_scriptLOGFQPN%"
 @ECHO: !!!!! Error Exit from Script %_LOCALSCRIPTNAME%, Error:  %ERRCRITICAL% >> "%_scriptLOGFQPN%"
 @ECHO: ! Log file location : "%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%"
+SET _LOCALSCRIPTNAME=
 @ECHO:
 PAUSE
 @ECHO: ... exiting...

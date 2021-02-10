@@ -1,6 +1,6 @@
 ECHO OFF
 REM
-REM Script     :  Deployment Copy :  Scripts scripts to __gaia for distribution
+REM Script  :  Create __Updates script files based on DGTS NOW for devops.dev
 REM
 REM # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 REM #
@@ -15,23 +15,31 @@ REM #
 REM #
 
 SET _LOCALSCRIPTNAME=zzMakeUpdatesScriptsNow.devops.dev
-SET _LOCALSCRIPTDATE=2021-01-29
-SET _LOCALSCRIPTTIME=2015CST
-SET _LOCALSCRIPTVERSION=v05.01.00
+SET _LOCALSCRIPTDATE=2021-02-09
+SET _LOCALSCRIPTTIME=1530CDT
+SET _LOCALSCRIPTVERSION=v06.01.00
 SET _LOCALSCRIPTREVISION=000
 
+SET "_LOCALSCRIPTDESCRIPTION=Create __Updates script files based on DGTS NOW for devops.dev"
+SET "_LOCALSCRIPTDESCRIPTIONSHORT=Create __Updates script files for devops.dev"
 
 @ECHO:
 @ECHO: =====================================================================================
 @ECHO: =====================================================================================
 @ECHO: Script Name:  %_LOCALSCRIPTNAME%
-@ECHO: DATE:  %_LOCALSCRIPTDATE%  TIME:  %_LOCALSCRIPTTIME%
-@ECHO: VERSION:  %_LOCALSCRIPTVERSION%  REVISION:  %_LOCALSCRIPTREVISION%
+@ECHO: VERSION:  %_LOCALSCRIPTVERSION%  REVISION:  %_LOCALSCRIPTREVISION%  DATE:  %_LOCALSCRIPTDATE%  TIME:  %_LOCALSCRIPTTIME%
+@ECHO: SCRIPT CALLED     :  %0
+@ECHO: SCRIPT PARAMETERS :  %*
 @ECHO: =====================================================================================
 @ECHO:
 @ECHO:
 
 
+REM CHECK IF WE ARE CLEANING UP AFTER OURSELVES
+if "%~1"=="" GOTO :NOCALLPARM1
+if %1=="--CLEANUP--" GOTO :CLEANUP_SUBROUTINES
+
+:NOCALLPARM1
 GOTO :STARTSCRIPT
 
 REM =====================================================================================
@@ -39,6 +47,81 @@ REM ============================================================================
 REM =====================================================================================
 REM START OF SUBROUTINES
 REM =====================================================================================
+REM =====================================================================================
+
+
+REM =====================================================================================
+REM -------------------------------------------------------------------------------------
+REM START SUBROUTINE:  sub_SETLOGSLOCATION :  Configure logs folder FQDN
+REM -------------------------------------------------------------------------------------
+
+REM ADDED 2021-02-07
+
+:sub_SETLOGSLOCATION
+
+REM ----------------------------------------------------------------
+REM Find __LOGS folder
+REM ----------------------------------------------------------------
+
+SET "LOGGINGPATH="
+
+if exist ".\__LOGS" GOTO :SETLOGSFOLDER_CURRENT
+if exist "..\__LOGS" GOTO :SETLOGSFOLDER_PARENT
+if exist "\__LOGS" GOTO :SETLOGSFOLDER_ROOT
+
+GOTO :LASTCHKLOGS
+
+:SETLOGSFOLDER_CURRENT
+SET "LOGGINGPATH=.\__LOGS"
+PUSHD "%LOGGINGPATH%"
+SET "LOGGINGPATH=%CD%"
+POPD
+GOTO :LASTCHKLOGS
+
+:SETLOGSFOLDER_PARENT
+SET "LOGGINGPATH=..\__LOGS"
+PUSHD "%LOGGINGPATH%"
+SET "LOGGINGPATH=%CD%"
+POPD
+GOTO :LASTCHKLOGS
+
+:SETLOGSFOLDER_ROOT
+SET "LOGGINGPATH=\__LOGS"
+PUSHD "%LOGGINGPATH%"
+SET "LOGGINGPATH=%CD%"
+POPD
+GOTO :LASTCHKLOGS
+
+:LASTCHKLOGS
+IF NOT "%LOGGINGPATH%"=="" GOTO :LOGSCHKDONE
+SET "LOGGINGPATH=%TEMP%"
+
+REM ----------------------------------------------------------------
+
+:LOGSCHKDONE
+
+@ECHO: Current Logging Path : "%LOGGINGPATH%"
+@ECHO:
+
+REM ----------------------------------------------------------------
+
+
+EXIT /B 0
+
+REM ----------------------------------------------------------------
+REM ----------------------------------------------------------------
+
+
+REM -------------------------------------------------------------------------------------
+REM SUBROUTINE IMPLEMENTATION ELEMENTS : sub_SETLOGSLOCATION
+REM -------------------------------------------------------------------------------------
+
+REM SET "LOGGINGPATH="
+REM CALL :sub_SETLOGSLOCATION
+
+REM -------------------------------------------------------------------------------------
+REM END SUBROUTINE: sub_SETLOGSLOCATION
+REM -------------------------------------------------------------------------------------
 REM =====================================================================================
 
 
@@ -343,13 +426,18 @@ REM ============================================================================
 
 CALL :sub_CLEANUPLOCALVARS
 
-REM =====================================================================================
-REM Configure Logging paths, folders, and files
-REM =====================================================================================
+REM * =========================================================================
+REM *  Handle Logging Variables, Folders, Paths, and Files
+REM * =========================================================================
+
+
+SET "LOGGINGPATH="
+CALL :sub_SETLOGSLOCATION
 
 REM SET _scriptLOGSDIR=C:\TEMP
-SET _scriptLOGSDIR=%TEMP%
-SET _scriptLOGSPATH=%_scriptLOGSDIR%
+REM SET _scriptLOGSDIR=%TEMP%
+SET "_scriptLOGSDIR=%LOGGINGPATH%"
+SET "_scriptLOGSPATH=%_scriptLOGSDIR%"
 SET "_scriptLOGSFILE=%_LOCALSCRIPTNAME%.log"
 SET "_scriptLOGFQPN=%_scriptLOGSPATH%\%_scriptLOGSFILE%"
 
@@ -358,25 +446,30 @@ IF NOT EXIST "%_scriptLOGSPATH%" MKDIR "%_scriptLOGSPATH%"
 
 @ECHO: > "%_scriptLOGFQPN%"
 
-REM =====================================================================================
-REM =====================================================================================
-
-@ECHO: ===================================================================================== >> "%_scriptLOGFQPN%"
-@ECHO: Script Name:  %_LOCALSCRIPTNAME% >> "%_scriptLOGFQPN%"
-@ECHO: DATE:  %_LOCALSCRIPTDATE%  TIME:  %_LOCALSCRIPTTIME% >> "%_scriptLOGFQPN%"
-@ECHO: VERSION:  %_LOCALSCRIPTVERSION%  REVISION:  %_LOCALSCRIPTREVISION% >> "%_scriptLOGFQPN%"
-@ECHO: ===================================================================================== >> "%_scriptLOGFQPN%"
-@ECHO: >> "%_scriptLOGFQPN%"
-@ECHO: >> "%_scriptLOGFQPN%"
 
 REM =====================================================================================
 REM =====================================================================================
 
-@ECHO: _scriptLOGSDIR         ="%_scriptLOGSDIR%" >> "%_scriptLOGFQPN%"
-@ECHO: _scriptLOGSPATH        ="%_scriptLOGSPATH%" >> "%_scriptLOGFQPN%"
-@ECHO: _scriptLOGSFILE        ="%_scriptLOGSFILE%" >> "%_scriptLOGFQPN%"
-@ECHO: _scriptLOGFQPN         ="%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%"
-@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO:===================================================================================== >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO SCRIPT Name:  %_LOCALSCRIPTNAME% >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO SCRIPT VERSION:  %_LOCALSCRIPTVERSION%  REVISION:  %_LOCALSCRIPTREVISION%  DATE:  %_LOCALSCRIPTDATE%  TIME:  %_LOCALSCRIPTTIME% >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO SCRIPT CALLED     :  %0 >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO SCRIPT PARAMETERS :  %* >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:===================================================================================== >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: >> "%_scriptLOGFQPN%" 2>>&1
+
+REM =====================================================================================
+REM =====================================================================================
+
+@ECHO: ============================================================================= >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: Script Logging Details - Initial >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _scriptLOGSDIR         ="%_scriptLOGSDIR%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _scriptLOGSPATH        ="%_scriptLOGSPATH%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _scriptLOGSFILE        ="%_scriptLOGSFILE%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _scriptLOGFQPN         ="%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: ============================================================================= >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: >> "%_scriptLOGFQPN%" 2>>&1
 
 
 REM =====================================================================================
@@ -594,7 +687,7 @@ REM ============================================================================
 REM CONFIGURE STANDARD LOCAL VARIABLES
 REM =====================================================================================
 
-SET _scriptTempWORKDIR=%_scriptLOGSDIR%
+SET "_scriptTempWORKDIR=%_scriptLOGSDIR%"
 SET "DATETIMEGRP=%_DTTZ_SUFFIX_DTGTZDASH%"
 SET "_HOST_NAME=%COMPUTERNAME%"
 
@@ -612,18 +705,35 @@ REM CONFIGURE LOCAL VARIABLES - UPDATED _scriptLOGFQPN
 REM =====================================================================================
 
 SET "_tempLOGFILE=%_scriptLOGFQPN%"
-SET _scriptLOGSPATH=%_scriptLOGSDIR%
+SET "_scriptLOGSPATH=%_scriptLOGSDIR%"
 SET "_scriptLOGSFILE=log_%_LOCALSCRIPTNAME%_%DATETIMEGRP%.log"
 SET "_scriptLOGFQPN=%_scriptLOGSPATH%\%_scriptLOGSFILE%"
 
-@ECHO: _scriptLOGSDIR         ="%_scriptLOGSDIR%" >> "%_scriptLOGFQPN%"
-@ECHO: _scriptLOGSPATH        ="%_scriptLOGSPATH%" >> "%_scriptLOGFQPN%"
-@ECHO: _scriptLOGSFILE        ="%_scriptLOGSFILE%" >> "%_scriptLOGFQPN%"
-@ECHO: _scriptLOGFQPN         ="%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%"
-@ECHO: _tempLOGFILE           ="%_tempLOGFILE%" >> "%_scriptLOGFQPN%"
-@ECHO: >> "%_scriptLOGFQPN%"
-
 TYPE "%_tempLOGFILE%" > "%_scriptLOGFQPN%"
+IF /I NOT "%_tempLOGFILE%"=="%_scriptLOGFQPN%" GOTO :DONEXFERLOGFILE
+
+DEL /F/Q "%_tempLOGFILE%"
+
+:DONEXFERLOGFILE
+
+@ECHO: =============================================================================
+@ECHO: ============================================================================= >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: Script Logging Details - Final
+@ECHO: Script Logging Details - Final >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _scriptLOGSDIR         ="%_scriptLOGSDIR%"
+@ECHO:  _scriptLOGSDIR         ="%_scriptLOGSDIR%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _scriptLOGSPATH        ="%_scriptLOGSPATH%"
+@ECHO:  _scriptLOGSPATH        ="%_scriptLOGSPATH%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _scriptLOGSFILE        ="%_scriptLOGSFILE%"
+@ECHO:  _scriptLOGSFILE        ="%_scriptLOGSFILE%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _scriptLOGFQPN         ="%_scriptLOGFQPN%"
+@ECHO:  _scriptLOGFQPN         ="%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:  _tempLOGFILE           ="%_tempLOGFILE%"
+@ECHO:  _tempLOGFILE           ="%_tempLOGFILE%" >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: =============================================================================
+@ECHO: ============================================================================= >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO:
 
 REM =====================================================================================
 REM CONFIGURE LOCAL VARIABLES
@@ -640,12 +750,12 @@ REM CD /D "%_scriptTempWORKDIR%"
 
 REM PUSHD "%_scriptTempWORKDIR%" 
 
-@ECHO: Backup Scripts to WIP Folders
+@ECHO:%_LOCALSCRIPTDESCRIPTIONSHORT%
 @ECHO:
-@ECHO: Backup Scripts to WIP Folders >> "%_scriptLOGFQPN%"
-@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO:%_LOCALSCRIPTDESCRIPTIONSHORT% >> "%_scriptLOGFQPN%" 2>>&1
+@ECHO: >> "%_scriptLOGFQPN%" 2>>&1
 
-REM IF "%_JUSTDOIT%"=="TRUE" GOTO :WEAREGOODTOGO
+IF "%_JUSTDOIT%"=="TRUE" GOTO :WEAREGOODTOGO
 
 REM SET "HOST_NAME="
 REM SET /p SERVER_NAME=Enter DHCP Server Name: ( %_HOST_NAME% )^>
@@ -657,7 +767,7 @@ REM SET /p ENTERDATETIMEGRP=Check DTGtzn: (%DATETIMEGRP% YYYY-MM-DD-HHMMtzn)^>
 REM IF NOT "%ENTERDATETIMEGRP%"=="" set "DATETIMEGRP=%ENTERDATETIMEGRP%"
 REM SET "ENTERDATETIMEGRP="
 
-REM :WEAREGOODTOGO
+:WEAREGOODTOGO
 
 REM * ===================================================================================
 REM * ===================================================================================
@@ -837,12 +947,12 @@ REM -----------------------------------------------------------------
 
 SET "VERSVALUE="
 
-ECHO.
-ECHO Paramter 1 = "%1"
-ECHO.
-ECHO. >> "%_scriptLOGFQPN%"
-ECHO Paramter 1 = "%1" >> "%_scriptLOGFQPN%"
-ECHO. >> "%_scriptLOGFQPN%"
+@ECHO:
+@ECHO: Paramter 1 = "%1"
+@ECHO:
+@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO: Paramter 1 = "%1" >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
 
 REM ECHO ON
 
@@ -853,10 +963,10 @@ SET "CHKVERSVALUE=%1"
 
 :ASKVEROK
 SET OPT1=Y
-ECHO.
-ECHO Version for __Updates folder subfolder.  Validate version is OK as entered?  
-ECHO   [Y]es is OK, [N]o or [C]hange to update value, [Q]uit Rename_Version
-ECHO.
+@ECHO:
+@ECHO: Version for __Updates folder subfolder.  Validate version is OK as entered?  
+@ECHO:   [Y]es is OK, [N]o or [C]hange to update value, [Q]uit Rename_Version
+@ECHO:
 SET /P OPT1=Use this Version (%CHKVERSVALUE%), may be blank () [Y/N/C/Q] (%OPT1%) ^>
 if /i "%OPT1%"=="Y" GOTO :OLDVERISSET
 if /i "%OPT1%"=="N" GOTO :CHANGEOLDVERSION
@@ -866,7 +976,7 @@ if "%OPT1%"=="" GOTO :OLDVERISSET
 GOTO :ASKVEROK
 
 :CHANGEOLDVERSION
-ECHO.
+@ECHO:
 SET /P CHKVERSVALUE=Enter updated Version (%CHKVERSVALUE%) ^>
 GOTO :ASKVEROK
 
@@ -880,12 +990,12 @@ SET "VERSVALUE=%CHKVERSVALUE%"
 
 :NoParm1Set
 
-ECHO.
-ECHO Version Value = "%VERSVALUE%"
-ECHO.
-ECHO. >> "%_scriptLOGFQPN%"
-ECHO Version Value = "%VERSVALUE%" >> "%_scriptLOGFQPN%"
-ECHO. >> "%_scriptLOGFQPN%"
+@ECHO:
+@ECHO: Version Value = "%VERSVALUE%"
+@ECHO:
+@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO: Version Value = "%VERSVALUE%" >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
 
 REM -----------------------------------------------------------------
 
@@ -896,12 +1006,12 @@ REM -----------------------------------------------------------------
 
 SET "REVISIONVALUE="
 
-ECHO.
-ECHO Paramter 2 = "%2"
-ECHO.
-ECHO. >> "%_scriptLOGFQPN%"
-ECHO Paramter 2 = "%2" >> "%_scriptLOGFQPN%"
-ECHO. >> "%_scriptLOGFQPN%"
+@ECHO:
+@ECHO: Paramter 2 = "%2"
+@ECHO:
+@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO: Paramter 2 = "%2" >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
 
 REM ECHO ON
 
@@ -915,10 +1025,10 @@ IF "%VERSVALUE%"=="" GOTO :REVISIONISSET
 
 :ASKREVISIONOK
 SET OPT1=Y
-ECHO.
-ECHO Revision for __Updates folder subfolder.  Validate Revision is OK as entered?  
-ECHO   [Y]es is OK, [N]o or [C]hange to update value, [Q]uit Rename_Version
-ECHO.
+@ECHO:
+@ECHO: Revision for __Updates folder subfolder.  Validate Revision is OK as entered?  
+@ECHO:   [Y]es is OK, [N]o or [C]hange to update value, [Q]uit Rename_Version
+@ECHO:
 SET /P OPT1=Use this Revision (%CHKREVISIONVALUE%), may be blank () [Y/N/C/Q] (%OPT1%) ^>
 if /i "%OPT1%"=="Y" GOTO :REVISIONISSET
 if /i "%OPT1%"=="N" GOTO :CHANGEOLDREVISION
@@ -928,7 +1038,7 @@ if "%OPT1%"=="" GOTO :REVISIONISSET
 GOTO :ASKREVISIONOK
 
 :CHANGEOLDREVISION
-ECHO.
+@ECHO:
 SET /P CHKREVISIONVALUE=Enter updated Revision (%CHKREVISIONVALUE%) ^>
 GOTO :ASKREVISIONOK
 
@@ -942,12 +1052,12 @@ SET "REVISIONVALUE=%CHKREVISIONVALUE%"
 
 :NoParm2Set
 
-ECHO.
-ECHO Revision Value = "%REVISIONVALUE%"
-ECHO.
-ECHO. >> "%_scriptLOGFQPN%"
-ECHO Revision Value = "%REVISIONVALUE%" >> "%_scriptLOGFQPN%"
-ECHO. >> "%_scriptLOGFQPN%"
+@ECHO:
+@ECHO: Revision Value = "%REVISIONVALUE%"
+@ECHO:
+@ECHO: >> "%_scriptLOGFQPN%"
+@ECHO: Revision Value = "%REVISIONVALUE%" >> "%_scriptLOGFQPN%"
+@ECHO: >> "%_scriptLOGFQPN%"
 
 REM -----------------------------------------------------------------
 
@@ -1249,7 +1359,7 @@ REM ============================================================================
 REM Show the logged results
 REM =====================================================================================
 
-START /MAX "%FILEEDITOR%" "%_scriptLOGFQPN%"
+START "%FILEEDITORNAME%" /MAX /B "%FILEEDITOR%" "%_scriptLOGFQPN%"
 
 REM =====================================================================================
 REM GET TO WHERE WE STARTED

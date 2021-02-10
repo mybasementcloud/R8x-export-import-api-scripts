@@ -13,11 +13,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.04
-ScriptRevision=000
-ScriptDate=2021-01-31
-TemplateVersion=00.60.04
-APISubscriptsVersion=00.60.04
+ScriptVersion=00.60.05
+ScriptRevision=010
+ScriptDate=2021-02-10
+TemplateVersion=00.60.05
+APISubscriptsVersion=00.60.05
 APISubscriptsRevision=006
 
 #
@@ -485,11 +485,13 @@ ForceShowTempLogFile () {
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ REMOVED 2020-11-16
+
+
 # -------------------------------------------------------------------------------------------------
 # GetScriptSourceFolder - Get the actual source folder for the running script
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-09-30 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-02-09 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 GetScriptSourceFolder () {
@@ -522,6 +524,7 @@ GetScriptSourceFolder () {
     echo "DIR is '${DIR}'" >> ${logfilepath}
     
     export ScriptSourceFolder=${DIR}
+    echo "ScriptSourceFolder is '${ScriptSourceFolder}'" >> ${logfilepath}
     
     echo >> ${logfilepath}
     
@@ -529,7 +532,7 @@ GetScriptSourceFolder () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-30
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-02-09
 
 
 # REMOVED 2020-11-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -714,7 +717,7 @@ BasicScriptSetupAPIScripts "$@"
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-02-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -739,6 +742,11 @@ BasicScriptSetupAPIScripts "$@"
 #
 # -o <output_path> | --output <output_path> | -o=<output_path> | --output=<output_path> 
 # -c <csv_path> | --csv <csv_path> | -c=<csv_path> | --csv=<csv_path>'
+#
+# --NOHUP
+# --NOHUP-Script <NOHUP_SCRIPT_NAME> | --NOHUP-Script=<NOHUP_SCRIPT_NAME>
+# --NOHUP-DTG <NOHUP_SCRIPT_DATE_TIME_GROUP> | --NOHUP-DTG=<NOHUP_SCRIPT_DATE_TIME_GROUP>
+#
 #
 
 # MODIFIED 2020-09-30
@@ -787,13 +795,29 @@ else
     export NOWAIT=false
 fi
 
+# ADDED 2021-02-06 -
+# Provide capability to work with NOHUP mode script do_script_nohup from "bash 4 Check Point" scripts
+
+export CLIparm_NOHUP=false
+export CLIparm_NOHUPScriptName=
+export CLIparm_NOHUPDTG=
+
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
-# MODIFIED 2021-01-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-06
+# MODIFIED 2021-02-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
 # Specific Scripts Command Line Parameters
+#
+# --type-of-export <export_type> | --type-of-export=<export_type>
+#  Supported <export_type> values for export to CSV :  <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">
+#    "standard" {DEFAULT} :  Standard Export of all supported object key values
+#    "name-only"          :  Export of just the name key value for object
+#    "name-and-uid"       :  Export of name and uid key value for object
+#    "uid-only"           :  Export of just the uid key value of objects
+#    "rename-to-new-name" :  Export of name key value for object rename
+#    For an export for a delete operation via CSV, use "name-only"
 #
 # -f <format[all|csv|json]> | --format <format[all|csv|json]> | -f=<format[all|csv|json]> | --format=<format[all|csv|json]> 
 #
@@ -802,25 +826,38 @@ fi
 # --DEVOPSRESULTS | --RESULTS
 # --DEVOPSRESULTSPATH <results_path> | --RESULTSPATH <results_path> | --DEVOPSRESULTSPATH=<results_path> | --RESULTSPATH=<results_path> 
 #
-# -x <export_path> | --export <export_path> | -x=<export_path> | --export=<export_path> 
-# -i <import_path> | --import-path <import_path> | -i=<import_path> | --import-path=<import_path> 
-# -k <delete_path> | --delete-path <delete_path> | -k=<delete_path> | --delete-path=<delete_path> 
-#
 # --NSO | --no-system-objects
 # --SO | --system-objects
+#
+# --NOSYS | --CREATORISNOTSYSTEM
+#
+# --CSVERR | --CSVADDEXPERRHANDLE
 #
 # --5-TAGS | --CSVEXPORT05TAGS
 # --10-TAGS | --CSVEXPORT10TAGS
 # --NO-TAGS | --CSVEXPORTNOTAGS
 #
-# --CLEANUPWIP
-# --NODOMAINFOLDERS
-# --CSVADDEXPERRHANDLE
-#
 # --CSVEXPORTDATADOMAIN
 # --CSVEXPORTDATACREATOR
 # --CSVEXPORTDATAALL
 #
+# --KEEPCSVWIP
+# --CLEANUPCSVWIP
+# --NODOMAINFOLDERS
+#
+# -x <export_path> | --export-path <export_path> | -x=<export_path> | --export-path=<export_path> 
+# -i <import_path> | --import-path <import_path> | -i=<import_path> | --import-path=<import_path> 
+# -k <delete_path> | --delete-path <delete_path> | -k=<delete_path> | --delete-path=<delete_path> 
+#
+
+# Type of Object Export  :  --type-of-export <export_type> | --type-of-export=<export_type>
+#  export_type :  <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">
+#      For an export for a delete operation via CSV, use "name-only"
+#
+#export TypeOfExport="standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name"
+export TypeOfExport="standard"
+export CLIparm_TypeOfExport=${TypeOfExport}
+export ExportTypeIsStandard=true
 
 # ADDED 2020-11-23 -
 # Define output format from all, csv, or json
@@ -840,13 +877,42 @@ export CLIparm_detailslevelstandard=true
 # ADDED 2020-11-23 -
 # Determine utilization of devops.results folder in parent folder
 
-export CLIparm_UseDevOpsResults=false
 export UseDevOpsResults=false
+export CLIparm_UseDevOpsResults=${UseDevOpsResults}
 export CLIparm_resultspath=
 
-export CLIparm_exportpath=
-export CLIparm_importpath=
-export CLIparm_deletepath=
+# MODIFIED 2018-06-24 -
+#export CLIparm_NoSystemObjects=true
+export NoSystemObjects=false
+export CLIparm_NoSystemObjects=${NoSystemObjects}
+
+# Ignore object where Creator is System  :  --NOSYS | --CREATORISNOTSYSTEM
+#
+#export CreatorIsNotSystem=false|true
+export CreatorIsNotSystem=false
+export CLIparm_CreatorIsNotSystem=${CreatorIsNotSystem}
+
+export CLIparm_CSVADDEXPERRHANDLE=
+
+# --CSVERR | --CSVADDEXPERRHANDLE
+#
+if [ -z "${CSVADDEXPERRHANDLE}" ]; then
+    # CSVADDEXPERRHANDLE mode not set from shell level
+    export CSVADDEXPERRHANDLE=false
+    export CLIparm_CSVADDEXPERRHANDLE=${CSVADDEXPERRHANDLE}
+elif [ x"`echo "${CSVADDEXPERRHANDLE}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    # CSVADDEXPERRHANDLE mode set OFF from shell level
+    export CSVADDEXPERRHANDLE=false
+    export CLIparm_CSVADDEXPERRHANDLE=${CSVADDEXPERRHANDLE}
+elif [ x"`echo "${CSVADDEXPERRHANDLE}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # CSVADDEXPERRHANDLE mode set ON from shell level
+    export CSVADDEXPERRHANDLE=true
+    export CLIparm_CSVADDEXPERRHANDLE=${CSVADDEXPERRHANDLE}
+else
+    # CLEANUPCSVWIP mode set to wrong value from shell level
+    export CSVADDEXPERRHANDLE=false
+    export CLIparm_CSVADDEXPERRHANDLE=${CSVADDEXPERRHANDLE}
+fi
 
 # ADDED 2021-01-16 -
 # Define number tags to export to CSV :  5, 10, none
@@ -858,74 +924,6 @@ export CLIparm_CSVEXPORT05TAGS=${CSVEXPORT05TAGS}
 export CLIparm_CSVEXPORT10TAGS=${CSVEXPORT10TAGS}
 export CLIparm_CSVEXPORTNOTAGS=${CSVEXPORTNOTAGS}
 
-# MODIFIED 2018-06-24 -
-#export CLIparm_NoSystemObjects=true
-export CLIparm_NoSystemObjects=false
-
-export CLIparm_CLEANUPWIP=
-export CLIparm_NODOMAINFOLDERS=
-export CLIparm_CSVADDEXPERRHANDLE=
-
-# --CLEANUPWIP
-#
-if [ -z "${CLEANUPWIP}" ]; then
-    # CLEANUPWIP mode not set from shell level
-    export CLIparm_CLEANUPWIP=false
-    export CLEANUPWIP=false
-elif [ x"`echo "${CLEANUPWIP}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
-    # CLEANUPWIP mode set OFF from shell level
-    export CLIparm_CLEANUPWIP=false
-    export CLEANUPWIP=false
-elif [ x"`echo "${CLEANUPWIP}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
-    # CLEANUPWIP mode set ON from shell level
-    export CLIparm_CLEANUPWIP=true
-    export CLEANUPWIP=true
-else
-    # CLEANUPWIP mode set to wrong value from shell level
-    export CLIparm_CLEANUPWIP=false
-    export CLEANUPWIP=false
-fi
-
-# --NODOMAINFOLDERS
-#
-if [ -z "${NODOMAINFOLDERS}" ]; then
-    # NODOMAINFOLDERS mode not set from shell level
-    export CLIparm_NODOMAINFOLDERS=false
-    export NODOMAINFOLDERS=false
-elif [ x"`echo "${NODOMAINFOLDERS}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
-    # NODOMAINFOLDERS mode set OFF from shell level
-    export CLIparm_NODOMAINFOLDERS=false
-    export NODOMAINFOLDERS=false
-elif [ x"`echo "${NODOMAINFOLDERS}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
-    # NODOMAINFOLDERS mode set ON from shell level
-    export CLIparm_NODOMAINFOLDERS=true
-    export NODOMAINFOLDERS=true
-else
-    # NODOMAINFOLDERS mode set to wrong value from shell level
-    export CLIparm_NODOMAINFOLDERS=false
-    export NODOMAINFOLDERS=false
-fi
-
-# --CSVADDEXPERRHANDLE
-#
-if [ -z "${CSVADDEXPERRHANDLE}" ]; then
-    # CSVADDEXPERRHANDLE mode not set from shell level
-    export CLIparm_CSVADDEXPERRHANDLE=false
-    export CSVADDEXPERRHANDLE=false
-elif [ x"`echo "${CSVADDEXPERRHANDLE}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
-    # CSVADDEXPERRHANDLE mode set OFF from shell level
-    export CLIparm_CSVADDEXPERRHANDLE=false
-    export CSVADDEXPERRHANDLE=false
-elif [ x"`echo "${CSVADDEXPERRHANDLE}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
-    # CSVADDEXPERRHANDLE mode set ON from shell level
-    export CLIparm_CSVADDEXPERRHANDLE=true
-    export CSVADDEXPERRHANDLE=true
-else
-    # CLEANUPWIP mode set to wrong value from shell level
-    export CLIparm_CSVADDEXPERRHANDLE=false
-    export CSVADDEXPERRHANDLE=false
-fi
-
 # ADDED 2020-09-30 -
 # --CSVEXPORTDATADOMAIN :  Export Data Domain information to CSV
 # --CSVEXPORTDATACREATOR :  Export Data Creator and other MetaData to CSV
@@ -934,8 +932,106 @@ fi
 export CLIparm_CSVEXPORTDATADOMAIN=false
 export CLIparm_CSVEXPORTDATACREATOR=false
 
+export CLIparm_KEEPCSVWIP=
+export CLIparm_CLEANUPCSVWIP=
+
+# --KEEPCSVWIP
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-16
+if [ -z "${KEEPCSVWIP}" ]; then
+    # KEEPCSVWIP mode not set from shell level, default to not set
+    export KEEPCSVWIP=
+    export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+elif [ x"`echo "${KEEPCSVWIP}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # KEEPCSVWIP mode set ON from shell level
+    export KEEPCSVWIP=true
+    export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+elif [ x"`echo "${KEEPCSVWIP}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    # CLEANUPCSVWIP mode set OFF from shell level
+    export KEEPCSVWIP=false
+    export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+else
+    # CLEANUPCSVWIP mode set to wrong value from shell level, default to not set
+    export KEEPCSVWIP=
+    export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+fi
+
+# --CLEANUPCSVWIP
+#
+if [ -z "${CLEANUPCSVWIP}" ]; then
+    # CLEANUPCSVWIP mode not set from shell level, set default TRUE
+    export CLEANUPCSVWIP=true
+    export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+elif [ x"`echo "${CLEANUPCSVWIP}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    # CLEANUPCSVWIP mode set OFF from shell level
+    export CLEANUPCSVWIP=false
+    export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+elif [ x"`echo "${CLEANUPCSVWIP}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # CLEANUPCSVWIP mode set ON from shell level
+    export CLEANUPCSVWIP=true
+    export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+else
+    # CLEANUPCSVWIP mode set to wrong value from shell level, set default TRUE
+    export CLEANUPCSVWIP=true
+    export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+fi
+
+if [ x"${KEEPCSVWIP}" == x"" ] ; then
+    # KEEPCSVWIP was NOT set so check what we configured for CLEANUPCSVWIP
+    if ${CLEANUPCSVWIP} ; then
+        # CLEANUPCSVWIP mode set ON
+        export KEEPCSVWIP=false
+        export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+        export CLEANUPCSVWIP=true
+        export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+    else
+        # CLEANUPCSVWIP mode set OFF
+        export KEEPCSVWIP=true
+        export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+        export CLEANUPCSVWIP=false
+        export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+    fi
+elif ${KEEPCSVWIP} ; then
+    # KEEPCSVWIP was set true, so override everything
+    export KEEPCSVWIP=true
+    export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+    export CLEANUPCSVWIP=false
+    export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+else
+    # KEEPCSVWIP was set false, so override everything
+    export KEEPCSVWIP=false
+    export CLIparm_KEEPCSVWIP=${KEEPCSVWIP}
+    export CLEANUPCSVWIP=true
+    export CLIparm_CLEANUPCSVWIP=${CLEANUPCSVWIP}
+fi
+
+export CLIparm_NODOMAINFOLDERS=
+
+# --NODOMAINFOLDERS
+#
+if [ -z "${NODOMAINFOLDERS}" ]; then
+    # NODOMAINFOLDERS mode not set from shell level
+    export NODOMAINFOLDERS=false
+    export CLIparm_NODOMAINFOLDERS=${NODOMAINFOLDERS}
+elif [ x"`echo "${NODOMAINFOLDERS}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    # NODOMAINFOLDERS mode set OFF from shell level
+    export NODOMAINFOLDERS=false
+    export CLIparm_NODOMAINFOLDERS=${NODOMAINFOLDERS}
+elif [ x"`echo "${NODOMAINFOLDERS}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # NODOMAINFOLDERS mode set ON from shell level
+    export NODOMAINFOLDERS=true
+    export CLIparm_NODOMAINFOLDERS=${NODOMAINFOLDERS}
+else
+    # NODOMAINFOLDERS mode set to wrong value from shell level
+    export NODOMAINFOLDERS=false
+    export CLIparm_NODOMAINFOLDERS=${NODOMAINFOLDERS}
+fi
+
+export CLIparm_exportpath=
+export CLIparm_importpath=
+export CLIparm_deletepath=
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-04
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2369,33 +2465,20 @@ FinalizeExportObjectsToCSVviaJQ () {
 
 
 # -------------------------------------------------------------------------------------------------
-# ExportObjectsToCSVviaJQ
+# StandardExportCSVandJQParameters
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+
+# MODIFIED 2021-02-01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-# The ExportObjectsToCSVviaJQ is the meat of the script's repeated actions.
+# The StandardExportCSVandJQParameters handles standard configuration of the CSV and JQ export parameters.
 #
-# For this script the ${APICLIobjectstype} item's name is exported to a CSV file and sorted.
-# The original exported data and raw sorted data are retained in separate files, as is the header
-# for the CSV file generated.
 
-ExportObjectsToCSVviaJQ () {
+StandardExportCSVandJQParameters () {
     #
     
-    if [[ ${number_of_objects} -lt 1 ]] ; then
-        # no objects of this type
-        
-        echo "No objects of type ${APICLIobjecttype} to process, skipping..." | tee -a -i ${logfilepath}
-        
-        return 0
-       
-    else
-        # we have objects to handle
-        echo "Processing ${number_of_objects} ${APICLIobjecttype} objects..." | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-    fi
+    errorreturn=0
     
     # MODIFIED 2021-01-18 -
     #
@@ -2444,6 +2527,108 @@ ExportObjectsToCSVviaJQ () {
         export CSVJQparms=${CSVJQparms}', .["meta-info"]["creator"], .["meta-info"]["creation-time"]["iso-8601"], .["meta-info"]["last-modifier"], .["meta-info"]["last-modify-time"]["iso-8601"]'
     fi
     
+    
+    if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        fi
+    elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        fi
+    else
+        export APICLIexportnameaddon=${APICLIexportnameaddon}
+    fi
+    
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ConfigureExportCSVandJQParameters
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2021-02-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ConfigureExportCSVandJQParameters handles standard configuration of the CSV and JQ export parameters.
+#
+
+ConfigureExportCSVandJQParameters () {
+    #
+    
+    errorreturn=0
+    
+    # Type of Object Export  :  --type-of-export ["standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name"]
+    #      For an export for a delete operation via CSV, use "name-only"
+    #
+    #export TypeOfExport="standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name"
+    if [ x"${TypeOfExport}" == x"" ] ; then
+        # Value not set, so set to default
+        export TypeOfExport="standard"
+    fi
+    
+    echo 'Type of export :  '${TypeOfExport}' for objects of type '${APICLIobjecttype} | tee -a -i ${logfilepath}
+    
+    case "${TypeOfExport}" in
+        # a "Standard" export operation
+        'standard' )
+            #export APICLIexportnameaddon=
+            #export APICLIexportnameaddon=${APICLIexportnameaddon}
+            StandardExportCSVandJQParameters
+            ;;
+        # a "name-only" export operation
+        'name-only' )
+            export CSVFileHeader='"name"'
+            export CSVJQparms='.["name"]'
+            #export APICLIexportnameaddon=
+            #export APICLIexportnameaddon='name-only'
+            export APICLIdetaillvl=name
+            ;;
+        # a "name-and-uid" export operation
+        'name-and-uid' )
+            export CSVFileHeader='"name","uid"'
+            export CSVJQparms='.["name"], .["uid"]'
+            #export APICLIexportnameaddon=
+            #export APICLIexportnameaddon='name-and-uid'
+            export APICLIdetaillvl=name_and_uid
+            ;;
+        # a "uid-only" export operation
+        'uid-only' )
+            export CSVFileHeader='"uid"'
+            export CSVJQparms='.["uid"]'
+            #export APICLIexportnameaddon=
+            #export APICLIexportnameaddon='uid-only'
+            export APICLIdetaillvl=uid
+            ;;
+        # a "rename-to-new-nam" export operation
+        'rename-to-new-name' )
+            export CSVFileHeader='"name","new-name"'
+            export CSVJQparms='.["name"], .["name"]'
+            #export APICLIexportnameaddon=
+            #export APICLIexportnameaddon='rename-to-new-name'
+            export APICLIdetaillvl=rename
+            ;;
+        # Anything unknown is handled as "standard"
+        * )
+            StandardExportCSVandJQParameters
+            ;;
+    esac
+    
     # MODIFIED 2021-01-28 -
     
     if ${CSVADDEXPERRHANDLE} ; then
@@ -2459,18 +2644,82 @@ ExportObjectsToCSVviaJQ () {
         fi
     fi
     
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-03
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ExportObjectsToCSVviaJQ
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2021-02-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ExportObjectsToCSVviaJQ is the meat of the script's repeated actions.
+#
+# For this script the ${APICLIobjectstype} item's name is exported to a CSV file and sorted.
+# The original exported data and raw sorted data are retained in separate files, as is the header
+# for the CSV file generated.
+
+ExportObjectsToCSVviaJQ () {
+    #
+    
+    if [ x"${CreatorIsNotSystem}" == x"" ] ; then
+        # Value not set, so set to default
+        export CreatorIsNotSystem=false
+    fi
+    
+    if [[ ${number_of_objects} -lt 1 ]] ; then
+        # no objects of this type
+        
+        echo "No objects of type ${APICLIobjecttype} to process, skipping..." | tee -a -i ${logfilepath}
+        
+        return 0
+       
+    else
+        # we have objects to handle
+        echo "Processing ${number_of_objects} ${APICLIobjecttype} objects..." | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2021-02-01 -
+    #
+    
+    errorreturn=0
+    
+    ConfigureExportCSVandJQParameters
+    errorreturn=$?
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, terminate
+        echo 'Problem found in procedure ConfigureExportCSVandJQParameters! error returned = '${errorreturn} | tee -a -i ${logfilepath}
+        return ${errorreturn}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
     SetupExportObjectsToCSVviaJQ
     errorreturn=$?
     if [ ${errorreturn} != 0 ] ; then
         # Something went wrong, terminate
-        echo 'Problem found in procedure SetupExportObjectsToCSVviaJQ! error return = '${errorreturn} | tee -a -i ${logfilepath}
+        echo 'Problem found in procedure SetupExportObjectsToCSVviaJQ! error returned = '${errorreturn} | tee -a -i ${logfilepath}
         return ${errorreturn}
     fi
     
-    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}
-    export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
-    
-    export MgmtCLI_Show_OpParms="details-level full ${MgmtCLI_Base_OpParms}"
+    # -------------------------------------------------------------------------------------------------
     
     # MODIFIED 2018-07-20 - CLEANED UP 2020-10-05
     
@@ -2481,42 +2730,81 @@ ExportObjectsToCSVviaJQ () {
     #
     # Current alternative if more options to exclude are needed
     export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
-    export notsystemobjectselector='select(."domain"."name" as $a | ['${systemobjectdomains}'] | index($a) | not)'
+    export notsystemobjectselector='."domain"."name" as $a | ['${systemobjectdomains}'] | index($a) | not'
+    
+    export notcreatorissystemselector='."meta-info"."creator" != "System"'
+    
+    if ${NoSystemObjects} ; then
+        # Ignore System Objects
+        if ${CreatorIsNotSystem} ; then
+            # Ignore System Objects and no creator = System
+            export objectqueryselector='select( ('${notsystemobjectselector}') and ('${notcreatorissystemselector}') )'
+        else
+            # Ignore System Objects
+            export objectqueryselector='select('${notsystemobjectselector}')'
+        fi
+    else
+        # Include System Objects
+        if ${CreatorIsNotSystem} ; then
+            # Include System Objects and no creator = System
+            export objectqueryselector='select( '${notcreatorissystemselector}')'
+        else
+            # Include System Objects
+            export objectqueryselector=
+        fi
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}
+    
+    export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
+    
+    export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
+    #export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}' '${MgmtCLI_IgnoreErr_OpParms}
+    
+    # -------------------------------------------------------------------------------------------------
     
     objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
-    
     objectstoshow=${objectstotal}
-    
-    echo "Processing ${objectstoshow} ${APICLIobjecttype} objects in ${WorkAPIObjectLimit} object chunks:" | tee -a -i ${logfilepath}
-    
     objectslefttoshow=${objectstoshow}
     currentoffset=0
     
+    echo 'Processing '${objectstoshow}' '${APICLIobjecttype}' objects in '${WorkAPIObjectLimit}' object chunks:' | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
-    echo "Export ${APICLIobjectstype} to CSV File" | tee -a -i ${logfilepath}
-    echo "  and dump to ${APICLICSVfile}" | tee -a -i ${logfilepath}
+    echo 'Export '${APICLIobjectstype}' to CSV File' | tee -a -i ${logfilepath}
+    echo '  and dump to '${APICLICSVfile} | tee -a -i ${logfilepath}
     if ${APISCRIPTVERBOSE} ; then
         # Verbose mode ON
-        echo "  mgmt_cli parameters : ${MgmtCLI_Show_OpParms}" | tee -a -i ${logfilepath}
-        echo '  CSVJQparms' - ${CSVJQparms} | tee -a -i ${logfilepath}
-        echo "  System Object Selector : "${notsystemobjectselector} | tee -a -i ${logfilepath}
+        echo '  Export details level   :  '${APICLIdetaillvl} | tee -a -i ${logfilepath}
+        echo '  Export Filename add-on :  '${APICLIexportnameaddon} | tee -a -i ${logfilepath}
+        echo '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} | tee -a -i ${logfilepath}
+        echo '  Object Query Selector  :  '${objectqueryselector} | tee -a -i ${logfilepath}
+        echo '  CSVJQparms :  '${CSVJQparms} | tee -a -i ${logfilepath}
+    else
+        # Verbose mode OFF
+        echo '  Export details level   :  '${APICLIdetaillvl} >> ${logfilepath}
+        echo '  Export Filename add-on :  '${APICLIexportnameaddon} >> ${logfilepath}
+        echo '  mgmt_cli parameters   :  '${MgmtCLI_Show_OpParms} >> ${logfilepath}
+        echo '  Object Query Selector :  '${objectqueryselector} >> ${logfilepath}
+        echo '  CSVJQparms :  '${CSVJQparms} >> ${logfilepath}
     fi
     echo | tee -a -i ${logfilepath}
     
     while [ ${objectslefttoshow} -ge 1 ] ; do
         # we have objects to process
-        echo "  Now processing up to next ${WorkAPIObjectLimit} ${APICLIobjecttype} objects starting with object ${currentoffset} of ${objectslefttoshow} remaining!" | tee -a -i ${logfilepath}
+        echo '  Now processing up to next '${WorkAPIObjectLimit}' '${APICLIobjecttype}' objects starting with object '${currentoffset}' of '${objectslefttoshow}' remaining!' | tee -a -i ${logfilepath}
         
         #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
         #errorreturn=$?
         
-        if ${NoSystemObjects} ; then
-            # Ignore System Objects
-            mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | '"${notsystemobjectselector}"' | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
+        if [ x"${objectqueryselector}" == x"" ] ; then
+            # object query selector is empty, get it all
+            mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
             errorreturn=$?
         else   
-            # Don't Ignore System Objects
-            mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
+            # Use object query selector
+            mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | '"${objectqueryselector}"' | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
             errorreturn=$?
         fi
         
@@ -2529,6 +2817,8 @@ ExportObjectsToCSVviaJQ () {
         objectslefttoshow=`expr ${objectslefttoshow} - ${WorkAPIObjectLimit}`
         currentoffset=`expr ${currentoffset} + ${WorkAPIObjectLimit}`
     done
+    
+    errorreturn=0
     
     FinalizeExportObjectsToCSVviaJQ
     errorreturn=$?
@@ -2555,7 +2845,7 @@ ExportObjectsToCSVviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-18
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-03
 
 
 # -------------------------------------------------------------------------------------------------
@@ -4079,12 +4369,13 @@ CheckAPIVersionAndExecuteOperation
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-08-28
-# MODIFIED 2021-01-19 - 3 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
 
 # -------------------------------------------------------------------------------------------------
 # application-sites objects
 # -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-02-09 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
 export APIobjectminversion=1.1
@@ -4100,28 +4391,28 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-export CSVFileHeader='"primary-category","urls-defined-as-regular-expression"'
-# user-defined can't be imported so while shown, it adds no value for normal operations
-if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
-    export CSVFileHeader=${CSVFileHeader}',"user-defined","risk"'
-fi
+export CSVFileHeader='"primary-category"'
+# The risk key is not imported
+#export CSVFileHeader=${CSVFileHeader}',"risk"'
+export CSVFileHeader=${CSVFileHeader}',"urls-defined-as-regular-expression"'
 # The next elements are more complex elements, but required for import add operation
-export CSVFileHeader=${CSVFileHeader}',"url-list.0","application-signature.0"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.0"'
+export CSVFileHeader=${CSVFileHeader}',"application-signature.0"'
 # The next elements are more complex elements, but NOT required for import add operation
 export CSVFileHeader=${CSVFileHeader}',"additional-categories.0"'
-export CSVFileHeader=${CSVFileHeader}',"description'
+export CSVFileHeader=${CSVFileHeader}',"description"'
 #export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
 #export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-export CSVJQparms='.["primary-category"], .["urls-defined-as-regular-expression"]'
-# user-defined can't be imported so while shown, it adds no value for normal operations
-if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
-    export CSVJQparms=${CSVJQparms}', .["user-defined"], .["risk"]'
-fi
+export CSVJQparms='.["primary-category"]'
+# The risk key is not imported
+#export CSVJQparms=${CSVJQparms}', .["risk"]'
+export CSVJQparms=${CSVJQparms}', .["urls-defined-as-regular-expression"]'
 # The next elements are more complex elements, but required for import add operation
-export CSVJQparms=${CSVJQparms}', .["url-list"][0], .["application-signature"][0]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][0]'
+export CSVJQparms=${CSVJQparms}', .["application-signature"][0]'
 # The next elements are more complex elements, but NOT required for import add operation
 export CSVJQparms=${CSVJQparms}', .["additional-categories"][0]'
 export CSVJQparms=${CSVJQparms}', .["description"]'
@@ -4136,8 +4427,86 @@ export number_of_objects=${number_application_sites}
 CheckAPIVersionAndExecuteOperation
 
 
+export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=REFERENCE_ONLY
+
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-19 - 3
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"primary-category"'
+# The risk key is not imported
+export CSVFileHeader=${CSVFileHeader}',"risk"'
+export CSVFileHeader=${CSVFileHeader}',"urls-defined-as-regular-expression"'
+# user-defined can't be imported so while shown, it adds no value for normal operations
+export CSVFileHeader=${CSVFileHeader}',"user-defined"'
+# The next elements are more complex elements, but required for import add operation
+export CSVFileHeader=${CSVFileHeader}',"url-list.0"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.1"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.2"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.3"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.4"'
+export CSVFileHeader=${CSVFileHeader}',"application-signature.0"'
+export CSVFileHeader=${CSVFileHeader}',"application-signature.1"'
+export CSVFileHeader=${CSVFileHeader}',"application-signature.2"'
+export CSVFileHeader=${CSVFileHeader}',"application-signature.3"'
+export CSVFileHeader=${CSVFileHeader}',"application-signature.4"'
+# The next elements are more complex elements, but NOT required for import add operation
+export CSVFileHeader=${CSVFileHeader}',"additional-categories.0"'
+export CSVFileHeader=${CSVFileHeader}',"additional-categories.1"'
+export CSVFileHeader=${CSVFileHeader}',"additional-categories.2"'
+export CSVFileHeader=${CSVFileHeader}',"additional-categories.3"'
+export CSVFileHeader=${CSVFileHeader}',"additional-categories.4"'
+export CSVFileHeader=${CSVFileHeader}',"description"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
+#export CSVFileHeader=${CSVFileHeader}',"icon"'
+
+export CSVJQparms=
+export CSVJQparms='.["primary-category"]'
+# The risk key is not imported
+export CSVJQparms=${CSVJQparms}', .["risk"]'
+export CSVJQparms=${CSVJQparms}', .["urls-defined-as-regular-expression"]'
+# user-defined can't be imported so while shown, it adds no value for normal operations
+export CSVJQparms=${CSVJQparms}', .["user-defined"]'
+# The next elements are more complex elements, but required for import add operation
+export CSVJQparms=${CSVJQparms}', .["url-list"][0]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][1]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][2]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][3]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][4]'
+export CSVJQparms=${CSVJQparms}', .["application-signature"][0]'
+export CSVJQparms=${CSVJQparms}', .["application-signature"][1]'
+export CSVJQparms=${CSVJQparms}', .["application-signature"][2]'
+export CSVJQparms=${CSVJQparms}', .["application-signature"][3]'
+export CSVJQparms=${CSVJQparms}', .["application-signature"][4]'
+# The next elements are more complex elements, but NOT required for import add operation
+export CSVJQparms=${CSVJQparms}', .["additional-categories"][0]'
+export CSVJQparms=${CSVJQparms}', .["additional-categories"][1]'
+export CSVJQparms=${CSVJQparms}', .["additional-categories"][2]'
+export CSVJQparms=${CSVJQparms}', .["additional-categories"][3]'
+export CSVJQparms=${CSVJQparms}', .["additional-categories"][4]'
+export CSVJQparms=${CSVJQparms}', .["description"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
+#export CSVJQparms=${CSVJQparms}', .["icon"]'
+
+objectstotal_application_sites=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_application_sites="${objectstotal_application_sites}"
+export number_of_objects=${number_application_sites}
+
+CheckAPIVersionAndExecuteOperation
+
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-09 - 
 # MODIFIED 2021-01-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
@@ -4289,7 +4658,7 @@ export APIobjectcansetifexists=false
 export APICLIobjecttype=user
 export APICLIobjectstype=users
 export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=REFERENCE_ONLY_DO_NOT_IMPORT
+export APICLIexportnameaddon=REFERENCE_ONLY
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -4416,7 +4785,7 @@ export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
 export APICLIobjectstype=user-templates
 export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=REFERENCE_ONLY_DO_NOT_IMPORT
+export APICLIexportnameaddon=REFERENCE_ONLY
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -4972,7 +5341,7 @@ GetObjectMembers () {
 # GenericComplexObjectsMembersHandler proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-02-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 GenericComplexObjectsMembersHandler () {
@@ -4981,27 +5350,33 @@ GenericComplexObjectsMembersHandler () {
     
     errorreturn=0
     
-    objectstotal_object=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
-    export number_object="${objectstotal_object}"
-    
-    if [ ${number_object} -le 0 ] ; then
-        # No groups found
-        echo | tee -a -i ${logfilepath}
-        echo 'No '${APICLIobjectstype}' to generate members from!' | tee -a -i ${logfilepath}
+    if ${ExportTypeIsStandard} ; then
+        objectstotal_object=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+        export number_object="${objectstotal_object}"
+        
+        if [ ${number_object} -le 0 ] ; then
+            # No groups found
+            echo | tee -a -i ${logfilepath}
+            echo 'No '${APICLIobjectstype}' to generate members from!' | tee -a -i ${logfilepath}
+            echo | tee -a -i ${logfilepath}
+        else
+            GetObjectMembers
+            errorreturn=$?
+        fi
+        
+        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
         echo | tee -a -i ${logfilepath}
     else
-        GetObjectMembers
-        errorreturn=$?
+        echo | tee -a -i ${logfilepath}
+        echo 'Not "standard" Export Type :  '${TypeOfExport}' so we do not handle complx objects!' | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
     fi
-    
-    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
     
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-04
 
 
 # -------------------------------------------------------------------------------------------------
@@ -5528,7 +5903,7 @@ CollectInterfacesInHostObjects () {
 # GetHostInterfaces proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-02-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -5536,54 +5911,66 @@ CollectInterfacesInHostObjects () {
 
 GetHostInterfaces () {
     
-    export HostInterfacesCount=0
+    errorreturn=0
     
-    # MODIFIED 2021-01-28 -
-    
-    if ${CSVADDEXPERRHANDLE} ; then
-        export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
-        export CSVJQparms=${CSVJQparms}', true, true'
-        #
-        # May need to add plumbing to handle the case that not all objects types might support set-if-exists
-        # For now just keep it separate
-        #
-        if ${APIobjectcansetifexists} ; then
-            export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
-            export CSVJQparms=${CSVJQparms}', true'
-        fi
-    fi
-    
-    SetupExportComplexObjectsToCSVviaJQ
-    
-    GetArrayOfHostInterfaces
-    
-    if [ ${HostInterfacesCount} -gt 0 ]; then
-        # We have host interfaces to process
-        DumpArrayOfHostsObjects
+    if ${ExportTypeIsStandard} ; then
         
-        CollectInterfacesInHostObjects
+        export HostInterfacesCount=0
         
-        FinalizeExportComplexObjectsToCSVviaJQ
-        errorreturn=$?
-        if [ ${errorreturn} != 0 ] ; then
-            # Something went wrong, terminate
-            return ${errorreturn}
+        # MODIFIED 2021-01-28 -
+        
+        if ${CSVADDEXPERRHANDLE} ; then
+            export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+            export CSVJQparms=${CSVJQparms}', true, true'
+            #
+            # May need to add plumbing to handle the case that not all objects types might support set-if-exists
+            # For now just keep it separate
+            #
+            if ${APIobjectcansetifexists} ; then
+                export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
+                export CSVJQparms=${CSVJQparms}', true'
+            fi
         fi
         
+        SetupExportComplexObjectsToCSVviaJQ
+        
+        GetArrayOfHostInterfaces
+        
+        if [ ${HostInterfacesCount} -gt 0 ]; then
+            # We have host interfaces to process
+            DumpArrayOfHostsObjects
+            
+            CollectInterfacesInHostObjects
+            
+            FinalizeExportComplexObjectsToCSVviaJQ
+            errorreturn=$?
+            if [ ${errorreturn} != 0 ] ; then
+                # Something went wrong, terminate
+                return ${errorreturn}
+            fi
+            
+        else
+            # No host interfaces
+            echo | tee -a -i ${logfilepath}
+            echo '! No host interfaces found' | tee -a -i ${logfilepath}
+            echo | tee -a -i ${logfilepath}
+        fi
     else
-        # No host interfaces
         echo | tee -a -i ${logfilepath}
-        echo '! No host interfaces found' | tee -a -i ${logfilepath}
+        echo 'Not "standard" Export Type :  '${TypeOfExport}' so we do not handle complex host interface objects!' | tee -a -i ${logfilepath}
         echo | tee -a -i ${logfilepath}
     fi
+    
+    return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-04
 
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
 
 # -------------------------------------------------------------------------------------------------
 # Specific Complex OBJECT : host interfaces
@@ -5821,7 +6208,7 @@ ExportUserAuthenticationsToCSVviaJQ () {
 # GetUserAuthentications proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-02-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -5831,22 +6218,30 @@ GetUserAuthentications () {
     
     errorreturn=0
     
-    ExportUserAuthenticationsToCSVviaJQ
-    
-    errorreturn=$?
-    if [ ${errorreturn} != 0 ] ; then
-        # Something went wrong, terminate
-        echo 'Error '${errorreturn}' in ExportUserAuthenticationsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+    if ${ExportTypeIsStandard} ; then
+        
+        ExportUserAuthenticationsToCSVviaJQ
+        
+        errorreturn=$?
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo 'Error '${errorreturn}' in ExportUserAuthenticationsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+        fi
+        
+        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
+        
+    else
+        echo | tee -a -i ${logfilepath}
+        echo 'Not "standard" Export Type :  '${TypeOfExport}' so we do not handle complex user authentication objects!' | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
     fi
-    
-    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
     
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-27
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-04
 
 
 # -------------------------------------------------------------------------------------------------
@@ -6628,45 +7023,55 @@ fi
 # Clean-up according to CLI Parms and special requirements
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-11-17 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-02-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-if [ x"${CLIparm_CLEANUPWIP}" = x"true" ] ; then
+if ${CLIparm_CLEANUPCSVWIP} ; then
     # Remove Work-In-Progress folder and files
     
-    if [ -r ${APICLICSVpathexportwip} ] ; then
-        if ${APISCRIPTVERBOSE} ; then
-            echo 'Remove CSV Work-In-Progress folder and files' | tee -a -i ${logfilepath}
-            echo '   CSV WIP Folder : '${APICLICSVpathexportwip} | tee -a -i ${logfilepath}
-        else
-            echo 'Remove CSV Work-In-Progress folder and files' >> ${logfilepath}
-            echo '   CSV WIP Folder : '${APICLICSVpathexportwip} >> ${logfilepath}
+    if [ x"${APICLICSVpathexportwip}" != x"" ] ; then
+        if [ -r ${APICLICSVpathexportwip} ] ; then
+            if ${APISCRIPTVERBOSE} ; then
+                echo 'Remove CSV Work-In-Progress folder and files' | tee -a -i ${logfilepath}
+                echo '   CSV WIP Folder : "'${APICLICSVpathexportwip}'"' | tee -a -i ${logfilepath}
+                echo | tee -a -i ${logfilepath}
+                rm -v -r ${APICLICSVpathexportwip} | tee -a -i ${logfilepath}
+                echo | tee -a -i ${logfilepath}
+            else
+                echo 'Remove CSV Work-In-Progress folder and files' >> ${logfilepath}
+                echo '   CSV WIP Folder : "'${APICLICSVpathexportwip}'"' >> ${logfilepath}
+                echo >> ${logfilepath}
+                rm -v -r ${APICLICSVpathexportwip} >> ${logfilepath}
+                echo >> ${logfilepath}
+            fi
         fi
-        rm -v -r ${APICLICSVpathexportwip} | tee -a -i ${logfilepath}
     fi
     
-    if [ -r ${APICLIJSONpathexportwip} ] ; then
-        if ${APISCRIPTVERBOSE} ; then
-            echo 'Remove JSON Work-In-Progress folder and files' | tee -a -i ${logfilepath}
-            echo '   JSON WIP Folder : '${APICLIJSONpathexportwip} | tee -a -i ${logfilepath}
-        else
-            echo 'Remove JSON Work-In-Progress folder and files' >> ${logfilepath}
-            echo '   JSON WIP Folder : '${APICLIJSONpathexportwip} >> ${logfilepath}
+    if [ x"${APICLIJSONpathexportwip}" != x"" ] ; then
+        if [ -r ${APICLIJSONpathexportwip} ] ; then
+            if ${APISCRIPTVERBOSE} ; then
+                echo 'Remove JSON Work-In-Progress folder and files' | tee -a -i ${logfilepath}
+                echo '   JSON WIP Folder : "'${APICLIJSONpathexportwip}'"' | tee -a -i ${logfilepath}
+                rm -v -r ${APICLIJSONpathexportwip} | tee -a -i ${logfilepath}
+            else
+                echo 'Remove JSON Work-In-Progress folder and files' >> ${logfilepath}
+                echo '   JSON WIP Folder : "'${APICLIJSONpathexportwip}'"' >> ${logfilepath}
+                rm -v -r ${APICLIJSONpathexportwip} >> ${logfilepath}
+            fi
         fi
-        rm -v -r ${APICLIJSONpathexportwip} | tee -a -i ${logfilepath}
     fi
-
+    
 fi
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-17
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-04
 
 
 # -------------------------------------------------------------------------------------------------
 # Clean-up and exit
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-31 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-02-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 echo 'CLI Operations Completed' | tee -a -i ${logfilepath}
@@ -6711,13 +7116,20 @@ else
     echo >> ${logfilepath}
 fi
 
+if ${CLIparm_NOHUP} ; then
+    # Cleanup Potential file indicating script is active for nohup mode
+    if [ -r ${script2nohupactive} ] ; then
+        rm ${script2nohupactive} >> ${logfilepath} 2>&1
+    fi
+fi
+
 echo | tee -a -i ${logfilepath}
 echo 'Results in directory : '"${APICLIpathbase}" | tee -a -i ${logfilepath}
 echo 'Log output in file   : '"${logfilepath}" | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-31
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-06
 
 
 # =================================================================================================
