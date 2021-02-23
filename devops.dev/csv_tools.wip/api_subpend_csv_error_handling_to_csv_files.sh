@@ -13,12 +13,13 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.05
+ScriptVersion=00.60.06
 ScriptRevision=010
-ScriptDate=2021-02-10
-TemplateVersion=00.60.05
-APISubscriptsVersion=00.60.05
-APISubscriptsRevision=006
+ScriptDate=2021-02-22
+TemplateVersion=00.60.06
+APISubscriptsLevel=006
+APISubscriptsVersion=00.60.06
+APISubscriptsRevision=010
 
 #
 
@@ -117,12 +118,17 @@ export OutputDTGSSubfolder=false
 export OutputSubfolderScriptName=false
 export OutputSubfolderScriptShortName=true
 
+# MODIFIED 2021-02-13 -
 export notthispath=/home/
-export startpathroot=.
+export localdotpathroot=.
 
 export localdotpath=`echo ${PWD}`
 export currentlocalpath=${localdotpath}
 export workingpath=$currentlocalpath
+
+# MODIFIED 2021-02-13 -
+export expandedpath=$(cd ${localdotpathroot} ; pwd)
+export startpathroot=${expandedpath}
 
 # -------------------------------------------------------------------------------------------------
 
@@ -145,6 +151,12 @@ export APISCRIPTVERBOSE=false
 
 #export DefaultMgmtAdmin=admin
 export DefaultMgmtAdmin=administrator
+
+
+# ADDED 2021-02-21 -
+
+# Configure whether this script operates against all domains by default, which affects -d CLI parameter handling for authentication
+export OpsModeAllDomains=false
 
 
 # 2018-05-02 - script type - template - test it all
@@ -182,7 +194,7 @@ export WAITTIME=15
 # Configure basic location for api subscripts
 export api_subscripts_default_root=..
 export api_subscripts_default_folder=_api_subscripts
-export api_subscripts_checkfile=api_subscripts_version.${APISubscriptsRevision}.v${APISubscriptsVersion}.version
+export api_subscripts_checkfile=api_subscripts_version.${APISubscriptsLevel}.v${APISubscriptsVersion}.version
 
 #
 # Check for whether the subscripts are present where expected, if not hard EXIT
@@ -221,7 +233,7 @@ fi
 # MODIFIED 2020-11-16 -
 export basic_script_setup_API_handler_root=..
 export basic_script_setup_API_handler_folder=_api_subscripts
-export basic_script_setup_API_handler_file=basic_script_setup_API_scripts.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}.sh
+export basic_script_setup_API_handler_file=basic_script_setup_API_scripts.subscript.common.${APISubscriptsLevel}.v${APISubscriptsVersion}.sh
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -237,7 +249,7 @@ export basic_script_setup_API_handler_file=basic_script_setup_API_scripts.subscr
 # MODIFIED 2020-09-09 -
 export cli_api_cmdlineparm_handler_root=${api_subscripts_root}
 export cli_api_cmdlineparm_handler_folder=${api_subscripts_default_folder}
-export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}.sh
+export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.subscript.common.${APISubscriptsLevel}.v${APISubscriptsVersion}.sh
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -253,7 +265,7 @@ export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.subscript.co
 # MODIFIED 2020-09-09 -
 export gaia_version_handler_root=${api_subscripts_root}
 export gaia_version_handler_folder=${api_subscripts_default_folder}
-export gaia_version_handler_file=identify_gaia_and_installation.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}.sh
+export gaia_version_handler_file=identify_gaia_and_installation.subscript.common.${APISubscriptsLevel}.v${APISubscriptsVersion}.sh
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -269,7 +281,7 @@ export gaia_version_handler_file=identify_gaia_and_installation.subscript.common
 # MODIFIED 2020-11-16 -
 export script_output_paths_API_handler_root=..
 export script_output_paths_API_handler_folder=_api_subscripts
-export script_output_paths_API_handler_file=script_output_paths_and_folders_API_scripts.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}.sh
+export script_output_paths_API_handler_file=script_output_paths_and_folders_API_scripts.subscript.common.${APISubscriptsLevel}.v${APISubscriptsVersion}.sh
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -285,7 +297,7 @@ export script_output_paths_API_handler_file=script_output_paths_and_folders_API_
 # MODIFIED 2020-11-16 -
 export mgmt_cli_API_operations_handler_root=..
 export mgmt_cli_API_operations_handler_folder=_api_subscripts
-export mgmt_cli_API_operations_handler_file=mgmt_cli_api_operations.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}.sh
+export mgmt_cli_API_operations_handler_file=mgmt_cli_api_operations.subscript.common.${APISubscriptsLevel}.v${APISubscriptsVersion}.sh
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -413,7 +425,7 @@ ForceShowTempLogFile () {
 # REMOVED 2020-11-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-# Moved to mgmt_cli_api_operations.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}.sh script
+# Moved to mgmt_cli_api_operations.subscript.common.${APISubscriptsLevel}.v${APISubscriptsVersion}.sh script
 #
 #CheckStatusOfAPI
 
@@ -472,7 +484,7 @@ GetScriptSourceFolder () {
 # REMOVED 2020-11-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-# Moved to basic_script_setup_API_scripts.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}.sh script
+# Moved to basic_script_setup_API_scripts.subscript.common.${APISubscriptsLevel}.v${APISubscriptsVersion}.sh script
 #
 #ConfigureJQLocation
 #GaiaWebSSLPortCheck
@@ -680,6 +692,7 @@ BasicScriptSetupAPIScripts "$@"
 # --NOHUP
 # --NOHUP-Script <NOHUP_SCRIPT_NAME> | --NOHUP-Script=<NOHUP_SCRIPT_NAME>
 # --NOHUP-DTG <NOHUP_SCRIPT_DATE_TIME_GROUP> | --NOHUP-DTG=<NOHUP_SCRIPT_DATE_TIME_GROUP>
+# --NOHUP-PATH <NOHUP_SCRIPT_EXECUTION_PATH> | --NOHUP-PATH=<NOHUP_SCRIPT_EXECUTION_PATH>
 #
 #
 
@@ -729,12 +742,13 @@ else
     export NOWAIT=false
 fi
 
-# ADDED 2021-02-06 -
+# ADDED 2021-02-06 - MODIFIED 2021-02-13 -
 # Provide capability to work with NOHUP mode script do_script_nohup from "bash 4 Check Point" scripts
 
 export CLIparm_NOHUP=false
 export CLIparm_NOHUPScriptName=
 export CLIparm_NOHUPDTG=
+export CLIparm_NOHUPPATH=
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-06
@@ -1241,6 +1255,7 @@ dumpcliparmparseresults () {
     printf "%-40s = %s\n" 'CLIparm_NOHUP' "${CLIparm_NOHUP}" >> ${templogfilepath}
     printf "%-40s = %s\n" 'CLIparm_NOHUPScriptName' "${CLIparm_NOHUPScriptName}" >> ${templogfilepath}
     printf "%-40s = %s\n" 'CLIparm_NOHUPDTG' "${CLIparm_NOHUPDTG}" >> ${templogfilepath}
+    printf "%-40s = %s\n" 'CLIparm_NOHUPPATH' "${CLIparm_NOHUPPATH}" >> ${templogfilepath}
     
     #printf "%-40s = %s\n" 'X' "${X}" >> ${templogfilepath}
     
@@ -1542,6 +1557,7 @@ doshowhelp () {
     echo -n '|[--NOHUP]'
     echo -n '|[--NOHUP-Script <NOHUP_SCRIPT_NAME>]'
     echo -n '|[--NOHUP-DTG <NOHUP_SCRIPT_DATE_TIME_GROUP>]'
+    echo -n '|[--NOHUP-PATH <NOHUP_SCRIPT_EXECUTION_PATH>]'
     echo
     
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
@@ -1700,6 +1716,9 @@ doshowhelp () {
     echo '  Operating in nohup mode    --NOHUP'
     echo '  nohup script as called     --NOHUP-Script <NOHUP_SCRIPT_NAME> | --NOHUP-Script=<NOHUP_SCRIPT_NAME>'
     echo '  nohup date-time-group      --NOHUP-DTG <NOHUP_SCRIPT_DATE_TIME_GROUP> | --NOHUP-DTG=<NOHUP_SCRIPT_DATE_TIME_GROUP>'
+    echo '  nohup execute path         --NOHUP-PATH <NOHUP_SCRIPT_EXECUTION_PATH> | --NOHUP-PATH=<NOHUP_SCRIPT_EXECUTION_PATH>'
+    echo
+    echo '  NOHUP_SCRIPT_EXECUTION_PATH = fully qualified folder path for where do_script_nohup was executed'
     echo
     
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
@@ -1738,7 +1757,9 @@ doshowhelp () {
     echo
     echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" --SO --format=all --details=full --CSVALL'
     echo
-    echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" --SO --format=all --details=full --NOHUP --NOHUP-DTG 2027-11-11-2323CST'
+    echo ' Example of call from nohup initiator script, do_script_nohup from bash 4 Check Point scripts'
+    echo
+    echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" --SO --format=all --details=full --NOHUP --NOHUP-DTG 2027-11-11-2323CST --NOHUP-PATH "/var/log/__customer/scripts"'
     
     #                  1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #        01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
@@ -2036,6 +2057,14 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_NOHUPDTG="$2"
                     shift
                     ;;
+                --NOHUP-PATH=* )
+                    CLIparm_NOHUPPATH="${OPT#*=}"
+                    #shift
+                    ;;
+                --NOHUP-PATH )
+                    CLIparm_NOHUPPATH="$2"
+                    shift
+                    ;;
                 # 
                 # This section is specific to this script focus
                 # 
@@ -2212,10 +2241,11 @@ ProcessCommandLineParametersAndSetValues () {
     export CLIparm_logpath=${CLIparm_logpath}
     export CLIparm_outputpath=${CLIparm_outputpath}
     
-    # ADDED 2021-02-06 -
+    # ADDED 2021-02-06 - MODIFIED 2021-02-13 - 
     export CLIparm_NOHUP=${CLIparm_NOHUP}
     export CLIparm_NOHUPScriptName=${CLIparm_NOHUPScriptName}
     export CLIparm_NOHUPDTG=${CLIparm_NOHUPDTG}
+    export CLIparm_NOHUPPATH=${CLIparm_NOHUPPATH}
     
     # MODIFIED 2021-02-04 -
     export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
@@ -2658,7 +2688,7 @@ GetGaiaVersionAndInstallationType "$@"
 # =================================================================================================
 
 
-# Moved to mgmt_cli_api_operations.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}.sh script
+# Moved to mgmt_cli_api_operations.subscript.common.${APISubscriptsLevel}.v${APISubscriptsVersion}.sh script
 #
 #HandleMgmtCLIPublish
 #HandleMgmtCLILogout
@@ -2689,7 +2719,7 @@ GetGaiaVersionAndInstallationType "$@"
 # REMOVED 2020-11-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-# Moved to script_output_paths_and_folders_API_scripts.subscript.common.${APISubscriptsRevision}.v${APISubscriptsVersion}.sh script
+# Moved to script_output_paths_and_folders_API_scripts.subscript.common.${APISubscriptsLevel}.v${APISubscriptsVersion}.sh script
 #
 #localrootscriptconfiguration
 #HandleRootScriptConfiguration
@@ -3029,21 +3059,95 @@ fi
 # =================================================================================================
 
 
+# MODIFIED 2021-02-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+if ${OpsModeAllDomains} ; then
+    # Operations Mode All Domains implies MDSM operation requirement, so check that first
+    if [ "${sys_type_MDS}" != "true" ]; then
+        
+        echo | tee -a -i ${logfilepath}
+        echo '!!!! This script is expected to run on Multi-Domain Management !!!!' | tee -a -i ${logfilepath}
+        echo 'Exiting...!' | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
+        exit 255
+        
+    fi
+fi
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-21
+
+
 # =================================================================================================
 # START:  Setup Login Parameters and Login to Mgmt_CLI
 # =================================================================================================
 
-# MODIFIED 2020-11-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-02-22 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 if ${UseR8XAPI} ; then
     
+    echo 'Setting up mgmt_cli login...' | tee -a -i ${logfilepath}
+    
     . ${mgmt_cli_API_operations_handler} SETUPLOGIN "$@"
     
-    if [ ! -z "${CLIparm_domain}" ] ; then
+    echo | tee -a -i ${logfilepath}
+    
+    if [ "${CLIparm_domain}" == "System Data" ] ; then
+        # A CLI Parameter for domains (-d) was passed - namely "System Data" a known domain
+        echo 'A CLI Parameter for domains (-d) was passed - namely "System Data" a known domain.' | tee -a -i ${logfilepath}
+        echo 'The requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
+    elif [ "${CLIparm_domain}" == "Global" ] ; then
+        # A CLI Parameter for domains (-d) was passed - namely "Global" a known domain
+        echo 'A CLI Parameter for domains (-d) was passed - namely "Global" a known domain.' | tee -a -i ${logfilepath}
+        echo 'The requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
+    elif [ ! -z "${CLIparm_domain}" ] ; then
+        # A CLI Parameter for domains (-d) was passed, so check if that domain exists and then add it as the last element to the domains array
+        echo 'A CLI Parameter for domains (-d) was passed.' | tee -a -i ${logfilepath}
+        echo 'Check if the requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
+        
+        export MgmtCLI_Base_OpParms='-f json'
+        export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
+        export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
+        
+        if [ ! -z "${CLIparm_mgmt}" ] ; then
+        # working with remote management server
+            Check4DomainByName=$(mgmt_cli --port ${APICLIwebsslport} -m ${CLIparm_mgmt} -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
+            echo 'You may be required to provide credentials for "System Data" domain logon!' | tee -a -i ${logfilepath}
+        else
+            Check4DomainByName=$(mgmt_cli -r true --port ${APICLIwebsslport} -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
+        fi
+        CheckCliParmDomain=${Check4DomainByName}
+        
+        if [ x"${CheckCliParmDomain}" == x"" ] ; then
+            # Houston, we have a problem... the CLIparm_domain check result was null for this MDSM MDS host
+            echo | tee -a -i ${logfilepath}
+            echo '!!!! The requested domain : '${CLIparm_domain}' was not found on this MDSM MDS host!!!!' | tee -a -i ${logfilepath}
+            echo 'Exiting...!' | tee -a -i ${logfilepath}
+            echo | tee -a -i ${logfilepath}
+            
+            exit 250
+        else
+            # we are good to go, so add this domain to the array and stop processing other domains
+            echo 'The requested domain : '${CLIparm_domain}' is found on this MDSM MDS host.' | tee -a -i ${logfilepath}
+        fi
+    else
+        # no CLI Parameter for domains (-d) was passed
+        echo 'No CLI Parameter for domains (-d) was passed.' | tee -a -i ${logfilepath}
+    fi
+    
+    if ${OpsModeAllDomains} ; then
+        # Handle x_All_Domains_y script, so logon to "System Data" domain
+        echo | tee -a -i ${logfilepath}
+        if ${APISCRIPTVERBOSE} ; then
+            echo 'Operating in *_all_domains_* script so using "System Data" domain initially' | tee -a -i ${logfilepath}
+        fi
+        export domaintarget="System Data"
+    elif [ ! -z "${CLIparm_domain}" ] ; then
         # Handle domain parameter for login string
         if ${APISCRIPTVERBOSE} ; then
-            echo 'Command line parameter for domain set!  Domain = '${CLIparm_domain} | tee -a -i ${logfilepath}
+            echo 'Command line parameter for domain set!  Using Domain = '${CLIparm_domain} | tee -a -i ${logfilepath}
         fi
         export domaintarget=${CLIparm_domain}
     else
@@ -3054,8 +3158,9 @@ if ${UseR8XAPI} ; then
     fi
     
     if ${APISCRIPTVERBOSE} ; then
-        echo "domaintarget = '${domaintarget}' " | tee -a -i ${logfilepath}
+        echo 'domaintarget = "'${domaintarget}'" ' | tee -a -i ${logfilepath}
     fi
+    echo | tee -a -i ${logfilepath}
     
     export LoggedIntoMgmtCli=false
     
@@ -3071,8 +3176,7 @@ if ${UseR8XAPI} ; then
 fi
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-16
-
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-02-22
 
 # =================================================================================================
 # END:  Setup Login Parameters and Login to Mgmt_CLI

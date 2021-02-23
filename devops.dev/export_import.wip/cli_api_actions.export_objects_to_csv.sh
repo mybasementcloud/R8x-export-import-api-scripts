@@ -13,12 +13,13 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptVersion=00.60.05
+ScriptVersion=00.60.06
 ScriptRevision=010
-ScriptDate=2021-02-10
-TemplateVersion=00.60.05
-APISubscriptsVersion=00.60.05
-APISubscriptsRevision=006
+ScriptDate=2021-02-22
+TemplateVersion=00.60.06
+APISubscriptsLevel=006
+APISubscriptsVersion=00.60.06
+APISubscriptsRevision=010
 
 #
 
@@ -720,7 +721,14 @@ ExportObjectsToCSVviaJQ () {
         export CreatorIsNotSystem=false
     fi
     
-    if [[ ${number_of_objects} -lt 1 ]] ; then
+    if [ x"${number_of_objects}" == x"" ] ; then
+        # There are null objects, so skip
+        
+        echo "No objects of type ${APICLIobjecttype} to process, skipping..." | tee -a -i ${logfilepath}
+        
+        return 0
+       
+    elif [[ ${number_of_objects} -lt 1 ]] ; then
         # no objects of this type
         
         echo "No objects of type ${APICLIobjecttype} to process, skipping..." | tee -a -i ${logfilepath}
@@ -733,6 +741,7 @@ ExportObjectsToCSVviaJQ () {
         echo | tee -a -i ${logfilepath}
     fi
     
+
     # -------------------------------------------------------------------------------------------------
     
     # MODIFIED 2021-02-01 -
@@ -1062,7 +1071,17 @@ objectstotal_hosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details
 export number_hosts="${objectstotal_hosts}"
 export number_of_objects=${number_hosts}
 
-CheckAPIVersionAndExecuteOperation
+if [ x"${number_of_objects}" != x"" ] ; then
+    # There are NOT null objects, so process
+    
+    CheckAPIVersionAndExecuteOperation
+    
+else
+    # There are null objects, so skip
+    echo 'Attempt to determine number of objects of type '${APICLIobjectstype}' resulted in NULL response!' | tee -a -i ${logfilepath}
+    echo 'Skipping!...' | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+fi
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1095,7 +1114,17 @@ objectstotal_hosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details
 export number_hosts="${objectstotal_hosts}"
 export number_of_objects=${number_hosts}
 
-CheckAPIVersionAndExecuteOperation
+if [ x"${number_of_objects}" != x"" ] ; then
+    # There are NOT null objects, so process
+    
+    CheckAPIVersionAndExecuteOperation
+    
+else
+    # There are null objects, so skip
+    echo 'Attempt to determine number of objects of type '${APICLIobjectstype}' resulted in NULL response!' | tee -a -i ${logfilepath}
+    echo 'Skipping!...' | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+fi
 
 
 # -------------------------------------------------------------------------------------------------
