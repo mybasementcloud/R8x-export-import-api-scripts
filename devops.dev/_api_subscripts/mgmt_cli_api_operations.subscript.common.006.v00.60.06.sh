@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.06
-ScriptRevision=010
-ScriptDate=2021-02-22
+ScriptRevision=020
+ScriptDate=2021-02-23
 TemplateVersion=00.60.06
 APISubscriptsLevel=006
 APISubscriptsVersion=00.60.06
-APISubscriptsRevision=010
+APISubscriptsRevision=020
 
 #
 
@@ -33,7 +33,7 @@ APISubScriptName=mgmt_cli_api_operations.subscript.common.${APISubscriptsLevel}.
 export APISubScriptFileNameRoot=mgmt_cli_api_operations.subscript.common
 export APISubScriptShortName=mgmt_cli_api_operations
 export APISubScriptnohupName=${APISubScriptShortName}
-export APISubScriptDescription="subscript for CLI Operations for management CLI API operations handling"
+export APISubScriptDescription="Subscript for CLI Operations for management CLI API operations handling"
 
 
 # =================================================================================================

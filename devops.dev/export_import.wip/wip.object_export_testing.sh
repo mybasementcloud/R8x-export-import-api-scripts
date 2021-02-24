@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.06
-ScriptRevision=010
-ScriptDate=2021-02-22
+ScriptRevision=020
+ScriptDate=2021-02-23
 TemplateVersion=00.60.06
 APISubscriptsLevel=006
 APISubscriptsVersion=00.60.06
-APISubscriptsRevision=010
+APISubscriptsRevision=020
 
 #
 
@@ -3064,19 +3064,48 @@ CheckAPIVersionAndExecuteOperation () {
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2021-02-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+export scriptactiontext='Export'
+#export scriptformattext='JSON'
+export scriptformattext='CSV'
+export scriptactiondescriptor='Export Testing Specific Objects to CSV'
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-23
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # handle simple objects
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-echo
-echo ${APICLIdetaillvl}' CSV Export - simple objects - Export to CSV starting!'
-echo
+
+# MODIFIED 2021-02-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+echo | tee -a -i ${logfilepath}
+echo ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - simple objects - '${scriptactiondescriptor}' starting!' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-23
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # Network Objects
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
 
 #echo | tee -a -i ${logfilepath}
 #echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
@@ -3085,6 +3114,49 @@ echo
 #echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 #echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 #echo | tee -a -i ${logfilepath}
+
+
+# -------------------------------------------------------------------------------------------------
+# host objects
+# -------------------------------------------------------------------------------------------------
+
+#export APIobjectrecommendedlimit=${WorkAPIObjectLimit}
+#export APIobjectminversion=1.1
+#export APIobjectcansetifexists=true
+#export APICLIobjecttype=host
+#export APICLIobjectstype=hosts
+#export APICLICSVobjecttype=${APICLIobjectstype}
+#export APICLIexportnameaddon=
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+#export APICLICSVsortparms='-f -t , -k 1,1'
+
+#export CSVFileHeader=
+#export CSVFileHeader='"ipv4-address","ipv6-address"'
+#export CSVFileHeader=${CSVFileHeader}',"nat-settings.auto-rule","nat-settings.hide-behind","nat-settings.install-on","nat-settings.ipv4-address","nat-settings.ipv6-address","nat-settings.method"'
+
+#export CSVJQparms=
+#export CSVJQparms='.["ipv4-address"], .["ipv6-address"]'
+#export CSVJQparms=${CSVJQparms}', .["nat-settings"]["auto-rule"], .["nat-settings"]["hide-behind"], .["nat-settings"]["install-on"]'
+#export CSVJQparms=${CSVJQparms}', .["nat-settings"]["ipv4-address"], .["nat-settings"]["ipv6-address"], .["nat-settings"]["method"]'
+
+#objectstotal_hosts=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+#export number_hosts="${objectstotal_hosts}"
+#export number_of_objects=${number_hosts}
+
+#if [ x"${number_of_objects}" != x"" ] ; then
+    ## There are NOT null objects, so process
+    
+    #CheckAPIVersionAndExecuteOperation
+    
+#else
+    ## There are null objects, so skip
+    #echo 'Attempt to determine number of objects of type '${APICLIobjectstype}' resulted in NULL response!' | tee -a -i ${logfilepath}
+    #echo 'Skipping!...' | tee -a -i ${logfilepath}
+    #echo | tee -a -i ${logfilepath}
+#fi
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3340,9 +3412,39 @@ echo '--------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 
+# MODIFIED 2021-02-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+echo | tee -a -i ${logfilepath}
+echo ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - simple objects - '${scriptactiondescriptor}' Completed!' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-23
+
+
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # handle complex objects
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+
+# MODIFIED 2021-02-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+echo | tee -a -i ${logfilepath}
+echo ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - complex objects - '${scriptactiondescriptor}' Starting!' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-23
+
+
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
@@ -4705,11 +4807,15 @@ GetUserAuthentications () {
 # -------------------------------------------------------------------------------------------------
 
 
+# MODIFIED 2021-02-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 echo | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo 'No more complex objects' | tee -a -i ${logfilepath}
-echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - complex objects - '${scriptactiondescriptor}' Completed!' | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-23
 
 
 # -------------------------------------------------------------------------------------------------
@@ -4719,9 +4825,20 @@ echo | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 
 
+# MODIFIED 2021-02-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 echo | tee -a -i ${logfilepath}
-echo ${APICLIdetaillvl}' CSV dump - Completed!' | tee -a -i ${logfilepath}
+echo ${scriptactiondescriptor}' Completed!' | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-23
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
 
 #echo | tee -a -i ${logfilepath}
 #echo | tee -a -i ${logfilepath}

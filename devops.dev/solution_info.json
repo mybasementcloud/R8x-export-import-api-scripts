@@ -2,22 +2,22 @@
 	"filetype" : "solution_info",
 	"fileversion" : "02.00.00",
 	"filerevision" : "000",
-	"filedate" : "2021-02-22",
+	"filedate" : "2021-02-23",
 	"fileinformationlevel" : "000",
 	"MinCMDTemplateVersion" : "06.03.01"
 }, 
 "solution_info" : {
 	"ScriptSeries" : "\"R8X Import Export Script Examples\"",
 	"ScriptSeriesShort" : "devops.dev",
-	"ScriptDate" : "2021-02-22",
+	"ScriptDate" : "2021-02-23",
 	"ScriptVersion" : "00.60.06",
-	"ScriptRevision" : "010",
+	"ScriptRevision" : "020",
 	"TemplateVersion" : "00.60.06",
 	"TemplateLevel" : "006",
-	"SubScriptsLevel" : "010",
+	"SubScriptsLevel" : "020",
 	"SubScriptsVersion" : "00.60.06",
 	"APISubScriptsLevel" : "006",
 	"APISubScriptsVersion" : "00.60.06",
-	"APISubScriptsRevision" : "010"
+	"APISubScriptsRevision" : "020"
 } 
 }

@@ -1,11 +1,6 @@
-"name","color","comments","is-sub-domain","tags.0","tags.1","tags.2","tags.3","tags.4","tags.5","tags.6"
-.acme.local,forest green,,TRUE,"tag_zero","tag_one","tag_two","tag_three","tag_four","tag_five","tag_six"
-.thexbros.com,blue,,TRUE,"tag_zero",,,,,,
-.thexbros.net,blue,,TRUE,"tag_zero",,,,,,
-.thexbros.org,blue,,TRUE,"tag_zero","tag_one","tag_two","tag_three","tag_four","tag_five","tag_six"
-.checkpoint.com,forest green,Check Point,TRUE,"tag_zero",,,,,,
-.deploy.akamaitechnologies.com,gold,,TRUE,"tag_zero",,,,,,
-.ooma.com,violet red,"OOMA VOIP Service",TRUE,"tag_zero",,,,,,
-.symantec.com,orchid,"Antimalware Provider",TRUE,"tag_zero","tag_one","tag_two",,,,
-.us-smtp-outbound-1.mimecast.com,black,,FALSE,"tag_zero",,,,,,
-.us-smtp-outbound-2.mimecast.com,black,,FALSE,"tag_zero",,,,,,
+"name","color","comments","is-sub-domain","tags"
+".1.test.domain.local","forest green","",true,"test_data_please_remove"
+".2.test.domain.local","forest green","",true,"test_data_please_remove"
+".3.test.domain.local","forest green","",true,"test_data_please_remove"
+".4.test.domain.local","forest green","",true,"test_data_please_remove"
+".5.test.domain.local","forest green","",true,"test_data_please_remove"

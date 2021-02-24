@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.06
-ScriptRevision=010
-ScriptDate=2021-02-22
+ScriptRevision=020
+ScriptDate=2021-02-23
 TemplateVersion=00.60.06
 APISubscriptsLevel=006
 APISubscriptsVersion=00.60.06
-APISubscriptsRevision=010
+APISubscriptsRevision=020
 
 #
 
@@ -33,7 +33,7 @@ APISubScriptName=identify_gaia_and_installation.subscript.common.${APISubscripts
 export APISubScriptFileNameRoot=identify_gaia_and_installation.subscript.common
 export APISubScriptShortName=identify_gaia_and_installation
 export APISubScriptnohupName=${APISubScriptShortName}
-export APISubScriptDescription="subscript for CLI Operations for identification of Gaia version and Installation handling"
+export APISubScriptDescription="Subscript for CLI Operations for identification of Gaia version and Installation handling"
 
 
 # =================================================================================================

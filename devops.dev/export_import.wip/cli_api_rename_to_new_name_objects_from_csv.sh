@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.06
-ScriptRevision=010
-ScriptDate=2021-02-22
+ScriptRevision=020
+ScriptDate=2021-02-23
 TemplateVersion=00.60.06
 APISubscriptsLevel=006
 APISubscriptsVersion=00.60.06
-APISubscriptsRevision=010
+APISubscriptsRevision=020
 
 #
 
@@ -2529,19 +2529,54 @@ CheckAPIVersionAndExecuteOperation () {
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+# Start operations
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2021-02-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+export scriptactiontext='Rename'
+#export scriptformattext='JSON'
+export scriptformattext='CSV'
+export scriptactiondescriptor='Rename to New Name from CSV'
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-23
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # handle simple objects
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
+
+# MODIFIED 2021-02-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 echo | tee -a -i ${logfilepath}
-echo ${APICLIdetaillvl}' CSV import - simple objects - Set Update from CSV starting!' | tee -a -i ${logfilepath}
+echo ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - simple objects - '${scriptactiondescriptor}' starting!' | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
 
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-23
+
+
 # -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
 # -------------------------------------------------------------------------------------------------
 # Network Objects
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
 
 echo | tee -a -i ${logfilepath}
 echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
@@ -2561,7 +2596,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2591,7 +2626,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=network
 export APICLIobjectstype=networks
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2621,7 +2656,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2636,7 +2671,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=group-with-exclusion
 export APICLIobjectstype=groups-with-exclusion
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2651,7 +2686,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=address-range
 export APICLIobjectstype=address-ranges
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2681,7 +2716,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=dns-domain
 export APICLIobjectstype=dns-domains
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2696,7 +2731,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=security-zone
 export APICLIobjectstype=security-zones
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2711,7 +2746,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=dynamic-object
 export APICLIobjectstype=dynamic-objects
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2726,7 +2761,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=tag
 export APICLIobjectstype=tags
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2741,7 +2776,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=simple-gateway
 export APICLIobjectstype=simple-gateways
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2786,7 +2821,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=time
 export APICLIobjectstype=times
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2801,7 +2836,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2816,7 +2851,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=access-role
 export APICLIobjectstype=access-roles
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2831,7 +2866,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=opsec-application
 export APICLIobjectstype=opsec-applications
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2950,7 +2985,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2965,7 +3000,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2980,7 +3015,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-icmp
 export APICLIobjectstype=services-icmp
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -2995,7 +3030,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-icmp6
 export APICLIobjectstype=services-icmp6
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3010,7 +3045,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3025,7 +3060,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3040,7 +3075,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-dce-rpc
 export APICLIobjectstype=services-dce-rpc
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3055,7 +3090,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3115,7 +3150,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3135,7 +3170,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3155,7 +3190,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-category
 export APICLIobjectstype=application-site-categories
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3175,7 +3210,7 @@ export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-group
 export APICLIobjectstype=application-site-groups
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3217,7 +3252,7 @@ export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
 export APICLIobjectstype=users
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3237,7 +3272,7 @@ export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-group
 export APICLIobjectstype=user-groups
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3257,7 +3292,7 @@ export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
 export APICLIobjectstype=user-templates
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3277,7 +3312,7 @@ export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=identity-tag
 export APICLIobjectstype=identity-tags
-export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3287,16 +3322,45 @@ CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # no more simple objects
 # -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2021-02-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 echo | tee -a -i ${logfilepath}
-echo ${APICLIdetaillvl}' CSV import - simple objects - Complete!' | tee -a -i ${logfilepath}
+echo ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - simple objects - '${scriptactiondescriptor}' Completed!' | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-23
+
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # handle complex objects
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+
+# MODIFIED 2021-02-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+echo | tee -a -i ${logfilepath}
+echo ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - complex objects - '${scriptactiondescriptor}' Starting!' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-23
+
+
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
@@ -3312,15 +3376,37 @@ echo | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 
 
+# MODIFIED 2021-02-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+echo | tee -a -i ${logfilepath}
+echo ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - complex objects - '${scriptactiondescriptor}' Completed!' | tee -a -i ${logfilepath}
+echo | tee -a -i ${logfilepath}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-23
+
+
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # No more objects
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
+
+# MODIFIED 2021-02-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 echo | tee -a -i ${logfilepath}
-echo 'Set Update Completed!' | tee -a -i ${logfilepath}
+echo ${scriptactiondescriptor}' Completed!' | tee -a -i ${logfilepath}
 echo | tee -a -i ${logfilepath}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-23
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # =================================================================================================

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT basic script setup API Scripts common action handling
+# SCRIPT Subscript for basic script setup API Scripts common action handling
 #
 # (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.06
-ScriptRevision=010
-ScriptDate=2021-02-22
+ScriptRevision=020
+ScriptDate=2021-02-23
 TemplateVersion=00.60.06
 APISubscriptsLevel=006
 APISubscriptsVersion=00.60.06
-APISubscriptsRevision=010
+APISubscriptsRevision=020
 
 #
 
@@ -33,7 +33,7 @@ APISubScriptName=basic_script_setup_API_scripts.subscript.common.${APISubscripts
 export APISubScriptFileNameRoot="X"
 export APISubScriptShortName="X"
 export APISubScriptnohupName=${APISubScriptShortName}
-export APISubScriptDescription="Description"
+export APISubScriptDescription="Subscript for basic script setup API Scripts common action handling"
 
 
 # =================================================================================================

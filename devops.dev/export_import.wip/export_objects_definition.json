@@ -1,7 +1,7 @@
 { "file_meta_info" : {
 	"fileversion" : "0.60.6",
-	"filerevision" : "010",
-	"filedate" : "2021-02-21"
+	"filerevision" : "020",
+	"filedate" : "2021-02-23"
 }, 
 "default_csv_export_elements" : [ {
 	"name" : "common",

@@ -1,0 +1,53 @@
+Version Implemented	CLI Parameter Type	Purpose/Meaning	CLI Parameter(s)	CLI Sub-Parameter(s)	Options	Default Option/Action	Environmental Parameter(s)	Description	Notes
+00.00.00.000	Standard	x	x	-	-	OFF	-	x	-
+00.00.00.000	Standard	Show Help	-? | --help	N/A	N/A	OFF	-	Show Help Information	-
+00.00.00.000	Standard	Verbose mode	-v | --verbose	N/A	N/A	OFF	VERBOSEMODE {true|false}	Show Verbose Details in Logging and Display	-
+00.00.00.000	Standard	No waiting in verbose mode	--NOWAIT	N/A	N/A	OFF	-	Avoid 'Wait for any key" operations	-
+00.00.00.000	Standard	Authenticate as root	-r | --root	N/A	N/A	OFF	-	Authenticate as root account user	Only works against the executing management host, not valide with -m parameter
+00.00.00.000	Standard	Set SmartConsole Admin User Name	-u <admin_name> | --user <admin_name> |'u=<admin_name> | --user=<admin_name>	<admin_name>	Administrator user name	N/A	-	Administrative user account user name	Not specifying this parameter when no other authentication type is used, will prompt for Administartor user name
+00.00.00.000	Standard	Set SmartConsole Admin User password	-p <password> | --password <password> |-p=<password> | --password=<password>	<password>	Administrator user password	N/A	-	Administrative user account user password	Not specifying this parameter when -u or no other authentication type is used, will prompt for Administartor user password
+00.50.00.000	Standard	Set SmartConsole Admin User API Key	--api-key <api_key_value> | --api-key=<api_key_value>	<api_key_value>	Administrator user API Key	N/A	-	Administrative user account user API Key	Administrator user account must be configured for API Key authentication!
+00.00.00.000	Standard	Set [web ssl] Port	-P <web-ssl-port> | --port <web-ssl-port> |-P=<web-ssl-port> | --port=<web-ssl-port>	<web-ssl-port>	Port 1 - 65K	host web ssl port	-	Gaia / API web ssl port used for API communication	script will figure this value out when running against the local management host
+00.00.00.000	Standard	Set Management Server IP	-m <server_IP> | --management <server_IP> |-m=<server_IP> | --management=<server_IP>	<server_IP>	IP v4 Address	OFF	-	IP Address (IP v4) of the target management host server	-
+00.00.00.000	Standard	Set Management Domain	-d <domain> | --domain <domain> |-d=<domain> | --domain=<domain>	<domain>	MDSM Domain	OFF	-	MDSM Domain to operate API activity against	-
+00.00.00.000	Standard	Set session file path	-s <session_file_filepath> |--session-file <session_file_filepath> |-s=<session_file_filepath> |--session-file=<session_file_filepath>	<session_file_filepath>	FQFP to session file	script local	-	Session file, Fully Qualified File Path, for storage of session details	This is for retaining information on a session in the event of failure that prevents log-off.  session_file_filepath = fully qualified file path (FQFP) for session file
+00.00.00.000	Standard	Set session timeout value	--session-timeout <session_time_out> |--session-timeout=<session_time_out>	<session_time_out>	600 [ 10 - 3600 ] seconds	600	-	Session Time Out value	Default = 600 seconds, allowed range of values 10 - 3600 seconds
+00.00.00.000	Standard	Set log file path	-l <log_path> | --log-path <log_path> |-l=<log_path> | --log-path=<log_path>	<log_path>	FQDP to logs folder	script local	-	Set log file path, Fully Qualified Directory Path	log_path = fully qualified [directory] folder path (FQDP) for log files
+00.00.00.000	Standard	Set output file path	-o <output_path> | --output <output_path> |-o=<output_path> | --output=<output_path>	<output_path>	FQDP to output folder	script local	-	Set output file path, Fully Qualified Directory Path	output_path = fully qualified [directory] folder path (FQDP) for output files
+00.60.05.010	Standard	Operating in nohup mode	--NOHUP	N/A	N/A	OFF	-	Operating in nohup mode	-
+00.60.05.010	Standard	nohup script as called	--NOHUP-Script <NOHUP_SCRIPT_NAME> | --NOHUP-Script=<NOHUP_SCRIPT_NAME>	<NOHUP_SCRIPT_NAME>	Script name as called in do_script_nohup	N/A	-	nohup script as called	-
+00.60.05.010	Standard	nohup date-time-group	--NOHUP-DTG <NOHUP_SCRIPT_DATE_TIME_GROUP> | --NOHUP-DTG=<NOHUP_SCRIPT_DATE_TIME_GROUP>	<NOHUP_SCRIPT_DATE_TIME_GROUP>	Date Time Group YYYY-MM-DD-HHmmZZZ	N/A	-	nohup date-time-group	-
+00.60.05.010	Standard	Type of Object Export	-t <export_type> |-t <export_type> |--type-of-export <export_type>|--type-of-export=<export_type>	<export_type>	"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name"	"standard	-	Type of Object Export to execute	Supported <export_type> values for export to CSV :     <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">
+00.60.00.000	Standard	Type of Object Export - type "standard"		-	-	-	-	Type of Object Export to execute : type "Standard"	"standard"           :  Standard Export of all supported object key values
+00.60.00.000	Standard	Type of Object Export - type "name-only"		-	-	-	-	Type of Object Export to execute : type "name-only"	"name-only"          :  Export of just the name key value for object
+00.60.00.000	Standard	Type of Object Export - type "name-and-uid"		-	-	-	-	Type of Object Export to execute : type "name-and-uid"	"name-and-uid"       :  Export of name and uid key value for object
+00.60.00.000	Standard	Type of Object Export - type "uid-only"		-	-	-	-	Type of Object Export to execute : type "uid-only"	"uid-only"           :  Export of just the uid key value of objects
+00.60.00.000	Standard	Type of Object Export - type "rename-to-new-name"		-	-	-	-	Type of Object Export to execute : type "rename-to-new-name"	"rename-to-new-name" :  Export of name key value for object rename
+00.60.00.000	Standard	Type of Object Export - Delete Action		-	-	-	-	Type of Object Export to execute for Delete operations	For an export for a delete operation via CSV, use "name-only"
+00.60.00.000	Standard	Format for export	-f <all|csv|json> | --format <all|csv|json> |-f=<all|csv|json> | --format=<all|csv|json>	<all|csv|json>	all|csv|json	all	-	Format for export	
+00.60.00.000	Standard	Details level for json	--details <all|full|standard> |--DETAILSLEVEL <all|full|standard> |--details=<all|full|standard> |--DETAILSLEVEL=<all|full|standard>	<all|full|standard>	all|full|standard	all	-	Details level for json	
+00.60.00.000	Standard	Use devops results path	--RESULTS | --DEVOPSRESULTS	-	-	OFF	-	Use devops results path	
+00.60.00.000	Standard	Set results output path	--RESULTSPATH <results_path> |--RESULTSPATH=<results_path> |--DEVOPSRESULTSPATH <results_path> |--DEVOPSRESULTSPATH=<results_path>	<results_path>	FQDP to results folder	OFF	-	Set results output path	results_path = fully qualified folder path for devops results folder
+00.30.00.000	Standard	Export System Objects	--SO | --system-objects	-	-	default mode	-	Export System Objects	-
+00.30.00.000	Standard	NO System Objects Export	--NSO | --no-system-objects	-	-	OFF	-	NO System Objects Export	-
+00.60.04.000	Standard	Ignore object where Creator is "System"	--NOSYS | --CREATORISNOTSYSTEM'	-	-	OFF	-	Ignore object where Creator is "System"	active with --NSO
+00.60.01.000	Standard	CSV export add err handler	--CSVERR | --CSVADDEXPERRHANDLE	-	-	OFF	-	CSV export add err handler	-
+00.60.01.000	Standard	Export 5 Tags for object	--5-TAGS | --CSVEXPORT05TAGS	-	-	default mode	-	Export 5 Tags for object	Used for simple objects only
+00.60.01.000	Standard	Export 10 Tags for object	--10-TAGS | --CSVEXPORT10TAGS	-	-	OFF	-	Export 10 Tags for object	Used for simple objects only
+00.60.01.000	Standard	Export NO Tags for object	--NO-TAGS | --CSVEXPORTNOTAGS	-	-	OFF	-	Export NO Tags for object	Used for simple objects only
+00.60.00.000	Standard	Export Data Domain info	--CSVEXPORTDATADOMAIN  (*)	-	-	OFF	-	Export Data Domain info	(*)  use of these will generate FOR_REFERENCE_ONLY CSV export !
+00.60.00.000	Standard	Export Data Creator info	--CSVEXPORTDATACREATOR  (*)	-	-	OFF	-	Export Data Creator info	(*)  use of these will generate FOR_REFERENCE_ONLY CSV export !
+00.60.00.000	Standard	Export Data Domain and Data Creator info	--CSVALL|--CSVEXPORTDATAALL  (*)	-	-	OFF	-	Export Data Domain and Data Creator info	(*)  use of these will generate FOR_REFERENCE_ONLY CSV export !
+00.60.05.000	Standard	Keep CSV WIP folders	--KEEPCSVWIP	-	-	OFF	-	Keep CSV WIP folders	-
+00.30.00.000	Standard	Remove CSV WIP folders	--CLEANUPCSVWIP	-	-	default mode	-	Remove CSV WIP folders	!! Default Action
+00.30.00.000	Standard	No domain name in folders	--NODOMAINFOLDERS	-	-	OFF	-	No domain name in folders	-
+00.00.00.000	Standard	Set export file path	-x <export_path> | --export-path <export_path> |-x=<export_path> | --export-path=<export_path>	<export_path>	FQDP to export folder	script local ./dump	-	Set export file path, Fully Qualified Directory Path	export_path = fully qualified folder path for export files
+00.00.00.000	Standard	Set import file path	-i <import_path> | --import-path <import_path> |-i=<import_path> | --import-path=<import_path>	<import_path>	FQDP to import control CSVs folder	script local ./import.csv	-	Set import file path, Fully Qualified Directory Path to import control CSVs	import_path = fully qualified folder path for import files
+00.00.00.000	Standard	Set delete file path	-k <delete_path> | --delete-path <delete_path> |-k=<delete_path> | --delete-path=<delete_path>	<delete_path>	FQDP to delete control CSVs folder	script local ./delete.csv	-	Set delete file path, Fully Qualified Directory Path to delete control CSVs	delete_path = fully qualified folder path for delete files
+00.10.00.000	Standard	Set csv file path	-c <csv_path> | --csv <csv_path |-c=<csv_path> | --csv=<csv_path>	<csv_path>	FQDP to csv folder	script local	-	Set csv file path, Fully Qualified Directory Path	csv_path = fully qualified file path for csv file
+
+
+00.00.00.000	Standard	x	x	-	-	OFF	-	x	-
+00.00.00.000	Standard	x	x	-	-	OFF	-	x	-
+
+
