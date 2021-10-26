@@ -1,0 +1,27 @@
+{ "file_meta_info" : {
+	"filetype" : "environmentment_info.api_scripts",
+	"fileversion" : "07.00.00",
+	"filerevision" : "000",
+	"filedate" : "2021-10-25",
+	"fileinformationlevel" : "000",
+	"MinCMDTemplateVersion" : "07.00.00"
+	}, 
+"solution_info" : {
+	"description" : "\"Environment Info for User Costomization\"",
+	"example" : "example_value"
+	},
+"script_ui_config" : {
+	"dtzs" : "date -u +%Y%m%d-%T-%Z",
+	"dtzsep" : " | "
+	},
+"example_CMD_script_details" : { 
+	"ScriptType" : {
+		"Language" : "Windows_CMD",
+		"Extension" : "CMD"
+		},
+	"ScriptDate" : "2021-10-25",
+	"ScriptVersion" : "06.07.01",
+	"ScriptRevision" : "000",
+	"TemplateVersion" : "06.07.01"
+	}
+}

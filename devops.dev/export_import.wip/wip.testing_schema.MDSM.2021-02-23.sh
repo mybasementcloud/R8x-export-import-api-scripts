@@ -1,7 +1,5 @@
 #!/bin/bash
 #
-# Testing schema for MDSM MDS with domain "EXAMPLE-DEMO"
-#
 # (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
@@ -12,6 +10,17 @@
 # APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
+# Testing schema for MDSM MDS with domain "EXAMPLE-DEMO"
+#
+#
+ScriptVersion=00.60.08
+ScriptRevision=030
+ScriptDate=2021-10-25
+TemplateVersion=00.60.08
+APISubscriptsLevel=006
+APISubscriptsVersion=00.60.08
+APISubscriptsRevision=030
+
 #
 
 #

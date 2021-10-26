@@ -8,12 +8,30 @@ This is a work in progress and may update irregularly.
 
 The author is currently utilizing R81 with API version 1.7 and these limitations and caveats are based on current experience on this level of implementation for the R8X API.
 
-Currently, R81 JHF 11 Ongoing Take is implemented for testing
+Currently, R81.10 JHF 9 GA Take is implemented for testing
 
 In some cases, 
 - the indicated limitations may be bugs or concept errors in the R8X API
 - the limitation may exist because of the complexity of the object
 - the limitation may exist due to security implementation restricting access to data needed at export, thus not having that data at import (e.g. passwords or shared secrets)
+
+## LIMITATIONS and CAVEATS GENERAL
+
+Testing of all scenarios is not plausible, so issues and problems should be reported for review and potential future fix.
+
+This is a best effort development operation and benefitting of financial incentive, so missing features or capabilities might be addressed in the future, but there are zero guarantees.
+
+## LIMITATIONS and CAVEATS by Management platform (SMS or MDMS)
+
+SMS (Security Management Server) currenlty operates as expected and the ability to work with blocks of up-to 500 objects is possible.  With R81.10 JHF 9 GA Take, no issues with performance were identified explicitly.
+
+MDSM (Multi-Domain Security Management) currenlty operates with significant impact to performance due to intentional management API throttling and CPM heap size limitation implemented to protect the MDSM MDS (Multi-Domain Server [host]) and the ability to work with blocks of up-to 200 objects is possible, except for certain objects where this block limit is set to 100.  With R81.10 JHF 9 GA Take, great issues with performance are identified and either domain specific export operations should be executed or plenty of time allocated.  This is very evident in operations with "application-site" objects, which on 2021-10 number about 9000+ objects, and can only be handled in slices of 100 objects to avoid mgmt_cli API time-out condition, which generates garbage data.
+
+Research on improving performance is ongoing and efforts to address the MDSM performance impact through Secure Knowledge based guidance is in research.
+
+## LIMITATIONS and CAVEATS by Smart-1 Cloud (MaaS and EPMaaS)
+
+Smart-1 Cloud (MaaS) is under development pending access capabilities and available time.  Some CLI plumbing (like --context) are provided, but are not tested adequately.
 
 ## LIMITATIONS and CAVEATS by object type
 

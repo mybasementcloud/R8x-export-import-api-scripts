@@ -1,7 +1,5 @@
 #!/bin/bash
 #
-# SCRIPTS 500 PLUS OBJECTS dump to json handler
-#
 # (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
@@ -12,14 +10,16 @@
 # APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
+# SCRIPTS 500 PLUS OBJECTS dump to json handler
 #
-ScriptVersion=00.60.06
-ScriptRevision=020
-ScriptDate=2021-02-23
-TemplateVersion=00.60.06
+#
+ScriptVersion=00.60.08
+ScriptRevision=030
+ScriptDate=2021-10-25
+TemplateVersion=00.60.08
 APISubscriptsLevel=006
-APISubscriptsVersion=00.60.06
-APISubscriptsRevision=020
+APISubscriptsVersion=00.60.08
+APISubscriptsRevision=030
 
 #
 
@@ -41,24 +41,86 @@ export APIScriptShortName=500plus_objects_1_json
 export APIScriptnohupName=${APIScriptShortName}
 export APIScriptDescription="500 PLUS OBJECTS dump to json handler"
 
+# =================================================================================================
+# =================================================================================================
+# START script
+# =================================================================================================
+# =================================================================================================
+
+
+# =================================================================================================
+# -------------------------------------------------------------------------------------------------
+# START Initial Script Setup
+# -------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------
-# Logging variables
+# =================================================================================================
+# START:  Setup Root Parameters
+# =================================================================================================
+
+
+export DATE=`date +%Y-%m-%d-%H%M%Z`
+export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
+export dtgs_script_start=`date -u +%F-%T-%Z`
+
+export customerpathroot=/var/log/__customer
+export scriptspathroot=/var/log/__customer/upgrade_export/scripts
+
+export rootscriptconfigfile=__root_script_config.sh
+
+export logfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.log
+
+export dtzs='date -u +%Y%m%d-%T-%Z'
+export dtzsep=' | '
+
+
+# -------------------------------------------------------------------------------------------------
+# UI Display Prefix Parameters, check if user has set environment preferences
 # -------------------------------------------------------------------------------------------------
 
 
-# Logging to nirvana
-logfilepath=/dev/null
+export dot_enviroinfo_file='.environment_info.json'
+export dot_enviroinfo_path=${customerpathroot}
+export dot_enviroinfo_fqpn=
+if [ -r "./${dot_enviroinfo}" ] ; then
+    export dot_enviroinfo_path='.'
+    export dot_enviroinfo_fqpn=${dot_enviroinfo_path}/${dot_enviroinfo_file}
+elif [ -r "../${dot_enviroinfo}" ] ; then
+    export dot_enviroinfo_path='..'
+    export dot_enviroinfo_fqpn=${dot_enviroinfo_path}/${dot_enviroinfo_file}
+elif [ -r "${scriptspathroot}/${dot_enviroinfo}" ] ; then
+    export dot_enviroinfo_path=${scriptspathroot}
+    export dot_enviroinfo_fqpn=${dot_enviroinfo_path}/${dot_enviroinfo_file}
+elif [ -r "${customerpathroot}/${dot_enviroinfo}" ] ; then
+    export dot_enviroinfo_path=${customerpathroot}
+    export dot_enviroinfo_fqpn=${dot_enviroinfo_path}/${dot_enviroinfo_file}
+else
+    export dot_enviroinfo_path='.'
+    export dot_enviroinfo_fqpn=${dot_enviroinfo_path}/${dot_enviroinfo_file}
+fi
+
+if [ -r ${dot_enviroinfo_fqpn} ] ; then
+    getdtzs=`cat ${dot_enviroinfo_fqpn} | jq -r ."script_ui_config"."dtzs"`
+    readdtzs=${getdtzs}
+    if [ x"${readdtzs}" != x"" ] ; then
+        export dtzs=${readdtzs}
+    fi
+    getdtzsep=`cat ${dot_enviroinfo_fqpn} | jq -r ."script_ui_config"."dtzsep"`
+    readdtzsep=${getdtzsep}
+    if [ x"${readdtzsep}" != x"" ] ; then
+        export dtzsep=${readdtzsep}
+    fi
+fi
 
 
 # -------------------------------------------------------------------------------------------------
 # Announce what we are starting here...
 # -------------------------------------------------------------------------------------------------
 
-echo | tee -a -i ${logfilepath}
-echo 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision} | tee -a -i ${logfilepath}
-echo 'Script original call name :  '$0 | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Script original call name :  '$0 | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -299,10 +361,10 @@ export OUTPUTFOLDER=./dump/${DATEDTGS}.${OBJECTSTYPE}'_1-json'
 export OUTPUTFILEPREFIX=test.${OBJECTSTYPE}.${DETAILSSET}
 
 if [ ! -r ${OUTPUTFOLDER} ] ; then
-    mkdir -p -v ${OUTPUTFOLDER} | tee -a -i ${logfilepath}
-    chmod 775 ${OUTPUTFOLDER} | tee -a -i ${logfilepath}
+    mkdir -p -v ${OUTPUTFOLDER} >> ${logfilepath} 2>> ${logfilepath}
+    chmod 775 ${OUTPUTFOLDER} >> ${logfilepath} 2>> ${logfilepath}
 else
-    chmod 775 ${OUTPUTFOLDER} | tee -a -i ${logfilepath}
+    chmod 775 ${OUTPUTFOLDER} >> ${logfilepath} 2>> ${logfilepath}
 fi
 
 
@@ -330,18 +392,18 @@ done
 
 echo 
 
-export OUTPUTFILEUGLY=${OUTPUTFOLDER}/${OUTPUTFILEPREFIX}.ugly.json
-export SEARCHFILEUGLY=${OUTPUTFILEPREFIX}.*.json
+export Slurpuglyfilefqpn=${OUTPUTFOLDER}/${OUTPUTFILEPREFIX}.ugly.json
+export Slurpstarfilefqpn=${OUTPUTFILEPREFIX}.*.json
 
-ls -alh ${OUTPUTFOLDER}/${SEARCHFILEUGLY}
+ls -alh ${OUTPUTFOLDER}/${Slurpstarfilefqpn}
 
 echo 
 
-jq -s '.' ${SEARCHFILEUGLY} > ${OUTPUTFILEUGLY}
+jq -s '.' ${Slurpstarfilefqpn} > ${Slurpuglyfilefqpn}
 #rm -rf test*.json
 
-OUTPUT_TOTAL=`cat ${OUTPUTFILEUGLY} | jq '.[].uid' | sort -u | wc -l`
-echo "Data output to total.ugly.json with ${OUTPUT_TOTAL} elements"
+SLURP_TOTAL=`cat ${Slurpuglyfilefqpn} | jq '.[].uid' | sort -u | wc -l`
+echo "Data output to total.ugly.json with ${SLURP_TOTAL} elements"
 echo "Total elements from first query is ${TOTAL} elements"
 
 # Make it pretty again
@@ -352,10 +414,10 @@ echo
 
 export OUTPUTFILETOTALPREFIX=total.${OBJECTSTYPE}.${DETAILSSET}
 
-export OUTPUTFILEPRETTY=${OUTPUTFOLDER}/${OUTPUTFILETOTALPREFIX}.pretty.json
+export Slurpprettyfilefqpn=${OUTPUTFOLDER}/${OUTPUTFILETOTALPREFIX}.pretty.json
 
-echo '{ ' > ${OUTPUTFILEPRETTY}
-echo -n '  "objects": ' >> ${OUTPUTFILEPRETTY}
+echo '{ ' > ${Slurpprettyfilefqpn}
+echo -n '  "objects": ' >> ${Slurpprettyfilefqpn}
 
 # need a way to read lines and dump them out
 
@@ -367,29 +429,29 @@ while read -r line; do
         echo -n 'Start:.'
     else
         # Lines 1+ are the data
-        echo >> ${OUTPUTFILEPRETTY}
+        echo >> ${Slurpprettyfilefqpn}
         #echo -n '.'
     fi
     
     #Write the line, but not the carriage return
-    echo -n "${line}" >> ${OUTPUTFILEPRETTY}
+    echo -n "${line}" >> ${Slurpprettyfilefqpn}
     let COUNTER=COUNTER+1
-done < ${OUTPUTFILEUGLY}
+done < ${Slurpuglyfilefqpn}
 
 echo
 
 #Write the last comma after the original json file that is not pretty
-echo ',' >> ${OUTPUTFILEPRETTY}
-echo '  "from": 0,' >> ${OUTPUTFILEPRETTY}
-echo '  "to": '${OUTPUT_TOTAL}',' >> ${OUTPUTFILEPRETTY}
-echo '  "total": '${OUTPUT_TOTAL} >> ${OUTPUTFILEPRETTY}
-echo '}' >> ${OUTPUTFILEPRETTY}
+echo ',' >> ${Slurpprettyfilefqpn}
+echo '  "from": 0,' >> ${Slurpprettyfilefqpn}
+echo '  "to": '${SLURP_TOTAL}',' >> ${Slurpprettyfilefqpn}
+echo '  "total": '${SLURP_TOTAL} >> ${Slurpprettyfilefqpn}
+echo '}' >> ${Slurpprettyfilefqpn}
 
 echo 
 #head -n 10 total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json; echo '...'; tail -n 10 total.${OBJECTSTYPE}.${DETAILSSET}.pretty.json
-head -n 10 ${OUTPUTFILEPRETTY}
+head -n 10 ${Slurpprettyfilefqpn}
 echo '...'
-tail -n 10 ${OUTPUTFILEPRETTY}
+tail -n 10 ${Slurpprettyfilefqpn}
 echo 
 
 echo
@@ -398,7 +460,7 @@ echo
 
 export OUTPUTFILEREALLYPRETTY=${OUTPUTFOLDER}/${OUTPUTFILETOTALPREFIX}.reallypretty.json
 
-jq -s '.[]' ${OUTPUTFILEPRETTY} > ${OUTPUTFILEREALLYPRETTY}
+jq -s '.[]' ${Slurpprettyfilefqpn} > ${OUTPUTFILEREALLYPRETTY}
 
 echo 
 head -n 10 ${OUTPUTFILEREALLYPRETTY}
@@ -406,19 +468,19 @@ echo '...'
 tail -n 10 ${OUTPUTFILEREALLYPRETTY}
 echo 
 
-export OUTPUTFILEFINAL=${OUTPUTFOLDER}/${OUTPUTFILETOTALPREFIX}.json
+export Finaljsonfileexport=${OUTPUTFOLDER}/${OUTPUTFILETOTALPREFIX}.json
 
-cp ${OUTPUTFILEREALLYPRETTY} ${OUTPUTFILEFINAL}
+cp ${OUTPUTFILEREALLYPRETTY} ${Finaljsonfileexport}
 
 echo 
-head -n 10 ${OUTPUTFILEFINAL}
+head -n 10 ${Finaljsonfileexport}
 echo '...'
-tail -n 10 ${OUTPUTFILEFINAL}
+tail -n 10 ${Finaljsonfileexport}
 echo 
 
 ls -alh ${OUTPUTFOLDER}/
 
 echo
-echo 'Final output file :  '${OUTPUTFILEFINAL}
+echo 'Final output file :  '${Finaljsonfileexport}
 echo
 

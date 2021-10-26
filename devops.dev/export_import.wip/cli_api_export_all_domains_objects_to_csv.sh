@@ -1,7 +1,5 @@
 #!/bin/bash
 #
-# SCRIPT Export objects from all domains, object export to CSV file for API CLI Operations
-#
 # (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
@@ -12,14 +10,16 @@
 # APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
+# SCRIPT Export objects from all domains, object export to CSV file for API CLI Operations
 #
-ScriptVersion=00.60.06
-ScriptRevision=020
-ScriptDate=2021-02-23
-TemplateVersion=00.60.06
+#
+ScriptVersion=00.60.08
+ScriptRevision=030
+ScriptDate=2021-10-25
+TemplateVersion=00.60.08
 APISubscriptsLevel=006
-APISubscriptsVersion=00.60.06
-APISubscriptsRevision=020
+APISubscriptsVersion=00.60.08
+APISubscriptsRevision=030
 
 #
 
@@ -61,22 +61,66 @@ export APIScriptDescription="Export objects from all domains, object export to C
 
 export DATE=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
+export dtgs_script_start=`date -u +%F-%T-%Z`
 
+export customerpathroot=/var/log/__customer
 export scriptspathroot=/var/log/__customer/upgrade_export/scripts
 
 export rootscriptconfigfile=__root_script_config.sh
 
 export logfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.log
 
+export dtzs='date -u +%Y%m%d-%T-%Z'
+export dtzsep=' | '
+
+
+# -------------------------------------------------------------------------------------------------
+# UI Display Prefix Parameters, check if user has set environment preferences
+# -------------------------------------------------------------------------------------------------
+
+
+export dot_enviroinfo_file='.environment_info.json'
+export dot_enviroinfo_path=${customerpathroot}
+export dot_enviroinfo_fqpn=
+if [ -r "./${dot_enviroinfo}" ] ; then
+    export dot_enviroinfo_path='.'
+    export dot_enviroinfo_fqpn=${dot_enviroinfo_path}/${dot_enviroinfo_file}
+elif [ -r "../${dot_enviroinfo}" ] ; then
+    export dot_enviroinfo_path='..'
+    export dot_enviroinfo_fqpn=${dot_enviroinfo_path}/${dot_enviroinfo_file}
+elif [ -r "${scriptspathroot}/${dot_enviroinfo}" ] ; then
+    export dot_enviroinfo_path=${scriptspathroot}
+    export dot_enviroinfo_fqpn=${dot_enviroinfo_path}/${dot_enviroinfo_file}
+elif [ -r "${customerpathroot}/${dot_enviroinfo}" ] ; then
+    export dot_enviroinfo_path=${customerpathroot}
+    export dot_enviroinfo_fqpn=${dot_enviroinfo_path}/${dot_enviroinfo_file}
+else
+    export dot_enviroinfo_path='.'
+    export dot_enviroinfo_fqpn=${dot_enviroinfo_path}/${dot_enviroinfo_file}
+fi
+
+if [ -r ${dot_enviroinfo_fqpn} ] ; then
+    getdtzs=`cat ${dot_enviroinfo_fqpn} | jq -r ."script_ui_config"."dtzs"`
+    readdtzs=${getdtzs}
+    if [ x"${readdtzs}" != x"" ] ; then
+        export dtzs=${readdtzs}
+    fi
+    getdtzsep=`cat ${dot_enviroinfo_fqpn} | jq -r ."script_ui_config"."dtzsep"`
+    readdtzsep=${getdtzsep}
+    if [ x"${readdtzsep}" != x"" ] ; then
+        export dtzsep=${readdtzsep}
+    fi
+fi
+
 
 # -------------------------------------------------------------------------------------------------
 # Announce what we are starting here...
 # -------------------------------------------------------------------------------------------------
 
-echo | tee -a -i ${logfilepath}
-echo 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision} | tee -a -i ${logfilepath}
-echo 'Script original call name :  '$0 | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Script original call name :  '$0 | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -162,6 +206,21 @@ export OpsModeAllDomains=true
 # 2018-05-02 - script type - export objects (all)
 
 export script_use_publish="false"
+#
+# Provide a primary operation mission for the script
+#
+#  other       : catch-all for non-specific scripts
+#  export      : script exports data via Management API
+#  import      : script imports data via Management API
+#  set-update  : script sets or updates data via Management API
+#  rename      : script renames data via Management API
+#  delete      : script deletes data via Management API
+#  process     : script processes other operation outputs
+#
+# script_main_operation is used to identify elements needed in help and other action control
+#export script_main_operation='other|export|import|set-update|rename|delete|process'
+
+export script_main_operation='export'
 
 export script_use_export="true"
 export script_use_import="false"
@@ -176,6 +235,15 @@ export script_dump_full="false"
 export script_uses_wip="true"
 export script_uses_wip_json="false"
 
+export script_slurp_json="true"
+export script_slurp_json_full="true"
+export script_slurp_json_standard="true"
+
+export script_save_json_repo=true
+export script_use_json_repo=true
+export script_json_repo_detailslevel="full"
+export script_json_repo_folder="__json_objects_repository"
+
 # ADDED 2018-10-27 -
 export UseR8XAPI=true
 export UseJSONJQ=true
@@ -183,16 +251,18 @@ export UseJSONJQ=true
 # ADDED 2020-02-07 -
 export UseJSONJQ16=true
 
-# MODIFIED 2019-01-17 -
-# R80       version 1.0
-# R80.10    version 1.1
-# R80.20.M1 version 1.2
-# R80.20 GA version 1.3
-# R80.20.M2 version 1.4
-# R80.30    version 1.5
-# R80.40    version 1.6
+# MODIFIED 2021-10-19 -
+# R80           version 1.0
+# R80.10        version 1.1
+# R80.20.M1     version 1.2
+# R80.20 GA     version 1.3
+# R80.20.M2     version 1.4
+# R80.30        version 1.5
+# R80.40        version 1.6
 # R80.40 JHF 78 version 1.6.1
-# R81       version 1.7
+# R81           version 1.7
+# R81 JHF 34    version 1.7.1
+# R81.10        version 1.8
 #
 # For common scripts minimum API version at 1.0 should suffice, otherwise get explicit
 #
@@ -229,15 +299,15 @@ elif [ -r "./${api_subscripts_default_folder}/${api_subscripts_checkfile}" ]; th
     export api_subscripts_root=.
 else
     # OK, didn't find the api subscripts where we expect to find them, so this is bad!
-    echo | tee -a -i ${logfilepath}
-    echo 'Missing critical api subscript files that are expected in the one of the following locations:' | tee -a -i ${logfilepath}
-    echo ' PREFERRED Location :  '"${api_subscripts_default_root}/${api_subscripts_default_folder}/${api_subscripts_checkfile}" | tee -a -i ${logfilepath}
-    echo ' ALTERNATE Location :  '"./${api_subscripts_default_folder}/${api_subscripts_checkfile}" | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo 'Unable to continue without these api subscript files, so exiting!!!' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo 'Log File location : '"${logfilepath}" | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Missing critical api subscript files that are expected in the one of the following locations:' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} ' PREFERRED Location :  '"${api_subscripts_default_root}/${api_subscripts_default_folder}/${api_subscripts_checkfile}" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} ' ALTERNATE Location :  '"./${api_subscripts_default_folder}/${api_subscripts_checkfile}" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Unable to continue without these api subscript files, so exiting!!!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Log File location : '"${logfilepath}" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     exit 1
 fi
 
@@ -329,12 +399,17 @@ export mgmt_cli_API_operations_handler_file=mgmt_cli_api_operations.subscript.co
 # Set parameters for Main operations
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-20 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 export FileExtJSON=json
 export FileExtCSV=csv
 export FileExtTXT=txt
+
+export JSONRepofilepre=repo_
+
+export JSONRepofileext=${FileExtJSON}
+export JSONRepofilesuffix='LATEST.'${JSONRepofileext}
 
 export APICLIfileexportpre=dump_
 
@@ -349,7 +424,9 @@ export APICLIJSONfileexportsuffix='.'${APICLIJSONfileexportext}
 
 export MinAPIObjectLimit=500
 export MaxAPIObjectLimit=500
-export WorkAPIObjectLimit=${MaxAPIObjectLimit}
+export RecommendedAPIObjectLimitMDSM=200
+export DefaultAPIObjectLimit=${MaxAPIObjectLimit}
+export DefaultAPIObjectLimitMDSM=${RecommendedAPIObjectLimitMDSM}
 
 # Configure basic information for formation of file path for action handler scripts
 #
@@ -369,7 +446,7 @@ export APIScriptCSVActionFilename=${APIScriptActionFilePrefix}.'export_objects_t
 #export APIScriptCSVActionFilename=${APIScriptActionFilePrefix}'_actions_to_csv_'${APIScriptVersion}.sh
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-04
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-20
 
 # -------------------------------------------------------------------------------------------------
 
@@ -503,7 +580,7 @@ ForceShowTempLogFile () {
 # GetScriptSourceFolder - Get the actual source folder for the running script
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-02-09 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 GetScriptSourceFolder () {
@@ -511,40 +588,40 @@ GetScriptSourceFolder () {
     # repeated procedure description
     #
     
-    echo >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     
     SOURCE="${BASH_SOURCE[0]}"
     while [ -h "${SOURCE}" ]; do # resolve ${SOURCE} until the file is no longer a symlink
         TARGET="$(readlink "${SOURCE}")"
         if [[ ${TARGET} == /* ]]; then
-            echo "SOURCE '${SOURCE}' is an absolute symlink to '${TARGET}'" >> ${logfilepath}
+            echo `${dtzs}`${dtzsep} "SOURCE '${SOURCE}' is an absolute symlink to '${TARGET}'" >> ${logfilepath}
             SOURCE="${TARGET}"
         else
             DIR="$( dirname "${SOURCE}" )"
-            echo "SOURCE '${SOURCE}' is a relative symlink to '${TARGET}' (relative to '${DIR}')" >> ${logfilepath}
+            echo `${dtzs}`${dtzsep} "SOURCE '${SOURCE}' is a relative symlink to '${TARGET}' (relative to '${DIR}')" >> ${logfilepath}
             SOURCE="${DIR}/${TARGET}" # if ${SOURCE} was a relative symlink, we need to resolve it relative to the path where the symlink file was located
         fi
     done
     
-    echo "SOURCE is '${SOURCE}'" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} "SOURCE is '${SOURCE}'" >> ${logfilepath}
     
     RDIR="$( dirname "${SOURCE}" )"
     DIR="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
     if [ "${DIR}" != "${RDIR}" ]; then
-        echo "DIR '${RDIR}' resolves to '${DIR}'" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "DIR '${RDIR}' resolves to '${DIR}'" >> ${logfilepath}
     fi
-    echo "DIR is '${DIR}'" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} "DIR is '${DIR}'" >> ${logfilepath}
     
     export ScriptSourceFolder=${DIR}
-    echo "ScriptSourceFolder is '${ScriptSourceFolder}'" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} "ScriptSourceFolder is '${ScriptSourceFolder}'" >> ${logfilepath}
     
-    echo >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-02-09
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
 
 
 # REMOVED 2020-11-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -593,7 +670,7 @@ GetScriptSourceFolder
 # BasicScriptSetupAPIScripts - Basic Script Setup for API Scripts Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-11-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 BasicScriptSetupAPIScripts () {
@@ -602,53 +679,53 @@ BasicScriptSetupAPIScripts () {
     #
     
     if ${APISCRIPTVERBOSE} ; then
-        echo | tee -a -i ${logfilepath}
-        echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo "Calling external Basic Script Setup for API Scripts Handler Script" | tee -a -i ${logfilepath}
-        echo " - External Script : "${basic_script_setup_API_handler} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Calling external Basic Script Setup for API Scripts Handler Script" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} " - External Script : "${basic_script_setup_API_handler} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     else
-        echo >> ${logfilepath}
-        echo '--------------------------------------------------------------------------' >> ${logfilepath}
-        echo >> ${logfilepath}
-        echo "Calling Basic Script Setup for API Scripts Handler Script" >> ${logfilepath}
-        echo " - External Script : "${basic_script_setup_API_handler} >> ${logfilepath}
-        echo >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Calling Basic Script Setup for API Scripts Handler Script" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} " - External Script : "${basic_script_setup_API_handler} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
     fi
     
     . ${basic_script_setup_API_handler} "$@"
     
     if ${APISCRIPTVERBOSE} ; then
-        echo | tee -a -i ${logfilepath}
-        echo "Returned from external Basic Script Setup for API Scripts Handler Script" | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Returned from external Basic Script Setup for API Scripts Handler Script" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
         if ! ${NOWAIT} ; then
             read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
             echo
         fi
         
-        echo | tee -a -i ${logfilepath}
-        echo "Continueing local execution" | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Continueing local execution" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     else
-        echo >> ${logfilepath}
-        echo "Returned from external Basic Script Setup for API Scripts Handler Script" >> ${logfilepath}
-        echo >> ${logfilepath}
-        echo "Continueing local execution" >> ${logfilepath}
-        echo >> ${logfilepath}
-        echo '--------------------------------------------------------------------------' >> ${logfilepath}
-        echo >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Returned from external Basic Script Setup for API Scripts Handler Script" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Continueing local execution" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
     fi
     
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-16
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -657,7 +734,7 @@ BasicScriptSetupAPIScripts () {
 # Call Basic Script Setup for API Scripts Handler action script
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-11-16 -
+# MODIFIED 2021-10-21 -
 
 export configured_handler_root=${basic_script_setup_API_handler_root}
 export actual_handler_root=${configured_handler_root}
@@ -683,22 +760,22 @@ export basic_script_setup_API_handler=${basic_script_setup_API_handler_path}/${b
 #
 if [ ! -r ${basic_script_setup_API_handler} ] ; then
     # no file found, that is a problem
-    echo | tee -a -i ${logfilepath}
-    echo 'Basic script setup API Scripts handler script file missing' | tee -a -i ${logfilepath}
-    echo '  File not found : '${basic_script_setup_API_handler} | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo 'Other parameter elements : ' | tee -a -i ${logfilepath}
-    echo '  Configured Root path    : '${configured_handler_root} | tee -a -i ${logfilepath}
-    echo '  Actual Script Root path : '${actual_handler_root} | tee -a -i ${logfilepath}
-    echo '  Root of folder path : '${basic_script_setup_API_handler_root} | tee -a -i ${logfilepath}
-    echo '  Folder in Root path : '${basic_script_setup_API_handler_folder} | tee -a -i ${logfilepath}
-    echo '  Folder Root path    : '${basic_script_setup_API_handler_path} | tee -a -i ${logfilepath}
-    echo '  Script Filename     : '${basic_script_setup_API_handler_file} | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Basic script setup API Scripts handler script file missing' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  File not found : '${basic_script_setup_API_handler} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Other parameter elements : ' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Configured Root path    : '${configured_handler_root} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Actual Script Root path : '${actual_handler_root} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Root of folder path : '${basic_script_setup_API_handler_root} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Folder in Root path : '${basic_script_setup_API_handler_folder} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Folder Root path    : '${basic_script_setup_API_handler_path} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Script Filename     : '${basic_script_setup_API_handler_file} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     exit 251
 fi
@@ -729,7 +806,7 @@ BasicScriptSetupAPIScripts "$@"
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-02-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -746,6 +823,7 @@ BasicScriptSetupAPIScripts "$@"
 # -u <admin_name> | --user <admin_name> | -u=<admin_name> | --user=<admin_name>
 # -p <password> | --password <password> | -p=<password> | --password=<password>
 # --api-key "<api_key_value>" | --api-key="<api_key_value>" 
+# --context <web_api|gaia_api|{MaaSGUID}/web_api> | --context=<web_api|gaia_api|{MaaSGUID}/web_api> 
 # -m <server_IP> | --management <server_IP> | -m=<server_IP> | --management=<server_IP>
 # -d <domain> | --domain <domain> | -d=<domain> | --domain=<domain>
 # -s <session_file_filepath> | --session-file <session_file_filepath> | -s=<session_file_filepath> | --session-file=<session_file_filepath>
@@ -778,6 +856,9 @@ export CLIparm_password=
 # ADDED 2020-08-19 -
 export CLIparm_api_key=
 export CLIparm_use_api_key=false
+# ADDED 2021-10-19 -
+export CLIparm_api_context=
+export CLIparm_use_api_context=false
 
 export CLIparm_domain=
 export CLIparm_sessionidfile=
@@ -817,7 +898,7 @@ export CLIparm_NOHUPDTG=
 export CLIparm_NOHUPPATH=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-06
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-19
 # MODIFIED 2021-02-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
@@ -839,6 +920,13 @@ export CLIparm_NOHUPPATH=
 #
 # --DEVOPSRESULTS | --RESULTS
 # --DEVOPSRESULTSPATH <results_path> | --RESULTSPATH <results_path> | --DEVOPSRESULTSPATH=<results_path> | --RESULTSPATH=<results_path> 
+#
+# --JSONREPO
+# --NOJSONREPO
+# --SAVEJSONREPO
+# --NOSAVEJSONREPO
+# --FORCEJSONREPOREBUILD
+# --JSONREPOPATH <json_repository_path> | --JSONREPOPATH=<json_repository_path> 
 #
 # --NSO | --no-system-objects
 # --SO | --system-objects
@@ -888,12 +976,23 @@ export CLIparm_detailslevel=all
 export CLIparm_detailslevelall=true
 export CLIparm_detailslevelfull=true
 export CLIparm_detailslevelstandard=true
+
 # ADDED 2020-11-23 -
 # Determine utilization of devops.results folder in parent folder
 
 export UseDevOpsResults=false
 export CLIparm_UseDevOpsResults=${UseDevOpsResults}
 export CLIparm_resultspath=
+
+# ADDED 2021-10-19 -
+# Determine utilization of json repository folder in devops.results subfolder or defined folder
+
+export UseJSONRepo=${script_use_json_repo}
+export SaveJSONRepo=${script_save_json_repo}
+export CLIparm_UseJSONRepo=${UseJSONRepo}
+export CLIparm_SaveJSONRepo=${SaveJSONRepo}
+export CLIparm_ForceJSONRepoRebuild=false
+export CLIparm_jsonrepopath=
 
 # MODIFIED 2018-06-24 -
 #export CLIparm_NoSystemObjects=true
@@ -1255,7 +1354,7 @@ dumpcliparmparselocalresults () {
 # dumprawcliremains
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-09-30 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 dumprawcliremains () {
@@ -1263,41 +1362,41 @@ dumprawcliremains () {
     if ${APISCRIPTVERBOSE} ; then
         # Verbose mode ON
         
-        echo | tee -a -i ${logfilepath}
-        echo "Command line parameters remains : " | tee -a -i ${logfilepath}
-        echo 'Number parms :  '"$#" | tee -a -i ${logfilepath}
-        echo "remains raw : \> $@ \<" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Command line parameters remains : " | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Number parms :  '"$#" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "remains raw : \> $@ \<" | tee -a -i ${logfilepath}
         
         parmnum=0
         for k ; do
-            echo -e "${parmnum} \t ${k}" | tee -a -i ${logfilepath}
+            echo -e `${dtzs}`${dtzsep}"${parmnum} \t ${k}" | tee -a -i ${logfilepath}
             parmnum=`expr ${parmnum} + 1`
         done
         
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
     else
         # Verbose mode OFF
         
-        echo >> ${logfilepath}
-        echo "Command line parameters remains : " >> ${logfilepath}
-        echo 'Number parms :  '"$#" >> ${logfilepath}
-        echo "remains raw : \> $@ \<" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Command line parameters remains : " >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Number parms :  '"$#" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "remains raw : \> $@ \<" >> ${logfilepath}
         
         parmnum=0
         for k ; do
-            echo -e "${parmnum} \t ${k}" >> ${logfilepath}
+            echo -e `${dtzs}`${dtzsep}"${parmnum} \t ${k}" >> ${logfilepath}
             parmnum=`expr ${parmnum} + 1`
         done
         
-        echo >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
         
     fi
 
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-30
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-21
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -1350,7 +1449,7 @@ doshowlocalhelp () {
 # CommandLineParameterHandler - Command Line Parameter Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CommandLineParameterHandler () {
@@ -1359,46 +1458,46 @@ CommandLineParameterHandler () {
     #
     
     if ${APISCRIPTVERBOSE} ; then
-        echo | tee -a -i ${logfilepath}
-        echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo "Calling external Command Line Paramenter Handling Script" | tee -a -i ${logfilepath}
-        echo " - External Script : "${cli_api_cmdlineparm_handler} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Calling external Command Line Paramenter Handling Script" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} " - External Script : "${cli_api_cmdlineparm_handler} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     else
-        echo >> ${logfilepath}
-        echo '--------------------------------------------------------------------------' >> ${logfilepath}
-        echo >> ${logfilepath}
-        echo "Calling external Command Line Paramenter Handling Script" >> ${logfilepath}
-        echo " - External Script : "${cli_api_cmdlineparm_handler} >> ${logfilepath}
-        echo >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Calling external Command Line Paramenter Handling Script" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} " - External Script : "${cli_api_cmdlineparm_handler} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
     fi
     
     . ${cli_api_cmdlineparm_handler} "$@"
     
     if ${APISCRIPTVERBOSE} ; then
-        echo | tee -a -i ${logfilepath}
-        echo "Returned from external Command Line Paramenter Handling Script" | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Returned from external Command Line Paramenter Handling Script" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
         if ! ${NOWAIT} ; then
             read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
             echo
         fi
         
-        echo | tee -a -i ${logfilepath}
-        echo "Continueing local execution" | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Continueing local execution" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     else
-        echo >> ${logfilepath}
-        echo "Returned from external Command Line Paramenter Handling Script" >> ${logfilepath}
-        echo >> ${logfilepath}
-        echo "Continueing local execution" >> ${logfilepath}
-        echo >> ${logfilepath}
-        echo '--------------------------------------------------------------------------' >> ${logfilepath}
-        echo >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Returned from external Command Line Paramenter Handling Script" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Continueing local execution" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
     fi
     
     # -------------------------------------------------------------------------------------------------
@@ -1431,7 +1530,7 @@ CommandLineParameterHandler () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -1440,7 +1539,7 @@ CommandLineParameterHandler () {
 # Call command line parameter handler action script
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-05-03-3 -
+# MODIFIED 2021-10-21 -
 
 export configured_handler_root=${cli_api_cmdlineparm_handler_root}
 export actual_handler_root=${configured_handler_root}
@@ -1466,27 +1565,27 @@ export cli_api_cmdlineparm_handler=${cli_api_cmdlineparm_handler_path}/${cli_api
 #
 if [ ! -r ${cli_api_cmdlineparm_handler} ] ; then
     # no file found, that is a problem
-    echo | tee -a -i ${logfilepath}
-    echo 'Command Line Parameter handler script file missing' | tee -a -i ${logfilepath}
-    echo '  File not found : '${cli_api_cmdlineparm_handler} | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo 'Other parameter elements : ' | tee -a -i ${logfilepath}
-    echo '  Configured Root path    : '${configured_handler_root} | tee -a -i ${logfilepath}
-    echo '  Actual Script Root path : '${actual_handler_root} | tee -a -i ${logfilepath}
-    echo '  Root of folder path : '${cli_api_cmdlineparm_handler_root} | tee -a -i ${logfilepath}
-    echo '  Folder in Root path : '${cli_api_cmdlineparm_handler_folder} | tee -a -i ${logfilepath}
-    echo '  Folder Root path    : '${cli_api_cmdlineparm_handler_path} | tee -a -i ${logfilepath}
-    echo '  Script Filename     : '${cli_api_cmdlineparm_handler_file} | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Command Line Parameter handler script file missing' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  File not found : '${cli_api_cmdlineparm_handler} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Other parameter elements : ' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Configured Root path    : '${configured_handler_root} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Actual Script Root path : '${actual_handler_root} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Root of folder path : '${cli_api_cmdlineparm_handler_root} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Folder in Root path : '${cli_api_cmdlineparm_handler_folder} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Folder Root path    : '${cli_api_cmdlineparm_handler_path} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Script Filename     : '${cli_api_cmdlineparm_handler_file} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     exit 251
 fi
 
-# MODIFIED 2018-05-03-3 -
+# MODIFIED 2021-10-21 -
 
 CommandLineParameterHandler "$@"
 
@@ -1532,20 +1631,20 @@ fi
 # =================================================================================================
 
 if ${APISCRIPTVERBOSE} ; then
-    echo 'Date Time Group   :  '${DATE} | tee -a -i ${logfilepath}
-    echo 'Date Time Group S :  '${DATEDTGS} | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Date Time Group   :  '${DATE} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Date Time Group S :  '${DATEDTGS} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 else
-    echo 'Date Time Group   :  '${DATE} >> ${logfilepath}
-    echo 'Date Time Group S :  '${DATEDTGS} >> ${logfilepath}
-    echo >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Date Time Group   :  '${DATE} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Date Time Group S :  '${DATEDTGS} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
 fi
 
 # -------------------------------------------------------------------------------------------------
 # GetGaiaVersionAndInstallationType - Gaia version and installation type Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-18 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 GetGaiaVersionAndInstallationType () {
@@ -1554,52 +1653,52 @@ GetGaiaVersionAndInstallationType () {
     #
     
     if ${APISCRIPTVERBOSE} ; then
-        echo | tee -a -i ${logfilepath}
-        echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo "Calling external Gaia version and installation type Handling Script" | tee -a -i ${logfilepath}
-        echo " - External Script : "${gaia_version_handler} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Calling external Gaia version and installation type Handling Script" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} " - External Script : "${gaia_version_handler} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     else
-        echo >> ${logfilepath}
-        echo '--------------------------------------------------------------------------' >> ${logfilepath}
-        echo >> ${logfilepath}
-        echo "Calling external Gaia version and installation type Handling Script" >> ${logfilepath}
-        echo " - External Script : "${gaia_version_handler} >> ${logfilepath}
-        echo >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Calling external Gaia version and installation type Handling Script" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} " - External Script : "${gaia_version_handler} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
     fi
     
     . ${gaia_version_handler} "$@"
     
     if ${APISCRIPTVERBOSE} ; then
-        echo | tee -a -i ${logfilepath}
-        echo "Returned from external Gaia version and installation type Handling Script" | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Returned from external Gaia version and installation type Handling Script" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
         if ! ${NOWAIT} ; then
             read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
             echo
         fi
         
-        echo | tee -a -i ${logfilepath}
-        echo "Continueing local execution" | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Continueing local execution" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     else
-        echo >> ${logfilepath}
-        echo "Returned from external Gaia version and installation type Handling Script" >> ${logfilepath}
-        echo >> ${logfilepath}
-        echo "Continueing local execution" >> ${logfilepath}
-        echo >> ${logfilepath}
-        echo '--------------------------------------------------------------------------' >> ${logfilepath}
-        echo >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Returned from external Gaia version and installation type Handling Script" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Continueing local execution" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
     fi
 
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-18
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -1608,7 +1707,7 @@ GetGaiaVersionAndInstallationType () {
 # Call Gaia version and installation type Handler action script
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 export configured_handler_root=${gaia_version_handler_root}
@@ -1635,28 +1734,28 @@ export gaia_version_handler=${gaia_version_handler_path}/${gaia_version_handler_
 #
 if [ ! -r ${gaia_version_handler} ] ; then
     # no file found, that is a problem
-    echo | tee -a -i ${logfilepath}
-    echo ' Gaia version and installation type handler script file missing' | tee -a -i ${logfilepath}
-    echo '  File not found : '${gaia_version_handler} | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo 'Other parameter elements : ' | tee -a -i ${logfilepath}
-    echo '  Configured Root path    : '${configured_handler_root} | tee -a -i ${logfilepath}
-    echo '  Actual Script Root path : '${actual_handler_root} | tee -a -i ${logfilepath}
-    echo '  Root of folder path : '${gaia_version_handler_root} | tee -a -i ${logfilepath}
-    echo '  Folder in Root path : '${gaia_version_handler_folder} | tee -a -i ${logfilepath}
-    echo '  Folder Root path    : '${gaia_version_handler_path} | tee -a -i ${logfilepath}
-    echo '  Script Filename     : '${gaia_version_handler_file} | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} ' Gaia version and installation type handler script file missing' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  File not found : '${gaia_version_handler} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Other parameter elements : ' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Configured Root path    : '${configured_handler_root} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Actual Script Root path : '${actual_handler_root} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Root of folder path : '${gaia_version_handler_root} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Folder in Root path : '${gaia_version_handler_folder} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Folder Root path    : '${gaia_version_handler_path} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Script Filename     : '${gaia_version_handler_file} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     exit 251
 fi
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-21
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
 
 GetGaiaVersionAndInstallationType "$@"
 
@@ -1736,7 +1835,7 @@ GetGaiaVersionAndInstallationType "$@"
 # ScriptOutputPathsforAPIScripts - Script Output Paths and Folders for API scripts Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-11-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ScriptOutputPathsforAPIScripts () {
@@ -1745,53 +1844,53 @@ ScriptOutputPathsforAPIScripts () {
     #
     
     if ${APISCRIPTVERBOSE} ; then
-        echo | tee -a -i ${logfilepath}
-        echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo "Calling external Script Output Paths and Folders for API scripts Handler Script" | tee -a -i ${logfilepath}
-        echo " - External Script : "${script_output_paths_API_handler} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Calling external Script Output Paths and Folders for API scripts Handler Script" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} " - External Script : "${script_output_paths_API_handler} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     else
-        echo >> ${logfilepath}
-        echo '--------------------------------------------------------------------------' >> ${logfilepath}
-        echo >> ${logfilepath}
-        echo "Calling Script Output Paths and Folders for API scripts Handler Script" >> ${logfilepath}
-        echo " - External Script : "${script_output_paths_API_handler} >> ${logfilepath}
-        echo >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Calling Script Output Paths and Folders for API scripts Handler Script" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} " - External Script : "${script_output_paths_API_handler} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
     fi
     
     . ${script_output_paths_API_handler} "$@"
     
     if ${APISCRIPTVERBOSE} ; then
-        echo | tee -a -i ${logfilepath}
-        echo "Returned from external Script Output Paths and Folders for API scripts Handler Script" | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Returned from external Script Output Paths and Folders for API scripts Handler Script" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
         if ! ${NOWAIT} ; then
             read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
             echo
         fi
         
-        echo | tee -a -i ${logfilepath}
-        echo "Continueing local execution" | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Continueing local execution" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     else
-        echo >> ${logfilepath}
-        echo "Returned from external Script Output Paths and Folders for API scripts Handler Script" >> ${logfilepath}
-        echo >> ${logfilepath}
-        echo "Continueing local execution" >> ${logfilepath}
-        echo >> ${logfilepath}
-        echo '--------------------------------------------------------------------------' >> ${logfilepath}
-        echo >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Returned from external Script Output Paths and Folders for API scripts Handler Script" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Continueing local execution" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
     fi
     
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-16
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -1826,22 +1925,22 @@ export script_output_paths_API_handler=${script_output_paths_API_handler_path}/$
 #
 if [ ! -r ${script_output_paths_API_handler} ] ; then
     # no file found, that is a problem
-    echo | tee -a -i ${logfilepath}
-    echo 'Script Output Paths and Folders for API scripts handler script file missing' | tee -a -i ${logfilepath}
-    echo '  File not found : '${script_output_paths_API_handler} | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo 'Other parameter elements : ' | tee -a -i ${logfilepath}
-    echo '  Configured Root path    : '${configured_handler_root} | tee -a -i ${logfilepath}
-    echo '  Actual Script Root path : '${actual_handler_root} | tee -a -i ${logfilepath}
-    echo '  Root of folder path : '${script_output_paths_API_handler_root} | tee -a -i ${logfilepath}
-    echo '  Folder in Root path : '${script_output_paths_API_handler_folder} | tee -a -i ${logfilepath}
-    echo '  Folder Root path    : '${script_output_paths_API_handler_path} | tee -a -i ${logfilepath}
-    echo '  Script Filename     : '${script_output_paths_API_handler_file} | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Script Output Paths and Folders for API scripts handler script file missing' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  File not found : '${script_output_paths_API_handler} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Other parameter elements : ' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Configured Root path    : '${configured_handler_root} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Actual Script Root path : '${actual_handler_root} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Root of folder path : '${script_output_paths_API_handler_root} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Folder in Root path : '${script_output_paths_API_handler_folder} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Folder Root path    : '${script_output_paths_API_handler_path} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Script Filename     : '${script_output_paths_API_handler_file} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     exit 251
 fi
@@ -1870,7 +1969,7 @@ ScriptOutputPathsforAPIScripts "$@"
 # CheckMgmtCLIAPIOperationsHandler - Management CLI API Operations Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-11-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CheckMgmtCLIAPIOperationsHandler () {
@@ -1881,56 +1980,56 @@ CheckMgmtCLIAPIOperationsHandler () {
     errorresult=0
     
     if ${APISCRIPTVERBOSE} ; then
-        echo | tee -a -i ${logfilepath}
-        echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo "Calling external Management CLI API Operations Handler Script" | tee -a -i ${logfilepath}
-        echo " - External Script : "${mgmt_cli_API_operations_handler} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Calling external Management CLI API Operations Handler Script" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} " - External Script : "${mgmt_cli_API_operations_handler} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     else
-        echo >> ${logfilepath}
-        echo '--------------------------------------------------------------------------' >> ${logfilepath}
-        echo >> ${logfilepath}
-        echo "Calling external Management CLI API Operations Handler Script" >> ${logfilepath}
-        echo " - External Script : "${mgmt_cli_API_operations_handler} >> ${logfilepath}
-        echo >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Calling external Management CLI API Operations Handler Script" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} " - External Script : "${mgmt_cli_API_operations_handler} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
     fi
     
     . ${mgmt_cli_API_operations_handler} CHECK "$@"
     errorresult=$?
     
     if ${APISCRIPTVERBOSE} ; then
-        echo | tee -a -i ${logfilepath}
-        echo "Returned from external Management CLI API Operations Handler Script" | tee -a -i ${logfilepath}
-        echo 'Error Return Code = '${errorresult} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Returned from external Management CLI API Operations Handler Script" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Error Return Code = '${errorresult} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
         if ! ${NOWAIT} ; then
             read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
             echo
         fi
         
-        echo | tee -a -i ${logfilepath}
-        echo "Continueing local execution" | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Continueing local execution" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     else
-        echo >> ${logfilepath}
-        echo "Returned from external Management CLI API Operations Handler Script" >> ${logfilepath}
-        echo 'Error Return Code = '${errorresult} >> ${logfilepath}
-        echo >> ${logfilepath}
-        echo "Continueing local execution" >> ${logfilepath}
-        echo >> ${logfilepath}
-        echo '--------------------------------------------------------------------------' >> ${logfilepath}
-        echo >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Returned from external Management CLI API Operations Handler Script" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Error Return Code = '${errorresult} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Continueing local execution" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
     fi
     
     return  ${errorresult}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-16
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -1939,7 +2038,7 @@ CheckMgmtCLIAPIOperationsHandler () {
 # Call Basic Script Setup for API Scripts Handler action script
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-11-16 -
+# MODIFIED 2021-10-21 -
 
 export configured_handler_root=${mgmt_cli_API_operations_handler_root}
 export actual_handler_root=${configured_handler_root}
@@ -1965,22 +2064,22 @@ export mgmt_cli_API_operations_handler=${mgmt_cli_API_operations_handler_path}/$
 #
 if [ ! -r ${mgmt_cli_API_operations_handler} ] ; then
     # no file found, that is a problem
-    echo | tee -a -i ${logfilepath}
-    echo 'Basic script setup API Scripts handler script file missing' | tee -a -i ${logfilepath}
-    echo '  File not found : '${mgmt_cli_API_operations_handler} | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo 'Other parameter elements : ' | tee -a -i ${logfilepath}
-    echo '  Configured Root path    : '${configured_handler_root} | tee -a -i ${logfilepath}
-    echo '  Actual Script Root path : '${actual_handler_root} | tee -a -i ${logfilepath}
-    echo '  Root of folder path : '${mgmt_cli_API_operations_handler_root} | tee -a -i ${logfilepath}
-    echo '  Folder in Root path : '${mgmt_cli_API_operations_handler_folder} | tee -a -i ${logfilepath}
-    echo '  Folder Root path    : '${mgmt_cli_API_operations_handler_path} | tee -a -i ${logfilepath}
-    echo '  Script Filename     : '${mgmt_cli_API_operations_handler_file} | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Basic script setup API Scripts handler script file missing' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  File not found : '${mgmt_cli_API_operations_handler} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Other parameter elements : ' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Configured Root path    : '${configured_handler_root} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Actual Script Root path : '${actual_handler_root} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Root of folder path : '${mgmt_cli_API_operations_handler_root} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Folder in Root path : '${mgmt_cli_API_operations_handler_folder} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Folder Root path    : '${mgmt_cli_API_operations_handler_path} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Script Filename     : '${mgmt_cli_API_operations_handler_file} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     exit 251
 fi
@@ -1989,7 +2088,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-11-16 -
+# MODIFIED 2021-10-21 -
 
 # Commands to execute specific actions in this script:
 # CHECK |INIT - Initialize the API operations with checks of wether API is running, get port, API minimum version
@@ -2005,17 +2104,17 @@ CheckMgmtCLIAPIOperationsHandler "$@"
 SUBEXITCODE=$?
 
 if [ "${SUBEXITCODE}" != "0" ] ; then
-    echo | tee -a -i ${logfilepath}
-    echo "Terminating script..." | tee -a -i ${logfilepath}
-    echo "Exitcode ${SUBEXITCODE}" | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} "Terminating script..." | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} "Exitcode ${SUBEXITCODE}" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     exit ${SUBEXITCODE}
 else
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 fi
 
 
@@ -2059,7 +2158,7 @@ fi
 # Start :  Check that Action Handler Scripts exist before executing
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CheckExportActionHandlerScripts () {
@@ -2072,8 +2171,7 @@ CheckExportActionHandlerScripts () {
     # Check that Action Handler Scripts exist before executing
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2018-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-    #
+    # MODIFIED 2018-05-04 -
     
     # Basic information for formation of file path for action handler scripts
     #
@@ -2094,20 +2192,20 @@ CheckExportActionHandlerScripts () {
     #
     if [ ! -r ${APIScriptJSONActionFile} ] ; then
         # no file found, that is a problem
-        echo | tee -a -i ${logfilepath}
-        echo 'JSON Action Handler script file missing' | tee -a -i ${logfilepath}
-        echo '  File not found : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo 'Other parameter elements : ' | tee -a -i ${logfilepath}
-        echo '  Root of folder path : '${APIScriptActionFileRoot} | tee -a -i ${logfilepath}
-        echo '  Folder in Root path : '${APIScriptActionFileFolder} | tee -a -i ${logfilepath}
-        echo '  Folder Root path    : '${APIScriptActionFilePath} | tee -a -i ${logfilepath}
-        echo '  Script Filename     : '${APIScriptJSONActionFilename} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'JSON Action Handler script file missing' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  File not found : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Other parameter elements : ' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  Root of folder path : '${APIScriptActionFileRoot} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  Folder in Root path : '${APIScriptActionFileFolder} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  Folder Root path    : '${APIScriptActionFilePath} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  Script Filename     : '${APIScriptJSONActionFilename} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
         exit 251
     fi
@@ -2116,20 +2214,20 @@ CheckExportActionHandlerScripts () {
     #
     if [ ! -r ${APIScriptCSVActionFile} ] ; then
         # no file found, that is a problem
-        echo | tee -a -i ${logfilepath}
-        echo 'CSV Action Handler script file missing' | tee -a -i ${logfilepath}
-        echo '  File not found : '${APIScriptCSVActionFile} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo 'Other parameter elements : ' | tee -a -i ${logfilepath}
-        echo '  Root of folder path : '${APIScriptActionFileRoot} | tee -a -i ${logfilepath}
-        echo '  Folder in Root path : '${APIScriptActionFileFolder} | tee -a -i ${logfilepath}
-        echo '  Folder Root path    : '${APIScriptActionFilePath} | tee -a -i ${logfilepath}
-        echo '  Script Filename     : '${APIScriptCSVActionFilename} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'CSV Action Handler script file missing' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  File not found : '${APIScriptCSVActionFile} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Other parameter elements : ' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  Root of folder path : '${APIScriptActionFileRoot} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  Folder in Root path : '${APIScriptActionFileFolder} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  Folder Root path    : '${APIScriptActionFilePath} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  Script Filename     : '${APIScriptCSVActionFilename} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
         exit 251
     fi
@@ -2138,7 +2236,7 @@ CheckExportActionHandlerScripts () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-21
 
 # -------------------------------------------------------------------------------------------------
 # End :  Check that Action Handler Scripts exist before executing
@@ -2149,7 +2247,7 @@ CheckExportActionHandlerScripts () {
 # MainExportDumpOperations - Execute Main Dump operations - json Standard, json Full, CSV
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-11-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 MainExportDumpOperations () {
@@ -2161,7 +2259,7 @@ MainExportDumpOperations () {
     # Start executing Main Dump operations - json Standard, json Full, CSV
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2020-11-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    # MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
     if ${script_dump_json} ; then
@@ -2177,10 +2275,10 @@ MainExportDumpOperations () {
                 if ${CLIparm_detailslevelstandard} ; then
                     # CLI parameters enabled or did not disable json standard output for results
                     
-                    echo | tee -a -i ${logfilepath}
-                    echo 'Now dumping details-level '${APICLIdetaillvl}' details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
-                    echo 'Calling Action File : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
-                    echo | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Now dumping details-level '${APICLIdetaillvl}' details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Calling Action File : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
                     
                     . ${APIScriptJSONActionFile} "$@"
                 fi
@@ -2192,10 +2290,10 @@ MainExportDumpOperations () {
                 if ${CLIparm_detailslevelfull} ; then
                     # CLI parameters enabled or did not disable json full output for results
                     
-                    echo | tee -a -i ${logfilepath}
-                    echo 'Now dumping details-level '${APICLIdetaillvl}' details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
-                    echo 'Calling Action File : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
-                    echo | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Now dumping details-level '${APICLIdetaillvl}' details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Calling Action File : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
                     
                     . ${APIScriptJSONActionFile} "$@"
                 fi
@@ -2213,24 +2311,24 @@ MainExportDumpOperations () {
         
         if ${CLIparm_formatcsv} ; then
             # CLI parameters enabled or did not disable csv output for results
-            echo | tee -a -i ${logfilepath}
-            echo 'Now dumping details-level '${APICLIdetaillvl}' details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
-            echo 'Calling Action File : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
-            echo | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Now dumping details-level '${APICLIdetaillvl}' details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Calling Action File : '${APIScriptJSONActionFile} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             
             . ${APIScriptCSVActionFile} "$@"
         fi
     fi
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-23
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-21
     
     echo
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-16
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -2242,108 +2340,155 @@ MainExportDumpOperations () {
 # =================================================================================================
 
 
-# MODIFIED 2021-02-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 if ${OpsModeAllDomains} ; then
     # Operations Mode All Domains implies MDSM operation requirement, so check that first
     if [ "${sys_type_MDS}" != "true" ]; then
         
-        echo | tee -a -i ${logfilepath}
-        echo '!!!! This script is expected to run on Multi-Domain Management !!!!' | tee -a -i ${logfilepath}
-        echo 'Exiting...!' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '!!!! This script is expected to run on Multi-Domain Management !!!!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Exiting...!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         exit 255
         
     fi
 fi
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-21
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-21
 
 
 # =================================================================================================
 # START:  Setup Login Parameters and Login to Mgmt_CLI
 # =================================================================================================
 
-# MODIFIED 2021-02-22 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 if ${UseR8XAPI} ; then
     
-    echo 'Setting up mgmt_cli login...' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Setting up mgmt_cli login...' | tee -a -i ${logfilepath}
     
     . ${mgmt_cli_API_operations_handler} SETUPLOGIN "$@"
     
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    if [ "${CLIparm_domain}" == "System Data" ] ; then
-        # A CLI Parameter for domains (-d) was passed - namely "System Data" a known domain
-        echo 'A CLI Parameter for domains (-d) was passed - namely "System Data" a known domain.' | tee -a -i ${logfilepath}
-        echo 'The requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
-    elif [ "${CLIparm_domain}" == "Global" ] ; then
-        # A CLI Parameter for domains (-d) was passed - namely "Global" a known domain
-        echo 'A CLI Parameter for domains (-d) was passed - namely "Global" a known domain.' | tee -a -i ${logfilepath}
-        echo 'The requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
-    elif [ ! -z "${CLIparm_domain}" ] ; then
-        # A CLI Parameter for domains (-d) was passed, so check if that domain exists and then add it as the last element to the domains array
-        echo 'A CLI Parameter for domains (-d) was passed.' | tee -a -i ${logfilepath}
-        echo 'Check if the requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
+    if ! ${CLIparm_use_api_context} ; then
+        # Since no context was set in the CLI parameters, it is assumed we are not connecting to Smart-1 Cloud MaaS
         
-        export MgmtCLI_Base_OpParms='-f json'
-        export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
-        export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
-        
-        if [ ! -z "${CLIparm_mgmt}" ] ; then
-        # working with remote management server
-            Check4DomainByName=$(mgmt_cli --port ${APICLIwebsslport} -m ${CLIparm_mgmt} -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
-            echo 'You may be required to provide credentials for "System Data" domain logon!' | tee -a -i ${logfilepath}
-        else
-            Check4DomainByName=$(mgmt_cli -r true --port ${APICLIwebsslport} -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
-        fi
-        CheckCliParmDomain=${Check4DomainByName}
-        
-        if [ x"${CheckCliParmDomain}" == x"" ] ; then
-            # Houston, we have a problem... the CLIparm_domain check result was null for this MDSM MDS host
-            echo | tee -a -i ${logfilepath}
-            echo '!!!! The requested domain : '${CLIparm_domain}' was not found on this MDSM MDS host!!!!' | tee -a -i ${logfilepath}
-            echo 'Exiting...!' | tee -a -i ${logfilepath}
-            echo | tee -a -i ${logfilepath}
+        if [ "${CLIparm_domain}" == "System Data" ] ; then
+            # A CLI Parameter for domains (-d) was passed - namely "System Data" a known domain
+            echo `${dtzs}`${dtzsep} 'A CLI Parameter for domains (-d) was passed - namely "System Data" a known domain.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'The requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
+        elif [ "${CLIparm_domain}" == "Global" ] ; then
+            # A CLI Parameter for domains (-d) was passed - namely "Global" a known domain
+            echo `${dtzs}`${dtzsep} 'A CLI Parameter for domains (-d) was passed - namely "Global" a known domain.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'The requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
+        elif [ ! -z "${CLIparm_domain}" ] ; then
+            # A CLI Parameter for domains (-d) was passed, so check if that domain exists and then add it as the last element to the domains array
+            echo `${dtzs}`${dtzsep} 'A CLI Parameter for domains (-d) was passed.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Check if the requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
             
-            exit 250
+            export MgmtCLI_Base_OpParms='-f json'
+            export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
+            export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
+            
+            if [ ! -z "${CLIparm_mgmt}" ] ; then
+            # working with remote management server
+                Check4DomainByName=$(mgmt_cli --port ${APICLIwebsslport} -m ${CLIparm_mgmt} -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
+                echo `${dtzs}`${dtzsep} 'You may be required to provide credentials for "System Data" domain logon!' | tee -a -i ${logfilepath}
+            else
+                Check4DomainByName=$(mgmt_cli -r true --port ${APICLIwebsslport} -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
+            fi
+            CheckCliParmDomain=${Check4DomainByName}
+            
+            if [ x"${CheckCliParmDomain}" == x"" ] ; then
+                # Houston, we have a problem... the CLIparm_domain check result was null for this MDSM MDS host
+                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} '!!!! The requested domain : '${CLIparm_domain}' was not found on this MDSM MDS host!!!!' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Exiting...!' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                
+                exit 250
+            else
+                # we are good to go, so add this domain to the array and stop processing other domains
+                echo `${dtzs}`${dtzsep} 'The requested domain : '${CLIparm_domain}' is found on this MDSM MDS host.' | tee -a -i ${logfilepath}
+            fi
         else
-            # we are good to go, so add this domain to the array and stop processing other domains
-            echo 'The requested domain : '${CLIparm_domain}' is found on this MDSM MDS host.' | tee -a -i ${logfilepath}
+            # no CLI Parameter for domains (-d) was passed
+            echo `${dtzs}`${dtzsep} 'No CLI Parameter for domains (-d) was passed.' | tee -a -i ${logfilepath}
         fi
+        
     else
-        # no CLI Parameter for domains (-d) was passed
-        echo 'No CLI Parameter for domains (-d) was passed.' | tee -a -i ${logfilepath}
+        # Since a context was set in the CLI parameters, it is assumed we are connecting to Smart-1 Cloud MaaS
+        echo `${dtzs}`${dtzsep} 'A CLI Parameter for context (--context) was passed - namely : "'${CLIparm_api_context}'"' | tee -a -i ${logfilepath}
+        if [ ! -z "${CLIparm_mgmt}" ] ; then
+            #Context also requires setting the management server value -m which is done
+            echo `${dtzs}`${dtzsep} 'A CLI Parameter for management server (-m) was passed - namely '${CLIparm_mgmt} | tee -a -i ${logfilepath}
+            if [ ! -z "${CLIparm_domain}" ] ; then
+                # Since a context was set in the CLI parameters, we require a domain -d value, which was found
+                echo `${dtzs}`${dtzsep} 'A CLI Parameter for domains (-d) was passed - namely '${CLIparm_domain} | tee -a -i ${logfilepath}
+                if ${CLIparm_use_api_key} ; then
+                    #Context also requires setting the api-key value --api-key which is done
+                    echo `${dtzs}`${dtzsep} 'A CLI Parameter for api-key (--api-key) was passed - namely '${CLIparm_api_key} | tee -a -i ${logfilepath}
+                else
+                    # Since a context was set in the CLI parameters, we require a api-key --api-key value, which was NOT found so exiting
+                    # Houston, we have a problem... the CLIparm_domain was not set
+                    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} '!!!! NO api-key (--api-key "<api-key-value>") was passed, which is required!!!!' | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Exiting...!' | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                    
+                    exit 245
+                fi
+            else
+                # Since a context was set in the CLI parameters, we require a domain -d value, which was NOT found so exiting
+                # Houston, we have a problem... the CLIparm_domain was not set
+                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} '!!!! NO domain (-d <domain_name>)was passed, which is required!!!!' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Exiting...!' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                
+                exit 246
+            fi
+        else
+            # Since a context was set in the CLI parameters, we require a management server address (-m <ip-address>), which was NOT found so exiting
+            # Houston, we have a problem... the CLIparm_domain was not set
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '!!!! NO management server address (-m <ip-address>) was passed, which is required!!!!' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Exiting...!' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            
+            exit 247
+        fi
     fi
     
     if ${OpsModeAllDomains} ; then
         # Handle x_All_Domains_y script, so logon to "System Data" domain
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         if ${APISCRIPTVERBOSE} ; then
-            echo 'Operating in *_all_domains_* script so using "System Data" domain initially' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Operating in *_all_domains_* script so using "System Data" domain initially' | tee -a -i ${logfilepath}
         fi
         export domaintarget="System Data"
     elif [ ! -z "${CLIparm_domain}" ] ; then
         # Handle domain parameter for login string
         if ${APISCRIPTVERBOSE} ; then
-            echo 'Command line parameter for domain set!  Using Domain = '${CLIparm_domain} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Command line parameter for domain set!  Using Domain = '${CLIparm_domain} | tee -a -i ${logfilepath}
         fi
         export domaintarget=${CLIparm_domain}
     else
         if ${APISCRIPTVERBOSE} ; then
-            echo 'Command line parameter for domain NOT set!' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Command line parameter for domain NOT set!' | tee -a -i ${logfilepath}
         fi
         export domaintarget=
     fi
     
     if ${APISCRIPTVERBOSE} ; then
-        echo 'domaintarget = "'${domaintarget}'" ' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'domaintarget = "'${domaintarget}'" ' | tee -a -i ${logfilepath}
     fi
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     export LoggedIntoMgmtCli=false
     
@@ -2359,7 +2504,7 @@ if ${UseR8XAPI} ; then
 fi
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-02-22
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
 
 # =================================================================================================
 # END:  Setup Login Parameters and Login to Mgmt_CLI
@@ -2422,7 +2567,7 @@ CheckExportActionHandlerScripts
 # GenerateArrayOfDomains - Generate Array with list of domains on MDS
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-02-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 GenerateArrayOfDomains () {
@@ -2430,9 +2575,9 @@ GenerateArrayOfDomains () {
     # Generate Array with list of domains on MDS
     #
     
-    echo | tee -a -i ${logfilepath}
-    echo 'Generate Array with list of domains on MDS' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Generate Array with list of domains on MDS' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}
     export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
@@ -2444,12 +2589,12 @@ GenerateArrayOfDomains () {
     
     DOMAINSARRAY=()
     
-    echo 'Populate array of domains : ' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Populate array of domains : ' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     line='"System Data"'
     DOMAINSARRAY+=("${line}")
-    echo -n 'Domains :  '${line} | tee -a -i ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} 'Domains :  '${line} | tee -a -i ${logfilepath}
     
     line='"Global"'
     DOMAINSARRAY+=("${line}")
@@ -2464,14 +2609,14 @@ GenerateArrayOfDomains () {
         # A CLI Parameter for domains (-d) was passed - namely "System Data" a known domain and already in the array
         
         line="${CLIparm_domain}"
-        echo -n ', !! Redundant domain submitted: '${CLIparm_domain}' !!'
+        echo -n ', !! Redundant domain submitted: '${CLIparm_domain}' !!' | tee -a -i ${logfilepath}
         
         export BuildDomainsArray=false
     elif [ "${CLIparm_domain}" == "Global" ] ; then
         # A CLI Parameter for domains (-d) was passed - namely "Global" a known domain and already in the array
         
         line="${CLIparm_domain}"
-        echo -n ', !! Redundant domain submitted: '${CLIparm_domain}' !!'
+        echo -n ', !! Redundant domain submitted: '${CLIparm_domain}' !!' | tee -a -i ${logfilepath}
         
         export BuildDomainsArray=false
     elif [ ! -z "${CLIparm_domain}" ] ; then
@@ -2483,15 +2628,15 @@ GenerateArrayOfDomains () {
         if [ x"${CheckCliParmDomain}" == x"" ] ; then
             # Houston, we have a problem... the CLIparm_domain check result was null for this MDSM MDS host
             
-            echo | tee -a -i ${logfilepath}
-            echo | tee -a -i ${logfilepath}
-            echo '!!!! The requested domain : '${CLIparm_domain}' was not found on this MDSM MDS host!!!!' | tee -a -i ${logfilepath}
-            echo | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '!!!! The requested domain : '${CLIparm_domain}' was not found on this MDSM MDS host!!!!' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             
             . ${mgmt_cli_API_operations_handler} LOGOUT "$@"
             
-            echo 'Exiting...!' | tee -a -i ${logfilepath}
-            echo | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Exiting...!' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             exit 250
             
         else
@@ -2499,7 +2644,7 @@ GenerateArrayOfDomains () {
             
             line="${CLIparm_domain}"
             DOMAINSARRAY+=("${line}")
-            echo -n ', '${line}
+            echo -n ', '${line} | tee -a -i ${logfilepath}
             
             arraylength=${#DOMAINSARRAY[@]}
             
@@ -2515,7 +2660,7 @@ GenerateArrayOfDomains () {
         while read -r line; do
             
             if [ $arraylength -eq 0 ]; then
-                echo -n 'Domains :  ' | tee -a -i ${logfilepath}
+                echo -n `${dtzs}`${dtzsep} 'Domains :  ' | tee -a -i ${logfilepath}
             else
                 echo -n ', ' | tee -a -i ${logfilepath}
             fi
@@ -2537,19 +2682,19 @@ GenerateArrayOfDomains () {
         
     fi
     echo | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-02-21
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
 
 # -------------------------------------------------------------------------------------------------
 # DumpArrayOfDomains - repeated proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED YYYY-MM-DD -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 DumpArrayOfDomains () {
@@ -2557,21 +2702,21 @@ DumpArrayOfDomains () {
     # repeated procedure description
     #
     
-    echo 'Show list of domains in array' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Show list of domains in array' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     for j in "${DOMAINSARRAY[@]}"
     do
-        echo "${j}" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "${j}" | tee -a -i ${logfilepath}
     done
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     if ${APISCRIPTVERBOSE} ; then
             
-        echo 'Raw dump of domains array : ' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo ${DOMAINSARRAY[@]} | tee -a -i ${logfilepath}
-        #echo ${DOMAINSARRAY[*]} | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Raw dump of domains array : ' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} ${DOMAINSARRAY[@]} | tee -a -i ${logfilepath}
+        #echo `${dtzs}`${dtzsep} ${DOMAINSARRAY[*]} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
     fi
     
@@ -2579,7 +2724,7 @@ DumpArrayOfDomains () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED YYYY-MM-DD
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -2605,10 +2750,10 @@ DumpArrayOfDomains () {
 DOMAINSARRAY=()
 
 GenerateArrayOfDomains
-echo | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 DumpArrayOfDomains
-echo | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 if ! ${NOWAIT} ; then
     read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
@@ -2619,13 +2764,13 @@ fi
 #----------------------------------------------------------------------------------------
 
 
-echo | tee -a -i ${logfilepath}
-echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
-# MODIFIED 2020-11-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 export LoggedIntoMgmtCli=false
@@ -2634,28 +2779,28 @@ for j in "${DOMAINSARRAY[@]}" ; do
     workdomain=${j}
     workdomain=${workdomain//\"}
     
-    echo | tee -a -i ${logfilepath}
-    echo 'Domain :  >'${workdomain}'< ' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Domain :  >'${workdomain}'< ' | tee -a -i ${logfilepath}
     
     if ${LoggedIntoMgmtCli} ; then
         # we logged in earlier, time to logout
         . ${mgmt_cli_API_operations_handler} LOGOUT "$@"
     fi
     
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     # we need to login to the specific domain for the API export, so let's set that up from scratch again
     . ${mgmt_cli_API_operations_handler} SETUPLOGIN "$@"
     
     export domaintarget=${workdomain}
     
-    echo | tee -a -i ${logfilepath}
-    echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-    echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo 'Start dump for '${domaintarget} | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Start dump for '${domaintarget} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
     
     export LoggedIntoMgmtCli=false
     
@@ -2670,16 +2815,63 @@ for j in "${DOMAINSARRAY[@]}" ; do
         export LoggedIntoMgmtCli=true
     fi
     
-    echo | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     MainExportDumpOperations
     
-    echo | tee -a -i ${logfilepath}
-    echo 'Dump for '${domaintarget}' Completed!' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
-    echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-    echo '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
+    # MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    #
+    
+    # We need to cleanup for each processed domain, since this generally is done at the end of the 
+    # operation for a single domain / SMS operation, which will not handle the interim domains in 
+    # the *all_domains* scripts
+    #
+    if ${CLIparm_CLEANUPCSVWIP} ; then
+        # Remove Work-In-Progress folder and files
+        
+        if [ x"${APICLICSVpathexportwip}" != x"" ] ; then
+            if [ -r ${APICLICSVpathexportwip} ] ; then
+                if ${APISCRIPTVERBOSE} ; then
+                    echo `${dtzs}`${dtzsep} 'Remove CSV Work-In-Progress folder and files' | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} '   CSV WIP Folder : "'${APICLICSVpathexportwip}'"' | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                    rm -v -r ${APICLICSVpathexportwip} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                else
+                    echo `${dtzs}`${dtzsep} 'Remove CSV Work-In-Progress folder and files' >> ${logfilepath}
+                    echo `${dtzs}`${dtzsep} '   CSV WIP Folder : "'${APICLICSVpathexportwip}'"' >> ${logfilepath}
+                    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+                    rm -v -r ${APICLICSVpathexportwip} >> ${logfilepath}
+                    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+                fi
+            fi
+        fi
+        
+        if [ x"${APICLIJSONpathexportwip}" != x"" ] ; then
+            if [ -r ${APICLIJSONpathexportwip} ] ; then
+                if ${APISCRIPTVERBOSE} ; then
+                    echo `${dtzs}`${dtzsep} 'Remove JSON Work-In-Progress folder and files' | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} '   JSON WIP Folder : "'${APICLIJSONpathexportwip}'"' | tee -a -i ${logfilepath}
+                    rm -v -r ${APICLIJSONpathexportwip} | tee -a -i ${logfilepath}
+                else
+                    echo `${dtzs}`${dtzsep} 'Remove JSON Work-In-Progress folder and files' >> ${logfilepath}
+                    echo `${dtzs}`${dtzsep} '   JSON WIP Folder : "'${APICLIJSONpathexportwip}'"' >> ${logfilepath}
+                    rm -v -r ${APICLIJSONpathexportwip} >> ${logfilepath}
+                fi
+            fi
+        fi
+        
+    fi
+    
+    #
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-21
+    
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Dump for '${domaintarget}' Completed!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     if ! ${NOWAIT} ; then
         read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
@@ -2687,12 +2879,12 @@ for j in "${DOMAINSARRAY[@]}" ; do
     
 done
 
-echo | tee -a -i ${logfilepath}
-echo 'Dumps Completed!' | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Dumps Completed!' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-16
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
 
 
 
@@ -2733,7 +2925,7 @@ fi
 # Clean-up according to CLI Parms and special requirements
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-02-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 if ${CLIparm_CLEANUPCSVWIP} ; then
@@ -2742,17 +2934,17 @@ if ${CLIparm_CLEANUPCSVWIP} ; then
     if [ x"${APICLICSVpathexportwip}" != x"" ] ; then
         if [ -r ${APICLICSVpathexportwip} ] ; then
             if ${APISCRIPTVERBOSE} ; then
-                echo 'Remove CSV Work-In-Progress folder and files' | tee -a -i ${logfilepath}
-                echo '   CSV WIP Folder : "'${APICLICSVpathexportwip}'"' | tee -a -i ${logfilepath}
-                echo | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Remove CSV Work-In-Progress folder and files' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} '   CSV WIP Folder : "'${APICLICSVpathexportwip}'"' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
                 rm -v -r ${APICLICSVpathexportwip} | tee -a -i ${logfilepath}
-                echo | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             else
-                echo 'Remove CSV Work-In-Progress folder and files' >> ${logfilepath}
-                echo '   CSV WIP Folder : "'${APICLICSVpathexportwip}'"' >> ${logfilepath}
-                echo >> ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Remove CSV Work-In-Progress folder and files' >> ${logfilepath}
+                echo `${dtzs}`${dtzsep} '   CSV WIP Folder : "'${APICLICSVpathexportwip}'"' >> ${logfilepath}
+                echo `${dtzs}`${dtzsep} >> ${logfilepath}
                 rm -v -r ${APICLICSVpathexportwip} >> ${logfilepath}
-                echo >> ${logfilepath}
+                echo `${dtzs}`${dtzsep} >> ${logfilepath}
             fi
         fi
     fi
@@ -2760,13 +2952,14 @@ if ${CLIparm_CLEANUPCSVWIP} ; then
     if [ x"${APICLIJSONpathexportwip}" != x"" ] ; then
         if [ -r ${APICLIJSONpathexportwip} ] ; then
             if ${APISCRIPTVERBOSE} ; then
-                echo 'Remove JSON Work-In-Progress folder and files' | tee -a -i ${logfilepath}
-                echo '   JSON WIP Folder : "'${APICLIJSONpathexportwip}'"' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Remove JSON Work-In-Progress folder and files' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} '   JSON WIP Folder : "'${APICLIJSONpathexportwip}'"' | tee -a -i ${logfilepath}
                 rm -v -r ${APICLIJSONpathexportwip} | tee -a -i ${logfilepath}
             else
-                echo 'Remove JSON Work-In-Progress folder and files' >> ${logfilepath}
-                echo '   JSON WIP Folder : "'${APICLIJSONpathexportwip}'"' >> ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Remove JSON Work-In-Progress folder and files' >> ${logfilepath}
+                echo `${dtzs}`${dtzsep} '   JSON WIP Folder : "'${APICLIJSONpathexportwip}'"' >> ${logfilepath}
                 rm -v -r ${APICLIJSONpathexportwip} >> ${logfilepath}
+                echo `${dtzs}`${dtzsep} >> ${logfilepath}
             fi
         fi
     fi
@@ -2774,56 +2967,80 @@ if ${CLIparm_CLEANUPCSVWIP} ; then
 fi
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-04
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-21
 
 
 # -------------------------------------------------------------------------------------------------
 # Clean-up and exit
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-02-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-10-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-echo 'CLI Operations Completed' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'CLI Operations Completed' | tee -a -i ${logfilepath}
 
 if ${APISCRIPTVERBOSE} ; then
     # Verbose mode ON
     
-    echo | tee -a -i ${logfilepath}
-    #echo "Files in >${APICLIpathroot}<" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    #echo `${dtzs}`${dtzsep} "Files in >${APICLIpathroot}<" | tee -a -i ${logfilepath}
     #ls -alh ${APICLIpathroot} | tee -a -i ${logfilepath}
-    #echo | tee -a -i ${logfilepath}
+    #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     if [ x"${APICLIlogpathbase}" != x"" ] ; then
         if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
-            echo 'Files in ${APICLIlogpathbase} >'"${APICLIlogpathbase}"'<' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Files in log path > '"${APICLIlogpathbase}"' <' | tee -a -i ${logfilepath}
+            echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
             ls -alhR ${APICLIlogpathbase} | tee -a -i ${logfilepath}
-            echo | tee -a -i ${logfilepath}
+            echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         fi
     fi
     
-    echo 'Files in ${APICLIpathbase} >'"${APICLIpathbase}"'<' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Files in output path > '"${APICLIpathbase}"' <' | tee -a -i ${logfilepath}
+    echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
     ls -alhR ${APICLIpathbase} | tee -a -i ${logfilepath}
-    echo | tee -a -i ${logfilepath}
+    echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    if ${UseJSONRepo} ; then
+        echo `${dtzs}`${dtzsep} 'Files in JSON Repository > '"${JSONRepopathroot}"' <' | tee -a -i ${logfilepath}
+        echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        ls -alhR ${JSONRepopathroot} | tee -a -i ${logfilepath}
+        echo '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    fi
 else
     # Verbose mode OFF
     
-    echo >> ${logfilepath}
-    #echo "Files in >${APICLIpathroot}<" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    #echo `${dtzs}`${dtzsep} "Files in >${APICLIpathroot}<" >> ${logfilepath}
     #ls -alh ${APICLIpathroot} >> ${logfilepath}
-    #echo >> ${logfilepath}
+    #echo `${dtzs}`${dtzsep} >> ${logfilepath}
     
     if [ x"${APICLIlogpathbase}" != x"" ] ; then
         if [ "${APICLIlogpathbase}" != "${APICLIpathbase}" ] ; then
-            echo 'Files in ${APICLIlogpathbase} >'"${APICLIlogpathbase}"'<' >> ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Files in log path > '"${APICLIlogpathbase}"'<' >> ${logfilepath}
+            echo '-------------------------------------------------------------------------------' >> ${logfilepath}
             ls -alhR ${APICLIlogpathbase} >> ${logfilepath}
-            echo >> ${logfilepath}
+            echo '-------------------------------------------------------------------------------' >> ${logfilepath}
+            echo `${dtzs}`${dtzsep} >> ${logfilepath}
         fi
     fi
     
-    echo 'Files in ${APICLIpathbase} >'"${APICLIpathbase}"'<' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Files in output path > '"${APICLIpathbase}"'<' >> ${logfilepath}
+    echo '-------------------------------------------------------------------------------' >> ${logfilepath}
     ls -alhR ${APICLIpathbase} >> ${logfilepath}
-    echo >> ${logfilepath}
+    echo '-------------------------------------------------------------------------------' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    if ${UseJSONRepo} ; then
+        echo `${dtzs}`${dtzsep} 'Files in JSON Repository > '"${JSONRepopathroot}"'<' >> ${logfilepath}
+        echo '-------------------------------------------------------------------------------' >> ${logfilepath}
+        ls -alhR ${JSONRepopathroot} >> ${logfilepath}
+        echo '-------------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    fi
 fi
 
 if ${CLIparm_NOHUP} ; then
@@ -2833,13 +3050,20 @@ if ${CLIparm_NOHUP} ; then
     fi
 fi
 
-echo | tee -a -i ${logfilepath}
-echo 'Results in directory : '"${APICLIpathbase}" | tee -a -i ${logfilepath}
-echo 'Log output in file   : '"${logfilepath}" | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
-
+export dtgs_script_finish=`date -u +%F-%T-%Z`
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Results in directory    : '"${APICLIpathbase}" | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'JSON objects Repository : '"${JSONRepopathroot}" | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Log output in file      : '"${logfilepath}" | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Script execution START  :'"${dtgs_script_start}" | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Script execution FINISH :'"${dtgs_script_finish}" | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-06
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-23
 
 
 # =================================================================================================

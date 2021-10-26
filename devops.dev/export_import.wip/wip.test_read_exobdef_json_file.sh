@@ -1,7 +1,5 @@
 #!/bin/bash
 #
-# SCRIPT test reading json export objects definition file
-#
 # (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
@@ -12,14 +10,16 @@
 # APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
+# SCRIPT test reading json export objects definition file
 #
-ScriptVersion=00.60.06
-ScriptRevision=020
-ScriptDate=2021-02-23
-TemplateVersion=00.60.06
+#
+ScriptVersion=00.60.08
+ScriptRevision=030
+ScriptDate=2021-10-25
+TemplateVersion=00.60.08
 APISubscriptsLevel=006
-APISubscriptsVersion=00.60.06
-APISubscriptsRevision=020
+APISubscriptsVersion=00.60.08
+APISubscriptsRevision=030
 
 #
 
@@ -41,24 +41,86 @@ export APIScriptShortName=wip.test_read_exobdef_json_file
 export APIScriptnohupName=${APIScriptShortName}
 export APIScriptDescription="test reading json export objects definition fil"
 
+# =================================================================================================
+# =================================================================================================
+# START script
+# =================================================================================================
+# =================================================================================================
+
+
+# =================================================================================================
+# -------------------------------------------------------------------------------------------------
+# START Initial Script Setup
+# -------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------
-# Logging variables
+# =================================================================================================
+# START:  Setup Root Parameters
+# =================================================================================================
+
+
+export DATE=`date +%Y-%m-%d-%H%M%Z`
+export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
+export dtgs_script_start=`date -u +%F-%T-%Z`
+
+export customerpathroot=/var/log/__customer
+export scriptspathroot=/var/log/__customer/upgrade_export/scripts
+
+export rootscriptconfigfile=__root_script_config.sh
+
+export logfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.log
+
+export dtzs='date -u +%Y%m%d-%T-%Z'
+export dtzsep=' | '
+
+
+# -------------------------------------------------------------------------------------------------
+# UI Display Prefix Parameters, check if user has set environment preferences
 # -------------------------------------------------------------------------------------------------
 
 
-# Logging to nirvana
-logfilepath=/dev/null
+export dot_enviroinfo_file='.environment_info.json'
+export dot_enviroinfo_path=${customerpathroot}
+export dot_enviroinfo_fqpn=
+if [ -r "./${dot_enviroinfo}" ] ; then
+    export dot_enviroinfo_path='.'
+    export dot_enviroinfo_fqpn=${dot_enviroinfo_path}/${dot_enviroinfo_file}
+elif [ -r "../${dot_enviroinfo}" ] ; then
+    export dot_enviroinfo_path='..'
+    export dot_enviroinfo_fqpn=${dot_enviroinfo_path}/${dot_enviroinfo_file}
+elif [ -r "${scriptspathroot}/${dot_enviroinfo}" ] ; then
+    export dot_enviroinfo_path=${scriptspathroot}
+    export dot_enviroinfo_fqpn=${dot_enviroinfo_path}/${dot_enviroinfo_file}
+elif [ -r "${customerpathroot}/${dot_enviroinfo}" ] ; then
+    export dot_enviroinfo_path=${customerpathroot}
+    export dot_enviroinfo_fqpn=${dot_enviroinfo_path}/${dot_enviroinfo_file}
+else
+    export dot_enviroinfo_path='.'
+    export dot_enviroinfo_fqpn=${dot_enviroinfo_path}/${dot_enviroinfo_file}
+fi
+
+if [ -r ${dot_enviroinfo_fqpn} ] ; then
+    getdtzs=`cat ${dot_enviroinfo_fqpn} | jq -r ."script_ui_config"."dtzs"`
+    readdtzs=${getdtzs}
+    if [ x"${readdtzs}" != x"" ] ; then
+        export dtzs=${readdtzs}
+    fi
+    getdtzsep=`cat ${dot_enviroinfo_fqpn} | jq -r ."script_ui_config"."dtzsep"`
+    readdtzsep=${getdtzsep}
+    if [ x"${readdtzsep}" != x"" ] ; then
+        export dtzsep=${readdtzsep}
+    fi
+fi
 
 
 # -------------------------------------------------------------------------------------------------
 # Announce what we are starting here...
 # -------------------------------------------------------------------------------------------------
 
-echo | tee -a -i ${logfilepath}
-echo 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision} | tee -a -i ${logfilepath}
-echo 'Script original call name :  '$0 | tee -a -i ${logfilepath}
-echo | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Script original call name :  '$0 | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -145,11 +207,11 @@ ConfigureJQLocation () {
     fi
     
     if ${JQNotFound} ; then
-        echo "Missing jq, not found in ${CPDIR}/jq/jq, ${CPDIR_PATH}/jq/jq, or ${MDS_CPDIR}/jq/jq" | tee -a -i ${logfilepath}
-        echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
-        echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Missing jq, not found in ${CPDIR}/jq/jq, ${CPDIR_PATH}/jq/jq, or ${MDS_CPDIR}/jq/jq" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         exit 1
     fi
     
@@ -172,18 +234,20 @@ ConfigureJQLocation
 
 export MinAPIObjectLimit=500
 export MaxAPIObjectLimit=500
-export WorkAPIObjectLimit=${MaxAPIObjectLimit}
+export RecommendedAPIObjectLimitMDSM=200
+export DefaultAPIObjectLimit=${MaxAPIObjectLimit}
+export DefaultAPIObjectLimitMDSM=${RecommendedAPIObjectLimitMDSM}
 
 
 export exobdeffilepath=./export_objects_definition.json
 export CSVFileHeader=
 export csvJQparsevalue=
 
-echo
-echo 'exobdeffilepath = '${exobdeffilepath}
-echo 'CSVFileHeader   = '${CSVFileHeader}
-echo 'csvJQparsevalue = '${csvJQparsevalue}
-echo
+echo `${dtzs}`${dtzsep}
+echo `${dtzs}`${dtzsep} 'exobdeffilepath = '${exobdeffilepath}
+echo `${dtzs}`${dtzsep} 'CSVFileHeader   = '${CSVFileHeader}
+echo `${dtzs}`${dtzsep} 'csvJQparsevalue = '${csvJQparsevalue}
+echo `${dtzs}`${dtzsep}
 
 
 #getcsvfileheaderval=$(cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r)
@@ -225,13 +289,13 @@ set_default_csv_export_elements  () {
         export csvJQparsevalue=${csvJQparsevalue}', '${readcsvJQparsevalue}
     fi
     
-    echo 'readcsvfileheader   = '${readcsvfileheader}
-    echo 'readcsvJQparsevalue = '${readcsvJQparsevalue}
-    echo
-    echo 'CSVFileHeader       = '${CSVFileHeader}
-    echo 'csvJQparsevalue     = '${csvJQparsevalue}
-    echo
-    echo
+    echo `${dtzs}`${dtzsep} 'readcsvfileheader   = '${readcsvfileheader}
+    echo `${dtzs}`${dtzsep} 'readcsvJQparsevalue = '${readcsvJQparsevalue}
+    echo `${dtzs}`${dtzsep}
+    echo `${dtzs}`${dtzsep} 'CSVFileHeader       = '${CSVFileHeader}
+    echo `${dtzs}`${dtzsep} 'csvJQparsevalue     = '${csvJQparsevalue}
+    echo `${dtzs}`${dtzsep}
+    echo `${dtzs}`${dtzsep}
     
 }
 
@@ -275,9 +339,9 @@ set_simplexobjects_csv_export_elements () {
         export csvJQparsevalue=${csvJQparsevalue}', '${readcsvJQparsevalue}
     fi
     
-    echo 'readcsvfileheader       = '${readcsvfileheader}
-    echo 'readcsvJQparsevalue     = '${readcsvJQparsevalue}
-    echo
+    echo `${dtzs}`${dtzsep} 'readcsvfileheader       = '${readcsvfileheader}
+    echo `${dtzs}`${dtzsep} 'readcsvJQparsevalue     = '${readcsvJQparsevalue}
+    echo `${dtzs}`${dtzsep}
     
     export APIobjectminversion=`cat "${exobdeffilepath}" | ${JQ16} '.simplex_objects[] | select(."name"=="'"$whichname"'") | ."api-version"' -r`
     export APICLIobjecttype=`cat "${exobdeffilepath}" | ${JQ16} '.simplex_objects[] | select(."name"=="'"$whichname"'") | ."objectype"' -r`
@@ -288,18 +352,18 @@ set_simplexobjects_csv_export_elements () {
     export APICLIobjectsortparms=`cat "${exobdeffilepath}" | ${JQ16} '.simplex_objects[] | select(."name"=="'"$whichname"'") | ."sortparms"' -r`
     export APICLIobjectgroup=`cat "${exobdeffilepath}" | ${JQ16} '.simplex_objects[] | select(."name"=="'"$whichname"'") | ."objectgroup"' -r`
     
-    echo 'APIobjectminversion     = '${APIobjectminversion}
-    echo 'APICLIobjecttype        = '${APICLIobjecttype}
-    echo 'APICLIobjectstype       = '${APICLIobjectstype}
-    echo 'APICLICSVobjecttype     = '${APICLICSVobjecttype}
-    echo 'WorkAPIObjectLimit      = '${WorkAPIObjectLimit}
-    echo 'APICLIobjectsortparms   = '${APICLIobjectsortparms}
-    echo 'APICLIobjectgroup       = '${APICLIobjectgroup}
-    echo
-    echo 'CSVFileHeader           = '${CSVFileHeader}
-    echo 'csvJQparsevalue         = '${csvJQparsevalue}
-    echo
-    echo
+    echo `${dtzs}`${dtzsep} 'APIobjectminversion     = '${APIobjectminversion}
+    echo `${dtzs}`${dtzsep} 'APICLIobjecttype        = '${APICLIobjecttype}
+    echo `${dtzs}`${dtzsep} 'APICLIobjectstype       = '${APICLIobjectstype}
+    echo `${dtzs}`${dtzsep} 'APICLICSVobjecttype     = '${APICLICSVobjecttype}
+    echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit      = '${WorkAPIObjectLimit}
+    echo `${dtzs}`${dtzsep} 'APICLIobjectsortparms   = '${APICLIobjectsortparms}
+    echo `${dtzs}`${dtzsep} 'APICLIobjectgroup       = '${APICLIobjectgroup}
+    echo `${dtzs}`${dtzsep}
+    echo `${dtzs}`${dtzsep} 'CSVFileHeader           = '${CSVFileHeader}
+    echo `${dtzs}`${dtzsep} 'csvJQparsevalue         = '${csvJQparsevalue}
+    echo `${dtzs}`${dtzsep}
+    echo `${dtzs}`${dtzsep}
     
 }
 
@@ -343,9 +407,9 @@ set_complexobjectmembers_csv_export_elements () {
         export csvJQparsevalue=${csvJQparsevalue}', '${readcsvJQparsevalue}
     fi
     
-    echo 'readcsvfileheader       = '${readcsvfileheader}
-    echo 'readcsvJQparsevalue     = '${readcsvJQparsevalue}
-    echo
+    echo `${dtzs}`${dtzsep} 'readcsvfileheader       = '${readcsvfileheader}
+    echo `${dtzs}`${dtzsep} 'readcsvJQparsevalue     = '${readcsvJQparsevalue}
+    echo `${dtzs}`${dtzsep}
     
     export APIobjectminversion=`cat "${exobdeffilepath}" | ${JQ16} '.complex_object_members[] | select(."name"=="'"$whichname"'") | ."api-version"' -r`
     export APICLIobjecttype=`cat "${exobdeffilepath}" | ${JQ16} '.complex_object_members[] | select(."name"=="'"$whichname"'") | ."objectype"' -r`
@@ -358,20 +422,20 @@ set_complexobjectmembers_csv_export_elements () {
     export APICLIobjectsortparms=`cat "${exobdeffilepath}" | ${JQ16} '.complex_object_members[] | select(."name"=="'"$whichname"'") | ."sortparms"' -r`
     export APICLIobjectgroup=`cat "${exobdeffilepath}" | ${JQ16} '.complex_object_members[] | select(."name"=="'"$whichname"'") | ."objectgroup"' -r`
     
-    echo 'APIobjectminversion     = '${APIobjectminversion}
-    echo 'APICLIobjecttype        = '${APICLIobjecttype}
-    echo 'APICLIobjectstype       = '${APICLIobjectstype}
-    echo 'APICLICSVobjecttype     = '${APICLICSVobjecttype}
-    echo 'APICLIcomplexobjecttype = '${APICLIcomplexobjecttype}
-    echo 'APICLIcomplexobjectstype= '${APICLIcomplexobjectstype}
-    echo 'WorkAPIObjectLimit      = '${WorkAPIObjectLimit}
-    echo 'APICLIobjectsortparms   = '${APICLIobjectsortparms}
-    echo 'APICLIobjectgroup       = '${APICLIobjectgroup}
-    echo
-    echo 'CSVFileHeader           = '${CSVFileHeader}
-    echo 'csvJQparsevalue         = '${csvJQparsevalue}
-    echo
-    echo
+    echo `${dtzs}`${dtzsep} 'APIobjectminversion     = '${APIobjectminversion}
+    echo `${dtzs}`${dtzsep} 'APICLIobjecttype        = '${APICLIobjecttype}
+    echo `${dtzs}`${dtzsep} 'APICLIobjectstype       = '${APICLIobjectstype}
+    echo `${dtzs}`${dtzsep} 'APICLICSVobjecttype     = '${APICLICSVobjecttype}
+    echo `${dtzs}`${dtzsep} 'APICLIcomplexobjecttype = '${APICLIcomplexobjecttype}
+    echo `${dtzs}`${dtzsep} 'APICLIcomplexobjectstype= '${APICLIcomplexobjectstype}
+    echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit      = '${WorkAPIObjectLimit}
+    echo `${dtzs}`${dtzsep} 'APICLIobjectsortparms   = '${APICLIobjectsortparms}
+    echo `${dtzs}`${dtzsep} 'APICLIobjectgroup       = '${APICLIobjectgroup}
+    echo `${dtzs}`${dtzsep}
+    echo `${dtzs}`${dtzsep} 'CSVFileHeader           = '${CSVFileHeader}
+    echo `${dtzs}`${dtzsep} 'csvJQparsevalue         = '${csvJQparsevalue}
+    echo `${dtzs}`${dtzsep}
+    echo `${dtzs}`${dtzsep}
     
 }
 
@@ -415,9 +479,9 @@ set_complexobjects_csv_export_elements () {
         export csvJQparsevalue=${csvJQparsevalue}', '${readcsvJQparsevalue}
     fi
     
-    echo 'readcsvfileheader       = '${readcsvfileheader}
-    echo 'readcsvJQparsevalue     = '${readcsvJQparsevalue}
-    echo
+    echo `${dtzs}`${dtzsep} 'readcsvfileheader       = '${readcsvfileheader}
+    echo `${dtzs}`${dtzsep} 'readcsvJQparsevalue     = '${readcsvJQparsevalue}
+    echo `${dtzs}`${dtzsep}
     
     export APIobjectminversion=`cat "${exobdeffilepath}" | ${JQ16} '.complex_objects[] | select(."name"=="'"$whichname"'") | ."api-version"' -r`
     export APICLIobjecttype=`cat "${exobdeffilepath}" | ${JQ16} '.complex_objects[] | select(."name"=="'"$whichname"'") | ."objectype"' -r`
@@ -430,20 +494,20 @@ set_complexobjects_csv_export_elements () {
     export APICLIobjectsortparms=`cat "${exobdeffilepath}" | ${JQ16} '.complex_objects[] | select(."name"=="'"$whichname"'") | ."sortparms"' -r`
     export APICLIobjectgroup=`cat "${exobdeffilepath}" | ${JQ16} '.complex_objects[] | select(."name"=="'"$whichname"'") | ."objectgroup"' -r`
     
-    echo 'APIobjectminversion     = '${APIobjectminversion}
-    echo 'APICLIobjecttype        = '${APICLIobjecttype}
-    echo 'APICLIobjectstype       = '${APICLIobjectstype}
-    echo 'APICLICSVobjecttype     = '${APICLICSVobjecttype}
-    echo 'APICLIcomplexobjecttype = '${APICLIcomplexobjecttype}
-    echo 'APICLIcomplexobjectstype= '${APICLIcomplexobjectstype}
-    echo 'WorkAPIObjectLimit      = '${WorkAPIObjectLimit}
-    echo 'APICLIobjectsortparms   = '${APICLIobjectsortparms}
-    echo 'APICLIobjectgroup       = '${APICLIobjectgroup}
-    echo
-    echo 'CSVFileHeader           = '${CSVFileHeader}
-    echo 'csvJQparsevalue         = '${csvJQparsevalue}
-    echo
-    echo
+    echo `${dtzs}`${dtzsep} 'APIobjectminversion     = '${APIobjectminversion}
+    echo `${dtzs}`${dtzsep} 'APICLIobjecttype        = '${APICLIobjecttype}
+    echo `${dtzs}`${dtzsep} 'APICLIobjectstype       = '${APICLIobjectstype}
+    echo `${dtzs}`${dtzsep} 'APICLICSVobjecttype     = '${APICLICSVobjecttype}
+    echo `${dtzs}`${dtzsep} 'APICLIcomplexobjecttype = '${APICLIcomplexobjecttype}
+    echo `${dtzs}`${dtzsep} 'APICLIcomplexobjectstype= '${APICLIcomplexobjectstype}
+    echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit      = '${WorkAPIObjectLimit}
+    echo `${dtzs}`${dtzsep} 'APICLIobjectsortparms   = '${APICLIobjectsortparms}
+    echo `${dtzs}`${dtzsep} 'APICLIobjectgroup       = '${APICLIobjectgroup}
+    echo `${dtzs}`${dtzsep}
+    echo `${dtzs}`${dtzsep} 'CSVFileHeader           = '${CSVFileHeader}
+    echo `${dtzs}`${dtzsep} 'csvJQparsevalue         = '${csvJQparsevalue}
+    echo `${dtzs}`${dtzsep}
+    echo `${dtzs}`${dtzsep}
     
 }
 
@@ -468,7 +532,7 @@ export elementname=common
 
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVJQparms"' -r
-#echo
+#echo `${dtzs}`${dtzsep}
 
 set_default_csv_export_elements "${elementname}"
 
@@ -476,7 +540,7 @@ export elementname=name-only
 
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVJQparms"' -r
-#echo
+#echo `${dtzs}`${dtzsep}
 
 set_default_csv_export_elements "${elementname}"
 
@@ -484,7 +548,7 @@ export elementname=name-and-uid
 
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVJQparms"' -r
-#echo
+#echo `${dtzs}`${dtzsep}
 
 set_default_csv_export_elements "${elementname}"
 
@@ -492,7 +556,7 @@ export elementname=uid-only
 
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVJQparms"' -r
-#echo
+#echo `${dtzs}`${dtzsep}
 
 set_default_csv_export_elements "${elementname}"
 
@@ -500,7 +564,7 @@ export elementname=tags05
 
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVJQparms"' -r
-#echo
+#echo `${dtzs}`${dtzsep}
 
 set_default_csv_export_elements "${elementname}"
 
@@ -508,7 +572,7 @@ export elementname=tags10
 
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVJQparms"' -r
-#echo
+#echo `${dtzs}`${dtzsep}
 
 set_default_csv_export_elements "${elementname}"
 
@@ -516,7 +580,7 @@ export elementname=domain
 
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVJQparms"' -r
-#echo
+#echo `${dtzs}`${dtzsep}
 
 set_default_csv_export_elements "${elementname}"
 
@@ -524,7 +588,7 @@ export elementname=meta-info
 
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVJQparms"' -r
-#echo
+#echo `${dtzs}`${dtzsep}
 
 set_default_csv_export_elements "${elementname}"
 
@@ -532,105 +596,105 @@ export elementname=errorhandling
 
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVFileHeader"' -r
 #cat "${exobdeffilepath}" | ${JQ16} '.default_csv_export_elements[] | select(."name"=="'"${elementname}"'") | ."CSVJQparms"' -r
-#echo
+#echo `${dtzs}`${dtzsep}
 
 set_default_csv_export_elements "${elementname}"
 
-echo '-------------------------------------------------------------------------------------------------'
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 
 export keepercsvfileheader=${CSVFileHeader}
 export keepercsvJQparsevalue=${csvJQparsevalue}
 
 
-echo '-------------------------------------------------------------------------------------------------'
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 export CSVFileHeader=${keepercsvfileheader}
 export csvJQparsevalue=${keepercsvJQparsevalue}
 
 set_simplexobjects_csv_export_elements "host"
 
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 export CSVFileHeader=${keepercsvfileheader}
 export csvJQparsevalue=${keepercsvJQparsevalue}
 
 set_simplexobjects_csv_export_elements "network"
 
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 export CSVFileHeader=${keepercsvfileheader}
 export csvJQparsevalue=${keepercsvJQparsevalue}
 
 set_simplexobjects_csv_export_elements "group"
 
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 export CSVFileHeader=${keepercsvfileheader}
 export csvJQparsevalue=${keepercsvJQparsevalue}
 
 set_simplexobjects_csv_export_elements "service TCP"
 
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 
-echo '-------------------------------------------------------------------------------------------------'
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 export CSVFileHeader=${keepercsvfileheader}
 export csvJQparsevalue=${keepercsvJQparsevalue}
 
 set_complexobjectmembers_csv_export_elements "user group member"
 
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 
-echo '-------------------------------------------------------------------------------------------------'
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 export CSVFileHeader=${keepercsvfileheader}
 export csvJQparsevalue=${keepercsvJQparsevalue}
 
 set_complexobjects_csv_export_elements "host interface"
 
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 
-echo '-------------------------------------------------------------------------------------------------'
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 
 #cat "${exobdeffilepath}" | ${JQ16} '.simplex_objects[] | ."name"' -r
 #cat "${exobdeffilepath}" | ${JQ16} '.simplex_objects[] | ."name"' -c
 cat "${exobdeffilepath}" | ${JQ16} '.simplex_objects[] | ."name"'
-echo
+echo `${dtzs}`${dtzsep}
 
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 cat "${exobdeffilepath}" | ${JQ16} '.simplex_objects[] | "\"" + .name + "\","' -j
-echo
+echo `${dtzs}`${dtzsep}
 
-echo '-------------------------------------------------------------------------------------------------'
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 #cat "${exobdeffilepath}" | ${JQ16} '.complex_objects[] | ."name"' -r
 #cat "${exobdeffilepath}" | ${JQ16} '.complex_objects[] | ."name"' -c
 cat "${exobdeffilepath}" | ${JQ16} '.complex_objects[] | ."name"'
-echo
+echo `${dtzs}`${dtzsep}
 
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 cat "${exobdeffilepath}" | ${JQ16} '.complex_objects[] | "\"" + .name + "\","' -j
-echo
+echo `${dtzs}`${dtzsep}
 
-echo '-------------------------------------------------------------------------------------------------'
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------------------------'
 
 
