@@ -1,0 +1,512 @@
+{ "file_meta_info" : {
+	"fileversion" : "0.60.8",
+	"filerevision" : "050",
+	"filedate" : "2021-11-08"
+}, 
+"default_csv_export_elements" : [ {
+	"name" : "common",
+	"CSVFileHeader" : "\"name\",\"color\",\"comments\"",
+	"CSVJQparms" : ".[\"name\"], .[\"color\"], .[\"comments\"]"
+}, {
+	"name" : "name-only",
+	"CSVFileHeader" : "\"name\"",
+	"CSVJQparms" : ".[\"name\"]"
+}, {
+	"name" : "name-and-uid",
+	"CSVFileHeader" : "\"name\",\"uid\"",
+	"CSVJQparms" : ".[\"name\"], .[\"uid\"]"
+}, {
+	"name" : "uid-only",
+	"CSVFileHeader" : "\"uid\"",
+	"CSVJQparms" : ".[\"uid\"]"
+}, {
+	"name" : "rename-to-new-name",
+	"CSVFileHeader" : "\"name\",\"new-name\"",
+	"CSVJQparms" : ".[\"name\"], .[\"name\"]"
+}, {
+	"name" : "tags05",
+	"CSVFileHeader" : "\"tags.0\",\"tags.1\",\"tags.2\",\"tags.3\",\"tags.4\"",
+	"CSVJQparms" : ".[\"tags\"][0][\"name\"], .[\"tags\"][1][\"name\"], .[\"tags\"][2][\"name\"], .[\"tags\"][3][\"name\"], .[\"tags\"][4][\"name\"]"
+}, {
+	"name" : "tags10",
+	"CSVFileHeader" : "\"tags.0\",\"tags.1\",\"tags.2\",\"tags.3\",\"tags.4\",\"tags.5\",\"tags.6\",\"tags.7\",\"tags.8\",\"tags.9\"",
+	"CSVJQparms" : ".[\"tags\"][0][\"name\"], .[\"tags\"][1][\"name\"], .[\"tags\"][2][\"name\"], .[\"tags\"][3][\"name\"], .[\"tags\"][4][\"name\"], .[\"tags\"][5][\"name\"], .[\"tags\"][6][\"name\"], .[\"tags\"][7][\"name\"], .[\"tags\"][8][\"name\"], .[\"tags\"][9][\"name\"]"
+}, {
+	"name" : "uid-domain",
+	"CSVFileHeader" : "\"uid\",\"domain.name\",\"domain.domain-type\"",
+	"CSVJQparms" : ".[\"uid\"], .[\"domain\"][\"name\"], .[\"domain\"][\"domain-type\"]"
+}, {
+	"name" : "meta-info",
+	"CSVFileHeader" : "\"meta-info.creator\",\"meta-info.creation-time.iso-8601\",\"meta-info.last-modifier\",\"meta-info.last-modify-time.iso-8601\"",
+	"CSVJQparms" : ".[\"meta-info\"][\"creator\"], .[\"meta-info\"][\"creation-time\"][\"iso-8601\"], .[\"meta-info\"][\"last-modifier\"], .[\"meta-info\"][\"last-modify-time\"][\"iso-8601\"]"
+}, {
+	"name" : "errorhandling",
+	"CSVFileHeader" : "\"ignore-warnings\",\"ignore-errors\",\"set-if-exists\"",
+	"CSVJQparms" : "true, true, true"
+} ], 
+"simplex_objects" : [ {
+	"name" : "example",
+	"name-plural" : "examples",
+	"objectgroup" : [
+		"Network Objects", 
+		"Service & Applications",
+		"Users"
+	 ],
+	"api-version" : [
+		"1.1", 
+		"1.2",
+		"1.3",
+		"1.4",
+		"1.5",
+		"1.6",
+		"1.6.1.",
+		"1.7"
+	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objectype" : "example",
+	"objectsype" : "examples",
+	"objectlimit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"MDSM-recommended-limit" : [
+		500,
+		50,
+		1-500 
+	]
+	"MDSM-recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "example",
+	"name-plural" : "examples",
+	"objectgroup" : [
+		"Network Objects", 
+		"Service & Applications",
+		"Users"
+	 ],
+	"api-version" : [
+		"1.1", 
+		"1.2",
+		"1.3",
+		"1.4",
+		"1.5",
+		"1.6",
+		"1.6.1.",
+		"1.7"
+	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objectype" : "example",
+	"objectsype" : "examples",
+	"objectlimit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"MDSM-recommended-limit" : [
+		500,
+		50,
+		1-500 
+	]
+	"MDSM-recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "example",
+	"name-plural" : "examples",
+	"objectgroup" : [
+		"Network Objects", 
+		"Service & Applications",
+		"Users"
+	 ],
+	"api-version" : [
+		"1.1", 
+		"1.2",
+		"1.3",
+		"1.4",
+		"1.5",
+		"1.6",
+		"1.6.1.",
+		"1.7"
+	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objectype" : "example",
+	"objectsype" : "examples",
+	"objectlimit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"MDSM-recommended-limit" : [
+		500,
+		50,
+		1-500 
+	]
+	"MDSM-recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "example",
+	"name-plural" : "examples",
+	"objectgroup" : [
+		"Network Objects", 
+		"Service & Applications",
+		"Users"
+	 ],
+	"api-version" : [
+		"1.1", 
+		"1.2",
+		"1.3",
+		"1.4",
+		"1.5",
+		"1.6",
+		"1.6.1.",
+		"1.7"
+	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objectype" : "example",
+	"objectsype" : "examples",
+	"objectlimit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"MDSM-recommended-limit" : [
+		500,
+		50,
+		1-500 
+	]
+	"MDSM-recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+} ], 
+"complex_object_members" : [ {
+	"name" : "example",
+	"name-plural" : "examples",
+	"objectgroup" : [
+		"Network Objects", 
+		"Service & Applications",
+		"Users"
+	 ],
+	"api-version" : [
+		"1.1", 
+		"1.2",
+		"1.3",
+		"1.4",
+		"1.5",
+		"1.6",
+		"1.6.1.",
+		"1.7"
+	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objectype" : "example",
+	"objectsype" : "examples",
+	"complexobjecttype" : "example",
+	"complexobjectstype" : "examples",
+	"objectlimit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"MDSM-recommended-limit" : [
+		500,
+		50,
+		1-500 
+	]
+	"MDSM-recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "example",
+	"name-plural" : "examples",
+	"objectgroup" : [
+		"Network Objects", 
+		"Service & Applications",
+		"Users"
+	 ],
+	"api-version" : [
+		"1.1", 
+		"1.2",
+		"1.3",
+		"1.4",
+		"1.5",
+		"1.6",
+		"1.6.1.",
+		"1.7"
+	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objectype" : "example",
+	"objectsype" : "examples",
+	"complexobjecttype" : "example",
+	"complexobjectstype" : "examples",
+	"objectlimit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"MDSM-recommended-limit" : [
+		500,
+		50,
+		1-500 
+	]
+	"MDSM-recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+} ],
+"complex_objects" : [ {
+	"name" : "example",
+	"name-plural" : "examples",
+	"objectgroup" : [
+		"Network Objects", 
+		"Service & Applications",
+		"Users"
+	 ],
+	"api-version" : [
+		"1.1", 
+		"1.2",
+		"1.3",
+		"1.4",
+		"1.5",
+		"1.6",
+		"1.6.1.",
+		"1.7"
+	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objectype" : "example",
+	"objectsype" : "examples",
+	"complexobjecttype" : "example",
+	"complexobjectstype" : "examples",
+	"objectlimit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"MDSM-recommended-limit" : [
+		500,
+		50,
+		1-500 
+	]
+	"MDSM-recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "example",
+	"name-plural" : "examples",
+	"objectgroup" : [
+		"Network Objects", 
+		"Service & Applications",
+		"Users"
+	 ],
+	"api-version" : [
+		"1.1", 
+		"1.2",
+		"1.3",
+		"1.4",
+		"1.5",
+		"1.6",
+		"1.6.1.",
+		"1.7"
+	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objectype" : "example",
+	"objectsype" : "examples",
+	"complexobjecttype" : "example",
+	"complexobjectstype" : "examples",
+	"objectlimit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"MDSM-recommended-limit" : [
+		500,
+		50,
+		1-500 
+	]
+	"MDSM-recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+}, {
+	"name" : "example",
+	"name-plural" : "examples",
+	"objectgroup" : [
+		"Network Objects", 
+		"Service & Applications",
+		"Users"
+	 ],
+	"api-version" : [
+		"1.1", 
+		"1.2",
+		"1.3",
+		"1.4",
+		"1.5",
+		"1.6",
+		"1.6.1.",
+		"1.7"
+	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objectype" : "example",
+	"objectsype" : "examples",
+	"complexobjecttype" : "example",
+	"complexobjectstype" : "examples",
+	"objectlimit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit" : [
+		500,
+		50,
+		1-500 
+	],
+	"recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"MDSM-recommended-limit" : [
+		500,
+		50,
+		1-500 
+	]
+	"MDSM-recommended-limit-percent" : [
+		"100%",
+		"10%",
+		"10%-100%"
+	],
+	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "",
+	"CSVJQparms" : ""
+	"exportcheck01key" : "\"check_key\"",
+	"exportcheck01value" : "\"check_value\""
+} ]
+}

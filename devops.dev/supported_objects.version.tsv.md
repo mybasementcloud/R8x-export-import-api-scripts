@@ -1,5 +1,7 @@
 supported_objects.version.tsv - Overview
 
+### UPDATED:  2021-11
+
 This document provides an overview of the content approach for the "supported_objects.version.tsv" file provided (example:  "supported_objects.v00.60.01.020.tsv").
 
 The provided TSV (Tab Separated Values) file is listing of the supported objects for export, import, set or update, and delete operations and shows the API objects and their respective supported state.

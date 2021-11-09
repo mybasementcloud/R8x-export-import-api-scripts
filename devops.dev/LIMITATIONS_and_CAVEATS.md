@@ -1,5 +1,7 @@
 # LIMITATIONS and CAVEATS
 
+### UPDATED:  2021-11
+
 This document outlines limitations and caveats to the implementation of R8X API export, import, set-update, and delete scripts utilizing bash mgmt_cli commands.
 
 ## DISCLAIMER
@@ -62,4 +64,9 @@ Currently RADIUS server object and RADIUS servers group object types do not exis
 - Locations currently not handled, as this requires a concept and approach
 
 - Times currently not handled, as this requires a concept and approach
+    
+
+### LSM Objects
+- lsm-gateway and lsm-cluster objects are Work-In-Progress (WIP) and may not provide CSV results of value until further data can be collected and analyzed
+
     

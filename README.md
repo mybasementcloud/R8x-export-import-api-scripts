@@ -1,6 +1,6 @@
 # R8x-export-import-api-scripts
 
-### UPDATED:  2021-10
+### UPDATED:  2021-11
 
 Check Point R8x Export, Import, Set/Update, Rename to new-name, and Delete mgmt_cli API scripts for bash on Check Point Gaia OS management hosts, using CSV files (v00.60.xx.yyy)
 

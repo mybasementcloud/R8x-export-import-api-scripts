@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=030
-ScriptDate=2021-10-25
+ScriptRevision=050
+ScriptDate=2021-11-08
 TemplateVersion=00.60.08
 APISubscriptsLevel=006
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=030
+APISubscriptsRevision=050
 
 #
 
@@ -283,7 +283,7 @@ export WAITTIME=15
 # Configure location for api subscripts
 # -------------------------------------------------------------------------------------------------
 
-# ADDED 2020-11-16 -
+# ADDED 2021-11-08 -
 # Configure basic location for api subscripts
 export api_subscripts_default_root=..
 export api_subscripts_default_folder=_api_subscripts
@@ -298,12 +298,16 @@ if [ -r "${api_subscripts_default_root}/${api_subscripts_default_folder}/${api_s
 elif [ -r "./${api_subscripts_default_folder}/${api_subscripts_checkfile}" ]; then
     # OK, didn't find the api subscripts in the default root, instead found them in the working folder
     export api_subscripts_root=.
+elif [ -r "../../${api_subscripts_default_folder}/${api_subscripts_checkfile}" ]; then
+    # OK, didn't find the api subscripts in the default root, or in the working folder, but they were two (2) levels up
+    export api_subscripts_root=../..
 else
     # OK, didn't find the api subscripts where we expect to find them, so this is bad!
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Missing critical api subscript files that are expected in the one of the following locations:' | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} ' PREFERRED Location :  '"${api_subscripts_default_root}/${api_subscripts_default_folder}/${api_subscripts_checkfile}" | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} ' ALTERNATE Location :  '"./${api_subscripts_default_folder}/${api_subscripts_checkfile}" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} ' PREFERRED Location   :  '"${api_subscripts_default_root}/${api_subscripts_default_folder}/${api_subscripts_checkfile}" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} ' ALTERNATE Location 1 :  '"./${api_subscripts_default_folder}/${api_subscripts_checkfile}" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} ' ALTERNATE Location 2 :  '"../../${api_subscripts_default_folder}/${api_subscripts_checkfile}" | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Unable to continue without these api subscript files, so exiting!!!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
@@ -312,10 +316,13 @@ else
     exit 1
 fi
 
+export api_subscripts_default_root=${api_subscripts_root}
+
+
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-11-16 -
+# MODIFIED 2021-11-08 -
 # Configure basic information for formation of file path for basic script setup API Scripts handler script
 #
 # basic_script_setup_API_handler_root - root path to basic script setup API Scripts handler script. Period (".") indicates root of script source folder
@@ -323,15 +330,15 @@ fi
 # basic_script_setup_API_handler_file - filename, without path, for basic script setup API Scripts handler script
 #
 
-# MODIFIED 2020-11-16 -
-export basic_script_setup_API_handler_root=..
-export basic_script_setup_API_handler_folder=_api_subscripts
+# MODIFIED 2021-11-08 -
+export basic_script_setup_API_handler_root=${api_subscripts_root}
+export basic_script_setup_API_handler_folder=${api_subscripts_default_folder}
 export basic_script_setup_API_handler_file=basic_script_setup_API_scripts.subscript.common.${APISubscriptsLevel}.v${APISubscriptsVersion}.sh
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-09-09 -
+# MODIFIED 2021-11-08 -
 # Configure basic information for formation of file path for command line parameter handler script
 #
 # cli_api_cmdlineparm_handler_root - root path to command line parameter handler script
@@ -339,7 +346,7 @@ export basic_script_setup_API_handler_file=basic_script_setup_API_scripts.subscr
 # cli_api_cmdlineparm_handler_file - filename, without path, for command line parameter handler script
 #
 
-# MODIFIED 2020-09-09 -
+# MODIFIED 2021-11-08 -
 export cli_api_cmdlineparm_handler_root=${api_subscripts_root}
 export cli_api_cmdlineparm_handler_folder=${api_subscripts_default_folder}
 export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.subscript.common.${APISubscriptsLevel}.v${APISubscriptsVersion}.sh
@@ -347,7 +354,7 @@ export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.subscript.co
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-09-09 -
+# MODIFIED 2021-11-08 -
 # Configure basic information for formation of file path for gaia version handler script
 #
 # gaia_version__handler_root - root path to gaia version handler script. Period (".") indicates root of script source folder
@@ -355,7 +362,7 @@ export cli_api_cmdlineparm_handler_file=cmd_line_parameters_handler.subscript.co
 # gaia_version__handler_file - filename, without path, for gaia version handler script
 #
 
-# MODIFIED 2020-09-09 -
+# MODIFIED 2021-11-08 -
 export gaia_version_handler_root=${api_subscripts_root}
 export gaia_version_handler_folder=${api_subscripts_default_folder}
 export gaia_version_handler_file=identify_gaia_and_installation.subscript.common.${APISubscriptsLevel}.v${APISubscriptsVersion}.sh
@@ -363,7 +370,7 @@ export gaia_version_handler_file=identify_gaia_and_installation.subscript.common
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-11-16 -
+# MODIFIED 2021-11-08 -
 # Configure basic information for formation of file path for Script Output Paths and Folders for API scripts handler script
 #
 # script_output_paths_API_handler_root - root path to Script Output Paths and Folders for API scripts handler script. Period (".") indicates root of script source folder
@@ -371,15 +378,15 @@ export gaia_version_handler_file=identify_gaia_and_installation.subscript.common
 # script_output_paths_API_handler_file - filename, without path, for Script Output Paths and Folders for API scripts handler script
 #
 
-# MODIFIED 2020-11-16 -
-export script_output_paths_API_handler_root=..
-export script_output_paths_API_handler_folder=_api_subscripts
+# MODIFIED 2021-11-08 -
+export script_output_paths_API_handler_root=${api_subscripts_root}
+export script_output_paths_API_handler_folder=${api_subscripts_default_folder}
 export script_output_paths_API_handler_file=script_output_paths_and_folders_API_scripts.subscript.common.${APISubscriptsLevel}.v${APISubscriptsVersion}.sh
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-11-16 -
+# MODIFIED 2021-11-08 -
 # Configure basic information for formation of file path for basic script setup API Scripts handler script
 #
 # mgmt_cli_API_operations_handler_root - root path to basic script setup API Scripts handler script. Period (".") indicates root of script source folder
@@ -387,9 +394,9 @@ export script_output_paths_API_handler_file=script_output_paths_and_folders_API_
 # mgmt_cli_API_operations_handler_file - filename, without path, for basic script setup API Scripts handler script
 #
 
-# MODIFIED 2020-11-16 -
-export mgmt_cli_API_operations_handler_root=..
-export mgmt_cli_API_operations_handler_folder=_api_subscripts
+# MODIFIED 2021-11-08 -
+export mgmt_cli_API_operations_handler_root=${api_subscripts_root}
+export mgmt_cli_API_operations_handler_folder=${api_subscripts_default_folder}
 export mgmt_cli_API_operations_handler_file=mgmt_cli_api_operations.subscript.common.${APISubscriptsLevel}.v${APISubscriptsVersion}.sh
 
 # -------------------------------------------------------------------------------------------------
