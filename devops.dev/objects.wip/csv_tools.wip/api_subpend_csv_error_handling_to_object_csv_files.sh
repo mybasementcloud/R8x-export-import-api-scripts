@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=050
-ScriptDate=2021-11-08
+ScriptRevision=055
+ScriptDate=2021-11-10
 TemplateVersion=00.60.08
-APISubscriptsLevel=006
+APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=050
+APISubscriptsRevision=055
 
 #
 
@@ -197,10 +197,13 @@ export APISCRIPTVERBOSE=false
 export DefaultMgmtAdmin=administrator
 
 
-# ADDED 2021-02-21 -
+# MODIFIED 2021-11-09 -
+
+# Configure whether this script operates only on MDSM
+export OpsModeMDSM=false
 
 # Configure whether this script operates against all domains by default, which affects -d CLI parameter handling for authentication
-export OpsModeAllDomains=false
+export OpsModeMDSMAllDomains=false
 
 
 # 2018-05-02 - script type - template - test it all
@@ -258,7 +261,28 @@ export WAITTIME=15
 # Configure location for api subscripts
 # -------------------------------------------------------------------------------------------------
 
-# ADDED 2021-11-08 -
+# ADDED 2021-11-09 - MODIFIED 2021-11-09 -
+#
+# Presumptive folder structure for R8X API Management CLI (mgmt_cli) Template based scripts
+#
+# <script_home_folder> is the folder containing the script set, generally /var/log/__customer/devops|devops.dev|devops.dev.test
+# [.wip] named folders are for development operations
+#
+# ...<script_home_folder>/_api_subscripts                       ## _api_subscripts folder for all scripts
+# ...<script_home_folder>/_templates[.wip]                      ## _templates[.wip] folder for all scripts
+# ...<script_home_folder>/tools                                 ## tools folder for all scripts with additional tools not assumed on system
+# ...<script_home_folder>/objects[.wip]                         ## objects[.wip] folder for objects operations focused scripts
+# ...<script_home_folder>/objects[.wip]/csv_tools[.wip]         ## csv_tools[.wip] folder for objects operations for csv handling focused scripts
+# ...<script_home_folder>/objects[.wip]/export_import[.wip]     ## export_import[.wip] folder for objects operations export, import, set, rename, and delete focused scripts
+# ...<script_home_folder>/Policy_and_Layers[.wip]               ## Policy_and_Layers[.wip] folder for policy and layers operations focused scripts
+# ...<script_home_folder>/Session_Cleanup[.wip]                 ## Session_Cleanup[.wip] folder for Session Cleanup operation focused scripts
+# ...<script_home_folder>/tools.MDSM[.wip]                      ## tools.MDSM[.wip] folder for Tools focused on MDSM operations scripts
+#
+#
+# api_subscripts_default_root is defined with the assumption that scripts are running in a subfolder of the <script_home_folder> folder
+
+
+# MODIFIED 2021-11-09 -
 # Configure basic location for api subscripts
 export api_subscripts_default_root=..
 export api_subscripts_default_folder=_api_subscripts
@@ -738,7 +762,7 @@ BasicScriptSetupAPIScripts "$@"
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-10-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -755,6 +779,7 @@ BasicScriptSetupAPIScripts "$@"
 # -u <admin_name> | --user <admin_name> | -u=<admin_name> | --user=<admin_name>
 # -p <password> | --password <password> | -p=<password> | --password=<password>
 # --api-key "<api_key_value>" | --api-key="<api_key_value>" 
+# --MaaS | --maas | --MAAS
 # --context <web_api|gaia_api|{MaaSGUID}/web_api> | --context=<web_api|gaia_api|{MaaSGUID}/web_api> 
 # -m <server_IP> | --management <server_IP> | -m=<server_IP> | --management=<server_IP>
 # -d <domain> | --domain <domain> | -d=<domain> | --domain=<domain>
@@ -788,6 +813,8 @@ export CLIparm_password=
 # ADDED 2020-08-19 -
 export CLIparm_api_key=
 export CLIparm_use_api_key=false
+# ADDED 2021-11-09 -
+export CLIparm_MaaS=false
 # ADDED 2021-10-19 -
 export CLIparm_api_context=
 export CLIparm_use_api_context=false
@@ -830,8 +857,8 @@ export CLIparm_NOHUPDTG=
 export CLIparm_NOHUPPATH=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-19
-# MODIFIED 2021-02-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
+# MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -870,6 +897,9 @@ export CLIparm_NOHUPPATH=
 # --5-TAGS | --CSVEXPORT05TAGS
 # --10-TAGS | --CSVEXPORT10TAGS
 # --NO-TAGS | --CSVEXPORTNOTAGS
+#
+# --OVERRIDEMAXOBJECTS
+# --MAXOBJECTS <maximum_objects_10-500> | --MAXOBJECTS=<maximum_objects_10-500>
 #
 # --CSVEXPORTDATADOMAIN
 # --CSVEXPORTDATACREATOR
@@ -968,6 +998,17 @@ export CSVEXPORTNOTAGS=false
 export CLIparm_CSVEXPORT05TAGS=${CSVEXPORT05TAGS}
 export CLIparm_CSVEXPORT10TAGS=${CSVEXPORT10TAGS}
 export CLIparm_CSVEXPORTNOTAGS=${CSVEXPORTNOTAGS}
+
+# ADDED 2021-11-09 - MODIFIED 2021-11-10
+# --OVERRIDEMAXOBJECTS
+# --MAXOBJECTS <maximum_objects_10-500> | --MAXOBJECTS=<maximum_objects_10-500>
+
+export CLIparm_OVERRIDEMAXOBJECTS=false
+export CLIparm_MAXOBJECTS=
+export OverrideMaxObjects=${CLIparm_OVERRIDEMAXOBJECTS}
+export OverrideMaxObjectsNumber=${CLIparm_MAXOBJECTS}
+export MinMaxObjectsLimit=10
+export MaxMaxObjectsLimit=${AbsoluteAPIMaxObjectLimit}
 
 # ADDED 2020-09-30 -
 # --CSVEXPORTDATADOMAIN :  Export Data Domain information to CSV
@@ -1076,7 +1117,7 @@ export CLIparm_importpath=
 export CLIparm_deletepath=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-04
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1323,7 +1364,7 @@ dumprawcliremains () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 dumpcliparmparseresults () {
@@ -1334,140 +1375,164 @@ dumpcliparmparseresults () {
     
     SetupTempLogFile
     
-    #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'X' "${X}" >> ${templogfilepath}
+    dumpcliparmslogfilepath=${templogfilepath}
+    
+    # MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
-    echo `${dtzs}`${dtzsep} 'CLI Parameters :' >> ${templogfilepath}
-    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+    #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'X' "${X}" >> ${dumpcliparmslogfilepath}
+    #
     
-    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'SHOWHELP' "${SHOWHELP}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'SCRIPTVERBOSE' "${SCRIPTVERBOSE}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APISCRIPTVERBOSE' "${APISCRIPTVERBOSE}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'NOWAIT' "${NOWAIT}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_NOWAIT' "${CLIparm_NOWAIT}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'CLI Parameters :' >> ${dumpcliparmslogfilepath}
+    echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
+    
+    echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'SHOWHELP' "${SHOWHELP}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'SCRIPTVERBOSE' "${SCRIPTVERBOSE}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APISCRIPTVERBOSE' "${APISCRIPTVERBOSE}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'NOWAIT' "${NOWAIT}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_NOWAIT' "${CLIparm_NOWAIT}" >> ${dumpcliparmslogfilepath}
     
     # ADDED 2021-02-06 -
-    echo `${dtzs}`${dtzsep}  >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_NOHUP' "${CLIparm_NOHUP}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_NOHUPScriptName' "${CLIparm_NOHUPScriptName}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_NOHUPDTG' "${CLIparm_NOHUPDTG}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_NOHUPPATH' "${CLIparm_NOHUPPATH}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep}  >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_NOHUP' "${CLIparm_NOHUP}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_NOHUPScriptName' "${CLIparm_NOHUPScriptName}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_NOHUPDTG' "${CLIparm_NOHUPDTG}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_NOHUPPATH' "${CLIparm_NOHUPPATH}" >> ${dumpcliparmslogfilepath}
     
-    #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'X' "${X}" >> ${templogfilepath}
+    #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'X' "${X}" >> ${dumpcliparmslogfilepath}
     
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_rootuser' "${CLIparm_rootuser}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_user' "${CLIparm_user}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_password' "${CLIparm_password}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_rootuser' "${CLIparm_rootuser}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_user' "${CLIparm_user}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_password' "${CLIparm_password}" >> ${dumpcliparmslogfilepath}
     
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_api_key' "${CLIparm_api_key}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_use_api_key' "${CLIparm_use_api_key}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_api_key' "${CLIparm_api_key}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_use_api_key' "${CLIparm_use_api_key}" >> ${dumpcliparmslogfilepath}
     
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_api_context' "${CLIparm_api_context}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_use_api_context' "${CLIparm_use_api_context}" >> ${templogfilepath}
+    # ADDED 2021-11-09 -
     
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_websslport' "${CLIparm_websslport}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_mgmt' "${CLIparm_mgmt}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_domain' "${CLIparm_domain}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_sessionidfile' "${CLIparm_sessionidfile}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_sessiontimeout' "${CLIparm_sessiontimeout}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_MaaS' "${CLIparm_MaaS}" >> ${dumpcliparmslogfilepath}
     
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_logpath' "${CLIparm_logpath}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_outputpath' "${CLIparm_outputpath}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_api_context' "${CLIparm_api_context}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_use_api_context' "${CLIparm_use_api_context}" >> ${dumpcliparmslogfilepath}
     
-    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_NoSystemObjects' "${CLIparm_NoSystemObjects}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_websslport' "${CLIparm_websslport}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_mgmt' "${CLIparm_mgmt}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_domain' "${CLIparm_domain}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_sessionidfile' "${CLIparm_sessionidfile}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_sessiontimeout' "${CLIparm_sessiontimeout}" >> ${dumpcliparmslogfilepath}
+    
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_logpath' "${CLIparm_logpath}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_outputpath' "${CLIparm_outputpath}" >> ${dumpcliparmslogfilepath}
+    
+    #
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
+    # MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    #
+    
+    echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_NoSystemObjects' "${CLIparm_NoSystemObjects}" >> ${dumpcliparmslogfilepath}
     
     # ADDED 2021-02-03 -
-    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CreatorIsNotSystem' "${CLIparm_CreatorIsNotSystem}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CreatorIsNotSystem' "${CreatorIsNotSystem}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CreatorIsNotSystem' "${CLIparm_CreatorIsNotSystem}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CreatorIsNotSystem' "${CreatorIsNotSystem}" >> ${dumpcliparmslogfilepath}
     
-    echo `${dtzs}`${dtzsep}  >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVADDEXPERRHANDLE' "${CSVADDEXPERRHANDLE}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CSVADDEXPERRHANDLE' "${CLIparm_CSVADDEXPERRHANDLE}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep}  >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVADDEXPERRHANDLE' "${CSVADDEXPERRHANDLE}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CSVADDEXPERRHANDLE' "${CLIparm_CSVADDEXPERRHANDLE}" >> ${dumpcliparmslogfilepath}
     
     # ADDED 2021-02-03 -
-    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_TypeOfExport' "${CLIparm_TypeOfExport}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'TypeOfExport' "${TypeOfExport}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_TypeOfExport' "${CLIparm_TypeOfExport}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'TypeOfExport' "${TypeOfExport}" >> ${dumpcliparmslogfilepath}
     
-    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_format' "${CLIparm_format}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_formatall' "${CLIparm_formatall}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_formatcsv' "${CLIparm_formatcsv}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_formatjson' "${CLIparm_formatjson}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_detailslevel' "${CLIparm_detailslevel}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_detailslevelall' "${CLIparm_detailslevelall}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_detailslevelfull' "${CLIparm_detailslevelfull}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_detailslevelstandard' "${CLIparm_detailslevelstandard}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_format' "${CLIparm_format}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_formatall' "${CLIparm_formatall}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_formatcsv' "${CLIparm_formatcsv}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_formatjson' "${CLIparm_formatjson}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_detailslevel' "${CLIparm_detailslevel}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_detailslevelall' "${CLIparm_detailslevelall}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_detailslevelfull' "${CLIparm_detailslevelfull}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_detailslevelstandard' "${CLIparm_detailslevelstandard}" >> ${dumpcliparmslogfilepath}
     
-    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_UseDevOpsResults' "${CLIparm_UseDevOpsResults}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_resultspath' "${CLIparm_resultspath}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_UseDevOpsResults' "${CLIparm_UseDevOpsResults}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_resultspath' "${CLIparm_resultspath}" >> ${dumpcliparmslogfilepath}
     
     # ADDED 2021-10-19 -
-    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_UseJSONRepo' "${CLIparm_UseJSONRepo}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_SaveJSONRepo' "${CLIparm_SaveJSONRepo}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_ForceJSONRepoRebuild' "${CLIparm_ForceJSONRepoRebuild}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_jsonrepopath' "${CLIparm_jsonrepopath}" >> ${templogfilepath}
-    #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'UseJSONRepo' "${UseJSONRepo}" >> ${templogfilepath}
-    #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'SaveJSONRepo' "${SaveJSONRepo}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_UseJSONRepo' "${CLIparm_UseJSONRepo}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_SaveJSONRepo' "${CLIparm_SaveJSONRepo}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_ForceJSONRepoRebuild' "${CLIparm_ForceJSONRepoRebuild}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_jsonrepopath' "${CLIparm_jsonrepopath}" >> ${dumpcliparmslogfilepath}
+    #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'UseJSONRepo' "${UseJSONRepo}" >> ${dumpcliparmslogfilepath}
+    #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'SaveJSONRepo' "${SaveJSONRepo}" >> ${dumpcliparmslogfilepath}
     
     # ADDED 2021-01-16 -
     
-    echo `${dtzs}`${dtzsep}  >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVEXPORT05TAGS' "${CSVEXPORT05TAGS}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CSVEXPORT05TAGS' "${CLIparm_CSVEXPORT05TAGS}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVEXPORT10TAGS' "${CSVEXPORT10TAGS}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CSVEXPORT10TAGS' "${CLIparm_CSVEXPORT10TAGS}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVEXPORTNOTAGS' "${CSVEXPORTNOTAGS}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CSVEXPORTNOTAGS' "${CLIparm_CSVEXPORTNOTAGS}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep}  >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CSVEXPORT05TAGS' "${CLIparm_CSVEXPORT05TAGS}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CSVEXPORT10TAGS' "${CLIparm_CSVEXPORT10TAGS}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CSVEXPORTNOTAGS' "${CLIparm_CSVEXPORTNOTAGS}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVEXPORT05TAGS' "${CSVEXPORT05TAGS}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVEXPORT10TAGS' "${CSVEXPORT10TAGS}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVEXPORTNOTAGS' "${CSVEXPORTNOTAGS}" >> ${dumpcliparmslogfilepath}
     
-    echo `${dtzs}`${dtzsep}  >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'KEEPCSVWIP' "${KEEPCSVWIP}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_KEEPCSVWIP' "${CLIparm_KEEPCSVWIP}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLEANUPCSVWIP' "${CLEANUPCSVWIP}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CLEANUPCSVWIP' "${CLIparm_CLEANUPCSVWIP}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'NODOMAINFOLDERS' "${NODOMAINFOLDERS}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_NODOMAINFOLDERS' "${CLIparm_NODOMAINFOLDERS}" >> ${templogfilepath}
+    # ADDED 2021-11-09 -
     
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CSVEXPORTDATADOMAIN' "${CLIparm_CSVEXPORTDATADOMAIN}" >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CSVEXPORTDATACREATOR' "${CLIparm_CSVEXPORTDATACREATOR}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep}  >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_OVERRIDEMAXOBJECTS' "${CLIparm_OVERRIDEMAXOBJECTS}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_MAXOBJECTS' "${CLIparm_MAXOBJECTS}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'OverrideMaxObjects' "${OverrideMaxObjects}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'OverrideMaxObjectsNumber' "${OverrideMaxObjectsNumber}" >> ${dumpcliparmslogfilepath}
+    
+    echo `${dtzs}`${dtzsep}  >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'KEEPCSVWIP' "${KEEPCSVWIP}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_KEEPCSVWIP' "${CLIparm_KEEPCSVWIP}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLEANUPCSVWIP' "${CLEANUPCSVWIP}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CLEANUPCSVWIP' "${CLIparm_CLEANUPCSVWIP}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'NODOMAINFOLDERS' "${NODOMAINFOLDERS}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_NODOMAINFOLDERS' "${CLIparm_NODOMAINFOLDERS}" >> ${dumpcliparmslogfilepath}
+    
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CSVEXPORTDATADOMAIN' "${CLIparm_CSVEXPORTDATADOMAIN}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CSVEXPORTDATACREATOR' "${CLIparm_CSVEXPORTDATACREATOR}" >> ${dumpcliparmslogfilepath}
     
     if ${script_use_export} ; then
-        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_exportpath' "${CLIparm_exportpath}" >> ${templogfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_exportpath' "${CLIparm_exportpath}" >> ${dumpcliparmslogfilepath}
     fi
     if ${script_use_import} ; then
-        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_importpath' "${CLIparm_importpath}" >> ${templogfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_importpath' "${CLIparm_importpath}" >> ${dumpcliparmslogfilepath}
     fi
     if ${script_use_delete} ; then
-        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_deletepath' "${CLIparm_deletepath}" >> ${templogfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_deletepath' "${CLIparm_deletepath}" >> ${dumpcliparmslogfilepath}
     fi
     if ${script_use_csvfile} ; then
-        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_csvpath' "${CLIparm_csvpath}" >> ${templogfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_csvpath' "${CLIparm_csvpath}" >> ${dumpcliparmslogfilepath}
     fi
     
-    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'remains' "${REMAINS}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'remains' "${REMAINS}" >> ${dumpcliparmslogfilepath}
     
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-21
-# MODIFIED 2021-02-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+    #
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
+    # MODIFIED 2021-02-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    #
     # Improved local CLI parameter dump handler
     
     if ${localCLIparms}; then
         dumpcliparmparselocalresults ${REMAINS}
     fi
     
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-03
-# MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+    #
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-03
+    # MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    #
     
     HandleShowTempLogFile
+    
+    dumpcliparmslogfilepath=
     
     if ${APISCRIPTVERBOSE} ; then
         # Verbose mode ON
@@ -1499,10 +1564,13 @@ dumpcliparmparseresults () {
         echo `${dtzs}`${dtzsep} >> ${logfilepath}
     fi
     
+    #
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
+    
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-21
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1607,7 +1675,7 @@ doshowlocalhelp () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-10-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Show help information
@@ -1619,12 +1687,12 @@ doshowhelp () {
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     #
-    # MODIFIED 2021-10-19 -
+    # MODIFIED 2021-11-09 -
     
     echo
     echo -n $0' [-?][-v]'
     echo -n '|[-r]|[[-u <admin_name>]|[-p <password>]]|[--api-key <api_key_value>]'
-    echo -n '|[--context <web_api|gaia_api|{MaaSGUID}/web_api>]'
+    echo -n '|[--MaaS]|[--context <web_api|gaia_api|{MaaSGUID}/web_api>]'
     echo -n '|[-P <web ssl port>]'
     echo -n '|[-m <server_IP>]'
     echo -n '|[-d <domain>]'
@@ -1645,6 +1713,8 @@ doshowhelp () {
     echo -n '|[--CSVERR']
     
     echo -n '|[--5-TAGS|--10-TAGS|--NO-TAGS]'
+    
+    echo -n '|[--OVERRIDEMAXOBJECTS]|[--MAXOBJECTS <maximum_objects_10-500>]'
     
     echo -n '|[--CSVEXPORTDATADOMAIN|--CSVEXPORTDATACREATOR|--CSVALL]'
     
@@ -1673,7 +1743,7 @@ doshowhelp () {
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     #
-    # MODIFIED 2021-10-19 -
+    # MODIFIED 2021-11-09 -
     #
     echo
     echo ' Script Version:  '${ScriptVersion}'  Date:  '${ScriptDate}
@@ -1691,22 +1761,27 @@ doshowhelp () {
     echo '                             -u=<admin_name> | --user=<admin_name>'
     echo '  Set Console User password  -p <password> | --password <password> |'
     echo '                             -p=<password> | --password=<password>'
+    echo '  Set MaaS, Smart-1 Cloud op  --MaaS | --maas | --MAAS'
     echo '  Set Console User API Key    --api-key <api_key_value> | '
     echo '                              --api-key=<api_key_value>'
-    echo '  Set API Context             --context <api_context> | '
-    echo '                              --context=<api_context>'
+    echo '  (!!)  Required if --MaaS is used'
+    echo '  Set API Context             --context <api_context> | --context=<api_context>'
     echo '    Supported <api_context> values for API context :'
     echo '      <web_api|gaia_api|{MaaSGUID}/web_api>'
     echo '      web_api             :  DEFAULT R8X Management API'
     echo '      gaia_api"           :  Gaia API'
-    echo '      {MaaSGUID}/web_api  :  Smart-1 Cloud (MaaS) Management API'
+    echo '      {MaaSGUID}/web_api  :  MaaS (Smart-1 Cloud) Management API'
+    echo '  (!!)  Required if --MaaS is used'
+    
     echo
     echo '  Set [web ssl] Port         -P <web-ssl-port> | --port <web-ssl-port> |'
     echo '                             -P=<web-ssl-port> | --port=<web-ssl-port>'
     echo '  Set Management Server IP   -m <server_IP> | --management <server_IP> |'
     echo '                             -m=<server_IP> | --management=<server_IP>'
+    echo '  (!!)  Required if --MaaS is used'
     echo '  Set Management Domain      -d <domain> | --domain <domain> |'
     echo '                             -d=<domain> | --domain=<domain>'
+    echo '  (!!)  Required if --MaaS is used'
     echo
     
     echo '  Set session file path      -s <session_file_filepath> |'
@@ -1793,6 +1868,17 @@ doshowhelp () {
     echo '  Export NO Tags for object  --NO-TAGS | --CSVEXPORTNOTAGS'
     echo
     
+    echo '  Override Maximum Objects default value to absolute limit of 500'
+    echo '                             --OVERRIDEMAXOBJECTS'
+    echo '  Set Maximum Objects Value  --MAXOBJECTS <maximum_objects_10-500> |'
+    echo '                             --MAXOBJECTS=<maximum_objects_10-500>'
+    echo '    The absolute maximum number of objects or values that the API handles is 500'
+    echo '    The value for maximum objects that can be entered shall be between 10 and 500,'
+    echo '    values greater than 500 or lower than 10 are ignored!'
+    echo '    --MAXOBJECTS requires use of --OVERRIDEMAXOBJECTS'
+    echo '    Using --OVERRIDEMAXOBJECTS with out --MAXOBJECTS <X> results in max objects of 500'
+    echo
+    
     echo '  Export Data Domain info    --CSVEXPORTDATADOMAIN  (*)'
     echo '  Export Data Creator info   --CSVEXPORTDATACREATOR  (*)'
     echo '  Export Data Domain and Data Creator info'
@@ -1870,7 +1956,7 @@ doshowhelp () {
     
     echo ' Example: General :'
     echo
-    echo ' ]# '${ScriptName}' -v --NOWAIT -P 4434 -m 192.168.1.1 -d "System Data" -s "/var/tmp/id.txt" --RESULTS --NSO'
+    echo ' ]# '${ScriptName}' -v --NOWAIT -P 4434 -m 192.168.1.1 -d "System Data" -s "/var/tmp/id.txt" --RESULTS --NSO --OVERRIDEMAXOBJECTS --MAXOBJECTS 250'
     echo
     echo ' ]# '${ScriptName}' -u fooAdmin -p voodoo -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump"'
     echo ' ]# '${ScriptName}' -u fooAdmin -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump"'
@@ -1880,7 +1966,7 @@ doshowhelp () {
     echo
     echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" -P 4434 --NSO --format json --details all'
     echo
-    echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" --SO --format=all --details=full --CSVALL'
+    echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" --SO --format=all --details=full --CSVALL --OVERRIDEMAXOBJECTS'
     echo
     echo ' Example of call from nohup initiator script, do_script_nohup from bash 4 Check Point scripts'
     echo
@@ -1889,9 +1975,9 @@ doshowhelp () {
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     
-    echo ' Example: Smart-1 Cloud (MaaS) Authentication - Use tenant specific -m, -d, --context, and --api-key values :'
+    echo ' Example: MaaS (Smart-1 Cloud) Authentication - Use tenant specific -m, -d, --context, and --api-key values :'
     echo
-    echo ' ]# '${ScriptName}' -m XYZQ-889977xx.maas.checkpoint.com -d D889977xx --context 12345678-abcd-ef98-7654-321012345678/web_api --api-key "@#ohtobeanapikey%"'
+    echo ' ]# '${ScriptName}' --MaaS -m XYZQ-889977xx.maas.checkpoint.com -d D889977xx --context 12345678-abcd-ef98-7654-321012345678/web_api --api-key "@#ohtobeanapikey%"'
     
     #                  1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #        01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
@@ -1904,7 +1990,7 @@ doshowhelp () {
         echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --type-of-export "names-only" -x "/var/tmp/script_dump/export4delete"'
         echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --5-TAGS --CSVADDEXPERRHANDL --CLEANUPCSVWIP'
         echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --10-TAGS --CSVADDEXPERRHANDL'
-        echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --CREATORISNOTSYSTEM --10-TAGS --CSVADDEXPERRHANDL'
+        echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --CREATORISNOTSYSTEM --10-TAGS --CSVADDEXPERRHANDL --OVERRIDEMAXOBJECTS --MAXOBJECTS 250'
         echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --10-TAGS --CSVERR --CSVALL'
     fi
     
@@ -2028,7 +2114,7 @@ ProcessCommandLineParametersAndSetValues () {
     
     #
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-06
-    # MODIFIED 2021-10-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    # MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
     while [ -n "$1" ]; do
@@ -2100,7 +2186,7 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_api_context="${OPT#*=}"
                     # For internal storage, remove the quotes surrounding the api context value, 
                     # will add back on utilization
-                    CLIparm_api_context=${CLIparm_api_key//\"}
+                    CLIparm_api_context=${CLIparm_api_context//\"}
                     CLIparm_use_api_context=true
                     shift
                     ;;
@@ -2150,6 +2236,18 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_api_key=${CLIparm_api_key//\"}
                     CLIparm_use_api_key=true
                     shift
+                    ;;
+                --context )
+                    CLIparm_api_context="$2"
+                    # For internal storage, remove the quotes surrounding the api context value, 
+                    # will add back on utilization
+                    CLIparm_api_context=${CLIparm_api_context//\"}
+                    CLIparm_use_api_context=true
+                    shift
+                    ;;
+                # ADDED 2021-11-09 -
+                --MaaS | --maas | --MAAS )
+                    CLIparm_MaaS=true
                     ;;
                 --context )
                     CLIparm_api_context="$2"
@@ -2283,6 +2381,21 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_CSVEXPORT10TAGS=false
                     CLIparm_CSVEXPORTNOTAGS=true
                     ;;
+                # ADDED 2021-11-09 -
+                --OVERRIDEMAXOBJECTS )
+                    CLIparm_OVERRIDEMAXOBJECTS=true
+                    ;;
+                # ADDED 2021-11-09 -
+                --MAXOBJECTS=* )
+                    CLIparm_MAXOBJECTS="${OPT#*=}"
+                    CLIparm_MAXOBJECTS=${CLIparm_MAXOBJECTS//\"}
+                    #shift
+                    ;;
+                --MAXOBJECTS )
+                    CLIparm_MAXOBJECTS="$2"
+                    CLIparm_MAXOBJECTS=${CLIparm_MAXOBJECTS//\"}
+                    shift
+                    ;;
                 --KEEPCSVWIP )
                     CLIparm_KEEPCSVWIP=true
                     CLIparm_CLEANUPCSVWIP=
@@ -2380,7 +2493,8 @@ ProcessCommandLineParametersAndSetValues () {
             # NOTICE: be sure to update this pattern to match valid options
             # Remove any characters matching "-", and then the values between []'s
             #NEXTOPT="${OPT#-[upmdsor?]}" # try removing single short opt
-            NEXTOPT="${OPT#-[vrF?]}" # try removing single short opt
+            #NEXTOPT="${OPT#-[vrF?]}" # try removing single short opt
+            NEXTOPT="${OPT#-[vr?]}" # try removing single short opt
             if [ x"${OPT}" != x"${NEXTOPT}" ] ; then
                 OPT="-${NEXTOPT}"  # multiple short opts, keep going
             else
@@ -2394,8 +2508,8 @@ ProcessCommandLineParametersAndSetValues () {
     eval set -- ${REMAINS}
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-19
-    # MODIFIED 2021-10-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
+    # MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
     export SHOWHELP=${SHOWHELP}
@@ -2410,6 +2524,10 @@ ProcessCommandLineParametersAndSetValues () {
     # ADDED 2020-08-19 -
     export CLIparm_api_key=${CLIparm_api_key}
     export CLIparm_use_api_key=${CLIparm_use_api_key}
+    
+    # ADDED 2021-11-09 -
+    export CLIparm_MaaS=${CLIparm_MaaS}
+    export AuthenticationMaaS=${CLIparm_MaaS}
     
     # ADDED 2021-10-19 -
     export CLIparm_api_context=${CLIparm_api_context}
@@ -2430,6 +2548,72 @@ ProcessCommandLineParametersAndSetValues () {
     export CLIparm_NOHUPScriptName=${CLIparm_NOHUPScriptName}
     export CLIparm_NOHUPDTG=${CLIparm_NOHUPDTG}
     export CLIparm_NOHUPPATH=${CLIparm_NOHUPPATH}
+    
+    if ${CLIparm_MaaS} ; then
+        # MaaS (Smart-1 Cloud) authentication is requested, now to check the dependencies in CLI parameters
+        export AuthenticationMaaS=true
+        
+        if [ x"${CLIparm_mgmt}" = x"" ] ; then
+            # Missing the management server value, required for MaaS authentication
+            echo `${dtzs}`${dtzsep} 'MaaS (Smart-1 Cloud) authentication requires the management server address to be set, and it is empty!!' | tee -a -i ${logfilepath}
+            export AuthenticationMaaS=false
+        else
+            echo `${dtzs}`${dtzsep} 'MaaS (Smart-1 Cloud) authentication requires the management server address to be set = '${CLIparm_mgmt} >> ${logfilepath}
+        fi
+        
+        if [ x"${CLIparm_domain}" = x"" ] ; then
+            # Missing the domain value, required for MaaS authentication
+            echo `${dtzs}`${dtzsep} 'MaaS (Smart-1 Cloud) authentication requires the domain to be set, and it is empty!!' | tee -a -i ${logfilepath}
+            export AuthenticationMaaS=false
+        else
+            echo `${dtzs}`${dtzsep} 'MaaS (Smart-1 Cloud) authentication requires the domain to be set = '${CLIparm_domain} >> ${logfilepath}
+        fi
+        
+        if ${CLIparm_use_api_context} ; then
+            # OK Context is enabled, do we have a context value
+            if [ x"${CLIparm_api_context}" = x"" ] ; then
+                # Context value is not set, which is a disqualifier
+                echo `${dtzs}`${dtzsep} 'MaaS (Smart-1 Cloud) authentication requires the API Context value to be set, and it is empty!' | tee -a -i ${logfilepath}
+                export AuthenticationMaaS=false
+            else
+                echo `${dtzs}`${dtzsep} 'MaaS (Smart-1 Cloud) authentication requires the API Context value to be set = '${CLIparm_api_context} >> ${logfilepath}
+            fi
+        else
+            # Wait what?  MaaS requires the api context
+            echo `${dtzs}`${dtzsep} 'MaaS (Smart-1 Cloud) authentication requires the API Context be set!' | tee -a -i ${logfilepath}
+            export AuthenticationMaaS=false
+        fi
+        
+        if ${CLIparm_use_api_key} ; then
+            # OK API Key is enabled, do we have a key value
+            if [ x"${CLIparm_api_key}" = x"" ] ; then
+                # Context value is not set, which is a disqualifier
+                echo `${dtzs}`${dtzsep} 'MaaS (Smart-1 Cloud) authentication requires the API Key value to be set, and it is empty!' | tee -a -i ${logfilepath}
+                export AuthenticationMaaS=false
+            else
+                echo `${dtzs}`${dtzsep} 'MaaS (Smart-1 Cloud) authentication requires the API Key value to be set = '${CLIparm_api_key} >> ${logfilepath}
+            fi
+        else
+            # Wait what?  MaaS requires the API Key
+            echo `${dtzs}`${dtzsep} 'MaaS (Smart-1 Cloud) authentication requires the API Key be set!' | tee -a -i ${logfilepath}
+            export AuthenticationMaaS=false
+        fi
+        
+        if ! ${AuthenticationMaaS} ; then
+            echo `${dtzs}`${dtzsep} 'MaaS (Smart-1 Cloud) authentication not possible, check CLI parameters passed!' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep}  | tee -a -i ${logfilepath}
+            SHOWHELP=true
+        else
+            echo `${dtzs}`${dtzsep} 'MaaS (Smart-1 Cloud) authentication possible, all required CLI parameters passed!' >> ${logfilepath}
+        fi
+    else
+        export AuthenticationMaaS=false
+    fi
+    
+    #
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
+    # MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    #
     
     # MODIFIED 2021-02-04 -
     export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
@@ -2568,6 +2752,47 @@ ProcessCommandLineParametersAndSetValues () {
     export CSVEXPORT10TAGS=${CLIparm_CSVEXPORT10TAGS}
     export CSVEXPORTNOTAGS=${CLIparm_CSVEXPORTNOTAGS}
     
+    # ADDED 2021-11-09 -
+    export CLIparm_OVERRIDEMAXOBJECTS=${CLIparm_OVERRIDEMAXOBJECTS}
+    export CLIparm_MAXOBJECTS=${CLIparm_MAXOBJECTS}
+    export OverrideMaxObjects=${CLIparm_OVERRIDEMAXOBJECTS}
+    export OverrideMaxObjectsNumber=${CLIparm_MAXOBJECTS}
+    
+    if ${CLIparm_OVERRIDEMAXOBJECTS} ; then
+        # Override Max Objects requested
+        if [ x"${CLIparm_MAXOBJECTS}" = x"" ] ; then
+            # OVERRIDEMAXOBJECTS requested, but no value for MAXOBJECTS set, so use API limit
+            export OverrideMaxObjects=true
+            export OverrideMaxObjectsNumber=${MaxMaxObjectsLimit}
+        else
+            if [ ${CLIparm_MAXOBJECTS} -lt ${MinMaxObjectsLimit} ] ; then
+                export OverrideMaxObjects=false
+                export OverrideMaxObjectsNumber=
+                echo `${dtzs}`${dtzsep} 'INVALID MAXOBJECT VALUE PROVIDED IN CLI PARAMETERS, VALUE BELOW MINIMUM LIMIT OF '${MinMaxObjectsLimit}' !' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} '  MAXOBJECT VALUE = '${CLIparm_MAXOBJECTS} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                SHOWHELP=true
+            elif [ ${CLIparm_MAXOBJECTS} -gt ${MaxMaxObjectsLimit} ] ; then
+                export OverrideMaxObjects=false
+                export OverrideMaxObjectsNumber=
+                echo `${dtzs}`${dtzsep} 'INVALID MAXOBJECT VALUE PROVIDED IN CLI PARAMETERS, VALUE ABOVE MAXIUM LIMIT OF '${MaxMaxObjectsLimit}' !' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} '  MAXOBJECT VALUE = '${CLIparm_MAXOBJECTS} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                SHOWHELP=true
+            else
+                echo `${dtzs}`${dtzsep} 'MAXOBJECT VALUE PROVIDED IN CLI PARAMETERS OK !' >> ${logfilepath}
+                echo `${dtzs}`${dtzsep} '  MAXOBJECT VALUE = '${CLIparm_MAXOBJECTS} >> ${logfilepath}
+                echo `${dtzs}`${dtzsep} >> ${logfilepath}
+                export OverrideMaxObjects=true
+                export OverrideMaxObjectsNumber=${CLIparm_MAXOBJECTS}
+            fi
+        fi
+    else
+        # Override Max Objects NOT requested
+        export OverrideMaxObjects=false
+        export OverrideMaxObjectsNumber=
+    fi
+    
     # ADDED 2018-05-03-2 -
     export CLIparm_CSVEXPORTDATADOMAIN=${CLIparm_CSVEXPORTDATADOMAIN}
     export CLIparm_CSVEXPORTDATACREATOR=${CLIparm_CSVEXPORTDATADOMAIN}
@@ -2633,7 +2858,7 @@ ProcessCommandLineParametersAndSetValues () {
     export REMAINS=${REMAINS}
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-19
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
     
     return 0
 }
@@ -3251,15 +3476,15 @@ fi
 # =================================================================================================
 
 
-# MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-if ${OpsModeAllDomains} ; then
+if ${OpsModeMDSM} ; then
     # Operations Mode All Domains implies MDSM operation requirement, so check that first
     if [ "${sys_type_MDS}" != "true" ]; then
         
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '!!!! This script is expected to run on Multi-Domain Management !!!!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '!!!! This script is expected to run on Multi-Domain Security Management (MDSM) !!!!' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} 'Exiting...!' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         exit 255
@@ -3268,14 +3493,14 @@ if ${OpsModeAllDomains} ; then
 fi
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-21
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
 
 
 # =================================================================================================
 # START:  Setup Login Parameters and Login to Mgmt_CLI
 # =================================================================================================
 
-# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-11-09 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 if ${UseR8XAPI} ; then
@@ -3286,55 +3511,9 @@ if ${UseR8XAPI} ; then
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    if ! ${CLIparm_use_api_context} ; then
-        # Since no context was set in the CLI parameters, it is assumed we are not connecting to Smart-1 Cloud MaaS
-        
-        if [ "${CLIparm_domain}" == "System Data" ] ; then
-            # A CLI Parameter for domains (-d) was passed - namely "System Data" a known domain
-            echo `${dtzs}`${dtzsep} 'A CLI Parameter for domains (-d) was passed - namely "System Data" a known domain.' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'The requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
-        elif [ "${CLIparm_domain}" == "Global" ] ; then
-            # A CLI Parameter for domains (-d) was passed - namely "Global" a known domain
-            echo `${dtzs}`${dtzsep} 'A CLI Parameter for domains (-d) was passed - namely "Global" a known domain.' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'The requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
-        elif [ ! -z "${CLIparm_domain}" ] ; then
-            # A CLI Parameter for domains (-d) was passed, so check if that domain exists and then add it as the last element to the domains array
-            echo `${dtzs}`${dtzsep} 'A CLI Parameter for domains (-d) was passed.' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Check if the requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
-            
-            export MgmtCLI_Base_OpParms='-f json'
-            export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
-            export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
-            
-            if [ ! -z "${CLIparm_mgmt}" ] ; then
-            # working with remote management server
-                Check4DomainByName=$(mgmt_cli --port ${APICLIwebsslport} -m ${CLIparm_mgmt} -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
-                echo `${dtzs}`${dtzsep} 'You may be required to provide credentials for "System Data" domain logon!' | tee -a -i ${logfilepath}
-            else
-                Check4DomainByName=$(mgmt_cli -r true --port ${APICLIwebsslport} -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
-            fi
-            CheckCliParmDomain=${Check4DomainByName}
-            
-            if [ x"${CheckCliParmDomain}" == x"" ] ; then
-                # Houston, we have a problem... the CLIparm_domain check result was null for this MDSM MDS host
-                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-                echo `${dtzs}`${dtzsep} '!!!! The requested domain : '${CLIparm_domain}' was not found on this MDSM MDS host!!!!' | tee -a -i ${logfilepath}
-                echo `${dtzs}`${dtzsep} 'Exiting...!' | tee -a -i ${logfilepath}
-                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-                
-                exit 250
-            else
-                # we are good to go, so add this domain to the array and stop processing other domains
-                echo `${dtzs}`${dtzsep} 'The requested domain : '${CLIparm_domain}' is found on this MDSM MDS host.' | tee -a -i ${logfilepath}
-            fi
-        else
-            # no CLI Parameter for domains (-d) was passed
-            echo `${dtzs}`${dtzsep} 'No CLI Parameter for domains (-d) was passed.' | tee -a -i ${logfilepath}
-        fi
-        
-    else
-        # Since a context was set in the CLI parameters, it is assumed we are connecting to Smart-1 Cloud MaaS
-        echo `${dtzs}`${dtzsep} 'A CLI Parameter for context (--context) was passed - namely : "'${CLIparm_api_context}'"' | tee -a -i ${logfilepath}
+    if ${AuthenticationMaaS} ; then
+        # AuthenticateMaaS is set, it is assumed we are connecting to Smart-1 Cloud MaaS
+        echo `${dtzs}`${dtzsep} 'A CLI Parameter MaaS (--Maas|--maas|--MAAS) (Smart-1 Cloud) was passed so check for MaaS (Smart-1 Cloud) authentication requirements' | tee -a -i ${logfilepath}
         if [ ! -z "${CLIparm_mgmt}" ] ; then
             #Context also requires setting the management server value -m which is done
             echo `${dtzs}`${dtzsep} 'A CLI Parameter for management server (-m) was passed - namely '${CLIparm_mgmt} | tee -a -i ${logfilepath}
@@ -3374,9 +3553,54 @@ if ${UseR8XAPI} ; then
             
             exit 247
         fi
+    else
+        # AuthenticateMaaS not set, so it is assumed we are not connecting to Smart-1 Cloud MaaS
+        
+        if [ "${CLIparm_domain}" == "System Data" ] ; then
+            # A CLI Parameter for domains (-d) was passed - namely "System Data" a known domain
+            echo `${dtzs}`${dtzsep} 'A CLI Parameter for domains (-d) was passed - namely "System Data" a known domain.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'The requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
+        elif [ "${CLIparm_domain}" == "Global" ] ; then
+            # A CLI Parameter for domains (-d) was passed - namely "Global" a known domain
+            echo `${dtzs}`${dtzsep} 'A CLI Parameter for domains (-d) was passed - namely "Global" a known domain.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'The requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
+        elif [ ! -z "${CLIparm_domain}" ] ; then
+            # A CLI Parameter for domains (-d) was passed, so check if that domain exists and then add it as the last element to the domains array
+            echo `${dtzs}`${dtzsep} 'A CLI Parameter for domains (-d) was passed.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Check if the requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
+            
+            export MgmtCLI_Base_OpParms='-f json'
+            export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
+            export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
+            
+            if [ ! -z "${CLIparm_mgmt}" ] ; then
+            # working with remote management server
+                Check4DomainByName=$(mgmt_cli --port ${APICLIwebsslport} -m ${CLIparm_mgmt} -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
+                echo `${dtzs}`${dtzsep} 'You may be required to provide credentials for "System Data" domain logon!' | tee -a -i ${logfilepath}
+            else
+                Check4DomainByName=$(mgmt_cli -r true --port ${APICLIwebsslport} -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
+            fi
+            CheckCLIParmDomain=${Check4DomainByName}
+            
+            if [ x"${CheckCLIParmDomain}" == x"" ] ; then
+                # Houston, we have a problem... the CLIparm_domain check result was null for this MDSM MDS host
+                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} '!!!! The requested domain : '${CLIparm_domain}' was not found on this MDSM MDS host!!!!' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Exiting...!' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                
+                exit 250
+            else
+                # we are good to go, so add this domain to the array and stop processing other domains
+                echo `${dtzs}`${dtzsep} 'The requested domain : '${CLIparm_domain}' is found on this MDSM MDS host.' | tee -a -i ${logfilepath}
+            fi
+        else
+            # no CLI Parameter for domains (-d) was passed
+            echo `${dtzs}`${dtzsep} 'No CLI Parameter for domains (-d) was passed.' | tee -a -i ${logfilepath}
+        fi
     fi
     
-    if ${OpsModeAllDomains} ; then
+    if ${OpsModeMDSMAllDomains} ; then
         # Handle x_All_Domains_y script, so logon to "System Data" domain
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         if ${APISCRIPTVERBOSE} ; then
@@ -3398,6 +3622,8 @@ if ${UseR8XAPI} ; then
     
     if ${APISCRIPTVERBOSE} ; then
         echo `${dtzs}`${dtzsep} 'domaintarget = "'${domaintarget}'" ' | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} 'domaintarget = "'${domaintarget}'" ' >> ${logfilepath}
     fi
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
@@ -3415,7 +3641,7 @@ if ${UseR8XAPI} ; then
 fi
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-11-09
 
 # =================================================================================================
 # END:  Setup Login Parameters and Login to Mgmt_CLI

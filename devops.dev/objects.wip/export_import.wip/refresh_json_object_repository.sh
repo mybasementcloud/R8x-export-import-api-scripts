@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=050
-ScriptDate=2021-11-08
+ScriptRevision=055
+ScriptDate=2021-11-10
 TemplateVersion=00.60.08
-APISubscriptsLevel=006
+APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=050
+APISubscriptsRevision=055
 
 #
 
@@ -129,6 +129,8 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
+
+export test_script_work_folder=/var/log/__customer/devops.dev
 
 if [ -r "cli_api_export_objects.sh" ] ; then
     # found the script in the local directory, use that

@@ -4,8 +4,9 @@
 
 Check Point R8x Export, Import, Set/Update, Rename to new-name, and Delete mgmt_cli API scripts for bash on Check Point Gaia OS management hosts, using CSV files (v00.60.xx.yyy)
 
-Additional documentation and information will be provided in .md, .tsv, and .xlsx files in the repository.
+Additional documentation and information will be provided in .md, .tsv, and potentially .xlsx files in the repository.
 
+As of v00.60.00.050 the approach the folder structure has changed and object specific scripts are under objects.wip folder.
 As of v00.60.00.045 the approach to shared scripts has changed to focus only on the current work in progress under devops.dev folder.
 
 As of v00.60.08 the efforts are made to expidite the operations involving generations of CSV exports, but these are dependent on up-to-date json data from the management database, to this end a JSON Repository was implemented, more details are below.  
@@ -15,7 +16,7 @@ Well functioning sets of scripts shall be packaged into releases that can be dow
 
 ## Overview
 
-The export, import, set-update, rename-to-new-name, and delete using CSV files scripts in this post, currently version 00.60.08 dated 2021-10-25, are intended to allow operations on an existing R80, R80.10, R80.20[|.M1|.M2], R80.30, R80.40, R81, and R81.10 Check Point management server (SMS or MDM) from bash expert mode on the Check Point management server host or another API enabled Check Point management server host instance (Check Point Gaia OS R8X) able to authenticate and reach the target management server host.  Utilization from other LINUX releases is not supported, tested, or assumed to work.
+The export, import, set-update, rename-to-new-name, and delete using CSV files scripts in this post, currently version 00.60.08.055 dated 2021-11-10, are intended to allow operations on an existing R80, R80.10, R80.20[|.M1|.M2], R80.30, R80.40, R81, and R81.10 [EA R81.20 possibly] Check Point management server (SMS or MDM) from bash expert mode on the Check Point management server host or another API enabled Check Point management server host instance (Check Point Gaia OS R8X) able to authenticate and reach the target management server host.  Utilization from other LINUX releases is not supported, tested, or assumed to work.
 
 - Check Point Management API documentation is here:
 https://sc1.checkpoint.com/documents/latest/APIs/index.html#introduction

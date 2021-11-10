@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=050
-ScriptDate=2021-11-08
+ScriptRevision=055
+ScriptDate=2021-11-10
 TemplateVersion=00.60.08
-APISubscriptsLevel=006
+APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=050
+APISubscriptsRevision=055
 
 #
 
@@ -191,10 +191,13 @@ export APISCRIPTVERBOSE=false
 export DefaultMgmtAdmin=administrator
 
 
-# ADDED 2021-02-21 -
+# MODIFIED 2021-11-09 -
+
+# Configure whether this script operates only on MDSM
+export OpsModeMDSM=false
 
 # Configure whether this script operates against all domains by default, which affects -d CLI parameter handling for authentication
-export OpsModeAllDomains=false
+export OpsModeMDSMAllDomains=false
 
 
 # 2018-05-02 - script type - template - test it all

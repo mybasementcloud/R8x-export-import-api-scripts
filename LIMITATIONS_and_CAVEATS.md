@@ -31,9 +31,17 @@ MDSM (Multi-Domain Security Management) currenlty operates with significant impa
 
 Research on improving performance is ongoing and efforts to address the MDSM performance impact through Secure Knowledge based guidance is in research.
 
+Using R81+ api command provides the option to enable/disable throtting (`api on|off throttling`) and this can provide an option for faster execution and reduce the risk of timeouts; however, this needs to be tested on the MDSM and also impact to MDSM operation accounted for.
+
+To allow for users wanting to accelerate operation on MDSM, the command line options --OVERRIDEMAXOBJECTS and --MAXOBJECTS {value} were added to allow tweaking the max object limit to obtain a faster execution.
+
 ## LIMITATIONS and CAVEATS by Smart-1 Cloud (MaaS and EPMaaS)
 
 Smart-1 Cloud (MaaS) is under development pending access capabilities and available time.  Some CLI plumbing (like --context) are provided, but are not tested adequately.
+
+Addition of the --MaaS|--maas|--MAAS CLI option now specifically controls whether the scripts are to operate towards MaaS (Smart-1 Cloud), and stipulate required additional parameters to function.
+
+More testing and testing feedback needed/requested.
 
 ## LIMITATIONS and CAVEATS by object type
 

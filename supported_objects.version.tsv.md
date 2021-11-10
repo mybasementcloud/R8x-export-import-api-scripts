@@ -24,8 +24,8 @@ The columns contents are as follows:
 - OBJECT :  
     This is the specific object type, in plural form, as handled by the scripts.  Plural is used, since the general show command for listing all objects of that type is via the plural of the object type.  Some are custom object types created to handle an objects elements, like a group's group members.
 
-- JSON Repository OBJECT :
-    This is the object type OBJECT referenced when using the JSON Repository.
+- JSON Repository OBJECT :  
+    This is the object type OBJECT referenced when using the JSON Repository.  Since the JSON Repository contains the object information, re-use of the same OBJECT is common where the data for the export object for specific elements are harvested from the main object, like group-members, which come from the group object.
 
 - Recommended SMS Limit :  
     This is the recommended limit value for the number of objects to process in a specific export operation when operating on an SMS (Security Management Server).  This value will be refined and may get more specific details, since there are issues with large object in high volume queries due to imposed limitations in R81 and later (e.g. application-site object)

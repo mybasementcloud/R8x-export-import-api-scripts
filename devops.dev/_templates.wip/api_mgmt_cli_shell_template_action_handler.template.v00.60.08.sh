@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=050
-ScriptDate=2021-11-08
+ScriptRevision=055
+ScriptDate=2021-11-10
 TemplateVersion=00.60.08
-APISubscriptsLevel=006
+APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=050
+APISubscriptsRevision=055
 
 #
 

@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=050
-ScriptDate=2021-11-08
+ScriptRevision=055
+ScriptDate=2021-11-10
 TemplateVersion=00.60.08
-APISubscriptsLevel=006
+APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=050
+APISubscriptsRevision=055
 
 #
 
@@ -194,8 +194,11 @@ ForceShowTempLogFile () {
 # ADDED 2018-04-25 -
 export primarytargetoutputformat=${FileExtJSON}
 
-export MinAPIObjectLimit=500
-export MaxAPIObjectLimit=500
+# MODIFIED 2021-11-10 -
+#
+export AbsoluteAPIMaxObjectLimit=500
+export MinAPIObjectLimit=50
+export MaxAPIObjectLimit=${AbsoluteAPIMaxObjectLimit}
 export RecommendedAPIObjectLimitMDSM=200
 export DefaultAPIObjectLimit=${MaxAPIObjectLimit}
 export DefaultAPIObjectLimitMDSM=${RecommendedAPIObjectLimitMDSM}
@@ -672,6 +675,10 @@ ExportRAWObjectToJSON () {
     #
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Objects Type :  '${APICLIobjectstype} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    # MODIFIED 2021-11-09 -
     
     export WorkAPIObjectLimit=${MaxAPIObjectLimit}
     if [ -z "${domainnamenospace}" ] ; then
@@ -681,7 +688,15 @@ ExportRAWObjectToJSON () {
         # an empty ${domainnamenospace} indicates that we are working towards an MDSM
         export WorkAPIObjectLimit=${APIobjectrecommendedlimitMDSM}
     fi
+    
     echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
+    
+    if ${OverrideMaxObjects} ; then
+        echo `${dtzs}`${dtzsep} 'Override Maximum Objects with OverrideMaxObjectsNumber :  '${OverrideMaxObjectsNumber}' objects value' | tee -a -i ${logfilepath}
+        export WorkAPIObjectLimit=${OverrideMaxObjectsNumber}
+    fi
+    
+    echo `${dtzs}`${dtzsep} 'Final WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
@@ -1159,6 +1174,10 @@ export scriptactiondescriptor='Export to JSON'
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
+
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 
 # MODIFIED 2021-02-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #

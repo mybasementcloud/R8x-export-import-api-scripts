@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=050
-ScriptDate=2021-11-08
+ScriptRevision=055
+ScriptDate=2021-11-10
 TemplateVersion=00.60.08
-APISubscriptsLevel=006
+APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=050
+APISubscriptsRevision=055
 
 #
 
@@ -197,10 +197,13 @@ export APISCRIPTVERBOSE=false
 export DefaultMgmtAdmin=administrator
 
 
-# ADDED 2021-02-21 -
+# MODIFIED 2021-11-09 -
+
+# Configure whether this script operates only on MDSM
+export OpsModeMDSM=true
 
 # Configure whether this script operates against all domains by default, which affects -d CLI parameter handling for authentication
-export OpsModeAllDomains=true
+export OpsModeMDSMAllDomains=true
 
 
 # 2018-05-02 - script type - export objects (all)
@@ -251,7 +254,7 @@ export UseJSONJQ=true
 # ADDED 2020-02-07 -
 export UseJSONJQ16=true
 
-# MODIFIED 2021-10-19 -
+# MODIFIED 2021-11-09 -
 # R80           version 1.0
 # R80.10        version 1.1
 # R80.20.M1     version 1.2
@@ -263,10 +266,22 @@ export UseJSONJQ16=true
 # R81           version 1.7
 # R81 JHF 34    version 1.7.1
 # R81.10        version 1.8
+# R81.20        version 1.9
 #
 # For common scripts minimum API version at 1.0 should suffice, otherwise get explicit
 #
 export MinAPIVersionRequired=1.1
+
+# ADDED 2021-11-09 - 
+# MaaS (Smart-1 Cloud) current versions
+# R81           version 1.7
+# R81 JHF 34    version 1.7.1  !! ????
+# R81.10        version 1.8
+#
+# for MaaS (Smart-1 Cloud) operation assume at least the minimum API version as 1.7 for R81
+#
+export MinMaaSAPIVersion=1.7
+export MaxMaaSAPIVersion=1.8
 
 # If the API version needs to be enforced in commands set this to true
 # NOTE not currently used!
@@ -282,7 +297,28 @@ export WAITTIME=15
 # Configure location for api subscripts
 # -------------------------------------------------------------------------------------------------
 
-# ADDED 2021-11-08 -
+# ADDED 2021-11-09 - MODIFIED 2021-11-09 -
+#
+# Presumptive folder structure for R8X API Management CLI (mgmt_cli) Template based scripts
+#
+# <script_home_folder> is the folder containing the script set, generally /var/log/__customer/devops|devops.dev|devops.dev.test
+# [.wip] named folders are for development operations
+#
+# ...<script_home_folder>/_api_subscripts                       ## _api_subscripts folder for all scripts
+# ...<script_home_folder>/_templates[.wip]                      ## _templates[.wip] folder for all scripts
+# ...<script_home_folder>/tools                                 ## tools folder for all scripts with additional tools not assumed on system
+# ...<script_home_folder>/objects[.wip]                         ## objects[.wip] folder for objects operations focused scripts
+# ...<script_home_folder>/objects[.wip]/csv_tools[.wip]         ## csv_tools[.wip] folder for objects operations for csv handling focused scripts
+# ...<script_home_folder>/objects[.wip]/export_import[.wip]     ## export_import[.wip] folder for objects operations export, import, set, rename, and delete focused scripts
+# ...<script_home_folder>/Policy_and_Layers[.wip]               ## Policy_and_Layers[.wip] folder for policy and layers operations focused scripts
+# ...<script_home_folder>/Session_Cleanup[.wip]                 ## Session_Cleanup[.wip] folder for Session Cleanup operation focused scripts
+# ...<script_home_folder>/tools.MDSM[.wip]                      ## tools.MDSM[.wip] folder for Tools focused on MDSM operations scripts
+#
+#
+# api_subscripts_default_root is defined with the assumption that scripts are running in a subfolder of the <script_home_folder> folder
+
+
+# MODIFIED 2021-11-09 -
 # Configure basic location for api subscripts
 export api_subscripts_default_root=..
 export api_subscripts_default_folder=_api_subscripts
@@ -429,8 +465,11 @@ export APICLICSVfileexportsuffix='.'${APICLICSVfileexportext}
 export APICLIJSONfileexportext=${FileExtJSON}
 export APICLIJSONfileexportsuffix='.'${APICLIJSONfileexportext}
 
-export MinAPIObjectLimit=500
-export MaxAPIObjectLimit=500
+# MODIFIED 2021-11-10 -
+#
+export AbsoluteAPIMaxObjectLimit=500
+export MinAPIObjectLimit=50
+export MaxAPIObjectLimit=${AbsoluteAPIMaxObjectLimit}
 export RecommendedAPIObjectLimitMDSM=200
 export DefaultAPIObjectLimit=${MaxAPIObjectLimit}
 export DefaultAPIObjectLimitMDSM=${RecommendedAPIObjectLimitMDSM}
@@ -813,7 +852,7 @@ BasicScriptSetupAPIScripts "$@"
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-10-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -830,6 +869,7 @@ BasicScriptSetupAPIScripts "$@"
 # -u <admin_name> | --user <admin_name> | -u=<admin_name> | --user=<admin_name>
 # -p <password> | --password <password> | -p=<password> | --password=<password>
 # --api-key "<api_key_value>" | --api-key="<api_key_value>" 
+# --MaaS | --maas | --MAAS
 # --context <web_api|gaia_api|{MaaSGUID}/web_api> | --context=<web_api|gaia_api|{MaaSGUID}/web_api> 
 # -m <server_IP> | --management <server_IP> | -m=<server_IP> | --management=<server_IP>
 # -d <domain> | --domain <domain> | -d=<domain> | --domain=<domain>
@@ -863,6 +903,8 @@ export CLIparm_password=
 # ADDED 2020-08-19 -
 export CLIparm_api_key=
 export CLIparm_use_api_key=false
+# ADDED 2021-11-09 -
+export CLIparm_MaaS=false
 # ADDED 2021-10-19 -
 export CLIparm_api_context=
 export CLIparm_use_api_context=false
@@ -905,8 +947,8 @@ export CLIparm_NOHUPDTG=
 export CLIparm_NOHUPPATH=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-19
-# MODIFIED 2021-02-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
+# MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -945,6 +987,9 @@ export CLIparm_NOHUPPATH=
 # --5-TAGS | --CSVEXPORT05TAGS
 # --10-TAGS | --CSVEXPORT10TAGS
 # --NO-TAGS | --CSVEXPORTNOTAGS
+#
+# --OVERRIDEMAXOBJECTS
+# --MAXOBJECTS <maximum_objects_10-500> | --MAXOBJECTS=<maximum_objects_10-500>
 #
 # --CSVEXPORTDATADOMAIN
 # --CSVEXPORTDATACREATOR
@@ -1043,6 +1088,17 @@ export CSVEXPORTNOTAGS=false
 export CLIparm_CSVEXPORT05TAGS=${CSVEXPORT05TAGS}
 export CLIparm_CSVEXPORT10TAGS=${CSVEXPORT10TAGS}
 export CLIparm_CSVEXPORTNOTAGS=${CSVEXPORTNOTAGS}
+
+# ADDED 2021-11-09 - MODIFIED 2021-11-10
+# --OVERRIDEMAXOBJECTS
+# --MAXOBJECTS <maximum_objects_10-500> | --MAXOBJECTS=<maximum_objects_10-500>
+
+export CLIparm_OVERRIDEMAXOBJECTS=false
+export CLIparm_MAXOBJECTS=
+export OverrideMaxObjects=${CLIparm_OVERRIDEMAXOBJECTS}
+export OverrideMaxObjectsNumber=${CLIparm_MAXOBJECTS}
+export MinMaxObjectsLimit=10
+export MaxMaxObjectsLimit=${AbsoluteAPIMaxObjectLimit}
 
 # ADDED 2020-09-30 -
 # --CSVEXPORTDATADOMAIN :  Export Data Domain information to CSV
@@ -1151,7 +1207,7 @@ export CLIparm_importpath=
 export CLIparm_deletepath=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-04
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2347,15 +2403,15 @@ MainExportDumpOperations () {
 # =================================================================================================
 
 
-# MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-if ${OpsModeAllDomains} ; then
+if ${OpsModeMDSM} ; then
     # Operations Mode All Domains implies MDSM operation requirement, so check that first
     if [ "${sys_type_MDS}" != "true" ]; then
         
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '!!!! This script is expected to run on Multi-Domain Management !!!!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '!!!! This script is expected to run on Multi-Domain Security Management (MDSM) !!!!' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} 'Exiting...!' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         exit 255
@@ -2364,14 +2420,14 @@ if ${OpsModeAllDomains} ; then
 fi
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-21
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
 
 
 # =================================================================================================
 # START:  Setup Login Parameters and Login to Mgmt_CLI
 # =================================================================================================
 
-# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-11-09 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 if ${UseR8XAPI} ; then
@@ -2382,55 +2438,9 @@ if ${UseR8XAPI} ; then
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    if ! ${CLIparm_use_api_context} ; then
-        # Since no context was set in the CLI parameters, it is assumed we are not connecting to Smart-1 Cloud MaaS
-        
-        if [ "${CLIparm_domain}" == "System Data" ] ; then
-            # A CLI Parameter for domains (-d) was passed - namely "System Data" a known domain
-            echo `${dtzs}`${dtzsep} 'A CLI Parameter for domains (-d) was passed - namely "System Data" a known domain.' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'The requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
-        elif [ "${CLIparm_domain}" == "Global" ] ; then
-            # A CLI Parameter for domains (-d) was passed - namely "Global" a known domain
-            echo `${dtzs}`${dtzsep} 'A CLI Parameter for domains (-d) was passed - namely "Global" a known domain.' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'The requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
-        elif [ ! -z "${CLIparm_domain}" ] ; then
-            # A CLI Parameter for domains (-d) was passed, so check if that domain exists and then add it as the last element to the domains array
-            echo `${dtzs}`${dtzsep} 'A CLI Parameter for domains (-d) was passed.' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Check if the requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
-            
-            export MgmtCLI_Base_OpParms='-f json'
-            export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
-            export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
-            
-            if [ ! -z "${CLIparm_mgmt}" ] ; then
-            # working with remote management server
-                Check4DomainByName=$(mgmt_cli --port ${APICLIwebsslport} -m ${CLIparm_mgmt} -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
-                echo `${dtzs}`${dtzsep} 'You may be required to provide credentials for "System Data" domain logon!' | tee -a -i ${logfilepath}
-            else
-                Check4DomainByName=$(mgmt_cli -r true --port ${APICLIwebsslport} -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
-            fi
-            CheckCliParmDomain=${Check4DomainByName}
-            
-            if [ x"${CheckCliParmDomain}" == x"" ] ; then
-                # Houston, we have a problem... the CLIparm_domain check result was null for this MDSM MDS host
-                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-                echo `${dtzs}`${dtzsep} '!!!! The requested domain : '${CLIparm_domain}' was not found on this MDSM MDS host!!!!' | tee -a -i ${logfilepath}
-                echo `${dtzs}`${dtzsep} 'Exiting...!' | tee -a -i ${logfilepath}
-                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-                
-                exit 250
-            else
-                # we are good to go, so add this domain to the array and stop processing other domains
-                echo `${dtzs}`${dtzsep} 'The requested domain : '${CLIparm_domain}' is found on this MDSM MDS host.' | tee -a -i ${logfilepath}
-            fi
-        else
-            # no CLI Parameter for domains (-d) was passed
-            echo `${dtzs}`${dtzsep} 'No CLI Parameter for domains (-d) was passed.' | tee -a -i ${logfilepath}
-        fi
-        
-    else
-        # Since a context was set in the CLI parameters, it is assumed we are connecting to Smart-1 Cloud MaaS
-        echo `${dtzs}`${dtzsep} 'A CLI Parameter for context (--context) was passed - namely : "'${CLIparm_api_context}'"' | tee -a -i ${logfilepath}
+    if ${AuthenticationMaaS} ; then
+        # AuthenticateMaaS is set, it is assumed we are connecting to Smart-1 Cloud MaaS
+        echo `${dtzs}`${dtzsep} 'A CLI Parameter MaaS (--Maas|--maas|--MAAS) (Smart-1 Cloud) was passed so check for MaaS (Smart-1 Cloud) authentication requirements' | tee -a -i ${logfilepath}
         if [ ! -z "${CLIparm_mgmt}" ] ; then
             #Context also requires setting the management server value -m which is done
             echo `${dtzs}`${dtzsep} 'A CLI Parameter for management server (-m) was passed - namely '${CLIparm_mgmt} | tee -a -i ${logfilepath}
@@ -2470,9 +2480,54 @@ if ${UseR8XAPI} ; then
             
             exit 247
         fi
+    else
+        # AuthenticateMaaS not set, so it is assumed we are not connecting to Smart-1 Cloud MaaS
+        
+        if [ "${CLIparm_domain}" == "System Data" ] ; then
+            # A CLI Parameter for domains (-d) was passed - namely "System Data" a known domain
+            echo `${dtzs}`${dtzsep} 'A CLI Parameter for domains (-d) was passed - namely "System Data" a known domain.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'The requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
+        elif [ "${CLIparm_domain}" == "Global" ] ; then
+            # A CLI Parameter for domains (-d) was passed - namely "Global" a known domain
+            echo `${dtzs}`${dtzsep} 'A CLI Parameter for domains (-d) was passed - namely "Global" a known domain.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'The requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
+        elif [ ! -z "${CLIparm_domain}" ] ; then
+            # A CLI Parameter for domains (-d) was passed, so check if that domain exists and then add it as the last element to the domains array
+            echo `${dtzs}`${dtzsep} 'A CLI Parameter for domains (-d) was passed.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Check if the requested domain : '${CLIparm_domain}' actually exists on the management host queried' | tee -a -i ${logfilepath}
+            
+            export MgmtCLI_Base_OpParms='-f json'
+            export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
+            export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
+            
+            if [ ! -z "${CLIparm_mgmt}" ] ; then
+            # working with remote management server
+                Check4DomainByName=$(mgmt_cli --port ${APICLIwebsslport} -m ${CLIparm_mgmt} -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
+                echo `${dtzs}`${dtzsep} 'You may be required to provide credentials for "System Data" domain logon!' | tee -a -i ${logfilepath}
+            else
+                Check4DomainByName=$(mgmt_cli -r true --port ${APICLIwebsslport} -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
+            fi
+            CheckCLIParmDomain=${Check4DomainByName}
+            
+            if [ x"${CheckCLIParmDomain}" == x"" ] ; then
+                # Houston, we have a problem... the CLIparm_domain check result was null for this MDSM MDS host
+                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} '!!!! The requested domain : '${CLIparm_domain}' was not found on this MDSM MDS host!!!!' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Exiting...!' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                
+                exit 250
+            else
+                # we are good to go, so add this domain to the array and stop processing other domains
+                echo `${dtzs}`${dtzsep} 'The requested domain : '${CLIparm_domain}' is found on this MDSM MDS host.' | tee -a -i ${logfilepath}
+            fi
+        else
+            # no CLI Parameter for domains (-d) was passed
+            echo `${dtzs}`${dtzsep} 'No CLI Parameter for domains (-d) was passed.' | tee -a -i ${logfilepath}
+        fi
     fi
     
-    if ${OpsModeAllDomains} ; then
+    if ${OpsModeMDSMAllDomains} ; then
         # Handle x_All_Domains_y script, so logon to "System Data" domain
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         if ${APISCRIPTVERBOSE} ; then
@@ -2494,6 +2549,8 @@ if ${UseR8XAPI} ; then
     
     if ${APISCRIPTVERBOSE} ; then
         echo `${dtzs}`${dtzsep} 'domaintarget = "'${domaintarget}'" ' | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} 'domaintarget = "'${domaintarget}'" ' >> ${logfilepath}
     fi
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
@@ -2511,7 +2568,7 @@ if ${UseR8XAPI} ; then
 fi
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-11-09
 
 # =================================================================================================
 # END:  Setup Login Parameters and Login to Mgmt_CLI

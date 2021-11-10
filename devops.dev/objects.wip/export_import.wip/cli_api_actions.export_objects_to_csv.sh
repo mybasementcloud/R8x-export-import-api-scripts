@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=050
-ScriptDate=2021-11-08
+ScriptRevision=055
+ScriptDate=2021-11-10
 TemplateVersion=00.60.08
-APISubscriptsLevel=006
+APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=050
+APISubscriptsRevision=055
 
 #
 
@@ -194,8 +194,11 @@ ForceShowTempLogFile () {
 # ADDED 2018-04-25 -
 export primarytargetoutputformat=${FileExtCSV}
 
-export MinAPIObjectLimit=500
-export MaxAPIObjectLimit=500
+# MODIFIED 2021-11-10 -
+#
+export AbsoluteAPIMaxObjectLimit=500
+export MinAPIObjectLimit=50
+export MaxAPIObjectLimit=${AbsoluteAPIMaxObjectLimit}
 export RecommendedAPIObjectLimitMDSM=200
 export DefaultAPIObjectLimit=${MaxAPIObjectLimit}
 export DefaultAPIObjectLimitMDSM=${RecommendedAPIObjectLimitMDSM}
@@ -471,6 +474,10 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 SetupExportObjectsToCSVviaJQ () {
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Objects Type :  '${APICLIobjectstype} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    # MODIFIED 2021-11-09 -
     
     export WorkAPIObjectLimit=${MaxAPIObjectLimit}
     if [ -z "${domainnamenospace}" ] ; then
@@ -480,7 +487,15 @@ SetupExportObjectsToCSVviaJQ () {
         # an empty ${domainnamenospace} indicates that we are working towards an MDSM
         export WorkAPIObjectLimit=${APIobjectrecommendedlimitMDSM}
     fi
+    
     echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
+    
+    if ${OverrideMaxObjects} ; then
+        echo `${dtzs}`${dtzsep} 'Override Maximum Objects with OverrideMaxObjectsNumber :  '${OverrideMaxObjectsNumber}' objects value' | tee -a -i ${logfilepath}
+        export WorkAPIObjectLimit=${OverrideMaxObjectsNumber}
+    fi
+    
+    echo `${dtzs}`${dtzsep} 'Final WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
     
     # Build the object type specific output file
     
@@ -562,7 +577,7 @@ SetupExportObjectsToCSVviaJQ () {
     fi
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} "Creat ${APICLIobjectstype} CSV File : ${APICLICSVfile}" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Creat '${APICLIobjectstype}' CSV File : '${APICLICSVfile} | tee -a -i ${logfilepath}
     
     #
     # Troubleshooting output
@@ -635,7 +650,7 @@ FinalizeExportObjectsToCSVviaJQ () {
     cat ${APICLICSVfilesort} >> ${APICLICSVfile}
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} "Done creating ${APICLIobjectstype} CSV File : ${APICLICSVfile}" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Done creating '${APICLIobjectstype}' CSV File : "'${APICLICSVfile}'"' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     echo '------------------------------------------------------------------------       ' | tee -a -i ${logfilepath}
@@ -875,20 +890,20 @@ ExportObjectsToCSVviaJQ () {
     if [ x"${number_of_objects}" == x"" ] ; then
         # There are null objects, so skip
         
-        echo `${dtzs}`${dtzsep} "No objects of type ${APICLIobjecttype} to process, skipping..." | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'No objects (null) of type '${APICLIobjecttype}' to process, skipping...' | tee -a -i ${logfilepath}
         
         return 0
        
     elif [[ ${number_of_objects} -lt 1 ]] ; then
         # no objects of this type
         
-        echo `${dtzs}`${dtzsep} "No objects of type ${APICLIobjecttype} to process, skipping..." | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'No objects (<1) of type '${APICLIobjecttype}' to process, skipping...' | tee -a -i ${logfilepath}
         
         return 0
        
     else
         # we have objects to handle
-        echo `${dtzs}`${dtzsep} "Processing ${number_of_objects} ${APICLIobjecttype} objects..." | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Processing '${number_of_objects}' '${APICLIobjecttype}' objects...' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     fi
     
@@ -1004,14 +1019,16 @@ ExportObjectsToCSVviaJQ () {
     
     if [ -r ${JSONRepoFile} ] ; then
         # JSON Repository File for the target object exists, lets check for the number objects
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' exists and is readable using getting the total of objects from it.' | tee -a -i ${logfilepath}
         checkJSONRepoTotal=`cat ${JSONRepoFile} | ${JQ} ".total"`
         JSONRepoObjectsTotal=${checkJSONRepoTotal}
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' total of objects is '${JSONRepoObjectsTotal} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
     else
         # JSON Repository File for the target object DOES NOT exists
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' exists IS NOT readable so setting total of objects to Zero (0).' | tee -a -i ${logfilepath}
         JSONRepoObjectsTotal=0
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
     fi
     
     domgmtcliquery=false
@@ -1023,17 +1040,17 @@ ExportObjectsToCSVviaJQ () {
             if ${script_use_json_repo} ; then
                 # Use of JSON Repository is indicated
                 domgmtcliquery=false
-                echo `${dtzs}`${dtzsep} 'Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             else
                 # Use of JSON Repository is denied
                 domgmtcliquery=true
-                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         else
             # JSON Repository has a differnt number of objects than the management database, 
             # so something definitely changed and we probably can't use the repository
             domgmtcliquery=true
-            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
         fi
     else
         # Include System Objects
@@ -1042,17 +1059,17 @@ ExportObjectsToCSVviaJQ () {
             if ${script_use_json_repo} ; then
                 # Use of JSON Repository is indicated
                 domgmtcliquery=false
-                echo `${dtzs}`${dtzsep} 'Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             else
                 # Use of JSON Repository is denied
                 domgmtcliquery=true
-                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         else
             # JSON Repository has a differnt number of objects than the management database, 
             # so something definitely changed and we probably can't use the repository
             domgmtcliquery=true
-            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
         fi
     fi
     if ${domgmtcliquery} ; then
@@ -1366,6 +1383,10 @@ export scriptactiondescriptor='Export to CSV'
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
+
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 
 # MODIFIED 2021-02-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
@@ -3593,6 +3614,10 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 SetupExportComplexObjectsToCSVviaJQ () {
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Objects Type :  '${APICLIobjectstype} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    # MODIFIED 2021-11-09 -
     
     export WorkAPIObjectLimit=${MaxAPIObjectLimit}
     if [ -z "${domainnamenospace}" ] ; then
@@ -3602,7 +3627,15 @@ SetupExportComplexObjectsToCSVviaJQ () {
         # an empty ${domainnamenospace} indicates that we are working towards an MDSM
         export WorkAPIObjectLimit=${APIobjectrecommendedlimitMDSM}
     fi
+    
     echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
+    
+    if ${OverrideMaxObjects} ; then
+        echo `${dtzs}`${dtzsep} 'Override Maximum Objects with OverrideMaxObjectsNumber :  '${OverrideMaxObjectsNumber}' objects value' | tee -a -i ${logfilepath}
+        export WorkAPIObjectLimit=${OverrideMaxObjectsNumber}
+    fi
+    
+    echo `${dtzs}`${dtzsep} 'Final WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
     
     export APICLICSVfilename=${APICLIcomplexobjectstype}
     if [ x"${APICLIexportnameaddon}" != x"" ] ; then
@@ -3998,14 +4031,16 @@ GetArrayOfObjectsType () {
     
     if [ -r ${JSONRepoFile} ] ; then
         # JSON Repository File for the target object exists, lets check for the number objects
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' exists and is readable using getting the total of objects from it.' | tee -a -i ${logfilepath}
         checkJSONRepoTotal=`cat ${JSONRepoFile} | ${JQ} ".total"`
         JSONRepoObjectsTotal=${checkJSONRepoTotal}
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' total of objects is '${JSONRepoObjectsTotal} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
     else
         # JSON Repository File for the target object DOES NOT exists
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' exists IS NOT readable so setting total of objects to Zero (0).' | tee -a -i ${logfilepath}
         JSONRepoObjectsTotal=0
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
     fi
     
     domgmtcliquery=false
@@ -4017,17 +4052,17 @@ GetArrayOfObjectsType () {
             if ${script_use_json_repo} ; then
                 # Use of JSON Repository is indicated
                 domgmtcliquery=false
-                echo `${dtzs}`${dtzsep} 'Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             else
                 # Use of JSON Repository is denied
                 domgmtcliquery=true
-                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         else
             # JSON Repository has a differnt number of objects than the management database, 
             # so something definitely changed and we probably can't use the repository
             domgmtcliquery=true
-            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
         fi
     else
         # Include System Objects
@@ -4036,17 +4071,17 @@ GetArrayOfObjectsType () {
             if ${script_use_json_repo} ; then
                 # Use of JSON Repository is indicated
                 domgmtcliquery=false
-                echo `${dtzs}`${dtzsep} 'Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             else
                 # Use of JSON Repository is denied
                 domgmtcliquery=true
-                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         else
             # JSON Repository has a differnt number of objects than the management database, 
             # so something definitely changed and we probably can't use the repository
             domgmtcliquery=true
-            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
         fi
     fi
     
@@ -4308,14 +4343,16 @@ CollectMembersInObjectsType () {
     
     if [ -r ${JSONRepoFile} ] ; then
         # JSON Repository File for the target object exists, lets check for the number objects
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' exists and is readable using getting the total of objects from it.' | tee -a -i ${logfilepath}
         checkJSONRepoTotal=`cat ${JSONRepoFile} | ${JQ} ".total"`
         JSONRepoObjectsTotal=${checkJSONRepoTotal}
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' total of objects is '${JSONRepoObjectsTotal} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
     else
         # JSON Repository File for the target object DOES NOT exists
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' exists IS NOT readable so setting total of objects to Zero (0).' | tee -a -i ${logfilepath}
         JSONRepoObjectsTotal=0
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
     fi
     
     domgmtcliquery=false
@@ -4327,17 +4364,17 @@ CollectMembersInObjectsType () {
             if ${script_use_json_repo} ; then
                 # Use of JSON Repository is indicated
                 domgmtcliquery=false
-                echo `${dtzs}`${dtzsep} 'Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             else
                 # Use of JSON Repository is denied
                 domgmtcliquery=true
-                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         else
             # JSON Repository has a differnt number of objects than the management database, 
             # so something definitely changed and we probably can't use the repository
             domgmtcliquery=true
-            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
         fi
     else
         # Include System Objects
@@ -4346,17 +4383,17 @@ CollectMembersInObjectsType () {
             if ${script_use_json_repo} ; then
                 # Use of JSON Repository is indicated
                 domgmtcliquery=false
-                echo `${dtzs}`${dtzsep} 'Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             else
                 # Use of JSON Repository is denied
                 domgmtcliquery=true
-                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         else
             # JSON Repository has a differnt number of objects than the management database, 
             # so something definitely changed and we probably can't use the repository
             domgmtcliquery=true
-            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
         fi
     fi
     
@@ -4956,14 +4993,16 @@ GetArrayOfHostInterfaces () {
     
     if [ -r ${JSONRepoFile} ] ; then
         # JSON Repository File for the target object exists, lets check for the number objects
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' exists and is readable using getting the total of objects from it.' | tee -a -i ${logfilepath}
         checkJSONRepoTotal=`cat ${JSONRepoFile} | ${JQ} ".total"`
         JSONRepoObjectsTotal=${checkJSONRepoTotal}
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' total of objects is '${JSONRepoObjectsTotal} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
     else
         # JSON Repository File for the target object DOES NOT exists
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' exists IS NOT readable so setting total of objects to Zero (0).' | tee -a -i ${logfilepath}
         JSONRepoObjectsTotal=0
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
     fi
     
     domgmtcliquery=false
@@ -4975,17 +5014,17 @@ GetArrayOfHostInterfaces () {
             if ${script_use_json_repo} ; then
                 # Use of JSON Repository is indicated
                 domgmtcliquery=false
-                echo `${dtzs}`${dtzsep} 'Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             else
                 # Use of JSON Repository is denied
                 domgmtcliquery=true
-                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         else
             # JSON Repository has a differnt number of objects than the management database, 
             # so something definitely changed and we probably can't use the repository
             domgmtcliquery=true
-            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
         fi
     else
         # Include System Objects
@@ -4994,17 +5033,17 @@ GetArrayOfHostInterfaces () {
             if ${script_use_json_repo} ; then
                 # Use of JSON Repository is indicated
                 domgmtcliquery=false
-                echo `${dtzs}`${dtzsep} 'Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             else
                 # Use of JSON Repository is denied
                 domgmtcliquery=true
-                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         else
             # JSON Repository has a differnt number of objects than the management database, 
             # so something definitely changed and we probably can't use the repository
             domgmtcliquery=true
-            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
         fi
     fi
     
@@ -5295,14 +5334,16 @@ CollectInterfacesInHostObjects () {
     
     if [ -r ${JSONRepoFile} ] ; then
         # JSON Repository File for the target object exists, lets check for the number objects
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' exists and is readable using getting the total of objects from it.' | tee -a -i ${logfilepath}
         checkJSONRepoTotal=`cat ${JSONRepoFile} | ${JQ} ".total"`
         JSONRepoObjectsTotal=${checkJSONRepoTotal}
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' total of objects is '${JSONRepoObjectsTotal} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
     else
         # JSON Repository File for the target object DOES NOT exists
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' exists IS NOT readable so setting total of objects to Zero (0).' | tee -a -i ${logfilepath}
         JSONRepoObjectsTotal=0
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
     fi
     
     domgmtcliquery=false
@@ -5314,17 +5355,17 @@ CollectInterfacesInHostObjects () {
             if ${script_use_json_repo} ; then
                 # Use of JSON Repository is indicated
                 domgmtcliquery=false
-                echo `${dtzs}`${dtzsep} 'Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             else
                 # Use of JSON Repository is denied
                 domgmtcliquery=true
-                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         else
             # JSON Repository has a differnt number of objects than the management database, 
             # so something definitely changed and we probably can't use the repository
             domgmtcliquery=true
-            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
         fi
     else
         # Include System Objects
@@ -5333,17 +5374,17 @@ CollectInterfacesInHostObjects () {
             if ${script_use_json_repo} ; then
                 # Use of JSON Repository is indicated
                 domgmtcliquery=false
-                echo `${dtzs}`${dtzsep} 'Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             else
                 # Use of JSON Repository is denied
                 domgmtcliquery=true
-                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         else
             # JSON Repository has a differnt number of objects than the management database, 
             # so something definitely changed and we probably can't use the repository
             domgmtcliquery=true
-            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
         fi
     fi
     
@@ -5639,14 +5680,16 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
     
     if [ -r ${JSONRepoFile} ] ; then
         # JSON Repository File for the target object exists, lets check for the number objects
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' exists and is readable using getting the total of objects from it.' | tee -a -i ${logfilepath}
         checkJSONRepoTotal=`cat ${JSONRepoFile} | ${JQ} ".total"`
         JSONRepoObjectsTotal=${checkJSONRepoTotal}
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' total of objects is '${JSONRepoObjectsTotal} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
     else
         # JSON Repository File for the target object DOES NOT exists
-        echo `${dtzs}`${dtzsep} 'JSON Repository file'${JSONRepoFile}' exists IS NOT readable so setting total of objects to Zero (0).' | tee -a -i ${logfilepath}
         JSONRepoObjectsTotal=0
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
     fi
     
     domgmtcliquery=false
@@ -5658,17 +5701,17 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
             if ${script_use_json_repo} ; then
                 # Use of JSON Repository is indicated
                 domgmtcliquery=false
-                echo `${dtzs}`${dtzsep} 'Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             else
                 # Use of JSON Repository is denied
                 domgmtcliquery=true
-                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         else
             # JSON Repository has a differnt number of objects than the management database, 
             # so something definitely changed and we probably can't use the repository
             domgmtcliquery=true
-            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
         fi
     else
         # Include System Objects
@@ -5677,17 +5720,17 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
             if ${script_use_json_repo} ; then
                 # Use of JSON Repository is indicated
                 domgmtcliquery=false
-                echo `${dtzs}`${dtzsep} 'Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             else
                 # Use of JSON Repository is denied
                 domgmtcliquery=true
-                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         else
             # JSON Repository has a differnt number of objects than the management database, 
             # so something definitely changed and we probably can't use the repository
             domgmtcliquery=true
-            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file'${JSONRepoFile}' for operation.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
         fi
     fi
     currentuseroffset=0
