@@ -27,7 +27,7 @@
 		},
 	"ScriptDate" : "2021-11-10",
 	"ScriptVersion" : "00.60.08",
-	"ScriptRevision" : "055",
+	"ScriptRevision" : "060",
 	"TemplateVersion" : "00.60.08",
 	"TemplateLevel" : "@NA",
 	"SubScriptsLevel" : "@NA",
@@ -40,10 +40,10 @@
 		},
 	"ScriptDate" : "2021-11-10",
 	"ScriptVersion" : "00.60.08",
-	"ScriptRevision" : "055",
+	"ScriptRevision" : "060",
 	"TemplateVersion" : "00.60.08",
 	"APISubScriptsLevel" : "010",
 	"APISubScriptsVersion" : "00.60.08",
-	"APISubScriptsRevision" : "055"
+	"APISubScriptsRevision" : "060"
 	}
 }

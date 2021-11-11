@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=055
+ScriptRevision=060
 ScriptDate=2021-11-10
 TemplateVersion=00.60.08
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=055
+APISubscriptsRevision=060
 
 #
 
@@ -634,7 +634,7 @@ subHandleMgmtCLILogout () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-11-09 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-11-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 HandleMgmtCLI_MaaS_Login () {
@@ -675,8 +675,14 @@ HandleMgmtCLI_MaaS_Login () {
             echo `${dtzs}`${dtzsep} >> ${logfilepath}
         fi
         
-        echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli -m "'${CLIparm_mgmt}'" -d "'${domaintarget}'" --context "'${CLIparm_api_context}'" login api-key "'${CLIparm_api_key}'" session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
-        mgmt_cli -m "${CLIparm_mgmt}" -d "${domaintarget}" --context "${CLIparm_api_context}" login api-key "${CLIparm_api_key}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+        #echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli --unsafe-auto-accept true -m '\"${CLIparm_mgmt}\"' -d '\"${domaintarget}\"' --context '\"${CLIparm_api_context}\"' login api-key '\"${CLIparm_api_key}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+        
+        #mgmt_cli --unsafe-auto-accept true -m "${CLIparm_mgmt}" -d "${domaintarget}" --context "${CLIparm_api_context}" login api-key "${CLIparm_api_key}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+        #EXITCODE=$?
+        
+        echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli --unsafe-auto-accept true -m '\"${CLIparm_mgmt}\"' -d '\"${domaintarget}\"' --context '\"${CLIparm_api_context}\"' login api-key '\'${CLIparm_api_key}\'' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+        
+        mgmt_cli --unsafe-auto-accept true -m "${CLIparm_mgmt}" -d "${domaintarget}" --context "${CLIparm_api_context}" login api-key \'${CLIparm_api_key}\' session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
         EXITCODE=$?
         
         cat ${APICLIsessionerrorfile} >> ${logfilepath}
@@ -691,7 +697,7 @@ HandleMgmtCLI_MaaS_Login () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-11-09
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-11-10
 
 
 # -------------------------------------------------------------------------------------------------
@@ -703,7 +709,7 @@ HandleMgmtCLI_MaaS_Login () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-12-14 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-11-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 HandleMgmtCLI_ROOT_Login () {
@@ -741,6 +747,8 @@ HandleMgmtCLI_ROOT_Login () {
             echo `${dtzs}`${dtzsep} >> ${logfilepath}
         fi
         
+        echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli login -r true domain '\"${domaintarget}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+        
         mgmt_cli login -r true domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
         EXITCODE=$?
         cat ${APICLIsessionerrorfile} >> ${logfilepath}
@@ -753,6 +761,8 @@ HandleMgmtCLI_ROOT_Login () {
             echo `${dtzs}`${dtzsep} >> ${logfilepath}
         fi
         
+        echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli login -r true session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+        
         mgmt_cli login -r true session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
         EXITCODE=$?
         cat ${APICLIsessionerrorfile} >> ${logfilepath}
@@ -762,7 +772,7 @@ HandleMgmtCLI_ROOT_Login () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-12-14
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-11-10
 
 
 # -------------------------------------------------------------------------------------------------
@@ -774,7 +784,7 @@ HandleMgmtCLI_ROOT_Login () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-10-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-11-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 HandleMgmtCLI_API_KEY_Login () {
@@ -813,7 +823,9 @@ HandleMgmtCLI_API_KEY_Login () {
                     echo `${dtzs}`${dtzsep} >> ${logfilepath}
                 fi
                 
-                mgmt_cli -m "${CLIparm_mgmt}" login api-key "${CLIparm_api_key}" domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli --unsafe-auto-accept true -m '\"${CLIparm_mgmt}\"' login api-key '\"${CLIparm_api_key}\"' domain '\"${domaintarget}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+                
+                mgmt_cli --unsafe-auto-accept true -m "${CLIparm_mgmt}" login api-key "${CLIparm_api_key}" domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
                 cat ${APICLIsessionerrorfile} >> ${logfilepath}
                 echo `${dtzs}`${dtzsep} >> ${logfilepath}
@@ -827,7 +839,9 @@ HandleMgmtCLI_API_KEY_Login () {
                     echo `${dtzs}`${dtzsep} >> ${logfilepath}
                 fi
                 
-                mgmt_cli -m "${CLIparm_mgmt}" -d "${domaintarget}" --context ${CLIparm_api_context} login api-key "${CLIparm_api_key}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli --unsafe-auto-accept true -m '\"${CLIparm_mgmt}\"' --context '\"${CLIparm_api_context}\"' login api-key '\"${CLIparm_api_key}\"' domain '\"${domaintarget}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+                
+                mgmt_cli --unsafe-auto-accept true -m "${CLIparm_mgmt}" -d "${domaintarget}" --context "${CLIparm_api_context}" login api-key "${CLIparm_api_key}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
                 cat ${APICLIsessionerrorfile} >> ${logfilepath}
                 echo `${dtzs}`${dtzsep} >> ${logfilepath}
@@ -842,6 +856,8 @@ HandleMgmtCLI_API_KEY_Login () {
                 echo `${dtzs}`${dtzsep} 'Execute login using API key to Domain "'${domaintarget}'"' >> ${logfilepath}
                 echo `${dtzs}`${dtzsep} >> ${logfilepath}
             fi
+            
+            echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli login api-key '\"${CLIparm_api_key}\"' domain '\"${domaintarget}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
             
             mgmt_cli login api-key "${CLIparm_api_key}" domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
             EXITCODE=$?
@@ -863,7 +879,9 @@ HandleMgmtCLI_API_KEY_Login () {
                 echo `${dtzs}`${dtzsep} >> ${logfilepath}
             fi
             
-            mgmt_cli login api-key "${CLIparm_api_key}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+            echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli --unsafe-auto-accept true -m '\"${CLIparm_mgmt}\"' login api-key '\"${CLIparm_api_key}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+            
+            mgmt_cli --unsafe-auto-accept true -m "${CLIparm_mgmt}" login api-key "${CLIparm_api_key}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
             EXITCODE=$?
             cat ${APICLIsessionerrorfile} >> ${logfilepath}
         else
@@ -876,6 +894,8 @@ HandleMgmtCLI_API_KEY_Login () {
                 echo `${dtzs}`${dtzsep} >> ${logfilepath}
             fi
             
+            echo `${dtzs}`${dtzsep} 'COMMAND :  login api-key '\"${CLIparm_api_key}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+            
             mgmt_cli login api-key "${CLIparm_api_key}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
             EXITCODE=$?
             cat ${APICLIsessionerrorfile} >> ${logfilepath}
@@ -886,7 +906,7 @@ HandleMgmtCLI_API_KEY_Login () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-19
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-11-10
 
 
 # -------------------------------------------------------------------------------------------------
@@ -898,7 +918,7 @@ HandleMgmtCLI_API_KEY_Login () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-12-14 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-11-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 HandleMgmtCLI_User_Login () {
@@ -933,7 +953,10 @@ HandleMgmtCLI_User_Login () {
                 fi
                 
                 read -p "Username: " APICLIusername
-                mgmt_cli login user ${APICLIusername} password "${CLIparm_password}" domain "${domaintarget}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli --unsafe-auto-accept true -m '\"${CLIparm_mgmt}\"' login user '\"${APICLIusername}\"' password *** domain '\"${domaintarget}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+                
+                mgmt_cli --unsafe-auto-accept true -m "${CLIparm_mgmt}" login user ${APICLIusername} password "${CLIparm_password}" domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
                 cat ${APICLIsessionerrorfile} >> ${logfilepath}
             else
@@ -946,6 +969,9 @@ HandleMgmtCLI_User_Login () {
                 fi
                 
                 read -p "Username: " APICLIusername
+                
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli login user '\"${APICLIusername}\"' password *** domain '\"${domaintarget}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+                
                 mgmt_cli login user ${APICLIusername} password "${CLIparm_password}" domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
                 cat ${APICLIsessionerrorfile} >> ${logfilepath}
@@ -966,7 +992,10 @@ HandleMgmtCLI_User_Login () {
                 fi
                 
                 read -p "Username: " APICLIusername
-                mgmt_cli login user ${APICLIusername} password "${CLIparm_password}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli --unsafe-auto-accept true -m '\"${CLIparm_mgmt}\"' login user '\"${APICLIusername}\"' password *** session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+                
+                mgmt_cli --unsafe-auto-accept true -m "${CLIparm_mgmt}" login user ${APICLIusername} password "${CLIparm_password}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
                 cat ${APICLIsessionerrorfile} >> ${logfilepath}
             else
@@ -979,6 +1008,9 @@ HandleMgmtCLI_User_Login () {
                 fi
                 
                 read -p "Username: " APICLIusername
+                
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli login user '\"${APICLIusername}\"' password *** session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+                
                 mgmt_cli login user ${APICLIusername} password "${CLIparm_password}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
                 cat ${APICLIsessionerrorfile} >> ${logfilepath}
@@ -1006,7 +1038,10 @@ HandleMgmtCLI_User_Login () {
                 fi
                 
                 read -p "Username: " APICLIusername
-                mgmt_cli login user ${APICLIusername} domain "${domaintarget}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli --unsafe-auto-accept true -m '\"${CLIparm_mgmt}\"' login user '\"${APICLIusername}\"' domain '\"${domaintarget}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+                
+                mgmt_cli --unsafe-auto-accept true -m "${CLIparm_mgmt}" login user ${APICLIusername} domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
                 cat ${APICLIsessionerrorfile} >> ${logfilepath}
             else
@@ -1019,6 +1054,9 @@ HandleMgmtCLI_User_Login () {
                 fi
                 
                 read -p "Username: " APICLIusername
+                
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli login user '\"${APICLIusername}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+                
                 mgmt_cli login user ${APICLIusername} domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
                 cat ${APICLIsessionerrorfile} >> ${logfilepath}
@@ -1039,7 +1077,10 @@ HandleMgmtCLI_User_Login () {
                 fi
                 
                 read -p "Username: " APICLIusername
-                mgmt_cli login user ${APICLIusername} -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli --unsafe-auto-accept true -m '\"${CLIparm_mgmt}\"' login user '\"${APICLIusername}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+                
+                mgmt_cli --unsafe-auto-accept true -m "${CLIparm_mgmt}" login user ${APICLIusername} session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
                 cat ${APICLIsessionerrorfile} >> ${logfilepath}
             else
@@ -1052,6 +1093,9 @@ HandleMgmtCLI_User_Login () {
                 fi
                 
                 read -p "Username: " APICLIusername
+                
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli login user '\"${APICLIusername}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+                
                 mgmt_cli login user ${APICLIusername} session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
                 cat ${APICLIsessionerrorfile} >> ${logfilepath}
@@ -1063,7 +1107,7 @@ HandleMgmtCLI_User_Login () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-12-14
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-11-10
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1075,7 +1119,7 @@ HandleMgmtCLI_User_Login () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-12-14 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-11-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 HandleMgmtCLI_Admin_User_Login () {
@@ -1121,7 +1165,9 @@ HandleMgmtCLI_Admin_User_Login () {
                     echo `${dtzs}`${dtzsep} >> ${logfilepath}
                 fi
                 
-                mgmt_cli login user ${APICLIadmin} password "${CLIparm_password}" domain "${domaintarget}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli --unsafe-auto-accept true -m '\"${CLIparm_mgmt}\"' login user '\"${APICLIadmin}\"' password *** domain '\"${domaintarget}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+                
+                mgmt_cli --unsafe-auto-accept true -m "${CLIparm_mgmt}" login user ${APICLIadmin} password "${CLIparm_password}" domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
                 cat ${APICLIsessionerrorfile} >> ${logfilepath}
             else
@@ -1132,6 +1178,8 @@ HandleMgmtCLI_Admin_User_Login () {
                     echo `${dtzs}`${dtzsep} 'Execute login with loginparmstring "'${loginparmstring}'" As User with Password and Domain "'${domaintarget}'"' >> ${logfilepath}
                     echo `${dtzs}`${dtzsep} >> ${logfilepath}
                 fi
+                
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli login user '\"${APICLIadmin}\"' password *** domain '\"${domaintarget}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
                 
                 mgmt_cli login user ${APICLIadmin} password "${CLIparm_password}" domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
@@ -1152,7 +1200,9 @@ HandleMgmtCLI_Admin_User_Login () {
                     echo `${dtzs}`${dtzsep} >> ${logfilepath}
                 fi
                 
-                mgmt_cli login user ${APICLIadmin} password "${CLIparm_password}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli --unsafe-auto-accept true -m '\"${CLIparm_mgmt}\"' login user '\"${APICLIadmin}\"' password *** session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+                
+                mgmt_cli --unsafe-auto-accept true -m "${CLIparm_mgmt}" login user ${APICLIadmin} password "${CLIparm_password}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
                 cat ${APICLIsessionerrorfile} >> ${logfilepath}
             else
@@ -1163,6 +1213,8 @@ HandleMgmtCLI_Admin_User_Login () {
                     echo `${dtzs}`${dtzsep} 'Execute login with loginparmstring "'${loginparmstring}'" As User with Password' >> ${logfilepath}
                     echo `${dtzs}`${dtzsep} >> ${logfilepath}
                 fi
+                
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli login user '\"${APICLIadmin}\"' password *** session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
                 
                 mgmt_cli login user ${APICLIadmin} password "${CLIparm_password}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
@@ -1190,7 +1242,9 @@ HandleMgmtCLI_Admin_User_Login () {
                     echo `${dtzs}`${dtzsep} >> ${logfilepath}
                 fi
                 
-                mgmt_cli login user ${APICLIadmin} domain "${domaintarget}" -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli --unsafe-auto-accept true -m '\"${CLIparm_mgmt}\"' login user '\"${APICLIadmin}\"' domain '\"${domaintarget}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+                
+                mgmt_cli --unsafe-auto-accept true -m "${CLIparm_mgmt}" login user ${APICLIadmin} domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
                 cat ${APICLIsessionerrorfile} >> ${logfilepath}
             else
@@ -1201,6 +1255,8 @@ HandleMgmtCLI_Admin_User_Login () {
                     echo `${dtzs}`${dtzsep} 'Execute login with loginparmstring "'${loginparmstring}'" As User with Domain "'${domaintarget}'"' >> ${logfilepath}
                     echo `${dtzs}`${dtzsep} >> ${logfilepath}
                 fi
+                
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli login user '\"${APICLIadmin}\"' domain '\"${domaintarget}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
                 
                 mgmt_cli login user ${APICLIadmin} domain "${domaintarget}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
@@ -1221,7 +1277,9 @@ HandleMgmtCLI_Admin_User_Login () {
                     echo `${dtzs}`${dtzsep} >> ${logfilepath}
                 fi
                 
-                mgmt_cli login user ${APICLIadmin} -m "${CLIparm_mgmt}" session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli --unsafe-auto-accept true -m '\"${CLIparm_mgmt}\"' login user '\"${APICLIadmin}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
+                
+                mgmt_cli --unsafe-auto-accept true -m "${CLIparm_mgmt}" login user ${APICLIadmin} session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
                 cat ${APICLIsessionerrorfile} >> ${logfilepath}
             else
@@ -1232,6 +1290,8 @@ HandleMgmtCLI_Admin_User_Login () {
                     echo `${dtzs}`${dtzsep} 'Execute login with loginparmstring "'${loginparmstring}'" As User' >> ${logfilepath}
                     echo `${dtzs}`${dtzsep} >> ${logfilepath}
                 fi
+                
+                echo `${dtzs}`${dtzsep} 'COMMAND :  mgmt_cli login user '\"${APICLIadmin}\"' session-timeout '${APISessionTimeout}' --port '${APICLIwebsslport}' -f json > '${APICLIsessionfile}' 2>> '${APICLIsessionerrorfile} | tee -a -i ${logfilepath}
                 
                 mgmt_cli login user ${APICLIadmin} session-timeout ${APISessionTimeout} --port ${APICLIwebsslport} -f json > ${APICLIsessionfile} 2>> ${APICLIsessionerrorfile}
                 EXITCODE=$?
@@ -1244,7 +1304,7 @@ HandleMgmtCLI_Admin_User_Login () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-12-14
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-11-10
 
 
 # -------------------------------------------------------------------------------------------------

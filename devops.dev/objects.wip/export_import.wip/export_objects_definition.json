@@ -1,6 +1,6 @@
 { "file_meta_info" : {
 	"fileversion" : "0.60.8",
-	"filerevision" : "055",
+	"filerevision" : "060",
 	"filedate" : "2021-11-10"
 }, 
 "default_csv_export_elements" : [ {
@@ -484,8 +484,25 @@
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
 	"sortparms" : "'-f -t , -k 1,1'",
-	"CSVFileHeader" : "",
-	"CSVJQparms" : ""
+	"CSVFileHeader" : "\"security-profile\",\"sic.ip-address\",\"provisioning-state\",\"provisioning-settings.provisioning-profile\"",
+	"CSVJQparms" : ".[\"security-profile\"], .[\"ip-address\"], .[\"provisioning-state\"], .[\"provisioning-settings\"][\"provisioning-profile\"]"
+}, {
+	"name" : "lsm-gateway-raw-reference",
+	"name-plural" : "lsm-gateways-raw-reference",
+	"objectgroup" : "Network Objects",
+	"api-version" : "1.8",
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objectype" : "lsm-gateway",
+	"objectsype" : "lsm-gateways",
+	"objectlimit" : 500,
+	"recommended-limit" : 500,
+	"recommended-limit-percent" : "100%",
+	"MDSM-recommended-limit" : 200,
+	"MDSM-recommended-limit-percent" : "100%",
+	"sortparms" : "'-f -t , -k 1,1'",
+	"CSVFileHeader" : "\"security-profile\",\"ip-address\",\"sic-name\",\"sic-state\",\"version\",\"os-name\",\"provisioning-state\",\"provisioning-settings.provisioning-profile\"",
+	"CSVJQparms" : ".[\"security-profile\"], .[\"ip-address\"], .[\"sic-name\"], .[\"sic-state\"], .[\"version\"], .[\"os-name\"], .[\"provisioning-state\"], .[\"provisioning-settings\"][\"provisioning-profile\"]"
 }, {
 	"name" : "lsm-cluster",
 	"name-plural" : "lsm-clusters",

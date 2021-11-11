@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=055
+ScriptRevision=060
 ScriptDate=2021-11-10
 TemplateVersion=00.60.08
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=055
+APISubscriptsRevision=060
 
 
 exit /b

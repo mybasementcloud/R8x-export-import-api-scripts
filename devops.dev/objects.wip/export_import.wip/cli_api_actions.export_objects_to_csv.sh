@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=055
+ScriptRevision=060
 ScriptDate=2021-11-10
 TemplateVersion=00.60.08
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=055
+APISubscriptsRevision=060
 
 #
 
@@ -2371,12 +2371,56 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
+export CSVFileHeader='"security-profile"'
+export CSVFileHeader=${CSVFileHeader}',"sic.ip-address"'
+export CSVFileHeader=${CSVFileHeader}',"provisioning-state","provisioning-settings.provisioning-profile"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
 
 export CSVJQparms=
+export CSVJQparms='.["security-profile"]'
+export CSVJQparms=${CSVJQparms}', .["ip-address"]'
+export CSVJQparms=${CSVJQparms}', .["provisioning-state"], .["provisioning-settings"]["provisioning-profile"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
 
 objectstotal_lsmgateways=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
 export number_lsmgateways="${objectstotal_lsmgateways}"
 export number_of_objects=${number_lsmgateways}
+
+CheckAPIVersionAndExecuteOperation
+
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectminversion=1.8
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=lsm-gateway
+export APICLIobjectstype=lsm-gateways
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=DO_NOT_IMPORT
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"security-profile"'
+export CSVFileHeader=${CSVFileHeader}',"ip-address","sic-name","sic-state"'
+export CSVFileHeader=${CSVFileHeader}',"version","os-name"'
+export CSVFileHeader=${CSVFileHeader}',"provisioning-state","provisioning-settings.provisioning-profile"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+
+export CSVJQparms=
+export CSVJQparms='.["security-profile"]'
+export CSVJQparms=${CSVJQparms}', .["ip-address"], .["sic-name"], .["sic-state"]'
+export CSVJQparms=${CSVJQparms}', .["version"], .["os-name"]'
+export CSVJQparms=${CSVJQparms}', .["provisioning-state"], .["provisioning-settings"]["provisioning-profile"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+
+objectstotal_lsmgateways2=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_lsmgateways2="${objectstotal_lsmgateways2}"
+export number_of_objects=${number_lsmgateways2}
 
 CheckAPIVersionAndExecuteOperation
 
