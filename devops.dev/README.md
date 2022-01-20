@@ -69,9 +69,17 @@ Recommended installation is to use the provided devops.dev.deploy.{version}.tgz 
 To quickly start working with the scripts, do the following.
 
 1. Download the release tgz file and deploy to a work folder on the target management host, like /var/log/__customer, the folder should be under the /var/log folder to ensure survival during upgrades
-2. Expand the TGZ file, e.g. ``tar -xf devops.dev.deploy.{version}.tgz``
-3. Goto to the export import folder ``cd ./objects.wip/export_import.wip``
-4. Execute desired script with help parameter to show command options, e.g. ``./cli_api_export_objects_to_csv.sh --help``
+2. Expand the TGZ file, e.g. 
+
+      ```tar -xf devops.dev.deploy.{version}.tgz```
+
+3. Goto to the export import folder 
+
+      ```cd ./objects.wip/export_import.wip```
+
+4. Execute desired script with help parameter to show command options, e.g. 
+
+      ```./cli_api_export_objects_to_csv.sh --help```
 
 ## VERSION RELATED CHANGES AND RELEASE APPROACH
 
