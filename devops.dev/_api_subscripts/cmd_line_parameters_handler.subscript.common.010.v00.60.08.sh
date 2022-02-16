@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
+# (C) 2016-2022 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
 # DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=060
-ScriptDate=2021-11-10
+ScriptRevision=065
+ScriptDate=2022-02-15
 TemplateVersion=00.60.08
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=060
+APISubscriptsRevision=065
 
 #
 
@@ -420,14 +420,15 @@ dumpcliparmparseresults () {
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_UseDevOpsResults' "${CLIparm_UseDevOpsResults}" >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_resultspath' "${CLIparm_resultspath}" >> ${dumpcliparmslogfilepath}
     
-    # ADDED 2021-10-19 -
+    # ADDED 2022-02-15 -
     echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_UseJSONRepo' "${CLIparm_UseJSONRepo}" >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_SaveJSONRepo' "${CLIparm_SaveJSONRepo}" >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_ForceJSONRepoRebuild' "${CLIparm_ForceJSONRepoRebuild}" >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_jsonrepopath' "${CLIparm_jsonrepopath}" >> ${dumpcliparmslogfilepath}
-    #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'UseJSONRepo' "${UseJSONRepo}" >> ${dumpcliparmslogfilepath}
-    #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'SaveJSONRepo' "${SaveJSONRepo}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'UseJSONRepo' "${UseJSONRepo}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'SaveJSONRepo' "${SaveJSONRepo}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'RebuildJSONRepo' "${RebuildJSONRepo}" >> ${dumpcliparmslogfilepath}
     
     # ADDED 2021-01-16 -
     
@@ -1256,6 +1257,7 @@ ProcessCommandLineParametersAndSetValues () {
                     ;;
                 --FORCEJSONREPOREBUILD )
                     CLIparm_ForceJSONRepoRebuild=true
+                    RebuildJSONRepo=true
                     ;;
                 --SO | --system-objects )
                     CLIparm_NoSystemObjects=false
@@ -1643,16 +1645,17 @@ ProcessCommandLineParametersAndSetValues () {
     export UseDevOpsResults=${CLIparm_UseDevOpsResults}
     export CLIparm_resultspath=${CLIparm_resultspath}
     
-    # ADDED 2021-10-19 -
+    # MODIFIED 2022-02-15 -
     export CLIparm_UseJSONRepo=${CLIparm_UseJSONRepo}
     export UseJSONRepo=${CLIparm_UseJSONRepo}
     export CLIparm_SaveJSONRepo=${CLIparm_SaveJSONRepo}
     export SaveJSONRepo=${CLIparm_SaveJSONRepo}
     export CLIparm_ForceJSONRepoRebuild=${CLIparm_ForceJSONRepoRebuild}
+    export RebuildJSONRepo=${CLIparm_SaveJSONRepo}
     export CLIparm_jsonrepopath=${CLIparm_jsonrepopath}
     
+    # MODIFIED 2022-02-15 -
     export CLIparm_NoSystemObjects=${CLIparm_NoSystemObjects}
-    # ADDED 2021-02-03 -
     export CLIparm_CreatorIsNotSystem=${CLIparm_CreatorIsNotSystem}
     export CreatorIsNotSystem=${CLIparm_CreatorIsNotSystem}
     
@@ -1995,14 +1998,22 @@ export UseDevOpsResults=false
 export CLIparm_UseDevOpsResults=${UseDevOpsResults}
 export CLIparm_resultspath=
 
-# ADDED 2021-10-19 -
+# MODIFIED 2022-02-15 -
 # Determine utilization of json repository folder in devops.results subfolder or defined folder
 
+# UseJSONRepo      TRUE      --JSONREPO
+# UseJSONRepo      FALSE     --NOJSONREPO
+# SaveJSONRepo     TRUE      --SAVEJSONREPO
+# SaveJSONRepo     FALSE     --NOSAVEJSONREPO
+# RebuildJSONRepo  TRUE      --FORCEJSONREPOREBUILD
+# RebuildJSONRepo  FALSE     <default>
+
 export UseJSONRepo=${script_use_json_repo}
-export SaveJSONRepo=${script_save_json_repo}
 export CLIparm_UseJSONRepo=${UseJSONRepo}
+export SaveJSONRepo=${script_save_json_repo}
 export CLIparm_SaveJSONRepo=${SaveJSONRepo}
 export CLIparm_ForceJSONRepoRebuild=false
+export RebuildJSONRepo=${CLIparm_ForceJSONRepoRebuild}
 export CLIparm_jsonrepopath=
 
 # MODIFIED 2018-06-24 -

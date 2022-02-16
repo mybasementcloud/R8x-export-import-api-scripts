@@ -1,7 +1,7 @@
 { "file_meta_info" : {
 	"fileversion" : "0.60.8",
 	"filerevision" : "060",
-	"filedate" : "2021-11-10"
+	"filedate" : "2022-02-15"
 }, 
 "default_csv_export_elements" : [ {
 	"name" : "common",
@@ -736,7 +736,7 @@
 	"objectlimit" : 500,
 	"recommended-limit" : 500,
 	"recommended-limit-percent" : "100%",
-	"MDSM-recommended-limit" : 100,
+	"MDSM-recommended-limit" : 50,
 	"MDSM-recommended-limit-percent" : "100%",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"primary-category\",\"description\",\"urls-defined-as-regular-expression\",\"url-list.0\",\"application-signature.0\",\"additional-categories.0\"",
@@ -753,7 +753,7 @@
 	"objectlimit" : 500,
 	"recommended-limit" : 500,
 	"recommended-limit-percent" : "100%",
-	"MDSM-recommended-limit" : 100,
+	"MDSM-recommended-limit" : 50,
 	"MDSM-recommended-limit-percent" : "100%",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"application-id\",\"primary-category\",\"description\",\"risk\",\"urls-defined-as-regular-expression\",\"user-defined\",\"url-list.0\",\"url-list.1\",\"url-list.2\",\"url-list.3\",\"url-list.4\",\"application-signature.0\",\"application-signature.1\",\"application-signature.2\",\"application-signature.3\",\"application-signature.4\",\"additional-categories.0\",\"additional-categories.1\",\"additional-categories.2\",\"additional-categories.3\",\"additional-categories.4\"",

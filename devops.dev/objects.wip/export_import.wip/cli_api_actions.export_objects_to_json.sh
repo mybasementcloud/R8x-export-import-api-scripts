@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
+# (C) 2016-2022 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
 # DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=060
-ScriptDate=2021-11-10
+ScriptRevision=065
+ScriptDate=2022-02-15
 TemplateVersion=00.60.08
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=060
+APISubscriptsRevision=065
 
 #
 
@@ -674,6 +674,8 @@ ExportRAWObjectToJSON () {
     # Export Objects to raw JSON
     #
     
+    errorreturn=0
+    
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Objects Type :  '${APICLIobjectstype} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
@@ -724,6 +726,19 @@ ExportRAWObjectToJSON () {
     #export notsystemobjectselector='.objects[] | select(."domain"."name" as $a | ['${systemobjectdomains}'] | index($a) | not)'
     export notsystemobjectselector='select(."domain"."name" as $a | ['${systemobjectdomains}'] | index($a) | not)'
     
+    export DoFileSlurp=false
+    
+    export Slurpworkfolder=${APICLIpathexport}
+    if [ x"${script_uses_wip_json}" = x"true" ] ; then
+        # script uses work-in-progress (wip) folder for json
+        
+        export Slurpworkfolder=${APICLIJSONpathexportwip}
+        
+        if [ ! -r ${APICLIJSONpathexportwip} ] ; then
+            mkdir -p -v ${APICLIJSONpathexportwip} >> ${logfilepath} 2>> ${logfilepath}
+        fi
+    fi
+    
     export APICLIfilename=${APICLIobjectstype}
     if [ x"${APICLIexportnameaddon}" != x"" ] ; then
         export APICLIfilename=${APICLIfilename}'_'${APICLIexportnameaddon}
@@ -731,6 +746,7 @@ ExportRAWObjectToJSON () {
     
     export Workingfilename=${APICLIfilename}
     export APICLIfileexport=${APICLIpathexport}/${APICLIfileexportpre}${Workingfilename}${APICLIfileexportpost}
+    export APICLIJSONfilelast=${Slurpworkfolder}/${APICLIfileexportpre}${Workingfilename}'_last'${APICLIJSONfileexportpost}
     
     export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}
     export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
@@ -772,18 +788,7 @@ ExportRAWObjectToJSON () {
     
     objectstoshow=${objectstotal}
     
-    export DoFileSlurp=false
-    
-    export Slurpworkfolder=${APICLIpathexport}
-    if [ x"${script_uses_wip_json}" = x"true" ] ; then
-        # script uses work-in-progress (wip) folder for json
-        
-        export Slurpworkfolder=${APICLIJSONpathexportwip}
-        
-        if [ ! -r ${APICLIJSONpathexportwip} ] ; then
-            mkdir -p -v ${APICLIJSONpathexportwip} >> ${logfilepath} 2>> ${logfilepath}
-        fi
-    fi
+    errorreturn=0
     
     if [ ${objectstoshow} = null ] ; then
         echo `${dtzs}`${dtzsep} 'Found NO '${APICLIobjecttype}' objects.  No objects found!  Skipping!...' | tee -a -i ${logfilepath}
@@ -840,6 +845,7 @@ ExportRAWObjectToJSON () {
                 
                 #export APICLIfileexport=${APICLIpathexport}/${APICLIfileexportpre}${APICLIobjectstype}'_'${currentoffset}'_'${APICLIfileexportpost}
                 export APICLIfileexport=${APICLIpathexport}/${APICLIfileexportpre}${Workingfilename}${APICLIfileexportpost}
+                export APICLIJSONfilelast=${Slurpworkfolder}/${APICLIfileexportpre}${APICLIfilename}'_00000-'${objectstotalformatted}'_last'${APICLIJSONfileexportpost}
                 
                 export Slurpworkfileexport=${Slurpworkfolder}/${APICLIfileexportpre}${Workingfilename}${APICLIfileexportpost}
             fi
@@ -852,7 +858,7 @@ ExportRAWObjectToJSON () {
             fi
             
             # MODIFIED 2021-10-20 -
-                
+            
             if ${NoSystemObjects} ; then
                 # Ignore System Objects
                 if ${APISCRIPTVERBOSE} ; then
@@ -861,7 +867,24 @@ ExportRAWObjectToJSON () {
                 #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | '"${notsystemobjectselector}" >> ${APICLIfileexport}
                 #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '. | '"${notsystemobjectselector}" >> ${APICLIfileexport}
                 #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '. | '"${notsystemobjectselector}" > ${APICLIfileexport}
-                mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | '"${notsystemobjectselector}" > ${APICLIfileexport}
+                #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | '"${notsystemobjectselector}" > ${APICLIfileexport}
+                mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} > ${APICLIJSONfilelast}
+                errorreturn=$?
+                
+                if [ ${errorreturn} != 0 ] ; then
+                    # Something went wrong, terminate
+                    echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                    return ${errorreturn}
+                fi
+                
+                cat ${APICLIJSONfilelast} | ${JQ} '.objects[] | '"${notsystemobjectselector}" > ${APICLIfileexport}
+                errorreturn=$?
+                
+                if [ ${errorreturn} != 0 ] ; then
+                    # Something went wrong, terminate
+                    echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                    return ${errorreturn}
+                fi
                 
                 if ${DoFileSlurp} ; then
                     #echo `${dtzs}`${dtzsep} '      Dump to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
@@ -891,7 +914,24 @@ ExportRAWObjectToJSON () {
                     echo `${dtzs}`${dtzsep} '      All objects, including System Objects' | tee -a -i ${logfilepath}
                 fi
                 #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} >> ${APICLIfileexport}
-                mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} > ${APICLIfileexport}
+                #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} > ${APICLIfileexport}
+                mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} > ${APICLIJSONfilelast}
+                errorreturn=$?
+                
+                if [ ${errorreturn} != 0 ] ; then
+                    # Something went wrong, terminate
+                    echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                    return ${errorreturn}
+                fi
+                
+                cat ${APICLIJSONfilelast} > ${APICLIfileexport}
+                errorreturn=$?
+                
+                if [ ${errorreturn} != 0 ] ; then
+                    # Something went wrong, terminate
+                    echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                    return ${errorreturn}
+                fi
                 
                 if ${DoFileSlurp} ; then
                     #echo `${dtzs}`${dtzsep} '      Dump to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
@@ -919,6 +959,35 @@ ExportRAWObjectToJSON () {
             objectslefttoshow=`expr ${objectslefttoshow} - ${WorkAPIObjectLimit}`
             #currentoffset=`expr ${currentoffset} + ${WorkAPIObjectLimit}`
             currentoffset=${nextoffset}
+            
+            # MODIFIED 2022-02-15 -
+            
+            echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+            if ${addversion2keepalive} ; then
+                mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
+                export errorreturn=$?
+            else
+                mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
+                export errorreturn=$?
+            fi
+            echo | tee -a -i ${logfilepath}
+            
+            if [ ${errorreturn} != 0 ] ; then
+                # Something went wrong, terminate
+                echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
+                
+                export LoggedIntoMgmtCli=false
+                
+                . ${mgmt_cli_API_operations_handler} LOGIN "$@"
+                LOGINEXITCODE=$?
+                
+                if [ ${LOGINEXITCODE} != 0 ] ; then
+                    exit ${LOGINEXITCODE}
+                else
+                    export LoggedIntoMgmtCli=true
+                fi
+            fi
             
         done
         
@@ -1076,7 +1145,7 @@ ExportRAWObjectToJSON () {
     fi
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    return 0
+    return ${errorreturn}
 }
 
 #
@@ -1091,7 +1160,7 @@ ExportRAWObjectToJSON () {
 # CheckAPIVersionAndExecuteOperation :  Check the API Version running where we're logged in and if good execute operation
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2025-10-25 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-02-15 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CheckAPIVersionAndExecuteOperation () {
@@ -1119,11 +1188,19 @@ CheckAPIVersionAndExecuteOperation () {
     echo `${dtzs}`${dtzsep} 'Required minimum API version for object : '${APICLIobjectstype}' is API version = '${APIobjectminversion} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Logged in management server API version = '${CurrentAPIVersion}' Check version : "'${CheckAPIVersion}'"' | tee -a -i ${logfilepath}
     
+    errorreturn=0
+    
     if [ $(expr ${APIobjectminversion} '<=' ${CurrentAPIVersion}) ] ; then
         # API is sufficient version
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
         ExportRAWObjectToJSON
+        errorreturn=$?
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        fi
         
     else
         # API is not of a sufficient version to operate on for this object
@@ -1133,13 +1210,48 @@ CheckAPIVersionAndExecuteOperation () {
     fi
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    return 0
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Handle Error in operation
+        if ${ABORTONERROR} ; then
+            read -t ${WAITTIME} -n 1 -p "Any key to EXIT script due to error ${errorreturn}.  Automatic EXIT after ${WAITTIME} seconds : " anykey
+            echo
+            
+            if ${CLIparm_NOHUP} ; then
+                # Cleanup Potential file indicating script is active for nohup mode
+                if [ -r ${script2nohupactive} ] ; then
+                    rm ${script2nohupactive} >> ${logfilepath} 2>&1
+                fi
+            fi
+            
+            export dtgs_script_finish=`date -u +%F-%T-%Z`
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error Return Result     : '"${errorreturn}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Results in directory    : '"${APICLIpathbase}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'JSON objects Repository : '"${JSONRepopathroot}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Log output in file      : '"${logfilepath}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Script execution START  :'"${dtgs_script_start}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Script execution FINISH :'"${dtgs_script_finish}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo
+            
+            exit ${errorreturn}
+        else
+            return ${errorreturn}
+        fi
+    fi
+    
+    return ${errorreturn}
     
     #
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2025-10-25
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-02-15
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1894,7 +2006,7 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectrecommendedlimitMDSM=100
+export APIobjectrecommendedlimitMDSM=50
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false

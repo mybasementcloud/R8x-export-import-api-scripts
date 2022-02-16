@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
+# (C) 2016-2022 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
 # DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=060
-ScriptDate=2021-11-10
+ScriptRevision=065
+ScriptDate=2022-02-15
 TemplateVersion=00.60.08
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=060
+APISubscriptsRevision=065
 
 #
 
@@ -173,6 +173,12 @@ export startpathroot=${expandedpath}
 # Set these to a starting state we know before we begin
 #
 export APISCRIPTVERBOSE=false
+
+
+# MODIFIED 2022-02-15 -
+# Set ABORTONERROR to true to force any error to exit, versus reporting or waiting, and then carrying on
+#
+export ABORTONERROR=true
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------

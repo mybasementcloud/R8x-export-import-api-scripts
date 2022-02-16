@@ -1,12 +1,16 @@
-supported_objects.version.tsv - Overview
+# supported_objects.version.tsv - Overview
 
-### UPDATED:  2021-11
+## UPDATED:  2022-02
+
+## Document Overview
 
 This document provides an overview of the content approach for the "supported_objects.version.tsv" file provided (example:  "supported_objects.v00.60.01.020.tsv").
 
 The provided TSV (Tab Separated Values) file is listing of the supported objects for export, import, set or update, and delete operations and shows the API objects and their respective supported state.
 
 For some columns there are caveats (e.g. !) which are described at the end of the document
+
+## Column Explanations
 
 The columns contents are as follows:
 
@@ -47,20 +51,20 @@ The columns contents are as follows:
 - CSV Details :  
     Does the object type have additional object elements available via the API exported to CSV, beyond just name, color, and comments
 
-    - True indicates there are additional or the complete usable (and importable elements) are provided.  This may have caveats based on version and plausibility or testing of specific elements.
-    - False indicates that only the common object elements are current exported to CSV.  This may have caveats based on complexity, plausibility, or testing of specific elements.
+  - True indicates there are additional or the complete usable (and importable elements) are provided.  This may have caveats based on version and plausibility or testing of specific elements.
+  - False indicates that only the common object elements are current exported to CSV.  This may have caveats based on complexity, plausibility, or testing of specific elements.
 
 - Objects JSON ("export_objects_definition.json") :  
     Does the Object type have a definition entry in the Objects JSON files for future external control and steering of the Export Import scripts.  This entry should reflect the details created for the CSV Details entry.
 
-    - True indicates an Objects JSON entry exists
-    - False indicates an Objects JSON entry does not exist
+  - True indicates an Objects JSON entry exists
+  - False indicates an Objects JSON entry does not exist
 
 The following columns are for tracking implementation in the specific scripts for:  Export to CSV, Export to CSV Action, Export to JSON Action, Import, Set-Update, Delete, and Suppend Error Handling
 
 - Common to all :
-    - True : indicates the objects type is implemented.  This may have caveats.  If "disabled" is shown, then it is implemented but turned off by commenting out on purpose!
-    - False : indicates the objects type is NOT implemented.  This may have caveats.
+  - True : indicates the objects type is implemented.  This may have caveats.  If "disabled" is shown, then it is implemented but turned off by commenting out on purpose!
+  - False : indicates the objects type is NOT implemented.  This may have caveats.
 
 - Export CSV :  implementation in "cli_api_export_objects_to_csv.sh" script
 - Export CSV Action :  implemented in "cli_api_actions.export_objects_to_csv.sh" actions script, called by scripts:  "cli_api_export_objects.sh", "cli_api_export_all_domains_objects.sh", "cli_api_export_all_domains_objects_to_csv.sh"
@@ -71,10 +75,14 @@ The following columns are for tracking implementation in the specific scripts fo
 - Suppend Error Handling :  implemented in "api_subpend_csv_error_handling_to_csv_files.sh" script
 
 The following columns are for other pertinent information
+
 - Notes
     Notes related to the current objects type
-    
+
+## Caveats
+
 Caveats explanation:
+
 - Disabled :  
     The objects type is disabled on purpose though implementation is provided.
 - N/A :  

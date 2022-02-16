@@ -1,6 +1,6 @@
 # LIMITATIONS and CAVEATS
 
-### UPDATED:  2021-11
+## UPDATED:  2022-02
 
 This document outlines limitations and caveats to the implementation of R8X API export, import, set-update, and delete scripts utilizing bash mgmt_cli commands.
 
@@ -12,7 +12,8 @@ The author is currently utilizing R81.10 with API version 1.8 and these limitati
 
 Currently, R81.10 JHF 9 GA Take is implemented for testing
 
-In some cases, 
+In some cases,
+
 - the indicated limitations may be bugs or concept errors in the R8X API
 - the limitation may exist because of the complexity of the object
 - the limitation may exist due to security implementation restricting access to data needed at export, thus not having that data at import (e.g. passwords or shared secrets)
@@ -54,11 +55,13 @@ Basic function of tested without successful authentication, so more testing and 
 ## LIMITATIONS and CAVEATS by object type
 
 ### General limitations
+
 If the object does not provide a method to output a required key value during export, import may not provide that object's missing key value.  If possible, a subsequent additional step may address the issue.
 
 Currently RADIUS server object and RADIUS servers group object types do not exist, so details about RADIUS configuration for neither export, nor import are possible as of current implementation of API 1.7.
 
 ### User Objects
+
 - "authentication-method" significantly impacts export approach for user objects, thus the key "authentication-method" and values for it are not included in the basic user object export.  Instead they are handled in "authentication-method" specific complex object export, one CSV for each "authentication-method"
 
 - RADIUS "authentication-method" supports import when the RADIUS server is set to "ANY"
@@ -70,6 +73,7 @@ Currently RADIUS server object and RADIUS servers group object types do not exis
 - Certificates are currently not handled, export may not be plausible
 
 ### User-Template Objects
+
 - "authentication-method" significantly impacts export approach for user-template objects.  Unlike user objects, the basic details about the "authentication-method" are exportable and importable--with caveats
 
 - RADIUS "authentication-method" DOES NOT support import when the RADIUS server is set to "ANY"
@@ -77,13 +81,13 @@ Currently RADIUS server object and RADIUS servers group object types do not exis
 - TACACS "server-type" DOES NOT support import when the TACACS server is set to "TACACS+", because the exported information is "TACACS_PLUS_" which is not the expected values
 
 ### User and User-Template Objects
+
 - Locations currently not handled, as this requires a concept and approach
 
 - Times currently not handled, as this requires a concept and approach
-    
 
 ### LSM Objects
+
 - lsm-gateway and lsm-cluster objects are Work-In-Progress (WIP) and may not provide CSV results of value until further data can be collected and analyzed
 
 - v00.60.08.060 :  lsm-gateway[s] now provides limited CSV data that can work for import, as well as a CSV export NOT_FOR_IMPORT of raw information from the lsm-gateway objects as a reference for the implemented system.
-

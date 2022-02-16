@@ -1,0 +1,48 @@
+#!/bin/bash
+#
+# (C) 2016-2022 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
+#
+# ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
+# DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
+# RESULTS OF USING THESE SCRIPTS.  USING THESE SCRIPTS STIPULATES A CLEAR UNDERSTANDING OF RESPECTIVE
+# TECHNOLOGIES AND UNDERLYING PROGRAMMING CONCEPTS AND STRUCTURES AND IMPLIES CORRECT IMPLEMENTATION
+# OF RESPECTIVE BASELINE TECHNOLOGIES FOR PLATFORM UTILIZING THE SCRIPTS.  THIRD PARTY LIMITATIONS
+# APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
+# AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
+#
+# SCRIPTS Session_Cleanup operations
+#
+#
+ScriptVersion=05.60.08
+ScriptRevision=065
+ScriptDate=2022-02-15
+TemplateVersion=00.60.08
+APISubscriptsLevel=010
+APISubscriptsVersion=00.60.08
+APISubscriptsRevision=065
+
+
+#
+
+export APIScriptVersion=v${ScriptVersion}
+export APIScriptTemplateVersion=v${TemplateVersion}
+
+export APIScriptVersionX=v${ScriptVersion//./x}
+export APIScriptTemplateVersionX=v${TemplateVersion//./x}
+
+export APIActionsScriptVersion=v${ScriptVersion}
+export APIActionScriptTemplateVersion=v${TemplateVersion}
+export APIExpectedActionScriptsVersion=v${ScriptVersion}
+
+export APIActionsScriptVersionX=v${ScriptVersion//./x}
+export APIActionScriptTemplateVersionX=v${TemplateVersion//./x}
+export APIExpectedActionScriptsVersionX=v${ScriptVersion//./x}
+
+export APISubscriptsScriptVersion=v${ScriptVersion}
+export APISubscriptsScriptTemplateVersion=v${TemplateVersion}
+export APIExpectedAPISubscriptsVersion=v${APISubscriptsVersion}
+
+export APISubscriptsScriptVersionX=v${ScriptVersion//./x}
+export APISubscriptsScriptTemplateVersionX=v${TemplateVersion//./x}
+export APIExpectedAPISubscriptsVersionX=v${APISubscriptsVersion//./x}
+
