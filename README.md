@@ -50,7 +50,7 @@ Releases have packages for the key script folders:
 
 The script packages are:
 
-- Deployment Package  :  devops.dev.deploy.{version}.tgz
+- Deployment Package  :  devops.dev.{version}.tgz
 
 The approach to provided compressed packages was changed to facilitate quicker implementation and deployment on the management hosts.
 
@@ -62,16 +62,25 @@ The approach to provided compressed packages was changed to facilitate quicker i
 
 ### INSTALLATION RECOMMENDATION
 
-Recommended installation is to use the provided devops.dev.deploy.{version}.tgz and expand that to the working folder on the Gaia OS host, which should be placed under /var/log/ folder to ensure survival during Gaia OS upgrades.  The tgz file is the devops.dev folder with current scripts and tools, and a devops.results folder for results if using --RESULTS option, and the devops.my_data for holding modified csv files for operations.
+Recommended installation is to use the provided devops.dev.{version}.tgz and expand that to the working folder on the Gaia OS host, which should be placed under /var/log/ folder to ensure survival during Gaia OS upgrades.  The tgz file is the devops.dev folder with current scripts and tools, and a devops.results folder for results if using --RESULTS option, and the devops.my_data for holding modified csv files for operations.
 
 ## QUICK START
 
 To quickly start working with the scripts, do the following.
 
 1. Download the release tgz file and deploy to a work folder on the target management host, like /var/log/__customer, the folder should be under the /var/log folder to ensure survival during upgrades
+
+      ```mkdir /var/log/__customer```
+
+      ```chmod 775 /var/log/__customer```
+
+      ```cd /var/log/__customer```
+
 2. Expand the TGZ file, e.g. 
 
-      ```tar -xf devops.dev.deploy.{version}.tgz```
+      Example:  ```tar -xf devops.dev.{version}.tgz```
+
+      ```tar -xf devops.dev.v00.60.08.065.tgz```
 
 3. Goto to the export import folder 
 
