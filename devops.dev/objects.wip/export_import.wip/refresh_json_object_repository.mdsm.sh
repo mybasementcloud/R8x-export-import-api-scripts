@@ -14,12 +14,12 @@
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=065
-ScriptDate=2022-02-15
+ScriptRevision=075
+ScriptDate=2022-03-11
 TemplateVersion=00.60.08
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=065
+APISubscriptsRevision=075
 
 #
 
@@ -60,18 +60,31 @@ export APIScriptDescription="Refresh JSON Object Repository - MDSM"
 
 
 export DATE=`date +%Y-%m-%d-%H%M%Z`
+export DATEDTG=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
-export dtgs_script_start=`date -u +%F-%T-%Z`
+export dtgs_script_start_utc=`date -u +%F-%T-%Z`
+export dtgs_script_start=`date +%F-%T-%Z`
 
 export customerpathroot=/var/log/__customer
 export scriptspathroot=/var/log/__customer/upgrade_export/scripts
 
 export rootscriptconfigfile=__root_script_config.sh
 
-export logfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.log
+if [ -r "${customerpathroot}/devops.results" ] ; then
+    export cexlogfolder=${customerpathroot}/devops.results/${DATEDTG}'.'${ScriptName//\.}
+    if [ ! -r ${cexlogfolder} ] ; then
+        mkdir -p -v ${cexlogfolder}
+        chmod 775 ${cexlogfolder}
+    else
+        chmod 775 ${cexlogfolder}
+    fi
+    export cexlogfilepath=${cexlogfolder}/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.log
+else
+    export cexlogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.log
+fi
 
-export dtzs='date -u +%Y%m%d-%T-%Z'
-export dtzsep=' | '
+export cexdtzs='date -u +%Y%m%d-%T-%Z'
+export cexdtzsep=' | '
 
 
 # -------------------------------------------------------------------------------------------------
@@ -100,31 +113,37 @@ else
 fi
 
 if [ -r ${dot_enviroinfo_fqpn} ] ; then
-    getdtzs=`cat ${dot_enviroinfo_fqpn} | jq -r ."script_ui_config"."dtzs"`
+    getdtzs=`cat ${dot_enviroinfo_fqpn} | jq -r ."script_ui_config"."cexdtzs"`
     readdtzs=${getdtzs}
     if [ x"${readdtzs}" != x"" ] ; then
-        export dtzs=${readdtzs}
+        export cexdtzs=${readdtzs}
     fi
-    getdtzsep=`cat ${dot_enviroinfo_fqpn} | jq -r ."script_ui_config"."dtzsep"`
+    getdtzsep=`cat ${dot_enviroinfo_fqpn} | jq -r ."script_ui_config"."cexdtzsep"`
     readdtzsep=${getdtzsep}
     if [ x"${readdtzsep}" != x"" ] ; then
-        export dtzsep=${readdtzsep}
+        export cexdtzsep=${readdtzsep}
     fi
 fi
 
 
 # -------------------------------------------------------------------------------------------------
 
+export common_exports_dtgs_script_start_utc=${dtgs_script_start_utc}
 export common_exports_dtgs_script_start=${dtgs_script_start}
 
 # -------------------------------------------------------------------------------------------------
 # Announce what we are starting here...
 # -------------------------------------------------------------------------------------------------
 
-echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} 'Script original call name :  '$0 | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision} | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} 'Script original call name :  '$0 | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
+
+echo `${cexdtzs}`${cexdtzsep} 'Short nap to adjust for log files times...zzzz' | tee -a -i ${cexlogfilepath}
+sleep 75
+
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -144,30 +163,73 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 
-#${test_script_work_folder}/cli_api_export_objects.sh -v -r --NOWAIT --RESULTS --format all --KEEPCSVWIP --SO --10-TAGS --CSVERR --CSVALL
-echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+#${test_script_work_folder}/cli_api_export_all_domains_objects.sh -r -v --NOWAIT --RESULTS --format json --KEEPCSVWIP --SO
+#${test_script_work_folder}/cli_api_export_all_domains_objects.sh -r -v --NOWAIT --RESULTS --format json --KEEPCSVWIP --NSO
 
-${test_script_work_folder}/cli_api_export_all_domains_objects.sh -r -v --NOWAIT --RESULTS --format json --KEEPCSVWIP --SO
 
-echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} '--------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} '\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/' | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} '--------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 
-${test_script_work_folder}/cli_api_export_all_domains_objects.sh -r -v --NOWAIT --RESULTS --format json --KEEPCSVWIP --NSO
+errorreturn=0
 
-echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+export cexcommand='cli_api_export_all_domains_objects.sh -r -v --NOWAIT --RESULTS --format json --KEEPCSVWIP --SO'
+echo `${cexdtzs}`${cexdtzsep} 'Executing operation:  '${test_script_work_folder}/${cexcommand} | tee -a -i ${cexlogfilepath}
+
+${test_script_work_folder}/${cexcommand}
+errorreturn=$?
+
+if [ ${errorreturn} != 0 ] ; then
+    # Something went wrong, terminate
+    echo `${cexdtzs}`${cexdtzsep} 'Error '${errorreturn}' in operation:  '${cexcommand} | tee -a -i ${cexlogfilepath}
+    echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
+    exit ${errorreturn}
+fi
+
+
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} '\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/' | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
+
+
+errorreturn=0
+
+export cexcommand='cli_api_export_all_domains_objects.sh -r -v --NOWAIT --RESULTS --format json --KEEPCSVWIP --NSO'
+echo `${cexdtzs}`${cexdtzsep} 'Executing operation:  '${test_script_work_folder}/${cexcommand} | tee -a -i ${cexlogfilepath}
+
+${test_script_work_folder}/${cexcommand}
+errorreturn=$?
+
+if [ ${errorreturn} != 0 ] ; then
+    # Something went wrong, terminate
+    echo `${cexdtzs}`${cexdtzsep} 'Error '${errorreturn}' in operation:  '${cexcommand} | tee -a -i ${cexlogfilepath}
+    echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
+    exit ${errorreturn}
+fi
+
+
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} '--------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} '\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/' | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} '--------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 
 
 # -------------------------------------------------------------------------------------------------
 
-export common_exports_dtgs_script_finish=`date -u +%F-%T-%Z`
+export common_exports_dtgs_script_finish_utc=`date -u +%F-%T-%Z`
+export common_exports_dtgs_script_finish=`date +%F-%T-%Z`
 
-echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} 'Script execution START  :'"${dtgs_script_start}" | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} 'Script execution FINISH :'"${dtgs_script_finish}" | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} 'Script execution START  :'"${common_exports_dtgs_script_start}"' UTC :  '"${common_exports_dtgs_script_start_utc}" | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} 'Script execution FINISH :'"${common_exports_dtgs_script_finish}"' UTC :  '"${common_exports_dtgs_script_finish_utc}" | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} 'Common Execution Log File :'"${cexlogfilepath}" | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 echo

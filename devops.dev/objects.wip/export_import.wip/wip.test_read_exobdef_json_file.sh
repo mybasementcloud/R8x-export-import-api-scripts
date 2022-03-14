@@ -10,16 +10,19 @@
 # APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
+#
+# -#- Start Making Changes Here -#- 
+#
 # SCRIPT test reading json export objects definition file
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=065
-ScriptDate=2022-02-15
+ScriptRevision=075
+ScriptDate=2022-03-11
 TemplateVersion=00.60.08
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=065
+APISubscriptsRevision=075
 
 #
 
@@ -232,14 +235,25 @@ export JQ=${CPDIR_PATH}/jq/jq
 ConfigureJQLocation
 
 
-# MODIFIED 2021-11-10 -
+# MODIFIED 2022-03-10 -
 #
 export AbsoluteAPIMaxObjectLimit=500
 export MinAPIObjectLimit=50
 export MaxAPIObjectLimit=${AbsoluteAPIMaxObjectLimit}
-export RecommendedAPIObjectLimitMDSM=200
+export MaxAPIObjectLimitSlowObjects=100
+export DefaultAPIObjectLimitMDSMXtraSlow=50
+export DefaultAPIObjectLimitMDSMSlow=100
+export DefaultAPIObjectLimitMDSMMedium=250
+export DefaultAPIObjectLimitMDSMFast=500
+export SlowObjectAPIObjectLimitMDSMXtraSlow=25
+export SlowObjectAPIObjectLimitMDSMSlow=50
+export SlowObjectAPIObjectLimitMDSMMedium=100
+export SlowObjectAPIObjectLimitMDSMFast=200
+#export RecommendedAPIObjectLimitMDSM=200
+export RecommendedAPIObjectLimitMDSM=${DefaultAPIObjectLimitMDSMMedium}
 export DefaultAPIObjectLimit=${MaxAPIObjectLimit}
 export DefaultAPIObjectLimitMDSM=${RecommendedAPIObjectLimitMDSM}
+export DefaultAPIObjectLimitMDSMSlowObjects=${SlowObjectAPIObjectLimitMDSMSlow}
 
 
 export exobdeffilepath=./export_objects_definition.json

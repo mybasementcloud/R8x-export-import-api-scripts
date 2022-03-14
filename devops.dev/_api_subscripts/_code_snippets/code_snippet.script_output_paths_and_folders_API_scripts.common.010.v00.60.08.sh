@@ -10,16 +10,19 @@
 # APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
+#
+# -#- Start Making Changes Here -#- 
+#
 # SCRIPTS Code Snippet API Subscripts - Configure Script Output Paths and Fodlers for API Scripts Handler operations
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=065
-ScriptDate=2022-02-15
+ScriptRevision=075
+ScriptDate=2022-03-11
 TemplateVersion=00.60.08
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=065
+APISubscriptsRevision=075
 
 
 exit /b

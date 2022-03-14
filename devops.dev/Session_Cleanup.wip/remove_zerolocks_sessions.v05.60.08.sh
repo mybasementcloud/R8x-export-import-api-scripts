@@ -10,16 +10,19 @@
 # APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
+#
+# -#- Start Making Changes Here -#- 
+#
 # SCRIPT for BASH to remove zero locks sessions
 #
 #
 ScriptVersion=05.60.08
-ScriptRevision=065
-ScriptDate=2022-02-15
+ScriptRevision=075
+ScriptDate=2022-03-11
 TemplateVersion=00.60.08
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=065
+APISubscriptsRevision=075
 
 
 #
@@ -271,6 +274,19 @@ export UseJSONJQ16=true
 #
 export MinAPIVersionRequired=1.1
 
+# ADDED 2022-03-09 - 
+#    
+#    mgmt_cli command-name command-parameters optional-switches
+#    
+#    optional-switches:
+#    ---------------
+#    [--conn-timeout]
+#            Defines maximum time the request is allowed to take in seconds.
+#            Default {180}
+#            Environment variable: MGMT_CLI_CONNECTION_TIMEOUT
+#
+export APICLIconntimeout=600
+
 # ADDED 2021-11-09 - 
 # MaaS (Smart-1 Cloud) current versions
 # R81           version 1.7
@@ -442,14 +458,25 @@ export mgmt_cli_API_operations_handler_file=mgmt_cli_api_operations.subscript.co
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-11-10 -
+# MODIFIED 2022-03-10 -
 #
 export AbsoluteAPIMaxObjectLimit=500
 export MinAPIObjectLimit=50
 export MaxAPIObjectLimit=${AbsoluteAPIMaxObjectLimit}
-export RecommendedAPIObjectLimitMDSM=200
+export MaxAPIObjectLimitSlowObjects=100
+export DefaultAPIObjectLimitMDSMXtraSlow=50
+export DefaultAPIObjectLimitMDSMSlow=100
+export DefaultAPIObjectLimitMDSMMedium=250
+export DefaultAPIObjectLimitMDSMFast=500
+export SlowObjectAPIObjectLimitMDSMXtraSlow=25
+export SlowObjectAPIObjectLimitMDSMSlow=50
+export SlowObjectAPIObjectLimitMDSMMedium=100
+export SlowObjectAPIObjectLimitMDSMFast=200
+#export RecommendedAPIObjectLimitMDSM=200
+export RecommendedAPIObjectLimitMDSM=${DefaultAPIObjectLimitMDSMMedium}
 export DefaultAPIObjectLimit=${MaxAPIObjectLimit}
 export DefaultAPIObjectLimitMDSM=${RecommendedAPIObjectLimitMDSM}
+export DefaultAPIObjectLimitMDSMSlowObjects=${SlowObjectAPIObjectLimitMDSMSlow}
 
 
 # =================================================================================================
@@ -807,7 +834,7 @@ BasicScriptSetupAPIScripts "$@"
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-03-10 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -829,7 +856,8 @@ BasicScriptSetupAPIScripts "$@"
 # -m <server_IP> | --management <server_IP> | -m=<server_IP> | --management=<server_IP>
 # -d <domain> | --domain <domain> | -d=<domain> | --domain=<domain>
 # -s <session_file_filepath> | --session-file <session_file_filepath> | -s=<session_file_filepath> | --session-file=<session_file_filepath>
-# --session-timeout <session_time_out> 10-3600
+# --session-timeout <session_time_out[ 10-3600]
+# --conn-timeout <connection_time_out, [180,180-3600]> | --CTO <connection_time_out> | --conn-timeout=<connection_time_out, [180,180-3600]> | --CTO=<connection_time_out>
 # -l <log_path> | --log-path <log_path> | -l=<log_path> | --log-path=<log_path>'
 #
 # -o <output_path> | --output <output_path> | -o=<output_path> | --output=<output_path> 
@@ -870,6 +898,8 @@ export CLIparm_sessionidfile=
 export CLIparm_sessiontimeout=
 export CLIparm_logpath=
 
+export CLIparm_connectiontimeout=${APICLIconntimeout}
+
 export CLIparm_outputpath=
 export CLIparm_csvpath=
 
@@ -902,7 +932,7 @@ export CLIparm_NOHUPDTG=
 export CLIparm_NOHUPPATH=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
 # MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
@@ -1991,6 +2021,77 @@ ScriptOutputPathsforAPIScripts "$@"
 # START:  Management CLI API Operations Handling
 # =================================================================================================
 
+
+# -------------------------------------------------------------------------------------------------
+# Check API Keep Alive Status - CheckAPIKeepAlive
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-03-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# Check API Keep Alive Status.
+#
+CheckAPIKeepAlive () {
+    #
+    # Check API Keep Alive Status and on error try a login attempt
+    #
+    
+    errorreturn=0
+    
+    if ${LoggedIntoMgmtCli} ; then
+        echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+        if ${addversion2keepalive} ; then
+            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
+            export errorreturn=$?
+        else
+            mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
+            export errorreturn=$?
+        fi
+        echo | tee -a -i ${logfilepath}
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
+            
+            export LoggedIntoMgmtCli=false
+            
+            . ${mgmt_cli_API_operations_handler} LOGIN "$@"
+            LOGINEXITCODE=$?
+            
+            if [ ${LOGINEXITCODE} != 0 ] ; then
+                exit ${LOGINEXITCODE}
+            else
+                export LoggedIntoMgmtCli=true
+                export errorreturn=0
+            fi
+        fi
+    else
+        # Uhhh what, this check should only happen if logged in
+        
+        export LoggedIntoMgmtCli=false
+        
+        . ${mgmt_cli_API_operations_handler} LOGIN "$@"
+        LOGINEXITCODE=$?
+        
+        if [ ${LOGINEXITCODE} != 0 ] ; then
+            exit ${LOGINEXITCODE}
+        else
+            export LoggedIntoMgmtCli=true
+            export errorreturn=0
+        fi
+    fi
+    
+    return ${errorreturn}
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-03-10
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
 # -------------------------------------------------------------------------------------------------
 # CheckMgmtCLIAPIOperationsHandler - Management CLI API Operations Handler calling routine
 # -------------------------------------------------------------------------------------------------
@@ -2059,6 +2160,7 @@ CheckMgmtCLIAPIOperationsHandler () {
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
 
 # -------------------------------------------------------------------------------------------------
 # Call Basic Script Setup for API Scripts Handler action script
@@ -2271,10 +2373,10 @@ if ${UseR8XAPI} ; then
             
             if [ ! -z "${CLIparm_mgmt}" ] ; then
             # working with remote management server
-                Check4DomainByName=$(mgmt_cli --port ${APICLIwebsslport} --unsafe-auto-accept true -m "${CLIparm_mgmt}" -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
+                Check4DomainByName=$(mgmt_cli --port ${APICLIwebsslport} --conn-timeout ${APICLIconntimeout} --unsafe-auto-accept true -m "${CLIparm_mgmt}" -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
                 echo `${dtzs}`${dtzsep} 'You may be required to provide credentials for "System Data" domain logon!' | tee -a -i ${logfilepath}
             else
-                Check4DomainByName=$(mgmt_cli -r true --port ${APICLIwebsslport} -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
+                Check4DomainByName=$(mgmt_cli -r true --port ${APICLIwebsslport} --conn-timeout ${APICLIconntimeout} --unsafe-auto-accept true -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
             fi
             CheckCLIParmDomain=${Check4DomainByName}
             
@@ -2391,32 +2493,7 @@ echo >> ${dumpfile}
 cat ${dumpfile} | tee -a -i ${logfilepath}
 
 
-echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-if ${addversion2keepalive} ; then
-    mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-    export errorreturn=$?
-else
-    mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-    export errorreturn=$?
-fi
-echo | tee -a -i ${logfilepath}
-
-if [ ${errorreturn} != 0 ] ; then
-    # Something went wrong, terminate
-    echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
-    
-    export LoggedIntoMgmtCli=false
-    
-    . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-    LOGINEXITCODE=$?
-    
-    if [ ${LOGINEXITCODE} != 0 ] ; then
-        exit ${LOGINEXITCODE}
-    else
-        export LoggedIntoMgmtCli=true
-    fi
-fi
+CheckAPIKeepAlive
 
 
 echo 'uid' > ${deletefile}
@@ -2424,32 +2501,7 @@ echo 'uid' > ${deletefile}
 mgmt_cli -s ${APICLIsessionfile} show sessions limit 500 details-level full --format json | jq -r '.objects[] | select((.locks==0) and (.changes==0) and (."expired-session"==true)) | [ .uid ] | @csv' >> ${deletefile}
 
 
-echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-if ${addversion2keepalive} ; then
-    mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-    export errorreturn=$?
-else
-    mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-    export errorreturn=$?
-fi
-echo | tee -a -i ${logfilepath}
-
-if [ ${errorreturn} != 0 ] ; then
-    # Something went wrong, terminate
-    echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
-    
-    export LoggedIntoMgmtCli=false
-    
-    . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-    LOGINEXITCODE=$?
-    
-    if [ ${LOGINEXITCODE} != 0 ] ; then
-        exit ${LOGINEXITCODE}
-    else
-        export LoggedIntoMgmtCli=true
-    fi
-fi
+CheckAPIKeepAlive
 
 
 mgmt_cli -s ${APICLIsessionfile} discard --batch ${deletefile} > ${dumpfile}

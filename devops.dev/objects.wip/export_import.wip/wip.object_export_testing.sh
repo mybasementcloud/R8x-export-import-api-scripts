@@ -10,16 +10,19 @@
 # APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
+#
+# -#- Start Making Changes Here -#- 
+#
 # SCRIPT Object dump to CSV action operations for API CLI Operations - testing specific objects
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=065
-ScriptDate=2022-02-15
+ScriptRevision=075
+ScriptDate=2022-03-11
 TemplateVersion=00.60.08
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=065
+APISubscriptsRevision=075
 
 #
 
@@ -278,6 +281,19 @@ export UseJSONJQ16=true
 #
 export MinAPIVersionRequired=1.1
 
+# ADDED 2022-03-09 - 
+#    
+#    mgmt_cli command-name command-parameters optional-switches
+#    
+#    optional-switches:
+#    ---------------
+#    [--conn-timeout]
+#            Defines maximum time the request is allowed to take in seconds.
+#            Default {180}
+#            Environment variable: MGMT_CLI_CONNECTION_TIMEOUT
+#
+export APICLIconntimeout=600
+
 # ADDED 2021-11-09 - 
 # MaaS (Smart-1 Cloud) current versions
 # R81           version 1.7
@@ -471,14 +487,25 @@ export APICLICSVfileexportsuffix='.'${APICLICSVfileexportext}
 export APICLIJSONfileexportext=${FileExtJSON}
 export APICLIJSONfileexportsuffix='.'${APICLIJSONfileexportext}
 
-# MODIFIED 2021-11-10 -
+# MODIFIED 2022-03-10 -
 #
 export AbsoluteAPIMaxObjectLimit=500
 export MinAPIObjectLimit=50
 export MaxAPIObjectLimit=${AbsoluteAPIMaxObjectLimit}
-export RecommendedAPIObjectLimitMDSM=200
+export MaxAPIObjectLimitSlowObjects=100
+export DefaultAPIObjectLimitMDSMXtraSlow=50
+export DefaultAPIObjectLimitMDSMSlow=100
+export DefaultAPIObjectLimitMDSMMedium=250
+export DefaultAPIObjectLimitMDSMFast=500
+export SlowObjectAPIObjectLimitMDSMXtraSlow=25
+export SlowObjectAPIObjectLimitMDSMSlow=50
+export SlowObjectAPIObjectLimitMDSMMedium=100
+export SlowObjectAPIObjectLimitMDSMFast=200
+#export RecommendedAPIObjectLimitMDSM=200
+export RecommendedAPIObjectLimitMDSM=${DefaultAPIObjectLimitMDSMMedium}
 export DefaultAPIObjectLimit=${MaxAPIObjectLimit}
 export DefaultAPIObjectLimitMDSM=${RecommendedAPIObjectLimitMDSM}
+export DefaultAPIObjectLimitMDSMSlowObjects=${SlowObjectAPIObjectLimitMDSMSlow}
 
 # Configure basic information for formation of file path for action handler scripts
 #
@@ -858,7 +885,7 @@ BasicScriptSetupAPIScripts "$@"
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-03-10 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -880,7 +907,8 @@ BasicScriptSetupAPIScripts "$@"
 # -m <server_IP> | --management <server_IP> | -m=<server_IP> | --management=<server_IP>
 # -d <domain> | --domain <domain> | -d=<domain> | --domain=<domain>
 # -s <session_file_filepath> | --session-file <session_file_filepath> | -s=<session_file_filepath> | --session-file=<session_file_filepath>
-# --session-timeout <session_time_out> 10-3600
+# --session-timeout <session_time_out[ 10-3600]
+# --conn-timeout <connection_time_out, [180,180-3600]> | --CTO <connection_time_out> | --conn-timeout=<connection_time_out, [180,180-3600]> | --CTO=<connection_time_out>
 # -l <log_path> | --log-path <log_path> | -l=<log_path> | --log-path=<log_path>'
 #
 # -o <output_path> | --output <output_path> | -o=<output_path> | --output=<output_path> 
@@ -921,6 +949,8 @@ export CLIparm_sessionidfile=
 export CLIparm_sessiontimeout=
 export CLIparm_logpath=
 
+export CLIparm_connectiontimeout=${APICLIconntimeout}
+
 export CLIparm_outputpath=
 export CLIparm_csvpath=
 
@@ -953,7 +983,7 @@ export CLIparm_NOHUPDTG=
 export CLIparm_NOHUPPATH=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
 # MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
@@ -2042,6 +2072,77 @@ ScriptOutputPathsforAPIScripts "$@"
 # START:  Management CLI API Operations Handling
 # =================================================================================================
 
+
+# -------------------------------------------------------------------------------------------------
+# Check API Keep Alive Status - CheckAPIKeepAlive
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-03-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# Check API Keep Alive Status.
+#
+CheckAPIKeepAlive () {
+    #
+    # Check API Keep Alive Status and on error try a login attempt
+    #
+    
+    errorreturn=0
+    
+    if ${LoggedIntoMgmtCli} ; then
+        echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+        if ${addversion2keepalive} ; then
+            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
+            export errorreturn=$?
+        else
+            mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
+            export errorreturn=$?
+        fi
+        echo | tee -a -i ${logfilepath}
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
+            
+            export LoggedIntoMgmtCli=false
+            
+            . ${mgmt_cli_API_operations_handler} LOGIN "$@"
+            LOGINEXITCODE=$?
+            
+            if [ ${LOGINEXITCODE} != 0 ] ; then
+                exit ${LOGINEXITCODE}
+            else
+                export LoggedIntoMgmtCli=true
+                export errorreturn=0
+            fi
+        fi
+    else
+        # Uhhh what, this check should only happen if logged in
+        
+        export LoggedIntoMgmtCli=false
+        
+        . ${mgmt_cli_API_operations_handler} LOGIN "$@"
+        LOGINEXITCODE=$?
+        
+        if [ ${LOGINEXITCODE} != 0 ] ; then
+            exit ${LOGINEXITCODE}
+        else
+            export LoggedIntoMgmtCli=true
+            export errorreturn=0
+        fi
+    fi
+    
+    return ${errorreturn}
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-03-10
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
 # -------------------------------------------------------------------------------------------------
 # CheckMgmtCLIAPIOperationsHandler - Management CLI API Operations Handler calling routine
 # -------------------------------------------------------------------------------------------------
@@ -2110,6 +2211,7 @@ CheckMgmtCLIAPIOperationsHandler () {
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
 
 # -------------------------------------------------------------------------------------------------
 # Call Basic Script Setup for API Scripts Handler action script
@@ -2323,10 +2425,10 @@ if ${UseR8XAPI} ; then
             
             if [ ! -z "${CLIparm_mgmt}" ] ; then
             # working with remote management server
-                Check4DomainByName=$(mgmt_cli --port ${APICLIwebsslport} --unsafe-auto-accept true -m "${CLIparm_mgmt}" -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
+                Check4DomainByName=$(mgmt_cli --port ${APICLIwebsslport} --conn-timeout ${APICLIconntimeout} --unsafe-auto-accept true -m "${CLIparm_mgmt}" -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
                 echo `${dtzs}`${dtzsep} 'You may be required to provide credentials for "System Data" domain logon!' | tee -a -i ${logfilepath}
             else
-                Check4DomainByName=$(mgmt_cli -r true --port ${APICLIwebsslport} -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
+                Check4DomainByName=$(mgmt_cli -r true --port ${APICLIwebsslport} --conn-timeout ${APICLIconntimeout} --unsafe-auto-accept true -d "System Data" show domains limit 500 offset 0 details-level standard -f json | ${JQ} '.objects[] | select(."name"=="'${CLIparm_domain}'") | ."name"' -r)
             fi
             CheckCLIParmDomain=${Check4DomainByName}
             
@@ -3217,7 +3319,7 @@ ConfigureExportCSVandJQParameters () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-03-11 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The ExportObjectsToCSVviaJQ is the meat of the script's repeated actions.
@@ -3319,7 +3421,7 @@ ExportObjectsToCSVviaJQ () {
     
     # -------------------------------------------------------------------------------------------------
     
-    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}
+    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}' --conn-timeout '${APICLIconntimeout}
     
     export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
     
@@ -3332,32 +3434,7 @@ ExportObjectsToCSVviaJQ () {
     
     # -------------------------------------------------------------------------------------------------
     
-    echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-    if ${addversion2keepalive} ; then
-        mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-        export errorreturn=$?
-    else
-        mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-        export errorreturn=$?
-    fi
-    echo | tee -a -i ${logfilepath}
-    
-    if [ ${errorreturn} != 0 ] ; then
-        # Something went wrong, terminate
-        echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
-        
-        export LoggedIntoMgmtCli=false
-        
-        . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-        LOGINEXITCODE=$?
-        
-        if [ ${LOGINEXITCODE} != 0 ] ; then
-            exit ${LOGINEXITCODE}
-        else
-            export LoggedIntoMgmtCli=true
-        fi
-    fi
+    CheckAPIKeepAlive
     
     objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
     objectstoshow=${objectstotal}
@@ -3368,13 +3445,25 @@ ExportObjectsToCSVviaJQ () {
         # JSON Repository File for the target object exists, lets check for the number objects
         checkJSONRepoTotal=`cat ${JSONRepoFile} | ${JQ} ".total"`
         JSONRepoObjectsTotal=${checkJSONRepoTotal}
-        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        if [ x"${JSONRepoObjectsTotal}" == x"" ] ; then
+            # There are null objects, so skip
+            JSONRepoObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was NULL' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        elif [[ ${JSONRepoObjectsTotal} -lt 1 ]] ; then
+            # no objects of this type
+            JSONRepoObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was -lt 1 (so zero)' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        else
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        fi
     else
         # JSON Repository File for the target object DOES NOT exists
         JSONRepoObjectsTotal=0
-        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, fail -r check' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
     fi
     
@@ -3475,12 +3564,18 @@ ExportObjectsToCSVviaJQ () {
                 #errorreturn=$?
             #fi
             
+            if ${APISCRIPTVERBOSE} ; then
+                echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentoffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLICSVfiledatalast} | tee -a -i ${logfilepath}
+            else
+                echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentoffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLICSVfiledatalast} >> ${logfilepath}
+            fi
+            
             mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} > ${APICLICSVfiledatalast}
             errorreturn=$?
             
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'ExportObjectsToCSVviaJQ : Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
                 return ${errorreturn}
             fi
             
@@ -3496,41 +3591,17 @@ ExportObjectsToCSVviaJQ () {
             
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli JQ Parsing operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'ExportObjectsToCSVviaJQ : Problem during mgmt_cli JQ Parsing operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
                 return ${errorreturn}
             fi
             
             objectslefttoshow=`expr ${objectslefttoshow} - ${WorkAPIObjectLimit}`
             currentoffset=`expr ${currentoffset} + ${WorkAPIObjectLimit}`
             
-            # MODIFIED 2022-02-14 -
+            # MODIFIED 2022-03-10 -
             
-            echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-            if ${addversion2keepalive} ; then
-                mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-                export errorreturn=$?
-            else
-                mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-                export errorreturn=$?
-            fi
-            echo | tee -a -i ${logfilepath}
+            CheckAPIKeepAlive
             
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-                echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
-                
-                export LoggedIntoMgmtCli=false
-                
-                . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-                LOGINEXITCODE=$?
-                
-                if [ ${LOGINEXITCODE} != 0 ] ; then
-                    exit ${LOGINEXITCODE}
-                else
-                    export LoggedIntoMgmtCli=true
-                fi
-            fi
         done
         
     else
@@ -3575,7 +3646,7 @@ ExportObjectsToCSVviaJQ () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Problem during JSON Repository file query operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'ExportObjectsToCSVviaJQ : Problem during JSON Repository file query operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
     fi
@@ -3586,7 +3657,7 @@ ExportObjectsToCSVviaJQ () {
     errorreturn=$?
     if [ ${errorreturn} != 0 ] ; then
         # Something went wrong, terminate
-        echo `${dtzs}`${dtzsep} 'Problem found in procedure FinalizeExportObjectsToCSVviaJQ! error return = '${errorreturn} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'ExportObjectsToCSVviaJQ : Problem found in procedure FinalizeExportObjectsToCSVviaJQ! error return = '${errorreturn} | tee -a -i ${logfilepath}
         return ${errorreturn}
     fi
     
@@ -3599,6 +3670,7 @@ ExportObjectsToCSVviaJQ () {
         
     fi
     
+    echo `${dtzs}`${dtzsep} 'ExportObjectsToCSVviaJQ procedure returns :  '${errorreturn} >> ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return 0
     
@@ -3606,7 +3678,7 @@ ExportObjectsToCSVviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-21
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-11
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3633,32 +3705,7 @@ GetNumberOfObjectsviaJQ () {
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     fi
     
-    echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-    if ${addversion2keepalive} ; then
-        mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-        export errorreturn=$?
-    else
-        mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-        export errorreturn=$?
-    fi
-    echo | tee -a -i ${logfilepath}
-    
-    if [ ${errorreturn} != 0 ] ; then
-        # Something went wrong, terminate
-        echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
-        
-        export LoggedIntoMgmtCli=false
-        
-        . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-        LOGINEXITCODE=$?
-        
-        if [ ${LOGINEXITCODE} != 0 ] ; then
-            exit ${LOGINEXITCODE}
-        else
-            export LoggedIntoMgmtCli=true
-        fi
-    fi
+    CheckAPIKeepAlive
     
     objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
     errorreturn=$?
@@ -3689,7 +3736,7 @@ GetNumberOfObjectsviaJQ () {
 # CheckAPIVersionAndExecuteOperation :  Check the API Version running where we're logged in and if good execute operation
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-02-15 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-03-11 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CheckAPIVersionAndExecuteOperation () {
@@ -3730,6 +3777,9 @@ CheckAPIVersionAndExecuteOperation () {
         
         ExportObjectsToCSVviaJQ
         errorreturn=$?
+        
+        echo `${dtzs}`${dtzsep} 'CheckAPIVersionAndExecuteOperation call to ExportObjectsToCSVviaJQ procedure returned :  '${errorreturn} >> ${logfilepath}
+        
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
             echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in ExportObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
@@ -3755,6 +3805,9 @@ CheckAPIVersionAndExecuteOperation () {
     if [ ${errorreturn} != 0 ] ; then
         # Handle Error in operation
         if ${ABORTONERROR} ; then
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             read -t ${WAITTIME} -n 1 -p "Any key to EXIT script due to error ${errorreturn}.  Automatic EXIT after ${WAITTIME} seconds : " anykey
             echo
             
@@ -3782,17 +3835,21 @@ CheckAPIVersionAndExecuteOperation () {
             
             exit ${errorreturn}
         else
-            return ${errorreturn}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CheckAPIVersionAndExecuteOperation procedure, but continueing' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            #return ${errorreturn}
         fi
     fi
     
+    echo `${dtzs}`${dtzsep} 'CheckAPIVersionAndExecuteOperation procedure returns :  '${errorreturn} >> ${logfilepath}
     return ${errorreturn}
     
     #
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-02-15
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-11
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3978,7 +4035,6 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectrecommendedlimitMDSM=50
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4031,7 +4087,6 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectrecommendedlimitMDSM=50
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4436,32 +4491,7 @@ FinalizeExportComplexObjectsToCSVviaJQ () {
 # -------------------------------------------------------------------------------------------------
 
 
-echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-if ${addversion2keepalive} ; then
-    mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-    export errorreturn=$?
-else
-    mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-    export errorreturn=$?
-fi
-echo | tee -a -i ${logfilepath}
-
-if [ ${errorreturn} != 0 ] ; then
-    # Something went wrong, terminate
-    echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
-    
-    export LoggedIntoMgmtCli=false
-    
-    . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-    LOGINEXITCODE=$?
-    
-    if [ ${LOGINEXITCODE} != 0 ] ; then
-        exit ${LOGINEXITCODE}
-    else
-        export LoggedIntoMgmtCli=true
-    fi
-fi
+CheckAPIKeepAlive
 
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
@@ -4506,10 +4536,10 @@ PopulateArrayOfObjectsTypeFromMgmtDB () {
     
     if ${NoSystemObjects} ; then
         # Ignore System Objects
-        MGMT_CLI_OBJECTSTYPE_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentobjecttypesoffset} details-level full -s ${APICLIsessionfile} -f json | ${JQ} '.objects[] | '"${notsystemobjectselector}"' | .name | @sh' -r`"
+        MGMT_CLI_OBJECTSTYPE_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentobjecttypesoffset} details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${notsystemobjectselector}"' | .name | @sh' -r`"
     else
         # Don't Ignore System Objects
-        MGMT_CLI_OBJECTSTYPE_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentobjecttypesoffset} details-level standard -s ${APICLIsessionfile} -f json | ${JQ} '.objects[].name | @sh' -r`"
+        MGMT_CLI_OBJECTSTYPE_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentobjecttypesoffset} details-level standard -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[].name | @sh' -r`"
     fi
     
     # break the string into an array - each element of the array is a line in the original string
@@ -4581,7 +4611,7 @@ PopulateArrayOfObjectsTypeFromJSONRepository () {
 # GetArrayOfObjectsType proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-02-15 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-03-10 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -4599,9 +4629,10 @@ GetArrayOfObjectsType () {
     echo `${dtzs}`${dtzsep} 'Generate array of '${APICLIobjectstype} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    ALLOBJECTSTYPARRAY=()
+    export ALLOBJECTSTYPARRAY=()
+    export ObjectsOfTypeToProcess=false
     
-    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}
+    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}' --conn-timeout '${APICLIconntimeout}
     export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
     
     export MgmtCLI_Show_OpParms='details-level "'${APICLIdetaillvl}'" '${MgmtCLI_Base_OpParms}
@@ -4610,32 +4641,7 @@ GetArrayOfObjectsType () {
         export MgmtCLI_Show_OpParms='dereference-group-members true '${MgmtCLI_Show_OpParms}
     fi
     
-    echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-    if ${addversion2keepalive} ; then
-        mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-        export errorreturn=$?
-    else
-        mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-        export errorreturn=$?
-    fi
-    echo | tee -a -i ${logfilepath}
-    
-    if [ ${errorreturn} != 0 ] ; then
-        # Something went wrong, terminate
-        echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
-        
-        export LoggedIntoMgmtCli=false
-        
-        . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-        LOGINEXITCODE=$?
-        
-        if [ ${LOGINEXITCODE} != 0 ] ; then
-            exit ${LOGINEXITCODE}
-        else
-            export LoggedIntoMgmtCli=true
-        fi
-    fi
+    CheckAPIKeepAlive
     
     objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard ${MgmtCLI_Base_OpParms} | ${JQ} ".total")
     
@@ -4645,13 +4651,25 @@ GetArrayOfObjectsType () {
         # JSON Repository File for the target object exists, lets check for the number objects
         checkJSONRepoTotal=`cat ${JSONRepoFile} | ${JQ} ".total"`
         JSONRepoObjectsTotal=${checkJSONRepoTotal}
-        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        if [ x"${JSONRepoObjectsTotal}" == x"" ] ; then
+            # There are null objects, so skip
+            JSONRepoObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was NULL' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        elif [[ ${JSONRepoObjectsTotal} -lt 1 ]] ; then
+            # no objects of this type
+            JSONRepoObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was -lt 1 (so zero)' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        else
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        fi
     else
         # JSON Repository File for the target object DOES NOT exists
         JSONRepoObjectsTotal=0
-        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, fail -r check' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
     fi
     
@@ -4730,32 +4748,7 @@ GetArrayOfObjectsType () {
             objectslefttoshow=`expr ${objectslefttoshow} - ${WorkAPIObjectLimit}`
             currentobjecttypesoffset=`expr ${currentobjecttypesoffset} + ${WorkAPIObjectLimit}`
             
-            echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-            if ${addversion2keepalive} ; then
-                mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-                export errorreturn=$?
-            else
-                mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-                export errorreturn=$?
-            fi
-            echo | tee -a -i ${logfilepath}
-            
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-                echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
-                
-                export LoggedIntoMgmtCli=false
-                
-                . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-                LOGINEXITCODE=$?
-                
-                if [ ${LOGINEXITCODE} != 0 ] ; then
-                    exit ${LOGINEXITCODE}
-                else
-                    export LoggedIntoMgmtCli=true
-                fi
-            fi
+            CheckAPIKeepAlive
             
         done
         
@@ -4773,12 +4766,18 @@ GetArrayOfObjectsType () {
         fi
     fi
     
+    if [ x"${ALLOBJECTSTYPARRAY[@]}" != x"" ] ; then
+        # ALLOBJECTSTYPARRAY is not empty
+        export ObjectsOfTypeToProcess=true
+    else
+        export ObjectsOfTypeToProcess=false
+    fi
     
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-02-15
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
 
 
 # -------------------------------------------------------------------------------------------------
@@ -4824,7 +4823,7 @@ DumpArrayOfObjectsType () {
 # CollectMembersInObjectsTypeWithMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-02-15 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-03-10 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -4856,13 +4855,27 @@ CollectMembersInObjectsTypeWithMgmtDB () {
         export objecttoevaluate=${i}
         export objectnametoevaluate=${i//\'/}
         
-        MEMBERS_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} -f json | ${JQ} ".members | length")
+        MEMBERS_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".members | length")
         
         NUM_OBJECTSTYPE_MEMBERS=${MEMBERS_COUNT}
         
-        if [ ${NUM_OBJECTSTYPE_MEMBERS} -gt 0 ]; then
-            # More than zero (0) interfaces, something to process
-            echo `${dtzs}`${dtzsep} Group "${objectnametoevaluate}"' number of members = '"${NUM_OBJECTSTYPE_MEMBERS}" | tee -a -i ${logfilepath}
+        if [ x"${NUM_OBJECTSTYPE_MEMBERS}" == x"" ] ; then
+            # There are null objects, so skip
+            
+            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = NULL (0 zero)'
+            
+            return 0
+           
+        elif [[ ${NUM_OBJECTSTYPE_MEMBERS} -lt 1 ]] ; then
+            # no objects of this type
+            
+            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = 0 (0 zero)'
+            
+            return 0
+           
+        else
+            # More than zero (1) interfaces, something to process
+            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = '"${NUM_OBJECTSTYPE_MEMBERS}" | tee -a -i ${logfilepath}
             
             export CSVJQmemberparms='"'${objectnametoevaluate}'", '${CSVJQmemberparmsbase}
             
@@ -4874,7 +4887,7 @@ CollectMembersInObjectsTypeWithMgmtDB () {
             # MODIFIED 2021-10-23
             # What is this?  Multiple jq operations to consolidate the operation into a single strike
             # 0.)  Output the Repository file of ${APICLIobjecttype} for jq processing
-            #      Action: ]# mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} -f json
+            #      Action: ]# mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json
             # 1.)  Get the current objects members as a seperate list
             #      Action: ]# ${JQ} '.objects[] | select(.name == "'"${objectnametoevaluate}"'") | .members[]'
             # 2.)  Pipe that json list of members objects, which are not clean to a jq slurp action to make them usable as an array
@@ -4883,11 +4896,14 @@ CollectMembersInObjectsTypeWithMgmtDB () {
             #      Action: ]# ${JQ} '.[] | [ '"${CSVJQmemberparms}"' ] | @csv' -r
             #
             
-            mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} -f json | ${JQ} '.members[]' | ${JQ} -s '.' | ${JQ} '.[] | [ '"${CSVJQmemberparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
+            mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.members[]' | ${JQ} -s '.' | ${JQ} '.[] | [ '"${CSVJQmemberparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
             errorreturn=$?
             
-        else
-            echo `${dtzs}`${dtzsep} Group "${objectnametoevaluate}"' number of members = NONE (0 zero)'
+            if [ "${errorreturn}" != "0" ] ; then
+                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Error in JQ Operation in CollectMembersInObjectsTypeWithMgmtDB for object '${APICLIobjecttype}' with name '${objectnametoevaluate}' which may lead to failure to generate output!' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            fi
         fi
         
     done
@@ -4896,14 +4912,14 @@ CollectMembersInObjectsTypeWithMgmtDB () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-02-15
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
 
 
 # -------------------------------------------------------------------------------------------------
 # CollectMembersInObjectsTypeWithJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-02-15 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-03-10 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -4935,13 +4951,27 @@ CollectMembersInObjectsTypeWithJSONRepository () {
         export objecttoevaluate=${i}
         export objectnametoevaluate=${i//\'/}
         
-        #MEMBERS_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} -f json | ${JQ} ".members | length")
+        #MEMBERS_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".members | length")
         MEMBERS_COUNT=$(cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"${objectnametoevaluate}"'") | .members | length')
         
         NUM_OBJECTSTYPE_MEMBERS=${MEMBERS_COUNT}
         
-        if [ ${NUM_OBJECTSTYPE_MEMBERS} -gt 0 ]; then
-            # More than zero (0) interfaces, something to process
+        if [ x"${NUM_OBJECTSTYPE_MEMBERS}" == x"" ] ; then
+            # There are null objects, so skip
+            
+            echo `${dtzs}`${dtzsep} Group "${objectnametoevaluate}"' number of members = NULL (0 zero)'
+            
+            return 0
+           
+        elif [[ ${NUM_OBJECTSTYPE_MEMBERS} -lt 1 ]] ; then
+            # no objects of this type
+            
+            echo `${dtzs}`${dtzsep} Group "${objectnametoevaluate}"' number of members = 0 (0 zero)'
+            
+            return 0
+           
+        else
+            # More than zero (1) interfaces, something to process
             echo `${dtzs}`${dtzsep} Group "${objectnametoevaluate}"' number of members = '"${NUM_OBJECTSTYPE_MEMBERS}" | tee -a -i ${logfilepath}
             
             export CSVJQmemberparms='"'${objectnametoevaluate}'", '${CSVJQmemberparmsbase}
@@ -4965,8 +4995,11 @@ CollectMembersInObjectsTypeWithJSONRepository () {
             cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"${objectnametoevaluate}"'") | .members[]' | ${JQ} -s '.' | ${JQ} '.[] | [ '"${CSVJQmemberparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
             errorreturn=$?
             
-        else
-            echo `${dtzs}`${dtzsep} Group "${objectnametoevaluate}"' number of members = NONE (0 zero)'
+            if [ "${errorreturn}" != "0" ] ; then
+                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Error in JQ Operation in CollectMembersInObjectsTypeWithJSONRepository for group object '${objectnametoevaluate}' which may lead to failure to generate output!' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            fi
         fi
         
     done
@@ -4975,7 +5008,7 @@ CollectMembersInObjectsTypeWithJSONRepository () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-02-15
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
 
 
 # -------------------------------------------------------------------------------------------------
@@ -5002,13 +5035,25 @@ CollectMembersInObjectsType () {
         # JSON Repository File for the target object exists, lets check for the number objects
         checkJSONRepoTotal=`cat ${JSONRepoFile} | ${JQ} ".total"`
         JSONRepoObjectsTotal=${checkJSONRepoTotal}
-        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        if [ x"${JSONRepoObjectsTotal}" == x"" ] ; then
+            # There are null objects, so skip
+            JSONRepoObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was NULL' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        elif [[ ${JSONRepoObjectsTotal} -lt 1 ]] ; then
+            # no objects of this type
+            JSONRepoObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was -lt 1 (so zero)' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        else
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        fi
     else
         # JSON Repository File for the target object DOES NOT exists
         JSONRepoObjectsTotal=0
-        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, fail -r check' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
     fi
     
@@ -5100,7 +5145,7 @@ CollectMembersInObjectsType () {
 # GetObjectMembers proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-02-15 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-03-11 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -5109,6 +5154,9 @@ CollectMembersInObjectsType () {
 GetObjectMembers () {
     
     errorreturn=0
+    
+    export ALLOBJECTSTYPARRAY=()
+    export ObjectsOfTypeToProcess=false
     
     if ${CSVADDEXPERRHANDLE} ; then
         export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
@@ -5141,38 +5189,46 @@ GetObjectMembers () {
         return ${errorreturn}
     fi
     
-    DumpArrayOfObjectsType
-    errorreturn=$?
-    
-    if [ ${errorreturn} != 0 ] ; then
-        # Handle Error in operation
-        echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in DumpArrayOfObjectsType procedure' | tee -a -i ${logfilepath}
-        return ${errorreturn}
-    fi
-    
-    CollectMembersInObjectsType
-    errorreturn=$?
-    
-    if [ ${errorreturn} != 0 ] ; then
-        # Handle Error in operation
-        echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectMembersInObjectsType procedure' | tee -a -i ${logfilepath}
-        return ${errorreturn}
-    fi
-    
-    FinalizeExportComplexObjectsToCSVviaJQ
-    errorreturn=$?
-    
-    if [ ${errorreturn} != 0 ] ; then
-        # Handle Error in operation
-        echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in FinalizeExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
-        return ${errorreturn}
+    if ${ObjectsOfTypeToProcess} ; then
+        # we have objects left to process after generating the array of ObjectsType
+        echo `${dtzs}`${dtzsep} 'Processing returned '${#ALLOBJECTSTYPARRAY[@]}' objects of type '${APICLIobjectstype}', so processing this object' | tee -a -i ${logfilepath}
+        
+        DumpArrayOfObjectsType
+        errorreturn=$?
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Handle Error in operation
+            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in DumpArrayOfObjectsType procedure' | tee -a -i ${logfilepath}
+            return ${errorreturn}
+        fi
+        
+        CollectMembersInObjectsType
+        errorreturn=$?
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Handle Error in operation
+            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectMembersInObjectsType procedure' | tee -a -i ${logfilepath}
+            return ${errorreturn}
+        fi
+        
+        FinalizeExportComplexObjectsToCSVviaJQ
+        errorreturn=$?
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Handle Error in operation
+            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in FinalizeExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+            return ${errorreturn}
+        fi
+    else
+        # The array of ObjectsType is empty, nothing to process
+        echo `${dtzs}`${dtzsep} 'No objects of type '${APICLIobjectstype}' were returned to process, skipping further operations on this object' | tee -a -i ${logfilepath}
     fi
     
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-02-15
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-11
 
 
 # -------------------------------------------------------------------------------------------------
@@ -5367,10 +5423,10 @@ PopulateArrayOfHostInterfacesFromMgmtDB () {
     
     if ${NoSystemObjects} ; then
         # Ignore System Objects
-        MGMT_CLI_HOSTS_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level full -s ${APICLIsessionfile} -f json | ${JQ} '.objects[] | '"${notsystemobjectselector}"' | .name | @sh' -r`"
+        MGMT_CLI_HOSTS_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${notsystemobjectselector}"' | .name | @sh' -r`"
     else
         # Don't Ignore System Objects
-        MGMT_CLI_HOSTS_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level standard -s ${APICLIsessionfile} -f json | ${JQ} '.objects[].name | @sh' -r`"
+        MGMT_CLI_HOSTS_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level standard -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[].name | @sh' -r`"
     fi
     
     # break the string into an array - each element of the array is a line in the original string
@@ -5400,22 +5456,44 @@ PopulateArrayOfHostInterfacesFromMgmtDB () {
             #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"', ' | tee -a -i ${logfilepath}
         fi
         
-        #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level full -s ${APICLIsessionfile} -f json | ${JQ} ".interfaces | length")
-        INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} -f json | ${JQ} ".interfaces | length")
+        #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
+        INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
         
         NUM_HOST_INTERFACES=${INTERFACES_COUNT}
         
-        if ${APISCRIPTVERBOSE} ; then
-            echo -n "${NUM_HOST_INTERFACES}"', ' | tee -a -i ${logfilepath}
-        else
-            echo -n "${NUM_HOST_INTERFACES}" | tee -a -i ${logfilepath}
-        fi
-        
-        if [ ${NUM_HOST_INTERFACES} -gt 0 ]; then
+        if [ x"${NUM_HOST_INTERFACES}" == x"" ] ; then
+            # There are null objects, so skip
+            if ${APISCRIPTVERBOSE} ; then
+                echo -n '0, ' | tee -a -i ${logfilepath}
+            else
+                echo -n '0' | tee -a -i ${logfilepath}
+            fi
+            echo -n '-' | tee -a -i ${logfilepath}
+        elif [[ ${NUM_HOST_INTERFACES} -lt 1 ]] ; then
+            # no objects of this type
+            if ${APISCRIPTVERBOSE} ; then
+                echo -n '0, ' | tee -a -i ${logfilepath}
+            else
+                echo -n '0' | tee -a -i ${logfilepath}
+            fi
+            echo -n '-' | tee -a -i ${logfilepath}
+        elif [[ ${NUM_HOST_INTERFACES} -gt 0 ]] ; then
+            # More than zero (1) interfaces, something to process
+            if ${APISCRIPTVERBOSE} ; then
+                echo -n "${NUM_HOST_INTERFACES}"', ' | tee -a -i ${logfilepath}
+            else
+                echo -n "${NUM_HOST_INTERFACES}" | tee -a -i ${logfilepath}
+            fi
             HOSTSARR+=("${line}")
             let HostInterfacesCount=HostInterfacesCount+${NUM_HOST_INTERFACES}
             echo -n '!' | tee -a -i ${logfilepath}
         else
+            # ?? Whatever..., so skip
+            if ${APISCRIPTVERBOSE} ; then
+                echo -n '0, ' | tee -a -i ${logfilepath}
+            else
+                echo -n '0' | tee -a -i ${logfilepath}
+            fi
             echo -n '-' | tee -a -i ${logfilepath}
         fi
         
@@ -5508,23 +5586,45 @@ PopulateArrayOfHostInterfacesFromJSONRepository () {
             #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"', ' | tee -a -i ${logfilepath}
         fi
         
-        #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level full -s ${APICLIsessionfile} -f json | ${JQ} ".interfaces | length")
-        #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} -f json | ${JQ} ".interfaces | length")
+        #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
+        #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
         INTERFACES_COUNT=$(cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"$(eval echo ${line})"'") | .interfaces | length')
         
         NUM_HOST_INTERFACES=${INTERFACES_COUNT}
         
-        if ${APISCRIPTVERBOSE} ; then
-            echo -n "${NUM_HOST_INTERFACES}"', ' | tee -a -i ${logfilepath}
-        else
-            echo -n "${NUM_HOST_INTERFACES}" | tee -a -i ${logfilepath}
-        fi
-        
-        if [ ${NUM_HOST_INTERFACES} -gt 0 ]; then
+        if [ x"${NUM_HOST_INTERFACES}" == x"" ] ; then
+            # There are null objects, so skip
+            if ${APISCRIPTVERBOSE} ; then
+                echo -n '0, ' | tee -a -i ${logfilepath}
+            else
+                echo -n '0' | tee -a -i ${logfilepath}
+            fi
+            echo -n '-' | tee -a -i ${logfilepath}
+        elif [[ ${NUM_HOST_INTERFACES} -lt 1 ]] ; then
+            # no objects of this type
+            if ${APISCRIPTVERBOSE} ; then
+                echo -n '0, ' | tee -a -i ${logfilepath}
+            else
+                echo -n '0' | tee -a -i ${logfilepath}
+            fi
+            echo -n '-' | tee -a -i ${logfilepath}
+        elif [[ ${NUM_HOST_INTERFACES} -gt 0 ]] ; then
+            # More than zero (1) interfaces, something to process
+            if ${APISCRIPTVERBOSE} ; then
+                echo -n "${NUM_HOST_INTERFACES}"', ' | tee -a -i ${logfilepath}
+            else
+                echo -n "${NUM_HOST_INTERFACES}" | tee -a -i ${logfilepath}
+            fi
             HOSTSARR+=("${line}")
             let HostInterfacesCount=HostInterfacesCount+${NUM_HOST_INTERFACES}
             echo -n '!' | tee -a -i ${logfilepath}
         else
+            # ?? Whatever..., so skip
+            if ${APISCRIPTVERBOSE} ; then
+                echo -n '0, ' | tee -a -i ${logfilepath}
+            else
+                echo -n '0' | tee -a -i ${logfilepath}
+            fi
             echo -n '-' | tee -a -i ${logfilepath}
         fi
         
@@ -5572,7 +5672,7 @@ GetArrayOfHostInterfaces () {
     HOSTSARR=()
     ALLHOSTSARR=()
     
-    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}
+    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}' --conn-timeout '${APICLIconntimeout}
     export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
     
     export MgmtCLI_Show_OpParms='details-level "'${APICLIdetaillvl}'" '${MgmtCLI_Base_OpParms}
@@ -5581,32 +5681,7 @@ GetArrayOfHostInterfaces () {
         export MgmtCLI_Show_OpParms='dereference-group-members true '${MgmtCLI_Show_OpParms}
     fi
     
-    echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-    if ${addversion2keepalive} ; then
-        mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-        export errorreturn=$?
-    else
-        mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-        export errorreturn=$?
-    fi
-    echo | tee -a -i ${logfilepath}
-    
-    if [ ${errorreturn} != 0 ] ; then
-        # Something went wrong, terminate
-        echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
-        
-        export LoggedIntoMgmtCli=false
-        
-        . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-        LOGINEXITCODE=$?
-        
-        if [ ${LOGINEXITCODE} != 0 ] ; then
-            exit ${LOGINEXITCODE}
-        else
-            export LoggedIntoMgmtCli=true
-        fi
-    fi
+    CheckAPIKeepAlive
     
     objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard ${MgmtCLI_Base_OpParms} | ${JQ} ".total")
     
@@ -5616,13 +5691,25 @@ GetArrayOfHostInterfaces () {
         # JSON Repository File for the target object exists, lets check for the number objects
         checkJSONRepoTotal=`cat ${JSONRepoFile} | ${JQ} ".total"`
         JSONRepoObjectsTotal=${checkJSONRepoTotal}
-        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        if [ x"${JSONRepoObjectsTotal}" == x"" ] ; then
+            # There are null objects, so skip
+            JSONRepoObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was NULL' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        elif [[ ${JSONRepoObjectsTotal} -lt 1 ]] ; then
+            # no objects of this type
+            JSONRepoObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was -lt 1 (so zero)' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        else
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        fi
     else
         # JSON Repository File for the target object DOES NOT exists
         JSONRepoObjectsTotal=0
-        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, fail -r check' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
     fi
     
@@ -5701,32 +5788,7 @@ GetArrayOfHostInterfaces () {
             objectslefttoshow=`expr ${objectslefttoshow} - ${WorkAPIObjectLimit}`
             currenthostoffset=`expr ${currenthostoffset} + ${WorkAPIObjectLimit}`
             
-            echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-            if ${addversion2keepalive} ; then
-                mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-                export errorreturn=$?
-            else
-                mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-                export errorreturn=$?
-            fi
-            echo | tee -a -i ${logfilepath}
-            
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-                echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
-                
-                export LoggedIntoMgmtCli=false
-                
-                . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-                LOGINEXITCODE=$?
-                
-                if [ ${LOGINEXITCODE} != 0 ] ; then
-                    exit ${LOGINEXITCODE}
-                else
-                    export LoggedIntoMgmtCli=true
-                fi
-            fi
+            CheckAPIKeepAlive
             
         done
         
@@ -5815,7 +5877,7 @@ DumpArrayOfHostsObjects () {
 # CollectInterfacesInHostObjectsFromMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-10-24 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-03-10 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -5851,11 +5913,25 @@ CollectInterfacesInHostObjectsFromMgmtDB () {
         #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         #echo `${dtzs}`${dtzsep} Host with interfaces "${hostnametoevaluate}" | tee -a -i ${logfilepath}
         
-        INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "${hostnametoevaluate}" -s ${APICLIsessionfile} -f json | ${JQ} ".interfaces | length")
+        INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "${hostnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
         
         NUM_HOST_INTERFACES=${INTERFACES_COUNT}
         
-        if [ ${NUM_HOST_INTERFACES} -gt 0 ]; then
+        if [ x"${NUM_HOST_INTERFACES}" == x"" ] ; then
+            # There are null objects, so skip
+            
+            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = NULL (0 zero)'
+            
+            return 0
+           
+        elif [[ ${NUM_HOST_INTERFACES} -lt 1 ]] ; then
+            # no objects of this type
+            
+            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = 0 (0 zero)'
+            
+            return 0
+           
+        elif [[ ${NUM_HOST_INTERFACES} -gt 0 ]] ; then
             # More than zero (0) interfaces, something to process
             echo `${dtzs}`${dtzsep} host "${hostnametoevaluate}"' number of interfaces = '"${NUM_HOST_INTERFACES}" | tee -a -i ${logfilepath}
             
@@ -5869,7 +5945,7 @@ CollectInterfacesInHostObjectsFromMgmtDB () {
             # MODIFIED 2021-10-23
             # What is this?  Multiple jq operations to consolidate the operation into a single strike
             # 0.)  Generate the hosts data for the specific host for jq processing
-            #      Action: ]# mgmt_cli show ${APICLIobjecttype} name "${hostnametoevaluate}" -s ${APICLIsessionfile} -f json}
+            #      Action: ]# mgmt_cli show ${APICLIobjecttype} name "${hostnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json}
             # 1.)  Get the current hosts interfaces as a seperate list
             #      Action: ]# ${JQ} '.objects[] | select(.name == "'"${hostnametoevaluate}"'") | .interfaces[]'
             # 2.)  Pipe that json list of interface objects, which are not clean to a jq slurp action to make them usable as an array
@@ -5877,42 +5953,18 @@ CollectInterfacesInHostObjectsFromMgmtDB () {
             # 3.)  Pipe the results from the jq slurp to make an array, to jq to parse for the ${CSVJQinterfaceparms} items into CSV format
             #      Action: ]# ${JQ} '.[] | [ '"${CSVJQinterfaceparms}"' ] | @csv' -r
             #
-            mgmt_cli show ${APICLIobjecttype} name "${hostnametoevaluate}" -s ${APICLIsessionfile} -f json | ${JQ} '.interfaces[]' | ${JQ} -s '.' | ${JQ} '.[] | [ '"${CSVJQinterfaceparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
+            mgmt_cli show ${APICLIobjecttype} name "${hostnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.interfaces[]' | ${JQ} -s '.' | ${JQ} '.[] | [ '"${CSVJQinterfaceparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
             errorreturn=$?
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in mgmt_cli execution reading host '${hostnametoevaluate}' interfaces' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectInterfacesInHostObjectsFromMgmtDB mgmt_cli execution reading host '${hostnametoevaluate}' interfaces' | tee -a -i ${logfilepath}
                 return ${errorreturn}
             fi
             
-            echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-            if ${addversion2keepalive} ; then
-                mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-                export errorreturn=$?
-            else
-                mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-                export errorreturn=$?
-            fi
-            echo | tee -a -i ${logfilepath}
-            
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-                echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
-                
-                export LoggedIntoMgmtCli=false
-                
-                . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-                LOGINEXITCODE=$?
-                
-                if [ ${LOGINEXITCODE} != 0 ] ; then
-                    exit ${LOGINEXITCODE}
-                else
-                    export LoggedIntoMgmtCli=true
-                fi
-            fi
+            CheckAPIKeepAlive
             
         else
+            # ?? Whatever..., so skip
             echo `${dtzs}`${dtzsep}' host '"${hostnametoevaluate}"' number of interfaces = NONE (0 zero)' | tee -a -i ${logfilepath}
         fi
         
@@ -5922,14 +5974,14 @@ CollectInterfacesInHostObjectsFromMgmtDB () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-24
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
 
 
 # -------------------------------------------------------------------------------------------------
 # CollectInterfacesInHostObjectsFromJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-10-24 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-03-10 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -5965,12 +6017,26 @@ CollectInterfacesInHostObjectsFromJSONRepository () {
         #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         #echo `${dtzs}`${dtzsep} Host with interfaces "${hostnametoevaluate}" | tee -a -i ${logfilepath}
         
-        #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "${i//\'/}" -s ${APICLIsessionfile} -f json | ${JQ} ".interfaces | length")
+        #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "${i//\'/}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
         INTERFACES_COUNT=$(cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"${hostnametoevaluate}"'") | .interfaces | length')
         
         NUM_HOST_INTERFACES=${INTERFACES_COUNT}
         
-        if [ ${NUM_HOST_INTERFACES} -gt 0 ]; then
+        if [ x"${NUM_HOST_INTERFACES}" == x"" ] ; then
+            # There are null objects, so skip
+            
+            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = NULL (0 zero)'
+            
+            return 0
+           
+        elif [[ ${NUM_HOST_INTERFACES} -lt 1 ]] ; then
+            # no objects of this type
+            
+            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = 0 (0 zero)'
+            
+            return 0
+           
+        elif [[ ${NUM_HOST_INTERFACES} -gt 0 ]] ; then
             # More than zero (0) interfaces, something to process
             echo `${dtzs}`${dtzsep} host "${hostnametoevaluate}"' number of interfaces = '"${NUM_HOST_INTERFACES}" | tee -a -i ${logfilepath}
             
@@ -5996,11 +6062,12 @@ CollectInterfacesInHostObjectsFromJSONRepository () {
             errorreturn=$?
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in JQ execution reading host '${hostnametoevaluate}' interfaces' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectInterfacesInHostObjectsFromJSONRepository JQ execution reading host '${hostnametoevaluate}' interfaces' | tee -a -i ${logfilepath}
                 return ${errorreturn}
             fi
             
         else
+            # ?? Whatever..., so skip
             echo `${dtzs}`${dtzsep}' host '"${hostnametoevaluate}"' number of interfaces = NONE (0 zero)' | tee -a -i ${logfilepath}
         fi
         
@@ -6010,7 +6077,7 @@ CollectInterfacesInHostObjectsFromJSONRepository () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-24
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
 
 
 # -------------------------------------------------------------------------------------------------
@@ -6039,13 +6106,25 @@ CollectInterfacesInHostObjects () {
         # JSON Repository File for the target object exists, lets check for the number objects
         checkJSONRepoTotal=`cat ${JSONRepoFile} | ${JQ} ".total"`
         JSONRepoObjectsTotal=${checkJSONRepoTotal}
-        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        if [ x"${JSONRepoObjectsTotal}" == x"" ] ; then
+            # There are null objects, so skip
+            JSONRepoObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was NULL' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        elif [[ ${JSONRepoObjectsTotal} -lt 1 ]] ; then
+            # no objects of this type
+            JSONRepoObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was -lt 1 (so zero)' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        else
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        fi
     else
         # JSON Repository File for the target object DOES NOT exists
         JSONRepoObjectsTotal=0
-        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, fail -r check' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
     fi
     
@@ -6137,7 +6216,7 @@ CollectInterfacesInHostObjects () {
 # GetHostInterfacesProcessor proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-02-15 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-03-10 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -6182,7 +6261,17 @@ GetHostInterfacesProcessor () {
             return ${errorreturn}
         fi
         
-        if [ ${HostInterfacesCount} -gt 0 ]; then
+        if [ x"${HostInterfacesCount}" == x"" ] ; then
+            # There are null objects, so skip
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '! No host interfaces found - NULL' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        elif [[ ${HostInterfacesCount} -lt 1 ]] ; then
+            # no objects of this type
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '! No host interfaces found - 0' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        elif [[ ${HostInterfacesCount} -gt 0 ]] ; then
             # We have host interfaces to process
             DumpArrayOfHostsObjects
             errorreturn=$?
@@ -6224,7 +6313,7 @@ GetHostInterfacesProcessor () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-24
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
 
 
 # -------------------------------------------------------------------------------------------------
@@ -6374,7 +6463,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # ExportObjectElementCriteriaBasedToCSVviaJQ
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-02-15 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-03-10 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The ExportObjectElementCriteriaBasedToCSVviaJQ is the meat of the script's repeated actions.
@@ -6411,7 +6500,8 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
         return ${errorreturn}
     fi
     
-    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}
+    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}' --conn-timeout '${APICLIconntimeout}
+    
     export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
     
     export MgmtCLI_Show_OpParms='details-level full '${MgmtCLI_Base_OpParms}
@@ -6456,32 +6546,7 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
     echo `${dtzs}`${dtzsep} '  '${APICLIobjectstype}' - Selection criteria '${userauthobjectselector} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-    if ${addversion2keepalive} ; then
-        mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-        export errorreturn=$?
-    else
-        mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-        export errorreturn=$?
-    fi
-    echo | tee -a -i ${logfilepath}
-    
-    if [ ${errorreturn} != 0 ] ; then
-        # Something went wrong, terminate
-        echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
-        
-        export LoggedIntoMgmtCli=false
-        
-        . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-        LOGINEXITCODE=$?
-        
-        if [ ${LOGINEXITCODE} != 0 ] ; then
-            exit ${LOGINEXITCODE}
-        else
-            export LoggedIntoMgmtCli=true
-        fi
-    fi
+    CheckAPIKeepAlive
     
     objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
     
@@ -6491,13 +6556,25 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
         # JSON Repository File for the target object exists, lets check for the number objects
         checkJSONRepoTotal=`cat ${JSONRepoFile} | ${JQ} ".total"`
         JSONRepoObjectsTotal=${checkJSONRepoTotal}
-        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        if [ x"${JSONRepoObjectsTotal}" == x"" ] ; then
+            # There are null objects, so skip
+            JSONRepoObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was NULL' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        elif [[ ${JSONRepoObjectsTotal} -lt 1 ]] ; then
+            # no objects of this type
+            JSONRepoObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was -lt 1 (so zero)' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        else
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        fi
     else
         # JSON Repository File for the target object DOES NOT exists
         JSONRepoObjectsTotal=0
-        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, fail -r check' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
     fi
     
@@ -6578,10 +6655,16 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
             #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentuseroffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
             #errorreturn=$?
             
-            #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentuseroffset} details-level full -s ${APICLIsessionfile} -f json | ${JQ} '.objects[] | '"${userauthobjectselector}"' | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
+            #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentuseroffset} details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${userauthobjectselector}"' | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
             #errorreturn=$?
             
-            mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentuseroffset} details-level full -s ${APICLIsessionfile} -f json -r > ${APICLICSVfiledatalast}
+            if ${APISCRIPTVERBOSE} ; then
+                echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentuseroffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLICSVfiledatalast} | tee -a -i ${logfilepath}
+            else
+                echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentuseroffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLICSVfiledatalast} >> ${logfilepath}
+            fi
+            
+            mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentuseroffset} ${MgmtCLI_Show_OpParms} > ${APICLICSVfiledatalast}
             errorreturn=$?
             
             if [ ${errorreturn} != 0 ] ; then
@@ -6648,7 +6731,7 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-02-15
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
 
 
 # -------------------------------------------------------------------------------------------------

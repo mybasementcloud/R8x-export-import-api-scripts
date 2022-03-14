@@ -10,16 +10,19 @@
 # APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
+#
+# -#- Start Making Changes Here -#- 
+#
 # SCRIPTS Code Snippet API Subscripts - management CLI API operations Handler operations
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=065
-ScriptDate=2022-02-15
+ScriptRevision=075
+ScriptDate=2022-03-11
 TemplateVersion=00.60.08
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=065
+APISubscriptsRevision=075
 
 
 exit /b
@@ -90,6 +93,77 @@ export mgmt_cli_API_operations_handler_file=mgmt_cli_api_operations.subscript.co
 # START:  Management CLI API Operations Handling
 # =================================================================================================
 
+
+# -------------------------------------------------------------------------------------------------
+# Check API Keep Alive Status - CheckAPIKeepAlive
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-03-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# Check API Keep Alive Status.
+#
+CheckAPIKeepAlive () {
+    #
+    # Check API Keep Alive Status and on error try a login attempt
+    #
+    
+    errorreturn=0
+    
+    if ${LoggedIntoMgmtCli} ; then
+        echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+        if ${addversion2keepalive} ; then
+            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
+            export errorreturn=$?
+        else
+            mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
+            export errorreturn=$?
+        fi
+        echo | tee -a -i ${logfilepath}
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
+            
+            export LoggedIntoMgmtCli=false
+            
+            . ${mgmt_cli_API_operations_handler} LOGIN "$@"
+            LOGINEXITCODE=$?
+            
+            if [ ${LOGINEXITCODE} != 0 ] ; then
+                exit ${LOGINEXITCODE}
+            else
+                export LoggedIntoMgmtCli=true
+                export errorreturn=0
+            fi
+        fi
+    else
+        # Uhhh what, this check should only happen if logged in
+        
+        export LoggedIntoMgmtCli=false
+        
+        . ${mgmt_cli_API_operations_handler} LOGIN "$@"
+        LOGINEXITCODE=$?
+        
+        if [ ${LOGINEXITCODE} != 0 ] ; then
+            exit ${LOGINEXITCODE}
+        else
+            export LoggedIntoMgmtCli=true
+            export errorreturn=0
+        fi
+    fi
+    
+    return ${errorreturn}
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-03-10
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
 # -------------------------------------------------------------------------------------------------
 # CheckMgmtCLIAPIOperationsHandler - Management CLI API Operations Handler calling routine
 # -------------------------------------------------------------------------------------------------
@@ -158,6 +232,7 @@ CheckMgmtCLIAPIOperationsHandler () {
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
 
 # -------------------------------------------------------------------------------------------------
 # Call Basic Script Setup for API Scripts Handler action script

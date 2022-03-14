@@ -1,6 +1,6 @@
 # LIMITATIONS and CAVEATS
 
-## UPDATED:  2022-02
+## UPDATED:  2022-03
 
 This document outlines limitations and caveats to the implementation of R8X API export, import, set-update, and delete scripts utilizing bash mgmt_cli commands.
 
@@ -10,7 +10,7 @@ This is a work in progress and may update irregularly.
 
 The author is currently utilizing R81.10 with API version 1.8 and these limitations and caveats are based on current experience on this level of implementation for the R8X API.
 
-Currently, R81.10 JHF 9 GA Take is implemented for testing
+Currently, R81.10 JHF 38 OT Take is implemented for testing
 
 In some cases,
 
@@ -32,17 +32,19 @@ v00.60.08.060 :  To remove a cause of sudden apparent hang during logon, the mgm
 
 v00.60.08.060 :  Execution UI and logs now provide a command view of the mgmt_cli command executed with all parameters shown as utilized (except password which is shown as ***).  This should help with any troubleshooting on issues with authentication and evaluation of command line parameters.
 
-## LIMITATIONS and CAVEATS by Management platform (SMS or MDMS)
+## LIMITATIONS and CAVEATS by Management platform (SMS or MDSM)
 
 SMS (Security Management Server) currenlty operates as expected and the ability to work with blocks of up-to 500 objects is possible.  With R81.10 JHF 9 GA Take, no issues with performance were identified explicitly.
 
-MDSM (Multi-Domain Security Management) currenlty operates with significant impact to performance due to intentional management API throttling and CPM heap size limitation implemented to protect the MDSM MDS (Multi-Domain Server [host]) and the ability to work with blocks of up-to 200 objects is possible, except for certain objects where this block limit is set to 100.  With R81.10 JHF 9 GA Take, great issues with performance are identified and either domain specific export operations should be executed or plenty of time allocated.  This is very evident in operations with "application-site" objects, which on 2021-10 number about 9000+ objects, and can only be handled in slices of 100 objects to avoid mgmt_cli API time-out condition, which generates garbage data.
+MDSM (Multi-Domain Security Management) currenlty operates with significant impact to performance due to intentional management API throttling and CPM heap size limitation implemented to protect the MDSM MDS (Multi-Domain Server [host]) and the ability to work with blocks of up-to 500 objects is possible, except for certain objects where this block limit is set to 250.  With R81.10 JHF 9 GA Take, great issues with performance are identified and either domain specific export operations should be executed or plenty of time allocated.  This is very evident in operations with "application-site" objects, which on 2021-10 number about 9000+ objects, and can only be handled in slices of 250 objects to avoid mgmt_cli API time-out condition, which generates garbage data.
 
 Research on improving performance is ongoing and efforts to address the MDSM performance impact through Secure Knowledge based guidance is in research.
 
 Using R81+ api command provides the option to enable/disable throtting (`api on|off throttling`) and this can provide an option for faster execution and reduce the risk of timeouts; however, this needs to be tested on the MDSM and also impact to MDSM operation accounted for.
 
 v00.60.08.055 :  To allow for users wanting to accelerate operation on MDSM, the command line options --OVERRIDEMAXOBJECTS and --MAXOBJECTS {value} were added to allow tweaking the max object limit to obtain a faster execution.
+
+v00.06.08.075 :  Attempting to see how the mgmt_cli parameter --conn-timeout {value|180 default} seconds can improve operations, by adding to key mgmt_cli operations and setting value to 600 seconds.  Also added command line parameters to allow external configuration of that value.  Based on testing with MDSM MDS with 2 domains, operational levels using 250 object limit were achieved for "application-site" objects, which proved most impactful.
 
 ## LIMITATIONS and CAVEATS by Smart-1 Cloud (MaaS and EPMaaS)
 
@@ -78,7 +80,7 @@ Currently RADIUS server object and RADIUS servers group object types do not exis
 
 - RADIUS "authentication-method" DOES NOT support import when the RADIUS server is set to "ANY"
 
-- TACACS "server-type" DOES NOT support import when the TACACS server is set to "TACACS+", because the exported information is "TACACS_PLUS_" which is not the expected values
+- TACACS "server-type" DOES NOT support import when the TACACS server is set to "TACACS+", because the exported information is "TACACS_PLUS_" which is not the expected value and requires manual adjustment to correctly import.  This operation of changing the output is not possible programatically at this juncture.
 
 ### User and User-Template Objects
 

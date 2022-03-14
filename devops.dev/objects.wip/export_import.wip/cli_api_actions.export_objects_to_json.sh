@@ -10,16 +10,19 @@
 # APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
+#
+# -#- Start Making Changes Here -#- 
+#
 # SCRIPT Object dump to JSON action operations for API CLI Operations
 #
 #
 ScriptVersion=00.60.08
-ScriptRevision=065
-ScriptDate=2022-02-15
+ScriptRevision=075
+ScriptDate=2022-03-11
 TemplateVersion=00.60.08
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.08
-APISubscriptsRevision=065
+APISubscriptsRevision=075
 
 #
 
@@ -186,6 +189,76 @@ ForceShowTempLogFile () {
 # -------------------------------------------------------------------------------------------------
 
 
+# -------------------------------------------------------------------------------------------------
+# Check API Keep Alive Status - CheckAPIKeepAlive
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-03-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# Check API Keep Alive Status.
+#
+CheckAPIKeepAlive () {
+    #
+    # Check API Keep Alive Status and on error try a login attempt
+    #
+    
+    errorreturn=0
+    
+    if ${LoggedIntoMgmtCli} ; then
+        echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+        if ${addversion2keepalive} ; then
+            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
+            export errorreturn=$?
+        else
+            mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
+            export errorreturn=$?
+        fi
+        echo | tee -a -i ${logfilepath}
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
+            
+            export LoggedIntoMgmtCli=false
+            
+            . ${mgmt_cli_API_operations_handler} LOGIN "$@"
+            LOGINEXITCODE=$?
+            
+            if [ ${LOGINEXITCODE} != 0 ] ; then
+                exit ${LOGINEXITCODE}
+            else
+                export LoggedIntoMgmtCli=true
+                export errorreturn=0
+            fi
+        fi
+    else
+        # Uhhh what, this check should only happen if logged in
+        
+        export LoggedIntoMgmtCli=false
+        
+        . ${mgmt_cli_API_operations_handler} LOGIN "$@"
+        LOGINEXITCODE=$?
+        
+        if [ ${LOGINEXITCODE} != 0 ] ; then
+            exit ${LOGINEXITCODE}
+        else
+            export LoggedIntoMgmtCli=true
+            export errorreturn=0
+        fi
+    fi
+    
+    return ${errorreturn}
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-03-10
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
 # =================================================================================================
 # END:  Local Proceedures
 # =================================================================================================
@@ -194,14 +267,25 @@ ForceShowTempLogFile () {
 # ADDED 2018-04-25 -
 export primarytargetoutputformat=${FileExtJSON}
 
-# MODIFIED 2021-11-10 -
+# MODIFIED 2022-03-10 -
 #
 export AbsoluteAPIMaxObjectLimit=500
 export MinAPIObjectLimit=50
 export MaxAPIObjectLimit=${AbsoluteAPIMaxObjectLimit}
-export RecommendedAPIObjectLimitMDSM=200
+export MaxAPIObjectLimitSlowObjects=100
+export DefaultAPIObjectLimitMDSMXtraSlow=50
+export DefaultAPIObjectLimitMDSMSlow=100
+export DefaultAPIObjectLimitMDSMMedium=250
+export DefaultAPIObjectLimitMDSMFast=500
+export SlowObjectAPIObjectLimitMDSMXtraSlow=25
+export SlowObjectAPIObjectLimitMDSMSlow=50
+export SlowObjectAPIObjectLimitMDSMMedium=100
+export SlowObjectAPIObjectLimitMDSMFast=200
+#export RecommendedAPIObjectLimitMDSM=200
+export RecommendedAPIObjectLimitMDSM=${DefaultAPIObjectLimitMDSMMedium}
 export DefaultAPIObjectLimit=${MaxAPIObjectLimit}
 export DefaultAPIObjectLimitMDSM=${RecommendedAPIObjectLimitMDSM}
+export DefaultAPIObjectLimitMDSMSlowObjects=${SlowObjectAPIObjectLimitMDSMSlow}
 
 
 # =================================================================================================
@@ -662,7 +746,7 @@ SlurpJSONFilesIntoSingleFile () {
 # Main Operational repeated proceedure - ExportRAWObjectToJSON
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-03-11 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The Main Operational Procedure is the meat of the script's repeated actions.
@@ -748,7 +832,8 @@ ExportRAWObjectToJSON () {
     export APICLIfileexport=${APICLIpathexport}/${APICLIfileexportpre}${Workingfilename}${APICLIfileexportpost}
     export APICLIJSONfilelast=${Slurpworkfolder}/${APICLIfileexportpre}${Workingfilename}'_last'${APICLIJSONfileexportpost}
     
-    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}
+    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}' --conn-timeout '${APICLIconntimeout}
+    
     export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
     
     export MgmtCLI_Show_OpParms='details-level "'${APICLIdetaillvl}'" '${MgmtCLI_Base_OpParms}
@@ -757,32 +842,7 @@ ExportRAWObjectToJSON () {
         export MgmtCLI_Show_OpParms='dereference-group-members true '${MgmtCLI_Show_OpParms}
     fi
     
-    echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-    if ${addversion2keepalive} ; then
-        mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-        export errorreturn=$?
-    else
-        mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-        export errorreturn=$?
-    fi
-    echo | tee -a -i ${logfilepath}
-    
-    if [ ${errorreturn} != 0 ] ; then
-        # Something went wrong, terminate
-        echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
-        
-        export LoggedIntoMgmtCli=false
-        
-        . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-        LOGINEXITCODE=$?
-        
-        if [ ${LOGINEXITCODE} != 0 ] ; then
-            exit ${LOGINEXITCODE}
-        else
-            export LoggedIntoMgmtCli=true
-        fi
-    fi
+    CheckAPIKeepAlive
     
     objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard ${MgmtCLI_Base_OpParms} | ${JQ} ".total")
     
@@ -868,12 +928,19 @@ ExportRAWObjectToJSON () {
                 #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '. | '"${notsystemobjectselector}" >> ${APICLIfileexport}
                 #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '. | '"${notsystemobjectselector}" > ${APICLIfileexport}
                 #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | '"${notsystemobjectselector}" > ${APICLIfileexport}
+                
+                if ${APISCRIPTVERBOSE} ; then
+                    echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentoffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLIJSONfilelast} | tee -a -i ${logfilepath}
+                else
+                    echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentoffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLIJSONfilelast} >> ${logfilepath}
+                fi
+                
                 mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} > ${APICLIJSONfilelast}
                 errorreturn=$?
                 
                 if [ ${errorreturn} != 0 ] ; then
                     # Something went wrong, terminate
-                    echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON : Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
                     return ${errorreturn}
                 fi
                 
@@ -882,7 +949,7 @@ ExportRAWObjectToJSON () {
                 
                 if [ ${errorreturn} != 0 ] ; then
                     # Something went wrong, terminate
-                    echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
                     return ${errorreturn}
                 fi
                 
@@ -915,12 +982,19 @@ ExportRAWObjectToJSON () {
                 fi
                 #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} >> ${APICLIfileexport}
                 #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} > ${APICLIfileexport}
+                
+                if ${APISCRIPTVERBOSE} ; then
+                    echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentoffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLIJSONfilelast} | tee -a -i ${logfilepath}
+                else
+                    echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentoffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLIJSONfilelast} >> ${logfilepath}
+                fi
+                
                 mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} > ${APICLIJSONfilelast}
                 errorreturn=$?
                 
                 if [ ${errorreturn} != 0 ] ; then
                     # Something went wrong, terminate
-                    echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON : Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
                     return ${errorreturn}
                 fi
                 
@@ -929,7 +1003,7 @@ ExportRAWObjectToJSON () {
                 
                 if [ ${errorreturn} != 0 ] ; then
                     # Something went wrong, terminate
-                    echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
                     return ${errorreturn}
                 fi
                 
@@ -962,32 +1036,7 @@ ExportRAWObjectToJSON () {
             
             # MODIFIED 2022-02-15 -
             
-            echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-            if ${addversion2keepalive} ; then
-                mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-                export errorreturn=$?
-            else
-                mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
-                export errorreturn=$?
-            fi
-            echo | tee -a -i ${logfilepath}
-            
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-                echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
-                
-                export LoggedIntoMgmtCli=false
-                
-                . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-                LOGINEXITCODE=$?
-                
-                if [ ${LOGINEXITCODE} != 0 ] ; then
-                    exit ${LOGINEXITCODE}
-                else
-                    export LoggedIntoMgmtCli=true
-                fi
-            fi
+            CheckAPIKeepAlive
             
         done
         
@@ -1144,12 +1193,13 @@ ExportRAWObjectToJSON () {
         fi
     fi
     
+    echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON procedure returns :  '${errorreturn} >> ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-03-11
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1160,7 +1210,7 @@ ExportRAWObjectToJSON () {
 # CheckAPIVersionAndExecuteOperation :  Check the API Version running where we're logged in and if good execute operation
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-02-15 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-03-11 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CheckAPIVersionAndExecuteOperation () {
@@ -1196,6 +1246,9 @@ CheckAPIVersionAndExecuteOperation () {
         
         ExportRAWObjectToJSON
         errorreturn=$?
+        
+        echo `${dtzs}`${dtzsep} 'CheckAPIVersionAndExecuteOperation call to ExportObjectsToCSVviaJQ procedure returned :  '${errorreturn} >> ${logfilepath}
+        
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
             echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
@@ -1214,6 +1267,9 @@ CheckAPIVersionAndExecuteOperation () {
     if [ ${errorreturn} != 0 ] ; then
         # Handle Error in operation
         if ${ABORTONERROR} ; then
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             read -t ${WAITTIME} -n 1 -p "Any key to EXIT script due to error ${errorreturn}.  Automatic EXIT after ${WAITTIME} seconds : " anykey
             echo
             
@@ -1241,17 +1297,21 @@ CheckAPIVersionAndExecuteOperation () {
             
             exit ${errorreturn}
         else
-            return ${errorreturn}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CheckAPIVersionAndExecuteOperation procedure, but continueing' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            #return ${errorreturn}
         fi
     fi
     
+    echo `${dtzs}`${dtzsep} 'CheckAPIVersionAndExecuteOperation procedure returns :  '${errorreturn} >> ${logfilepath}
     return ${errorreturn}
     
     #
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-02-15
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-11
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2006,7 +2066,6 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectrecommendedlimitMDSM=50
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
