@@ -13,13 +13,14 @@
 # Common CSV Export Execution for MDSM collection
 #
 #
-ScriptVersion=00.60.08
-ScriptRevision=075
-ScriptDate=2022-03-11
-TemplateVersion=00.60.08
+ScriptVersion=00.60.09
+ScriptRevision=000
+ScriptSubRevision=025
+ScriptDate=2022-04-29
+TemplateVersion=00.60.09
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.08
-APISubscriptsRevision=075
+APISubscriptsVersion=00.60.09
+APISubscriptsRevision=000
 
 #
 
@@ -65,8 +66,15 @@ export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export dtgs_script_start_utc=`date -u +%F-%T-%Z`
 export dtgs_script_start=`date +%F-%T-%Z`
 
-export customerpathroot=/var/log/__customer
-export scriptspathroot=/var/log/__customer/upgrade_export/scripts
+#
+# rootsafeworkpath     :  This is the path where it is safe to store scripts, to survive upgrades and patching
+# customerpathroot     :  Path to the customer work environment, should be under ${rootsafeworkpath}
+# scriptspathroot      :  Path to the folder with bash 4 Check Point scripts installation (b4CP)
+#
+
+export rootsafeworkpath=/var/log
+export customerpathroot=${rootsafeworkpath}/__customer
+export scriptspathroot=${customerpathroot}/upgrade_export/scripts
 
 export rootscriptconfigfile=__root_script_config.sh
 
@@ -136,7 +144,7 @@ export common_exports_dtgs_script_start=${dtgs_script_start}
 # -------------------------------------------------------------------------------------------------
 
 echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision} | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${cexlogfilepath}
 echo `${cexdtzs}`${cexdtzsep} 'Script original call name :  '$0 | tee -a -i ${cexlogfilepath}
 echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 
@@ -191,6 +199,27 @@ echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 
 errorreturn=0
 
+export cexcommand='cli_api_export_all_domains_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --OSO --10-TAGS --CSVALL'
+echo `${cexdtzs}`${cexdtzsep} 'Executing operation:  '${test_script_work_folder}/${cexcommand} | tee -a -i ${cexlogfilepath}
+
+${test_script_work_folder}/${cexcommand}
+errorreturn=$?
+
+if [ ${errorreturn} != 0 ] ; then
+    # Something went wrong, terminate
+    echo `${cexdtzs}`${cexdtzsep} 'Error '${errorreturn}' in operation:  '${cexcommand} | tee -a -i ${cexlogfilepath}
+    echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
+    exit ${errorreturn}
+fi
+
+
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} '\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/' | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
+
+
+errorreturn=0
+
 export cexcommand='cli_api_export_all_domains_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --NSO --CSVERR -t "rename-to-new-name"'
 echo `${cexdtzs}`${cexdtzsep} 'Executing operation:  '${test_script_work_folder}/${cexcommand} | tee -a -i ${cexlogfilepath}
 
@@ -213,6 +242,7 @@ echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 
 
 # -------------------------------------------------------------------------------------------------
+
 
 export common_exports_dtgs_script_finish_utc=`date -u +%F-%T-%Z`
 export common_exports_dtgs_script_finish=`date +%F-%T-%Z`

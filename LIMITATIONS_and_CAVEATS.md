@@ -1,6 +1,6 @@
 # LIMITATIONS and CAVEATS
 
-## UPDATED:  2022-03
+## UPDATED:  2022-04
 
 This document outlines limitations and caveats to the implementation of R8X API export, import, set-update, and delete scripts utilizing bash mgmt_cli commands.
 
@@ -10,7 +10,7 @@ This is a work in progress and may update irregularly.
 
 The author is currently utilizing R81.10 with API version 1.8 and these limitations and caveats are based on current experience on this level of implementation for the R8X API.
 
-Currently, R81.10 JHF 38 OT Take is implemented for testing
+Currently, R81.10 JHF 45 GA Take is implemented for testing
 
 In some cases,
 

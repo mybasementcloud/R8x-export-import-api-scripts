@@ -16,13 +16,14 @@
 # SCRIPT Export objects from all domains, object export to JSON (standard and full details), and CSV file for API CLI Operations
 #
 #
-ScriptVersion=00.60.08
-ScriptRevision=075
-ScriptDate=2022-03-11
-TemplateVersion=00.60.08
+ScriptVersion=00.60.09
+ScriptRevision=000
+ScriptSubRevision=025
+ScriptDate=2022-04-29
+TemplateVersion=00.60.09
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.08
-APISubscriptsRevision=075
+APISubscriptsVersion=00.60.09
+APISubscriptsRevision=000
 
 #
 
@@ -66,8 +67,15 @@ export DATE=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export dtgs_script_start=`date -u +%F-%T-%Z`
 
-export customerpathroot=/var/log/__customer
-export scriptspathroot=/var/log/__customer/upgrade_export/scripts
+#
+# rootsafeworkpath     :  This is the path where it is safe to store scripts, to survive upgrades and patching
+# customerpathroot     :  Path to the customer work environment, should be under ${rootsafeworkpath}
+# scriptspathroot      :  Path to the folder with bash 4 Check Point scripts installation (b4CP)
+#
+
+export rootsafeworkpath=/var/log
+export customerpathroot=${rootsafeworkpath}/__customer
+export scriptspathroot=${customerpathroot}/upgrade_export/scripts
 
 export rootscriptconfigfile=__root_script_config.sh
 
@@ -121,7 +129,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} 'Script original call name :  '$0 | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
@@ -217,7 +225,8 @@ export OpsModeMDSMAllDomains=true
 
 # 2018-05-02 - script type - export objects (all)
 
-export script_use_publish="false"
+export script_use_publish=false
+
 #
 # Provide a primary operation mission for the script
 #
@@ -234,22 +243,65 @@ export script_use_publish="false"
 
 export script_main_operation='export'
 
-export script_use_export="true"
-export script_use_import="false"
-export script_use_delete="false"
-export script_use_csvfile="false"
+export scriptpurposeexport=false
+export scriptpurposeimport=false
+export scriptpurposeupdate=false
+export scriptpurposerename=false
+export scriptpurposedelete=false
+export scriptpurposeother=false
+export scriptpurposeprocess=false
 
-export script_dump_csv="true"
-export script_dump_json="true"
-export script_dump_standard="true"
-export script_dump_full="true"
+case "${script_main_operation}" in
+    'other' )
+        export scriptpurposeexport=true
+        export scriptpurposeimport=true
+        export scriptpurposeupdate=true
+        export scriptpurposerename=true
+        export scriptpurposedelete=true
+        export scriptpurposeother=true
+        ;;
+    'export' )
+        export scriptpurposeexport=true
+        ;;
+    'import' )
+        export scriptpurposeimport=true
+        ;;
+    'set-update' )
+        export scriptpurposeupdate=true
+        ;;
+    'rename' )
+        export scriptpurposerename=true
+        ;;
+    'delete' )
+        export scriptpurposedelete=true
+        ;;
+    'process' )
+        export scriptpurposeprocess=true
+        ;;
+    # Anything unknown is recorded for later
+    * )
+        # MODIFIED 2022-04-22
+        export scriptpurposeother=true
+        export scriptpurposeprocess=true
+        ;;
+esac
 
-export script_uses_wip="true"
-export script_uses_wip_json="true"
+export script_use_export=true
+export script_use_import=false
+export script_use_delete=false
+export script_use_csvfile=false
 
-export script_slurp_json="true"
-export script_slurp_json_full="true"
-export script_slurp_json_standard="true"
+export script_dump_csv=true
+export script_dump_json=true
+export script_dump_standard=true
+export script_dump_full=true
+
+export script_uses_wip=true
+export script_uses_wip_json=true
+
+export script_slurp_json=true
+export script_slurp_json_full=true
+export script_slurp_json_standard=true
 
 export script_save_json_repo=true
 export script_use_json_repo=true
@@ -1013,10 +1065,12 @@ export CLIparm_NOHUPPATH=
 # --FORCEJSONREPOREBUILD
 # --JSONREPOPATH <json_repository_path> | --JSONREPOPATH=<json_repository_path> 
 #
+# --SO | --system-objects | --all-objects
 # --NSO | --no-system-objects
-# --SO | --system-objects
+# --OSO | --only-system-objects
 #
-# --NOSYS | --CREATORISNOTSYSTEM
+#  --CREATORISNOTSYSTEM | --NOSYS
+#  --CREATORISSYSTEM
 #
 # --CSVERR | --CSVADDEXPERRHANDLE
 #
@@ -1090,16 +1144,35 @@ export CLIparm_ForceJSONRepoRebuild=false
 export RebuildJSONRepo=${CLIparm_ForceJSONRepoRebuild}
 export CLIparm_jsonrepopath=
 
-# MODIFIED 2018-06-24 -
+# MODIFIED 2022-04-22 -
+# --SO | --system-objects | --all-objects
+#export CLIparm_NoSystemObjects=false
+#export CLIparm_OnlySystemObjects=false
+# --NSO | --no-system-objects
 #export CLIparm_NoSystemObjects=true
+#export CLIparm_OnlySystemObjects=false
+# --OSO | --only-system-objects
+#export CLIparm_NoSystemObjects=false
+#export CLIparm_OnlySystemObjects=true
+
 export NoSystemObjects=false
 export CLIparm_NoSystemObjects=${NoSystemObjects}
+export OnlySystemObjects=false
+export CLIparm_OnlySystemObjects=${OnlySystemObjects}
 
-# Ignore object where Creator is System  :  --NOSYS | --CREATORISNOTSYSTEM
+# MODIFIED 2022-04-22 -
+# Ignore object where Creator is System  :  --CREATORISNOTSYSTEM | --NOSYS
 #
 #export CreatorIsNotSystem=false|true
 export CreatorIsNotSystem=false
 export CLIparm_CreatorIsNotSystem=${CreatorIsNotSystem}
+
+# MODIFIED 2022-04-22 -
+# Select object where Creator is System  :  --CREATORISSYSTEM
+#
+#export CLIparm_CreatorIsSystemm=false|true
+export CreatorIsSystem=false
+export CLIparm_CreatorIsSystemm=${CreatorIsSystem}
 
 export CLIparm_CSVADDEXPERRHANDLE=
 
@@ -2077,7 +2150,7 @@ ScriptOutputPathsforAPIScripts "$@"
 # Check API Keep Alive Status - CheckAPIKeepAlive
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-03-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-04-29 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Check API Keep Alive Status.
@@ -2098,7 +2171,7 @@ CheckAPIKeepAlive () {
             mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
             export errorreturn=$?
         fi
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
@@ -2137,7 +2210,7 @@ CheckAPIKeepAlive () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-03-10
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-04-29
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -2524,7 +2597,7 @@ MainExportDumpOperations () {
 
 if ${OpsModeMDSM} ; then
     # Operations Mode All Domains implies MDSM operation requirement, so check that first
-    if [ "${sys_type_MDS}" != "true" ]; then
+    if ! ${sys_type_MDS} ; then
         
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} '!!!! This script is expected to run on Multi-Domain Security Management (MDSM) !!!!' | tee -a -i ${logfilepath}
@@ -2695,21 +2768,22 @@ fi
 # Set parameters for Main operations - Other Path Values
 # -------------------------------------------------------------------------------------------------
 
-if [ "${script_dump_csv}" = "true" ] ; then
+if ${script_dump_csv} ; then
     export APICLIdumppathcsv=${APICLICSVExportpathbase}/csv
 fi
 
-if [ x"${script_dump_json}" = x"true" ] ; then
+if ${script_dump_json} ; then
     export APICLIdumppathjson=${APICLICSVExportpathbase}/json
 fi
 
-if [ x"${script_dump_full}" = x"true" ] ; then
+if ${script_dump_full} ; then
     export APICLIdumppathjsonfull=${APICLIdumppathjson}/full
 fi
 
-if [ x"${script_dump_standard}" = x"true" ] ; then
+if ${script_dump_standard} ; then
     export APICLIdumppathjsonstandard=${APICLIdumppathjson}/standard
 fi
+
 
 
 # =================================================================================================

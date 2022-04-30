@@ -16,13 +16,14 @@
 # SCRIPT Subpend CSV Error Handling to CSV files
 #
 #
-ScriptVersion=00.60.08
-ScriptRevision=075
-ScriptDate=2022-03-11
-TemplateVersion=00.60.08
+ScriptVersion=00.60.09
+ScriptRevision=000
+ScriptSubRevision=025
+ScriptDate=2022-04-29
+TemplateVersion=00.60.09
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.08
-APISubscriptsRevision=075
+APISubscriptsVersion=00.60.09
+APISubscriptsRevision=000
 
 #
 
@@ -66,8 +67,15 @@ export DATE=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export dtgs_script_start=`date -u +%F-%T-%Z`
 
-export customerpathroot=/var/log/__customer
-export scriptspathroot=/var/log/__customer/upgrade_export/scripts
+#
+# rootsafeworkpath     :  This is the path where it is safe to store scripts, to survive upgrades and patching
+# customerpathroot     :  Path to the customer work environment, should be under ${rootsafeworkpath}
+# scriptspathroot      :  Path to the folder with bash 4 Check Point scripts installation (b4CP)
+#
+
+export rootsafeworkpath=/var/log
+export customerpathroot=${rootsafeworkpath}/__customer
+export scriptspathroot=${customerpathroot}/upgrade_export/scripts
 
 export rootscriptconfigfile=__root_script_config.sh
 
@@ -121,7 +129,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} 'Script original call name :  '$0 | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
@@ -217,7 +225,8 @@ export OpsModeMDSMAllDomains=false
 
 # 2018-05-02 - script type - template - test it all
 
-export script_use_publish="false"
+export script_use_publish=false
+
 #
 # Provide a primary operation mission for the script
 #
@@ -234,22 +243,65 @@ export script_use_publish="false"
 
 export script_main_operation='process'
 
-export script_use_export="false"
-export script_use_import="true"
-export script_use_delete="false"
-export script_use_csvfile="false"
+export scriptpurposeexport=false
+export scriptpurposeimport=false
+export scriptpurposeupdate=false
+export scriptpurposerename=false
+export scriptpurposedelete=false
+export scriptpurposeother=false
+export scriptpurposeprocess=false
 
-export script_dump_csv="false"
-export script_dump_json="false"
-export script_dump_standard="false"
-export script_dump_full="false"
+case "${script_main_operation}" in
+    'other' )
+        export scriptpurposeexport=true
+        export scriptpurposeimport=true
+        export scriptpurposeupdate=true
+        export scriptpurposerename=true
+        export scriptpurposedelete=true
+        export scriptpurposeother=true
+        ;;
+    'export' )
+        export scriptpurposeexport=true
+        ;;
+    'import' )
+        export scriptpurposeimport=true
+        ;;
+    'set-update' )
+        export scriptpurposeupdate=true
+        ;;
+    'rename' )
+        export scriptpurposerename=true
+        ;;
+    'delete' )
+        export scriptpurposedelete=true
+        ;;
+    'process' )
+        export scriptpurposeprocess=true
+        ;;
+    # Anything unknown is recorded for later
+    * )
+        # MODIFIED 2022-04-22
+        export scriptpurposeother=true
+        export scriptpurposeprocess=true
+        ;;
+esac
 
-export script_uses_wip="false"
-export script_uses_wip_json="false"
+export script_use_export=false
+export script_use_import=true
+export script_use_delete=false
+export script_use_csvfile=false
 
-export script_slurp_json="true"
-export script_slurp_json_full="true"
-export script_slurp_json_standard="true"
+export script_dump_csv=false
+export script_dump_json=false
+export script_dump_standard=false
+export script_dump_full=false
+
+export script_uses_wip=false
+export script_uses_wip_json=false
+
+export script_slurp_json=false
+export script_slurp_json_full=false
+export script_slurp_json_standard=false
 
 export script_save_json_repo=true
 export script_use_json_repo=true
@@ -899,10 +951,12 @@ export CLIparm_NOHUPPATH=
 # --FORCEJSONREPOREBUILD
 # --JSONREPOPATH <json_repository_path> | --JSONREPOPATH=<json_repository_path> 
 #
+# --SO | --system-objects | --all-objects
 # --NSO | --no-system-objects
-# --SO | --system-objects
+# --OSO | --only-system-objects
 #
-# --NOSYS | --CREATORISNOTSYSTEM
+#  --CREATORISNOTSYSTEM | --NOSYS
+#  --CREATORISSYSTEM
 #
 # --CSVERR | --CSVADDEXPERRHANDLE
 #
@@ -976,16 +1030,35 @@ export CLIparm_ForceJSONRepoRebuild=false
 export RebuildJSONRepo=${CLIparm_ForceJSONRepoRebuild}
 export CLIparm_jsonrepopath=
 
-# MODIFIED 2018-06-24 -
+# MODIFIED 2022-04-22 -
+# --SO | --system-objects | --all-objects
+#export CLIparm_NoSystemObjects=false
+#export CLIparm_OnlySystemObjects=false
+# --NSO | --no-system-objects
 #export CLIparm_NoSystemObjects=true
+#export CLIparm_OnlySystemObjects=false
+# --OSO | --only-system-objects
+#export CLIparm_NoSystemObjects=false
+#export CLIparm_OnlySystemObjects=true
+
 export NoSystemObjects=false
 export CLIparm_NoSystemObjects=${NoSystemObjects}
+export OnlySystemObjects=false
+export CLIparm_OnlySystemObjects=${OnlySystemObjects}
 
-# Ignore object where Creator is System  :  --NOSYS | --CREATORISNOTSYSTEM
+# MODIFIED 2022-04-22 -
+# Ignore object where Creator is System  :  --CREATORISNOTSYSTEM | --NOSYS
 #
 #export CreatorIsNotSystem=false|true
 export CreatorIsNotSystem=false
 export CLIparm_CreatorIsNotSystem=${CreatorIsNotSystem}
+
+# MODIFIED 2022-04-22 -
+# Select object where Creator is System  :  --CREATORISSYSTEM
+#
+#export CLIparm_CreatorIsSystemm=false|true
+export CreatorIsSystem=false
+export CLIparm_CreatorIsSystemm=${CreatorIsSystem}
 
 export CLIparm_CSVADDEXPERRHANDLE=
 
@@ -1450,16 +1523,21 @@ dumpcliparmparseresults () {
     
     #
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
-    # MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    # MODIFIED 2022-04-22 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
     echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_NoSystemObjects' "${CLIparm_NoSystemObjects}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_OnlySystemObjects' "${CLIparm_OnlySystemObjects}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'NoSystemObjects' "${NoSystemObjects}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'OnlySystemObjects' "${OnlySystemObjects}" >> ${dumpcliparmslogfilepath}
     
     # ADDED 2021-02-03 -
     echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CreatorIsNotSystem' "${CLIparm_CreatorIsNotSystem}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CreatorIsSystemm' "${CLIparm_CreatorIsSystemm}" >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CreatorIsNotSystem' "${CreatorIsNotSystem}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CreatorIsSystem' "${CreatorIsSystem}" >> ${dumpcliparmslogfilepath}
     
     echo `${dtzs}`${dtzsep}  >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVADDEXPERRHANDLE' "${CSVADDEXPERRHANDLE}" >> ${dumpcliparmslogfilepath}
@@ -1523,24 +1601,30 @@ dumpcliparmparseresults () {
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CSVEXPORTDATADOMAIN' "${CLIparm_CSVEXPORTDATADOMAIN}" >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CSVEXPORTDATACREATOR' "${CLIparm_CSVEXPORTDATACREATOR}" >> ${dumpcliparmslogfilepath}
     
-    if ${script_use_export} ; then
-        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_exportpath' "${CLIparm_exportpath}" >> ${dumpcliparmslogfilepath}
-    fi
-    if ${script_use_import} ; then
-        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_importpath' "${CLIparm_importpath}" >> ${dumpcliparmslogfilepath}
-    fi
-    if ${script_use_delete} ; then
-        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_deletepath' "${CLIparm_deletepath}" >> ${dumpcliparmslogfilepath}
-    fi
-    if ${script_use_csvfile} ; then
-        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_csvpath' "${CLIparm_csvpath}" >> ${dumpcliparmslogfilepath}
-    fi
+    # MODIFIED 2022-04-22 -
+    #if ${script_use_export} ; then
+        #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_exportpath' "${CLIparm_exportpath}" >> ${dumpcliparmslogfilepath}
+    #fi
+    #if ${script_use_import} ; then
+        #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_importpath' "${CLIparm_importpath}" >> ${dumpcliparmslogfilepath}
+    #fi
+    #if ${script_use_delete} ; then
+        #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_deletepath' "${CLIparm_deletepath}" >> ${dumpcliparmslogfilepath}
+    #fi
+    #if ${script_use_csvfile} ; then
+        #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_csvpath' "${CLIparm_csvpath}" >> ${dumpcliparmslogfilepath}
+    #fi
+    
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_exportpath' "${CLIparm_exportpath}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_importpath' "${CLIparm_importpath}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_deletepath' "${CLIparm_deletepath}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_csvpath' "${CLIparm_csvpath}" >> ${dumpcliparmslogfilepath}
     
     echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'remains' "${REMAINS}" >> ${dumpcliparmslogfilepath}
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-04-22
     # MODIFIED 2021-02-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     # Improved local CLI parameter dump handler
@@ -1711,7 +1795,7 @@ doshowhelp () {
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     #
-    # MODIFIED 2022-03-10 -
+    # MODIFIED 2022-04-22 -
     
     echo
     echo -n $0' [-?][-v]'
@@ -1726,25 +1810,29 @@ doshowhelp () {
     echo -n '|[-l <log_path>]'
     echo -n '|[-o <output_path>]'
     
-    echo -n '|[-t <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">]'
-    
-    echo -n '|[-f <all|csv|json>]|[--details <all|full|standard>]'
+    if ${script_use_export} ; then
+        echo -n '|[-t <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">]'
+        
+        echo -n '|[-f <all|csv|json>]|[--details <all|full|standard>]'
+    fi
     
     echo -n '|[--RESULTS]|[--RESULTSPATH <results_path>]'
     
-    echo -n '|[--SO|--NSO]'
-    echo -n '|[--NOSYS]'
-    
-    echo -n '|[--CSVERR']
-    
-    echo -n '|[--5-TAGS|--10-TAGS|--NO-TAGS]'
-    
-    echo -n '|[--OVERRIDEMAXOBJECTS]|[--MAXOBJECTS <maximum_objects_10-500>]'
-    
-    echo -n '|[--CSVEXPORTDATADOMAIN|--CSVEXPORTDATACREATOR|--CSVALL]'
-    
-    echo -n '|[--CLEANUPCSVWIP]'
-    echo -n '|[--NODOMAINFOLDERS]'
+    if ${script_use_export} ; then
+        echo -n '|[--SO|--NSO|--OSO|--all-objects]'
+        echo -n '|[--CREATORISNOTSYSTEM|--NOSYS|--CREATORISSYSTEM]'
+        
+        echo -n '|[--CSVERR']
+        
+        echo -n '|[--5-TAGS|--10-TAGS|--NO-TAGS]'
+        
+        echo -n '|[--OVERRIDEMAXOBJECTS]|[--MAXOBJECTS <maximum_objects_10-500>]'
+        
+        echo -n '|[--CSVEXPORTDATADOMAIN|--CSVEXPORTDATACREATOR|--CSVALL]'
+        
+        echo -n '|[--CLEANUPCSVWIP]'
+        echo -n '|[--NODOMAINFOLDERS]'
+    fi
     
     if ${script_use_export} ; then
         echo -n '|[-x <export_path>]'
@@ -1815,6 +1903,23 @@ doshowhelp () {
     echo '                             --session-file=<session_file_filepath>'
     echo
     
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+    echo
+    echo ' NOTE:  Only use Management Server IP (-m) parameter if operating from a '
+    echo '        different host than the management host itself.'
+    echo
+    echo ' NOTE:  Use the Domain Name (text) with the Domain (-d) parameter when'
+    echo '        Operating in Multi Domain Management environment.'
+    echo '        Use the "Global" domain for the global domain objects.'
+    echo '          Quotes NOT required!'
+    echo '        Use the "System Data" domain for system domain objects.'
+    echo '          Quotes REQUIRED!'
+    echo
+    
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+    
     echo '  Set session timeout value  --session-timeout <session_time_out> |'
     echo '                             --session-timeout=<session_time_out>'
     echo
@@ -1844,27 +1949,29 @@ doshowhelp () {
     echo
     echo ' Extended Command Line Parameters: '
     echo
-    echo '  Type of Object Export     -t <export_type> |-t <export_type> |'
-    echo '                            --type-of-export <export_type>|'
-    echo '                            --type-of-export=<export_type>'
-    echo '    Supported <export_type> values for export to CSV :'
-    echo '      <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">'
-    echo '      "standard"           :  Standard Export of all supported object key values'
-    echo '      "name-only"          :  Export of just the name key value for object'
-    echo '      "name-and-uid"       :  Export of name and uid key value for object'
-    echo '      "uid-only"           :  Export of just the uid key value of objects'
-    echo '      "rename-to-new-name" :  Export of name key value for object rename'
-    echo
-    echo '    For an export for a delete operation via CSV, use "name-only"'
-    echo
-    
-    echo '  Format for export          -f <all|csv|json> | --format <all|csv|json> |'
-    echo '                             -f=<all|csv|json> | --format=<all|csv|json>'
-    
-    echo '  Details level for json     --details <all|full|standard> |'
-    echo '                             --DETAILSLEVEL <all|full|standard> |'
-    echo '                             --details=<all|full|standard> |'
-    echo '                             --DETAILSLEVEL=<all|full|standard>  |'
+    if ${script_use_export} ; then
+        echo '  Type of Object Export     -t <export_type> |-t <export_type> |'
+        echo '                            --type-of-export <export_type>|'
+        echo '                            --type-of-export=<export_type>'
+        echo '    Supported <export_type> values for export to CSV :'
+        echo '      <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">'
+        echo '      "standard"           :  Standard Export of all supported object key values'
+        echo '      "name-only"          :  Export of just the name key value for object'
+        echo '      "name-and-uid"       :  Export of name and uid key value for object'
+        echo '      "uid-only"           :  Export of just the uid key value of objects'
+        echo '      "rename-to-new-name" :  Export of name key value for object rename'
+        echo
+        echo '    For an export for a delete operation via CSV, use "name-only"'
+        echo
+        
+        echo '  Format for export          -f <all|csv|json> | --format <all|csv|json> |'
+        echo '                             -f=<all|csv|json> | --format=<all|csv|json>'
+        
+        echo '  Details level for json     --details <all|full|standard> |'
+        echo '                             --DETAILSLEVEL <all|full|standard> |'
+        echo '                             --details=<all|full|standard> |'
+        echo '                             --DETAILSLEVEL=<all|full|standard>  |'
+    fi
     
     echo '  Use devops results path    --RESULTS | --DEVOPSRESULTS'
     echo '  Set results output path    --RESULTSPATH <results_path> |'
@@ -1874,9 +1981,11 @@ doshowhelp () {
     
     echo '  Use JSON repository(*)     --JSONREPO'
     echo '  DO NOT Use JSON repository --NOJSONREPO'
-    echo '  Save to JSON repository(*) --SAVEJSONREPO'
-    echo '  DO NOT Save to JSON repo   --NOSAVEJSONREPO'
-    echo '  Force Rebuild of JSON repo --FORCEJSONREPOREBUILD'
+    if ${script_use_export} ; then
+        echo '  Save to JSON repository(*) --SAVEJSONREPO'
+        echo '  DO NOT Save to JSON repo   --NOSAVEJSONREPO'
+        echo '  Force Rebuild of JSON repo --FORCEJSONREPOREBUILD'
+    fi
     echo '  Set JSON repository path   --JSONREPOPATH <json_repository_path> |'
     echo '                             --JSONREPOPATH=<json_repository_path> |'
     echo
@@ -1884,44 +1993,51 @@ doshowhelp () {
     echo '  json_repository_path = fully qualified folder path to json repository folder'
     echo
     
-    echo '  Export System Objects      --SO | --system-objects  {default mode}'
-    echo '  NO System Objects Export   --NSO | --no-system-objects'
-    echo
-    echo '  Ignore object where Creator is "System", active with --NSO'
-    echo '                             --NOSYS | --CREATORISNOTSYSTEM'
-    echo
-    
-    echo '  CSV export add err handler --CSVERR | --CSVADDEXPERRHANDLE'
-    echo
-    
-    echo '  Export 5 Tags for object   --5-TAGS | --CSVEXPORT05TAGS'
-    echo '  Export 10 Tags for object  --10-TAGS | --CSVEXPORT10TAGS'
-    echo '  Export NO Tags for object  --NO-TAGS | --CSVEXPORTNOTAGS'
-    echo
-    
-    echo '  Override Maximum Objects default value to absolute limit of 500'
-    echo '                             --OVERRIDEMAXOBJECTS'
-    echo '  Set Maximum Objects Value  --MAXOBJECTS <maximum_objects_10-500> |'
-    echo '                             --MAXOBJECTS=<maximum_objects_10-500>'
-    echo '    The absolute maximum number of objects or values that the API handles is 500'
-    echo '    The value for maximum objects that can be entered shall be between 10 and 500,'
-    echo '    values greater than 500 or lower than 10 are ignored!'
-    echo '    --MAXOBJECTS requires use of --OVERRIDEMAXOBJECTS'
-    echo '    Using --OVERRIDEMAXOBJECTS with out --MAXOBJECTS <X> results in max objects of 500'
-    echo
-    
-    echo '  Export Data Domain info    --CSVEXPORTDATADOMAIN  (*)'
-    echo '  Export Data Creator info   --CSVEXPORTDATACREATOR  (*)'
-    echo '  Export Data Domain and Data Creator info'
-    echo '                             --CSVALL|--CSVEXPORTDATAALL  (*)'
-    echo
-    echo '  (*)  use of these will generate FOR_REFERENCE_ONLY CSV export !'
-    echo
-    
-    echo '  Keep CSV WIP folders       --KEEPCSVWIP'
-    echo '  Remove CSV WIP folders     --CLEANUPCSVWIP   !! Default Action'
-    echo '  No domain name in folders  --NODOMAINFOLDERS'
-    echo
+    if ${script_use_export} ; then
+        echo '  Export System Objects      --SO | --system-objects  {default mode}'
+        echo '  NO System Objects Export   --NSO | --no-system-objects'
+        echo '  ONLY System Objects Export --OSO | --only-system-objects'
+        echo '  All Objects (*2)           --all-objects'
+        echo
+        echo '  Ignore object where Creator is "System"'
+        echo '                             --CREATORISNOTSYSTEM | --NOSYS'
+        echo '  Select object where Creator is "System"'
+        echo '                             --CREATORISSYSTEM'
+        echo
+        
+        echo '  CSV export add err handler --CSVERR | --CSVADDEXPERRHANDLE'
+        echo
+        
+        echo '  Export 5 Tags for object   --5-TAGS | --CSVEXPORT05TAGS'
+        echo '  Export 10 Tags for object  --10-TAGS | --CSVEXPORT10TAGS'
+        echo '  Export NO Tags for object  --NO-TAGS | --CSVEXPORTNOTAGS'
+        echo
+        
+        echo '  Override Maximum Objects default value to absolute limit of 500'
+        echo '                             --OVERRIDEMAXOBJECTS'
+        echo '  Set Maximum Objects Value  --MAXOBJECTS <maximum_objects_10-500> |'
+        echo '                             --MAXOBJECTS=<maximum_objects_10-500>'
+        echo '    The absolute maximum number of objects or values that the API handles is 500'
+        echo '    The value for maximum objects that can be entered shall be between 10 and 500,'
+        echo '    values greater than 500 or lower than 10 are ignored!'
+        echo '    --MAXOBJECTS requires use of --OVERRIDEMAXOBJECTS'
+        echo '    Using --OVERRIDEMAXOBJECTS with out --MAXOBJECTS <X> results in max objects of 500'
+        echo
+        
+        echo '  Export Data Domain info    --CSVEXPORTDATADOMAIN  (*)'
+        echo '  Export Data Creator info   --CSVEXPORTDATACREATOR  (*)'
+        echo '  Export Data Domain and Data Creator info'
+        echo '                             --CSVALL|--CSVEXPORTDATAALL  (*)'
+        echo
+        echo '  (*)   use of these will generate FOR_REFERENCE_ONLY CSV export !'
+        echo '  (*2)  overrides whether Creater is or is not System'
+        echo
+        
+        echo '  Keep CSV WIP folders       --KEEPCSVWIP'
+        echo '  Remove CSV WIP folders     --CLEANUPCSVWIP   !! Default Action'
+        echo '  No domain name in folders  --NODOMAINFOLDERS'
+        echo
+    fi
     
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
@@ -1965,18 +2081,7 @@ doshowhelp () {
     
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-    echo
-    echo ' NOTE:  Only use Management Server IP (-m) parameter if operating from a '
-    echo '        different host than the management host itself.'
-    echo
-    echo ' NOTE:  Use the Domain Name (text) with the Domain (-d) parameter when'
-    echo '        Operating in Multi Domain Management environment.'
-    echo '        Use the "Global" domain for the global domain objects.'
-    echo '          Quotes NOT required!'
-    echo '        Use the "System Data" domain for system domain objects.'
-    echo '          Quotes REQUIRED!'
-    echo
-    echo ' NOTE:  System Objects are NOT exported in CSV or Full JSON dump mode!'
+    echo ' NOTE:  System Objects are NOT exported in CSV or Full details JSON dump mode!'
     echo '        Control of System Objects with --SO and --NSO only works with CSV or'
     echo '        Full JSON dump.  Standard JSON dump does not support selection of the'
     echo '        System Objects during operation, so all System Objects are collected'
@@ -1985,30 +2090,33 @@ doshowhelp () {
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     
-    echo ' Example: General :'
+    echo ' Examples: General :'
     echo
-    echo ' ]# '${ScriptName}' -v --NOWAIT -P 4434 -m 192.168.1.1 -d "System Data" -s "/var/tmp/id.txt" --RESULTS --NSO --OVERRIDEMAXOBJECTS --MAXOBJECTS 250'
+    echo ' Verbose output, No waiting, Management server 192.168.1.1 on Web SSL port 4434 to domain "System Data"'
+    echo '   with session file "/var/tmp/id.txt" and dump results to default RESULTS location.'
     echo
-    echo ' ]# '${ScriptName}' -u fooAdmin -p voodoo -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump"'
-    echo ' ]# '${ScriptName}' -u fooAdmin -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump"'
+    echo '   ]# '${ScriptName}' -v --NOWAIT -P 4434 -m 192.168.1.1 -d "System Data" -s "/var/tmp/id.txt" --RESULTS'
     echo
-    echo ' ]# '${ScriptName}' -u fooAdmin -p voodoo -P 4434 -d Global --SO -s "/var/tmp/id.txt"'
-    echo ' ]# '${ScriptName}' -u fooAdmin -p voodoo -P 4434 -d "System Data" --NSO -s "/var/tmp/id.txt"'
+    echo ' Autenticate with username and password to Management server 192.168.1.1 on Web SSL port 4434'
+    echo '   to domain fooville with session file "/var/tmp/id.txt" and log to "/var/tmp/script_dump" folder.'
     echo
-    echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" -P 4434 --NSO --format json --details all'
+    echo '   ]# '${ScriptName}' -u fooAdmin -p voodoo -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump"'
     echo
-    echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" --SO --format=all --details=full --CSVALL --OVERRIDEMAXOBJECTS'
+    echo ' Autenticate with username to Management server 192.168.1.1 on Web SSL port 4434 to domain fooville'
+    echo '   with session file "/var/tmp/id.txt" and log to "/var/tmp/script_dump" folder.'
+    echo
+    echo '   ]# '${ScriptName}' -u fooAdmin -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump"'
     echo
     echo ' Example of call from nohup initiator script, do_script_nohup from bash 4 Check Point scripts'
     echo
-    echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" --SO --format=all --details=full --NOHUP --NOHUP-DTG 2027-11-11-2323CST --NOHUP-PATH "/var/log/__customer/scripts"'
+    echo '   ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" --NOHUP --NOHUP-DTG 2027-11-11-2323CST --NOHUP-PATH "/var/log/__customer/scripts"'
     echo
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     
     echo ' Example: MaaS (Smart-1 Cloud) Authentication - Use tenant specific -m, -d, --context, and --api-key values :'
     echo
-    echo ' ]# '${ScriptName}' --MaaS -m XYZQ-889977xx.maas.checkpoint.com -d D889977xx --context 12345678-abcd-ef98-7654-321012345678/web_api --api-key "@#ohtobeanapikey%"'
+    echo '   ]# '${ScriptName}' --MaaS -m XYZQ-889977xx.maas.checkpoint.com -d D889977xx --context 12345678-abcd-ef98-7654-321012345678/web_api --api-key "@#ohtobeanapikey%"'
     
     #                  1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #        01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
@@ -2017,12 +2125,31 @@ doshowhelp () {
         echo
         echo ' Example: Export:'
         echo
+        echo ' ]# '${ScriptName}' -v --NOWAIT -P 4434 -m 192.168.1.1 -d "System Data" -s "/var/tmp/id.txt" --RESULTS --NSO --OVERRIDEMAXOBJECTS --MAXOBJECTS 250'
+        echo
+        echo ' ]# '${ScriptName}' -u fooAdmin -p voodoo -P 4434 -d Global --SO -s "/var/tmp/id.txt"'
+        echo
+        echo ' ]# '${ScriptName}' -u fooAdmin -p voodoo -P 4434 -d "System Data" --NSO -s "/var/tmp/id.txt"'
+        echo
+        echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" -P 4434 --NSO --format json --details all'
+        echo
+        echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" --SO --format=all --details=full --CSVALL --OVERRIDEMAXOBJECTS'
+        echo
         echo ' ]# '${ScriptName}' -u fooAdmin -p voodoo -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump" -x "/var/tmp/script_dump/export"'
+        echo
         echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --type-of-export "names-only" -x "/var/tmp/script_dump/export4delete"'
+        echo
         echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --5-TAGS --CSVADDEXPERRHANDL --CLEANUPCSVWIP'
+        echo
         echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --10-TAGS --CSVADDEXPERRHANDL'
+        echo
         echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --CTO 600 --CREATORISNOTSYSTEM --10-TAGS --CSVADDEXPERRHANDL --OVERRIDEMAXOBJECTS --MAXOBJECTS 250'
+        echo
         echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --10-TAGS --CSVERR --CSVALL'
+        echo
+        echo ' Example of call from nohup initiator script, do_script_nohup from bash 4 Check Point scripts'
+        echo
+        echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" --SO --format=all --details=full --NOHUP --NOHUP-DTG 2027-11-11-2323CST --NOHUP-PATH "/var/log/__customer/scripts"'
     fi
     
     if ${script_use_import} ; then
@@ -2030,6 +2157,7 @@ doshowhelp () {
         echo ' Example: Import | Set Update | Rename To New Name:'
         echo
         echo ' ]# '${ScriptName}' -u fooAdmin -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump" -i "/var/tmp/import"'
+        echo
         echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS -i "/var/tmp/import"'
     fi
     
@@ -2038,6 +2166,7 @@ doshowhelp () {
         echo ' Example: Delete:'
         echo
         echo ' ]# '${ScriptName}' -u fooAdmin -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump" -x "/var/tmp/script_dump/export" -k "/var/tmp/delete"'
+        echo
         echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS -x "/var/tmp/script_dump/export4delete" -k "/var/tmp/delete"'
     fi
     
@@ -2383,15 +2512,29 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_ForceJSONRepoRebuild=true
                     RebuildJSONRepo=true
                     ;;
+                --all-objects )
+                    CLIparm_NoSystemObjects=false
+                    CLIparm_OnlySystemObjects=false
+                    CLIparm_CreatorIsNotSystem=false
+                    CLIparm_CreatorIsSystemm=false
+                    ;;
                 --SO | --system-objects )
                     CLIparm_NoSystemObjects=false
+                    CLIparm_OnlySystemObjects=false
                     ;;
                 --NSO | --no-system-objects )
                     CLIparm_NoSystemObjects=true
                     CLIparm_CreatorIsNotSystem=true
                     ;;
-                --NOSYS | --CREATORISNOTSYSTEM )
+                --OSO | --only-system-objects )
+                    CLIparm_OnlySystemObjects=true
+                    CLIparm_CreatorIsSystemm=true
+                    ;;
+                --CREATORISNOTSYSTEM | --NOSYS )
                     CLIparm_CreatorIsNotSystem=true
+                    ;;
+                --CREATORISSYSTEM )
+                    CLIparm_CreatorIsSystemm=true
                     ;;
                 --CSVERR | --CSVADDEXPERRHANDLE )
                     CLIparm_CSVADDEXPERRHANDLE=true
@@ -2787,10 +2930,18 @@ ProcessCommandLineParametersAndSetValues () {
     export RebuildJSONRepo=${CLIparm_SaveJSONRepo}
     export CLIparm_jsonrepopath=${CLIparm_jsonrepopath}
     
-    # MODIFIED 2022-02-15 -
+    # MODIFIED 2022-04-22 -
     export CLIparm_NoSystemObjects=${CLIparm_NoSystemObjects}
+    export NoSystemObjects=${CLIparm_NoSystemObjects}
+    
+    export CLIparm_OnlySystemObjects=${CLIparm_OnlySystemObjects}
+    export OnlySystemObjects=${CLIparm_OnlySystemObjects}
+    
     export CLIparm_CreatorIsNotSystem=${CLIparm_CreatorIsNotSystem}
     export CreatorIsNotSystem=${CLIparm_CreatorIsNotSystem}
+    
+    export CLIparm_CreatorIsSystemm=${CLIparm_CreatorIsSystemm}
+    export CreatorIsSystem=${CLIparm_CreatorIsSystemm}
     
     # ADDED 2018-05-03-2 -
     export CLIparm_CSVADDEXPERRHANDLE=${CLIparm_CSVADDEXPERRHANDLE}
@@ -3352,7 +3503,7 @@ ScriptOutputPathsforAPIScripts "$@"
 # Check API Keep Alive Status - CheckAPIKeepAlive
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-03-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-04-29 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Check API Keep Alive Status.
@@ -3373,7 +3524,7 @@ CheckAPIKeepAlive () {
             mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
             export errorreturn=$?
         fi
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
@@ -3412,7 +3563,7 @@ CheckAPIKeepAlive () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-03-10
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-04-29
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -3605,7 +3756,7 @@ fi
 
 if ${OpsModeMDSM} ; then
     # Operations Mode All Domains implies MDSM operation requirement, so check that first
-    if [ "${sys_type_MDS}" != "true" ]; then
+    if ! ${sys_type_MDS} ; then
         
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} '!!!! This script is expected to run on Multi-Domain Security Management (MDSM) !!!!' | tee -a -i ${logfilepath}
@@ -3776,21 +3927,22 @@ fi
 # Set parameters for Main operations - Other Path Values
 # -------------------------------------------------------------------------------------------------
 
-if [ "${script_dump_csv}" = "true" ] ; then
+if ${script_dump_csv} ; then
     export APICLIdumppathcsv=${APICLICSVExportpathbase}/csv
 fi
 
-if [ x"${script_dump_json}" = x"true" ] ; then
+if ${script_dump_json} ; then
     export APICLIdumppathjson=${APICLICSVExportpathbase}/json
 fi
 
-if [ x"${script_dump_full}" = x"true" ] ; then
+if ${script_dump_full} ; then
     export APICLIdumppathjsonfull=${APICLIdumppathjson}/full
 fi
 
-if [ x"${script_dump_standard}" = x"true" ] ; then
+if ${script_dump_standard} ; then
     export APICLIdumppathjsonstandard=${APICLIdumppathjson}/standard
 fi
+
 
 
 # =================================================================================================
@@ -3840,7 +3992,7 @@ echo `${dtzs}`${dtzsep} "APICLIpathexport = '${APICLIpathexport}' " >> ${templog
 
 # ------------------------------------------------------------------------
 
-if [ ! -z "${domainnamenospace}" ] && [ "${CLIparm_NODOMAINFOLDERS}" != "true" ] ; then
+if [ ! -z "${domainnamenospace}" ] && [ ! ${CLIparm_NODOMAINFOLDERS} ] ; then
     # Handle adding domain name to path for MDM operations
     export APICLIpathexport=${APICLICSVExportpathbase}/${domainnamenospace}
     
@@ -3917,7 +4069,7 @@ if [ x"${primarytargetoutputformat}" = x"${FileExtJSON}" ] ; then
     fi
     
     export APICLIJSONpathexportwip=
-    if [ x"${script_uses_wip_json}" = x"true" ] ; then
+    if ${script_uses_wip_json} ; then
         # script uses work-in-progress (wip) folder for json
         
         export APICLIJSONpathexportwip=${APICLIpathexport}/wip
@@ -3941,7 +4093,7 @@ if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
     # for CSV handle specifics, like wip
     
     export APICLICSVpathexportwip=
-    if [ x"$script_uses_wip" = x"true" ] ; then
+    if ${script_uses_wip} ; then
         # script uses work-in-progress (wip) folder for csv
         
         export APICLICSVpathexportwip=${APICLIpathexport}/wip

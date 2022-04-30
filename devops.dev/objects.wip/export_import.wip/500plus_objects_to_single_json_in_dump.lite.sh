@@ -16,13 +16,14 @@
 # SCRIPTS 500 PLUS OBJECTS dump to json handler
 #
 #
-ScriptVersion=00.60.08
-ScriptRevision=075
-ScriptDate=2022-03-11
-TemplateVersion=00.60.08
+ScriptVersion=00.60.09
+ScriptRevision=000
+ScriptSubRevision=025
+ScriptDate=2022-04-29
+TemplateVersion=00.60.09
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.08
-APISubscriptsRevision=075
+APISubscriptsVersion=00.60.09
+APISubscriptsRevision=000
 
 #
 
@@ -66,8 +67,15 @@ export DATE=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export dtgs_script_start=`date -u +%F-%T-%Z`
 
-export customerpathroot=/var/log/__customer
-export scriptspathroot=/var/log/__customer/upgrade_export/scripts
+#
+# rootsafeworkpath     :  This is the path where it is safe to store scripts, to survive upgrades and patching
+# customerpathroot     :  Path to the customer work environment, should be under ${rootsafeworkpath}
+# scriptspathroot      :  Path to the folder with bash 4 Check Point scripts installation (b4CP)
+#
+
+export rootsafeworkpath=/var/log
+export customerpathroot=${rootsafeworkpath}/__customer
+export scriptspathroot=${customerpathroot}/upgrade_export/scripts
 
 export rootscriptconfigfile=__root_script_config.sh
 
@@ -121,7 +129,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} 'Script original call name :  '$0 | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
@@ -133,7 +141,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # ShowHelp - Show Help for the script
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED YYYY-MM-DD -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-04-13 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ShowHelp () {
@@ -182,7 +190,7 @@ ShowHelp () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED YYYY-MM-DD
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-04-13
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------

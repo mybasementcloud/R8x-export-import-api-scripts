@@ -16,13 +16,14 @@
 # SCRIPT Object dump to JSON action operations for API CLI Operations
 #
 #
-ScriptVersion=00.60.08
-ScriptRevision=075
-ScriptDate=2022-03-11
-TemplateVersion=00.60.08
+ScriptVersion=00.60.09
+ScriptRevision=000
+ScriptSubRevision=025
+ScriptDate=2022-04-29
+TemplateVersion=00.60.09
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.08
-APISubscriptsRevision=075
+APISubscriptsVersion=00.60.09
+APISubscriptsRevision=000
 
 #
 
@@ -46,10 +47,10 @@ export APIActionScriptDescription="Object dump to JSON action operations for API
 
 if ${APISCRIPTVERBOSE} ; then
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'ActionScriptName:  '${ActionScriptName}'  Script Version: '${ScriptVersion}'  Revision:  '${ScriptRevision} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'ActionScriptName:  '${ActionScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${logfilepath}
 else
     echo `${dtzs}`${dtzsep} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'ActionScriptName:  '${ActionScriptName}'  Script Version: '${ScriptVersion}'  Revision:  '${ScriptRevision} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'ActionScriptName:  '${ActionScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} >> ${logfilepath}
 fi
 
 
@@ -193,7 +194,7 @@ ForceShowTempLogFile () {
 # Check API Keep Alive Status - CheckAPIKeepAlive
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-03-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-04-29 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Check API Keep Alive Status.
@@ -214,7 +215,7 @@ CheckAPIKeepAlive () {
             mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
             export errorreturn=$?
         fi
-        echo | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
@@ -253,7 +254,86 @@ CheckAPIKeepAlive () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-03-10
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-04-29
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ConfigureObjectQuerySelector - Configure Object Query Selector value objectqueryselector
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-04-29 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+ConfigureObjectQuerySelector () {
+    #
+    
+    # -------------------------------------------------------------------------------------------------
+    # Configure Object Query Selector value objectqueryselector
+    # -------------------------------------------------------------------------------------------------
+    
+    export objectqueryselector=
+    
+    # Current alternative if more options to exclude are needed
+    export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
+    
+    # selector for objects created by customer and not from Check Point
+    
+    export notsystemobjectselector='."domain"."name" as $a | ['${systemobjectdomains}'] | index($a) | not'
+    
+    # based on some interesting feedback, adding ability to dump only system objects, not created by customer
+    
+    export onlysystemobjectselector='."domain"."name" as $a | ['${systemobjectdomains}'] | index($a)'
+    
+    # also handle the specifics around whether meta-info.creator is or is not "System"
+    
+    export notcreatorissystemselector='."meta-info"."creator" != "System"'
+    
+    export creatorissystemselector='."meta-info"."creator" = "System"'
+    
+    if ${NoSystemObjects} ; then
+        # Ignore System Objects
+        if ${CreatorIsNotSystem} ; then
+            # Ignore System Objects and no creator = System
+            export objectqueryselector='select( ('${notsystemobjectselector}') and ('${notcreatorissystemselector}') )'
+        else
+            # Ignore System Objects
+            export objectqueryselector='select('${notsystemobjectselector}')'
+        fi
+    elif ${OnlySystemObjects} ; then
+        # Select only System Objects
+        if ${CreatorIsSystem} ; then
+            # select only System Objects and creator = System
+            export objectqueryselector='select( ('${onlysystemobjectselector}') and ('${creatorissystemselector}') )'
+        else
+            # select only System Objects
+            export objectqueryselector='select('${onlysystemobjectselector}')'
+        fi
+    else
+        # Include System Objects
+        if ${CreatorIsNotSystem} ; then
+            # Include System Objects and no creator = System
+            export objectqueryselector='select( '${notcreatorissystemselector}')'
+        elif ${CreatorIsSystem} ; then
+            # Include System Objects and no creator = System
+            export objectqueryselector='select( '${creatorissystemselector}')'
+        else
+            # Include System Objects
+            export objectqueryselector=
+        fi
+    fi
+    
+    echo `${dtzs}`${dtzsep} ' -- ConfigureObjectQuerySelector:' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - NoSystemObjects='${NoSystemObjects}' OnlySystemObjects='${OnlySystemObjects}' CreatorIsNotSystem='${CreatorIsNotSystem}' CreatorIsSystem='${CreatorIsSystem} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - Object Query Selector = ['${objectqueryselector}']' >> ${logfilepath}
+    
+    return 0
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-04-29
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -328,7 +408,7 @@ printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathbase' "${JSON
 
 # MODIFIED 2021-10-22 -
 
-if [ ! -z "${domainnamenospace}" ] && [ "${CLIparm_NODOMAINFOLDERS}" != "true" ] ; then
+if [ ! -z "${domainnamenospace}" ] && [ ! ${CLIparm_NODOMAINFOLDERS} ] ; then
     # Handle adding domain name to path for MDM operations
     export APICLIpathexport=${APICLICSVExportpathbase}/${domainnamenospace}
     
@@ -406,7 +486,7 @@ if [ x"${primarytargetoutputformat}" = x"${FileExtJSON}" ] ; then
     fi
     
     export APICLIJSONpathexportwip=
-    if [ x"${script_uses_wip_json}" = x"true" ] ; then
+    if ${script_uses_wip_json} ; then
         # script uses work-in-progress (wip) folder for json
         
         export APICLIJSONpathexportwip=${APICLIpathexport}/wip
@@ -433,7 +513,7 @@ if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
     # for CSV handle specifics, like wip
     
     export APICLICSVpathexportwip=
-    if [ x"$script_uses_wip" = x"true" ] ; then
+    if ${script_uses_wip} ; then
         # script uses work-in-progress (wip) folder for csv
         
         export APICLICSVpathexportwip=${APICLIpathexport}/wip
@@ -540,6 +620,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 # START : Main Operational repeated proceedures - Export Objects to JSON
 # -------------------------------------------------------------------------------------------------
+
 
 # -------------------------------------------------------------------------------------------------
 # SlurpJSONFilesIntoSingleFile :  Use JQ to Slurp JSON files into single JSON file from multiple files
@@ -786,7 +867,7 @@ ExportRAWObjectToJSON () {
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    # MODIFIED 2018-07-20 -
+    # MODIFIED 2022-04-22 -
     
     # System Object selection operands
     # This one won't work because upgrades set all objects to creator = System
@@ -804,16 +885,20 @@ ExportRAWObjectToJSON () {
     
     #
     # Future alternative if more options to exclude are needed
-    export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
+    #export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
     #export notsystemobjectselector='select(."domain"."name" as $a | ['${systemobjectdomains}'] | index($a) | not)'
     #export notsystemobjectselector='select(.objects[]."domain"."name" as $a | ['${systemobjectdomains}'] | index($a) | not)'
     #export notsystemobjectselector='.objects[] | select(."domain"."name" as $a | ['${systemobjectdomains}'] | index($a) | not)'
-    export notsystemobjectselector='select(."domain"."name" as $a | ['${systemobjectdomains}'] | index($a) | not)'
+    #export notsystemobjectselector='select(."domain"."name" as $a | ['${systemobjectdomains}'] | index($a) | not)'
+    
+    # MODIFIED 2022-04-22 - 
+    # Current alternative if more options to exclude are needed
+    ConfigureObjectQuerySelector
     
     export DoFileSlurp=false
     
     export Slurpworkfolder=${APICLIpathexport}
-    if [ x"${script_uses_wip_json}" = x"true" ] ; then
+    if ${script_uses_wip_json} ; then
         # script uses work-in-progress (wip) folder for json
         
         export Slurpworkfolder=${APICLIJSONpathexportwip}
@@ -917,12 +1002,12 @@ ExportRAWObjectToJSON () {
                 echo `${dtzs}`${dtzsep} '    Dump to '${APICLIfileexport} >> ${logfilepath}
             fi
             
-            # MODIFIED 2021-10-20 -
+            # MODIFIED 2022-04-22 -
             
             if ${NoSystemObjects} ; then
                 # Ignore System Objects
                 if ${APISCRIPTVERBOSE} ; then
-                    echo `${dtzs}`${dtzsep} '      No System Objects.  Selector = '${notsystemobjectselector} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} '      No System Objects.  Selector = '${objectqueryselector} | tee -a -i ${logfilepath}
                 fi
                 #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | '"${notsystemobjectselector}" >> ${APICLIfileexport}
                 #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '. | '"${notsystemobjectselector}" >> ${APICLIfileexport}
@@ -944,7 +1029,59 @@ ExportRAWObjectToJSON () {
                     return ${errorreturn}
                 fi
                 
-                cat ${APICLIJSONfilelast} | ${JQ} '.objects[] | '"${notsystemobjectselector}" > ${APICLIfileexport}
+                cat ${APICLIJSONfilelast} | ${JQ} '.objects[] | '"${objectqueryselector}" > ${APICLIfileexport}
+                errorreturn=$?
+                
+                if [ ${errorreturn} != 0 ] ; then
+                    # Something went wrong, terminate
+                    echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                    return ${errorreturn}
+                fi
+                
+                if ${DoFileSlurp} ; then
+                    #echo `${dtzs}`${dtzsep} '      Dump to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
+                    #GETDATA=`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | jq '.'`
+                    #DATA=`echo ${GETDATA} | jq '.objects[] | '"${notsystemobjectselector}"`
+                    
+                    #echo ${DATA} >> ${Slurpworkfileexport}
+                    
+                    if [ -s ${APICLIfileexport} ] ; then
+                        # exported json file is not zero length, so process for slurp
+                        echo `${dtzs}`${dtzsep} '      Dump to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
+                        #cat ${APICLIfileexport} | jq '.objects[]' > ${Slurpworkfileexport}
+                        cp -fv ${APICLIfileexport} ${Slurpworkfileexport} >> ${logfilepath} 2>> ${logfilepath}
+                    else
+                        # exported json file is zero length, so do not process file for slurp
+                        if ${APISCRIPTVERBOSE} ; then
+                            echo `${dtzs}`${dtzsep} '      NOT dumping zero lenghth file to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
+                        else
+                            echo `${dtzs}`${dtzsep} '      NOT dumping zero lenghth file to slurp work file '${Slurpworkfileexport} >> ${logfilepath}
+                        fi
+                    fi
+                fi
+                
+            elif ${OnlySystemObjects} ; then
+                # Select only System Objects
+                if ${APISCRIPTVERBOSE} ; then
+                    echo `${dtzs}`${dtzsep} '      Only System Objects.  Selector = '${objectqueryselector} | tee -a -i ${logfilepath}
+                fi
+                
+                if ${APISCRIPTVERBOSE} ; then
+                    echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentoffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLIJSONfilelast} | tee -a -i ${logfilepath}
+                else
+                    echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentoffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLIJSONfilelast} >> ${logfilepath}
+                fi
+                
+                mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} > ${APICLIJSONfilelast}
+                errorreturn=$?
+                
+                if [ ${errorreturn} != 0 ] ; then
+                    # Something went wrong, terminate
+                    echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON : Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                    return ${errorreturn}
+                fi
+                
+                cat ${APICLIJSONfilelast} | ${JQ} '.objects[] | '"${objectqueryselector}" > ${APICLIfileexport}
                 errorreturn=$?
                 
                 if [ ${errorreturn} != 0 ] ; then
@@ -1149,6 +1286,13 @@ ExportRAWObjectToJSON () {
                     export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}
                 else
                     export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}.NoSystemObjects
+                fi
+            elif ${OnlySystemObjects} ; then
+                if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
+                    # In CSV export operations, we do not utilize the ${APICLIdetaillvl}.OnlySystemObjects to ensure we harvest from the repository
+                    export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}
+                else
+                    export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}.OnlySystemObjects
                 fi
             else
                 export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}
