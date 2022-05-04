@@ -17,13 +17,13 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=000
-ScriptSubRevision=025
-ScriptDate=2022-04-29
+ScriptRevision=005
+ScriptSubRevision=20
+ScriptDate=2022-05-03
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
-APISubscriptsRevision=000
+APISubscriptsRevision=005
 
 #
 

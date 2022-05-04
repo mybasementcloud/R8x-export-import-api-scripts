@@ -17,13 +17,13 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=000
-ScriptSubRevision=025
-ScriptDate=2022-04-29
+ScriptRevision=005
+ScriptSubRevision=20
+ScriptDate=2022-05-03
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
-APISubscriptsRevision=000
+APISubscriptsRevision=005
 
 #
 
@@ -2821,7 +2821,7 @@ CheckExportActionHandlerScripts
 # GenerateArrayOfDomains - Generate Array with list of domains on MDS
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-05-02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 GenerateArrayOfDomains () {
@@ -2909,28 +2909,37 @@ GenerateArrayOfDomains () {
         export BuildDomainsArray=true
     fi
     
+    if [ ${arraylength} -eq 0 ]; then
+        echo -n `${dtzs}`${dtzsep} 'Domains :  ' | tee -a -i ${logfilepath}
+    fi
+    
     if ${BuildDomainsArray} ; then
         # so we need to populate the domains arraay
         while read -r line; do
             
-            if [ $arraylength -eq 0 ]; then
-                echo -n `${dtzs}`${dtzsep} 'Domains :  ' | tee -a -i ${logfilepath}
+            if [ "${line}" == '' ]; then
+                # ${line} value is nul, so skip adding to array
+                echo -n '%' | tee -a -i ${logfilepath}
             else
-                echo -n ', ' | tee -a -i ${logfilepath}
+                # ${line} value is NOT nul, so add to array
+                if [ ${arraylength} -gt 0 ]; then
+                    echo -n ', ' | tee -a -i ${logfilepath}
+                fi
+                
+                DOMAINSARRAY+=("${line}")
+                echo -n ${line} | tee -a -i ${logfilepath}
+                
+                #if [ "${line}" == 'something-to-omit' ]; then
+                #    echo -n 'Not adding '${line}
+                #else 
+                #    DOMAINSARRAY+=("${line}")
+                #    echo -n ${line}
+                #fi
+                
+                arraylength=${#DOMAINSARRAY[@]}
+                arrayelement=$((arraylength-1))
+                
             fi
-            
-            DOMAINSARRAY+=("${line}")
-            echo -n ${line} | tee -a -i ${logfilepath}
-            
-            #if [ "${line}" == 'something-to-omit' ]; then
-            #    echo -n 'Not adding '${line}
-            #else 
-            #    DOMAINSARRAY+=("${line}")
-            #    echo -n ${line}
-            #fi
-            
-            arraylength=${#DOMAINSARRAY[@]}
-            arrayelement=$((arraylength-1))
             
         done <<< "${GETDOMAINSBYNAME}"
         
@@ -2942,7 +2951,7 @@ GenerateArrayOfDomains () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-05-02
 
 # -------------------------------------------------------------------------------------------------
 # DumpArrayOfDomains - repeated proceedure

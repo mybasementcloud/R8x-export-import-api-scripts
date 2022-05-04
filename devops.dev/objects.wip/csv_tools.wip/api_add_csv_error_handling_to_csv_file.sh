@@ -17,13 +17,13 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=000
-ScriptSubRevision=025
-ScriptDate=2022-04-29
+ScriptRevision=005
+ScriptSubRevision=20
+ScriptDate=2022-05-03
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
-APISubscriptsRevision=000
+APISubscriptsRevision=005
 
 #
 
@@ -161,9 +161,17 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${fileresults}
 echo `${dtzs}`${dtzsep} 'Collect File into array :' | tee -a -i ${fileresults}
 echo `${dtzs}`${dtzsep} | tee -a -i ${fileresults}
 
+echo -n `${dtzs}`${dtzsep} | tee -a -i ${fileresults}
+
 while read -r line; do
-    FILELINEARR+=("$line")
-    echo -n '.' | tee -a -i ${fileresults}
+    if [ "${line}" == '' ]; then
+        # ${line} value is nul, so skip adding to array
+        echo -n '%' | tee -a -i ${fileresults}
+    else
+        # ${line} value is NOT nul, so add to array
+        FILELINEARR+=("${line}")
+        echo -n '.' | tee -a -i ${fileresults}
+    fi
 done < ${fileimport}
 echo | tee -a -i ${fileresults}
 
@@ -174,13 +182,13 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${fileresults}
 COUNTER=0
 
 for i in "${FILELINEARR[@]}"; do
-    echo `${dtzs}`${dtzsep} "${COUNTER} >>$i<<" | tee -a -i ${fileresults}
+    echo `${dtzs}`${dtzsep} "${COUNTER} >>${i}<<" | tee -a -i ${fileresults}
     if [ ${COUNTER} -eq 0 ]; then
         # Line 0 is the header
-        echo "$i"',"ignore-warnings","ignore-errors","set-if-exists"' > ${filerefactor}
+        echo "${i}"',"ignore-warnings","ignore-errors","set-if-exists"' > ${filerefactor}
     else
         # Lines 1+ are the data
-        echo "$i"',true,true,true' >> ${filerefactor}
+        echo "${i}"',true,true,true' >> ${filerefactor}
     fi
     let COUNTER=COUNTER+1
 done

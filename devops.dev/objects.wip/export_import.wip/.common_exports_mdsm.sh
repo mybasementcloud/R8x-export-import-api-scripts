@@ -14,13 +14,13 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=000
-ScriptSubRevision=025
-ScriptDate=2022-04-29
+ScriptRevision=005
+ScriptSubRevision=20
+ScriptDate=2022-05-03
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
-APISubscriptsRevision=000
+APISubscriptsRevision=005
 
 #
 
@@ -149,7 +149,7 @@ echo `${cexdtzs}`${cexdtzsep} 'Script original call name :  '$0 | tee -a -i ${ce
 echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 
 echo `${cexdtzs}`${cexdtzsep} 'Short nap to adjust for log files times...zzzz' | tee -a -i ${cexlogfilepath}
-sleep 75
+sleep 61
 
 echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 
@@ -223,8 +223,8 @@ errorreturn=0
 export cexcommand='cli_api_export_all_domains_objects.sh -r -v --NOWAIT --RESULTS --format json --KEEPCSVWIP --OSO'
 echo `${cexdtzs}`${cexdtzsep} 'Executing operation:  '${test_script_work_folder}/${cexcommand} | tee -a -i ${cexlogfilepath}
 
-${test_script_work_folder}/${cexcommand}
-errorreturn=$?
+#${test_script_work_folder}/${cexcommand}
+#errorreturn=$?
 
 if [ ${errorreturn} != 0 ] ; then
     # Something went wrong, terminate
@@ -265,8 +265,8 @@ errorreturn=0
 export cexcommand='cli_api_export_all_domains_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --OSO --10-TAGS --CSVALL'
 echo `${cexdtzs}`${cexdtzsep} 'Executing operation:  '${test_script_work_folder}/${cexcommand} | tee -a -i ${cexlogfilepath}
 
-${test_script_work_folder}/${cexcommand}
-errorreturn=$?
+#${test_script_work_folder}/${cexcommand}
+#errorreturn=$?
 
 if [ ${errorreturn} != 0 ] ; then
     # Something went wrong, terminate

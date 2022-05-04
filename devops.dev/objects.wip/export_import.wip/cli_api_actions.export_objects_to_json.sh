@@ -17,13 +17,13 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=000
-ScriptSubRevision=025
-ScriptDate=2022-04-29
+ScriptRevision=005
+ScriptSubRevision=20
+ScriptDate=2022-05-03
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
-APISubscriptsRevision=000
+APISubscriptsRevision=005
 
 #
 
@@ -406,32 +406,58 @@ printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathbase' "${JSON
 
 # ------------------------------------------------------------------------
 
-# MODIFIED 2021-10-22 -
+# MODIFIED 2022-05-02:02 -
 
-if [ ! -z "${domainnamenospace}" ] && [ ! ${CLIparm_NODOMAINFOLDERS} ] ; then
-    # Handle adding domain name to path for MDM operations
-    export APICLIpathexport=${APICLICSVExportpathbase}/${domainnamenospace}
-    
-    echo `${dtzs}`${dtzsep} 'Handle adding domain name to path for MDM operations' >> ${templogfilepath}
-    echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
-    
-    if [ ! -r ${APICLIpathexport} ] ; then
-        mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>> ${templogfilepath}
-    fi
-    
-    export JSONRepopathbase=${JSONRepopathroot}/${domainnamenospace}
-    
-    echo `${dtzs}`${dtzsep} 'Handle adding domain name to JSON repository path for MDM operations' >> ${templogfilepath}
-    echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
-    
-    if [ ! -r ${JSONRepopathbase} ] ; then
-        mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>> ${templogfilepath}
+echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
+echo `${dtzs}`${dtzsep} 'Current APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+echo `${dtzs}`${dtzsep} 'Current JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+
+if ! ${CLIparm_NODOMAINFOLDERS} ; then
+    # adding domain name to path for MDM operations
+    if [ ! -z "${domainnamenospace}" ] ; then
+        # Handle adding domain name to path for MDM operations
+        export APICLIpathexport=${APICLICSVExportpathbase}/${domainnamenospace}
+        
+        echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
+        echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+        
+        if [ ! -r ${APICLIpathexport} ] ; then
+            mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>> ${templogfilepath}
+        fi
+        
+        export JSONRepopathbase=${JSONRepopathroot}/${domainnamenospace}
+        
+        echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to JSON repository path for MDM operations' >> ${templogfilepath}
+        echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+        
+        if [ ! -r ${JSONRepopathbase} ] ; then
+            mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>> ${templogfilepath}
+        fi
+    else
+        # Domain name is empty so not adding
+        export APICLIpathexport=${APICLICSVExportpathbase}
+        
+        echo `${dtzs}`${dtzsep} 'Handle empty domain name to path for MDM operations, so NO CHANGE' >> ${templogfilepath}
+        echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+        
+        if [ ! -r ${APICLIpathexport} ] ; then
+            mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>> ${templogfilepath}
+        fi
+        
+        export JSONRepopathbase=${JSONRepopathroot}
+        
+        echo `${dtzs}`${dtzsep} 'Handle empty domain name to JSON repository path for MDM operations, so NO CHANGE' >> ${templogfilepath}
+        echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+        
+        if [ ! -r ${JSONRepopathbase} ] ; then
+            mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>> ${templogfilepath}
+        fi
     fi
 else
     # NOT adding domain name to path for MDM operations
     export APICLIpathexport=${APICLICSVExportpathbase}
     
-    echo `${dtzs}`${dtzsep} 'NOT adding domain name to path for MDM operations' >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'NOT adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
     echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
     
     if [ ! -r ${APICLIpathexport} ] ; then
@@ -440,13 +466,16 @@ else
     
     export JSONRepopathbase=${JSONRepopathroot}
     
-    echo `${dtzs}`${dtzsep} 'NOT adding domain name to JSON repository path for MDM operations' >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'NOT adding domain name = ['"${domainnamenospace}"'] to JSON repository path for MDM operations' >> ${templogfilepath}
     echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
     
     if [ ! -r ${JSONRepopathbase} ] ; then
         mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>> ${templogfilepath}
     fi
 fi
+
+echo `${dtzs}`${dtzsep} 'Final APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+echo `${dtzs}`${dtzsep} 'Final JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
 
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------

@@ -17,13 +17,13 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=000
-ScriptSubRevision=025
-ScriptDate=2022-04-29
+ScriptRevision=005
+ScriptSubRevision=20
+ScriptDate=2022-05-03
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
-APISubscriptsRevision=000
+APISubscriptsRevision=005
 
 #
 
@@ -327,32 +327,58 @@ printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathbase' "${JSON
 
 # ------------------------------------------------------------------------
 
-# MODIFIED 2021-10-22 -
+# MODIFIED 2022-05-02:02 -
 
-if [ ! -z "${domainnamenospace}" ] && [ ! ${CLIparm_NODOMAINFOLDERS} ] ; then
-    # Handle adding domain name to path for MDM operations
-    export APICLIpathexport=${APICLICSVExportpathbase}/${domainnamenospace}
-    
-    echo `${dtzs}`${dtzsep} 'Handle adding domain name to path for MDM operations' >> ${templogfilepath}
-    echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
-    
-    if [ ! -r ${APICLIpathexport} ] ; then
-        mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>> ${templogfilepath}
-    fi
-    
-    export JSONRepopathbase=${JSONRepopathroot}/${domainnamenospace}
-    
-    echo `${dtzs}`${dtzsep} 'Handle adding domain name to JSON repository path for MDM operations' >> ${templogfilepath}
-    echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
-    
-    if [ ! -r ${JSONRepopathbase} ] ; then
-        mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>> ${templogfilepath}
+echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
+echo `${dtzs}`${dtzsep} 'Current APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+echo `${dtzs}`${dtzsep} 'Current JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+
+if ! ${CLIparm_NODOMAINFOLDERS} ; then
+    # adding domain name to path for MDM operations
+    if [ ! -z "${domainnamenospace}" ] ; then
+        # Handle adding domain name to path for MDM operations
+        export APICLIpathexport=${APICLICSVExportpathbase}/${domainnamenospace}
+        
+        echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
+        echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+        
+        if [ ! -r ${APICLIpathexport} ] ; then
+            mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>> ${templogfilepath}
+        fi
+        
+        export JSONRepopathbase=${JSONRepopathroot}/${domainnamenospace}
+        
+        echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to JSON repository path for MDM operations' >> ${templogfilepath}
+        echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+        
+        if [ ! -r ${JSONRepopathbase} ] ; then
+            mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>> ${templogfilepath}
+        fi
+    else
+        # Domain name is empty so not adding
+        export APICLIpathexport=${APICLICSVExportpathbase}
+        
+        echo `${dtzs}`${dtzsep} 'Handle empty domain name to path for MDM operations, so NO CHANGE' >> ${templogfilepath}
+        echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+        
+        if [ ! -r ${APICLIpathexport} ] ; then
+            mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>> ${templogfilepath}
+        fi
+        
+        export JSONRepopathbase=${JSONRepopathroot}
+        
+        echo `${dtzs}`${dtzsep} 'Handle empty domain name to JSON repository path for MDM operations, so NO CHANGE' >> ${templogfilepath}
+        echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+        
+        if [ ! -r ${JSONRepopathbase} ] ; then
+            mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>> ${templogfilepath}
+        fi
     fi
 else
     # NOT adding domain name to path for MDM operations
     export APICLIpathexport=${APICLICSVExportpathbase}
     
-    echo `${dtzs}`${dtzsep} 'NOT adding domain name to path for MDM operations' >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'NOT adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
     echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
     
     if [ ! -r ${APICLIpathexport} ] ; then
@@ -361,13 +387,16 @@ else
     
     export JSONRepopathbase=${JSONRepopathroot}
     
-    echo `${dtzs}`${dtzsep} 'NOT adding domain name to JSON repository path for MDM operations' >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'NOT adding domain name = ['"${domainnamenospace}"'] to JSON repository path for MDM operations' >> ${templogfilepath}
     echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
     
     if [ ! -r ${JSONRepopathbase} ] ; then
         mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>> ${templogfilepath}
     fi
 fi
+
+echo `${dtzs}`${dtzsep} 'Final APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+echo `${dtzs}`${dtzsep} 'Final JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
 
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
@@ -850,7 +879,7 @@ FinalizeExportObjectsToCSVviaJQ () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-05-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The StandardExportCSVandJQParameters handles standard configuration of the CSV and JQ export parameters.
@@ -908,6 +937,7 @@ StandardExportCSVandJQParameters () {
         export CSVJQparms=${CSVJQparms}', .["meta-info"]["creator"], .["meta-info"]["creation-time"]["iso-8601"], .["meta-info"]["last-modifier"], .["meta-info"]["last-modify-time"]["iso-8601"]'
     fi
     
+    # MODIFIED 2022-05-02 -
     
     if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
         if [ x"${APICLIexportnameaddon}" == x"" ] ; then
@@ -916,6 +946,12 @@ StandardExportCSVandJQParameters () {
             export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
         fi
     elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        fi
+    elif ${OnlySystemObjects} ; then
         if [ x"${APICLIexportnameaddon}" == x"" ] ; then
             export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
         else
@@ -931,7 +967,7 @@ StandardExportCSVandJQParameters () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-21
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-05-02
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3324,8 +3360,20 @@ CheckAPIVersionAndExecuteOperation
 # application-sites objects
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-10-22 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-05-02 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
+
+export AugmentExportedFields=false
+
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export AugmentExportedFields=true
+elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+    export AugmentExportedFields=true
+elif ${OnlySystemObjects} ; then
+    export AugmentExportedFields=true
+else
+    export AugmentExportedFields=false
+fi
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
@@ -3343,30 +3391,111 @@ export APICLIexportnameaddon=
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-export CSVFileHeader='"primary-category"'
-# The risk key is not imported
-#export CSVFileHeader=${CSVFileHeader}',"risk"'
+if ! ${AugmentExportedFields} ; then
+    export CSVFileHeader='"primary-category"'
+    # The risk key is not imported
+    #export CSVFileHeader=${CSVFileHeader}',"risk"'
+else
+    export CSVFileHeader='"application-id","primary-category"'
+    # The risk key is not imported
+    export CSVFileHeader=${CSVFileHeader}',"risk"'
+fi
 export CSVFileHeader=${CSVFileHeader}',"urls-defined-as-regular-expression"'
+if ${AugmentExportedFields} ; then
+    # user-defined can't be imported so while shown, it adds no value for normal operations
+    export CSVFileHeader=${CSVFileHeader}',"user-defined"'
+fi
 # The next elements are more complex elements, but required for import add operation
 export CSVFileHeader=${CSVFileHeader}',"url-list.0"'
-export CSVFileHeader=${CSVFileHeader}',"application-signature.0"'
+if ${AugmentExportedFields} ; then
+    export CSVFileHeader=${CSVFileHeader}',"url-list.1"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.2"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.3"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.4"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.5"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.6"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.7"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.8"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.9"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.10"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.11"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.12"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.13"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.14"'
+fi
+if ! ${AugmentExportedFields} ; then
+    export CSVFileHeader=${CSVFileHeader}',"application-signature.0"'
+    # The next elements are more complex elements, but NOT required for import add operation
+    export CSVFileHeader=${CSVFileHeader}',"additional-categories.0"'
+else
+    export CSVFileHeader=${CSVFileHeader}',"application-signature.0"'
+    export CSVFileHeader=${CSVFileHeader}',"application-signature.1"'
+    export CSVFileHeader=${CSVFileHeader}',"application-signature.2"'
+    export CSVFileHeader=${CSVFileHeader}',"application-signature.3"'
+    export CSVFileHeader=${CSVFileHeader}',"application-signature.4"'
+    # The next elements are more complex elements, but NOT required for import add operation
+    export CSVFileHeader=${CSVFileHeader}',"additional-categories.0"'
+    export CSVFileHeader=${CSVFileHeader}',"additional-categories.1"'
+    export CSVFileHeader=${CSVFileHeader}',"additional-categories.2"'
+    export CSVFileHeader=${CSVFileHeader}',"additional-categories.3"'
+    export CSVFileHeader=${CSVFileHeader}',"additional-categories.4"'
+fi
 # The next elements are more complex elements, but NOT required for import add operation
-export CSVFileHeader=${CSVFileHeader}',"additional-categories.0"'
 export CSVFileHeader=${CSVFileHeader}',"description"'
 #export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
 #export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-export CSVJQparms='.["primary-category"]'
-# The risk key is not imported
-#export CSVJQparms=${CSVJQparms}', .["risk"]'
+if ! ${AugmentExportedFields} ; then
+    export CSVJQparms='.["primary-category"]'
+    # The risk key is not imported
+    #export CSVJQparms=${CSVJQparms}', .["risk"]'
+else
+    export CSVJQparms='.["application-id"], .["primary-category"]'
+    # The risk key is not imported
+    export CSVJQparms=${CSVJQparms}', .["risk"]'
+fi
 export CSVJQparms=${CSVJQparms}', .["urls-defined-as-regular-expression"]'
+if ${AugmentExportedFields} ; then
+    # user-defined can't be imported so while shown, it adds no value for normal operations
+    export CSVJQparms=${CSVJQparms}', .["user-defined"]'
+fi
 # The next elements are more complex elements, but required for import add operation
 export CSVJQparms=${CSVJQparms}', .["url-list"][0]'
-export CSVJQparms=${CSVJQparms}', .["application-signature"][0]'
-# The next elements are more complex elements, but NOT required for import add operation
-export CSVJQparms=${CSVJQparms}', .["additional-categories"][0]'
+if ${AugmentExportedFields} ; then
+    export CSVJQparms=${CSVJQparms}', .["url-list"][1]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][2]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][3]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][4]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][5]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][6]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][7]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][8]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][9]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][10]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][11]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][12]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][13]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][14]'
+fi
+if ! ${AugmentExportedFields} ; then
+    export CSVJQparms=${CSVJQparms}', .["application-signature"][0]'
+    # The next elements are more complex elements, but NOT required for import add operation
+    export CSVJQparms=${CSVJQparms}', .["additional-categories"][0]'
+else
+    export CSVJQparms=${CSVJQparms}', .["application-signature"][0]'
+    export CSVJQparms=${CSVJQparms}', .["application-signature"][1]'
+    export CSVJQparms=${CSVJQparms}', .["application-signature"][2]'
+    export CSVJQparms=${CSVJQparms}', .["application-signature"][3]'
+    export CSVJQparms=${CSVJQparms}', .["application-signature"][4]'
+    # The next elements are more complex elements, but NOT required for import add operation
+    export CSVJQparms=${CSVJQparms}', .["additional-categories"][0]'
+    export CSVJQparms=${CSVJQparms}', .["additional-categories"][1]'
+    export CSVJQparms=${CSVJQparms}', .["additional-categories"][2]'
+    export CSVJQparms=${CSVJQparms}', .["additional-categories"][3]'
+    export CSVJQparms=${CSVJQparms}', .["additional-categories"][4]'
+fi
 export CSVJQparms=${CSVJQparms}', .["description"]'
 #export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
@@ -3378,126 +3507,8 @@ export number_of_objects=${number_application_sites}
 
 CheckAPIVersionAndExecuteOperation
 
-
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APICLIobjecttype=application-site
-export APICLIobjectstype=application-sites
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=REFERENCE_ONLY
-
 #
-# APICLICSVsortparms can change due to the nature of the object
-#
-export APICLICSVsortparms='-f -t , -k 1,1'
-
-export CSVFileHeader=
-export CSVFileHeader='"application-id","primary-category"'
-# The risk key is not imported
-export CSVFileHeader=${CSVFileHeader}',"risk"'
-export CSVFileHeader=${CSVFileHeader}',"urls-defined-as-regular-expression"'
-# user-defined can't be imported so while shown, it adds no value for normal operations
-export CSVFileHeader=${CSVFileHeader}',"user-defined"'
-# The next elements are more complex elements, but required for import add operation
-export CSVFileHeader=${CSVFileHeader}',"url-list.0"'
-export CSVFileHeader=${CSVFileHeader}',"url-list.1"'
-export CSVFileHeader=${CSVFileHeader}',"url-list.2"'
-export CSVFileHeader=${CSVFileHeader}',"url-list.3"'
-export CSVFileHeader=${CSVFileHeader}',"url-list.4"'
-export CSVFileHeader=${CSVFileHeader}',"url-list.5"'
-export CSVFileHeader=${CSVFileHeader}',"url-list.6"'
-export CSVFileHeader=${CSVFileHeader}',"url-list.7"'
-export CSVFileHeader=${CSVFileHeader}',"url-list.8"'
-export CSVFileHeader=${CSVFileHeader}',"url-list.9"'
-export CSVFileHeader=${CSVFileHeader}',"url-list.10"'
-export CSVFileHeader=${CSVFileHeader}',"url-list.11"'
-export CSVFileHeader=${CSVFileHeader}',"url-list.12"'
-export CSVFileHeader=${CSVFileHeader}',"url-list.13"'
-export CSVFileHeader=${CSVFileHeader}',"url-list.14"'
-export CSVFileHeader=${CSVFileHeader}',"application-signature.0"'
-export CSVFileHeader=${CSVFileHeader}',"application-signature.1"'
-export CSVFileHeader=${CSVFileHeader}',"application-signature.2"'
-export CSVFileHeader=${CSVFileHeader}',"application-signature.3"'
-export CSVFileHeader=${CSVFileHeader}',"application-signature.4"'
-# The next elements are more complex elements, but NOT required for import add operation
-export CSVFileHeader=${CSVFileHeader}',"additional-categories.0"'
-export CSVFileHeader=${CSVFileHeader}',"additional-categories.1"'
-export CSVFileHeader=${CSVFileHeader}',"additional-categories.2"'
-export CSVFileHeader=${CSVFileHeader}',"additional-categories.3"'
-export CSVFileHeader=${CSVFileHeader}',"additional-categories.4"'
-export CSVFileHeader=${CSVFileHeader}',"description"'
-#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
-#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
-#export CSVFileHeader=${CSVFileHeader}',"icon"'
-
-export CSVJQparms=
-export CSVJQparms='.["application-id"], .["primary-category"]'
-# The risk key is not imported
-export CSVJQparms=${CSVJQparms}', .["risk"]'
-export CSVJQparms=${CSVJQparms}', .["urls-defined-as-regular-expression"]'
-# user-defined can't be imported so while shown, it adds no value for normal operations
-export CSVJQparms=${CSVJQparms}', .["user-defined"]'
-# The next elements are more complex elements, but required for import add operation
-export CSVJQparms=${CSVJQparms}', .["url-list"][0]'
-export CSVJQparms=${CSVJQparms}', .["url-list"][1]'
-export CSVJQparms=${CSVJQparms}', .["url-list"][2]'
-export CSVJQparms=${CSVJQparms}', .["url-list"][3]'
-export CSVJQparms=${CSVJQparms}', .["url-list"][4]'
-export CSVJQparms=${CSVJQparms}', .["url-list"][5]'
-export CSVJQparms=${CSVJQparms}', .["url-list"][6]'
-export CSVJQparms=${CSVJQparms}', .["url-list"][7]'
-export CSVJQparms=${CSVJQparms}', .["url-list"][8]'
-export CSVJQparms=${CSVJQparms}', .["url-list"][9]'
-export CSVJQparms=${CSVJQparms}', .["url-list"][10]'
-export CSVJQparms=${CSVJQparms}', .["url-list"][11]'
-export CSVJQparms=${CSVJQparms}', .["url-list"][12]'
-export CSVJQparms=${CSVJQparms}', .["url-list"][13]'
-export CSVJQparms=${CSVJQparms}', .["url-list"][14]'
-export CSVJQparms=${CSVJQparms}', .["application-signature"][0]'
-export CSVJQparms=${CSVJQparms}', .["application-signature"][1]'
-export CSVJQparms=${CSVJQparms}', .["application-signature"][2]'
-export CSVJQparms=${CSVJQparms}', .["application-signature"][3]'
-export CSVJQparms=${CSVJQparms}', .["application-signature"][4]'
-# The next elements are more complex elements, but NOT required for import add operation
-export CSVJQparms=${CSVJQparms}', .["additional-categories"][0]'
-export CSVJQparms=${CSVJQparms}', .["additional-categories"][1]'
-export CSVJQparms=${CSVJQparms}', .["additional-categories"][2]'
-export CSVJQparms=${CSVJQparms}', .["additional-categories"][3]'
-export CSVJQparms=${CSVJQparms}', .["additional-categories"][4]'
-export CSVJQparms=${CSVJQparms}', .["description"]'
-#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
-#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
-#export CSVJQparms=${CSVJQparms}', .["icon"]'
-
-case "${TypeOfExport}" in
-    # a "Standard" export operation
-    'standard' )
-        objectstotal_application_sites=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
-        export number_application_sites="${objectstotal_application_sites}"
-        export number_of_objects=${number_application_sites}
-        
-        CheckAPIVersionAndExecuteOperation
-        ;;
-    # a "name-only" export operation
-    #'name-only' )
-    # a "name-and-uid" export operation
-    #'name-and-uid' )
-    # a "uid-only" export operation
-    #'uid-only' )
-    # a "rename-to-new-nam" export operation
-    #'rename-to-new-name' )
-    # Anything unknown is handled as "standard"
-    * )
-        echo `${dtzs}`${dtzsep} 'Skipping '"'${APICLIobjectstype}" "${APICLIexportnameaddon}"'for export type '${TypeOfExport}'!...' | tee -a -i ${logfilepath}
-        ;;
-esac
-
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-22 - 
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-05-02 - 
 # MODIFIED 2021-01-19 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
@@ -4254,8 +4265,14 @@ PopulateArrayOfObjectsTypeFromMgmtDB () {
     
     echo -n `${dtzs}`${dtzsep} '    Read Objects into array:  ' | tee -a -i ${logfilepath}
     while read -r line; do
-        ALLOBJECTSTYPARRAY+=("${line}")
-        echo -n '.' | tee -a -i ${logfilepath}
+        if [ "${line}" == '' ]; then
+            # ${line} value is nul, so skip adding to array
+            echo -n '%' | tee -a -i ${logfilepath}
+        else
+            # ${line} value is NOT nul, so add to array
+            ALLOBJECTSTYPARRAY+=("${line}")
+            echo -n '.' | tee -a -i ${logfilepath}
+        fi
     done <<< "${MGMT_CLI_OBJECTSTYPE_STRING}"
     errorreturn=$?
     echo | tee -a -i ${logfilepath}
@@ -4313,8 +4330,14 @@ PopulateArrayOfObjectsTypeFromJSONRepository () {
     
     echo -n `${dtzs}`${dtzsep} '    Read Objects into array:  ' | tee -a -i ${logfilepath}
     while read -r line; do
-        ALLOBJECTSTYPARRAY+=("${line}")
-        echo -n '.' | tee -a -i ${logfilepath}
+        if [ "${line}" == '' ]; then
+            # ${line} value is nul, so skip adding to array
+            echo -n '%' | tee -a -i ${logfilepath}
+        else
+            # ${line} value is NOT nul, so add to array
+            ALLOBJECTSTYPARRAY+=("${line}")
+            echo -n '.' | tee -a -i ${logfilepath}
+        fi
     done <<< "${JSON_REPO_OBJECTSTYPE_STRING}"
     errorreturn=$?
     echo | tee -a -i ${logfilepath}
@@ -5082,7 +5105,7 @@ GetObjectMembers () {
 # GenericComplexObjectsMembersHandler proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-04-29 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-05-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 GenericComplexObjectsMembersHandler () {
@@ -5090,6 +5113,30 @@ GenericComplexObjectsMembersHandler () {
     # Generic Handler for Complex Object Types
     
     errorreturn=0
+    
+    # MODIFIED 2022-05-02 -
+    
+    if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        fi
+    elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        fi
+    elif ${OnlySystemObjects} ; then
+        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        fi
+    else
+        export APICLIexportnameaddon=${APICLIexportnameaddon}
+    fi
     
     if ${ExportTypeIsStandard} ; then
         objectstotal_object=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -5162,7 +5209,7 @@ GenericComplexObjectsMembersHandler () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-04-29
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-05-02
 
 
 # -------------------------------------------------------------------------------------------------
@@ -5379,7 +5426,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # PopulateArrayOfHostInterfacesFromMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-02-15 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-05-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -5432,63 +5479,76 @@ PopulateArrayOfHostInterfacesFromMgmtDB () {
     fi
     
     while read -r line; do
-        
-        ALLHOSTSARR+=("${line}")
-        
-        echo -n `${dtzs}`${dtzsep} '.' | tee -a -i ${logfilepath}
-        
-        arraylength=${#ALLHOSTSARR[@]}
-        arrayelement=$((arraylength-1))
-        
         if ${APISCRIPTVERBOSE} ; then
             # Verbose mode ON
-            # Output list of all hosts found
-            echo -n ' '"${line}"', ' | tee -a -i ${logfilepath}
-            echo -n "$(eval echo ${line})"', ' >> ${logfilepath}
-            echo -n "$arraylength"', ' >> ${logfilepath}
-            echo -n "$arrayelement"', ' | tee -a -i ${logfilepath}
-            #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"', ' | tee -a -i ${logfilepath}
+            echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         fi
         
-        #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
-        INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
-        
-        NUM_HOST_INTERFACES=${INTERFACES_COUNT}
-        
-        if [ x"${NUM_HOST_INTERFACES}" == x"" ] ; then
-            # There are null objects, so skip
-            if ${APISCRIPTVERBOSE} ; then
-                echo -n '0, ' | tee -a -i ${logfilepath}
-            else
-                echo -n '0' | tee -a -i ${logfilepath}
-            fi
-            echo -n '-' | tee -a -i ${logfilepath}
-        elif [[ ${NUM_HOST_INTERFACES} -lt 1 ]] ; then
-            # no objects of this type
-            if ${APISCRIPTVERBOSE} ; then
-                echo -n '0, ' | tee -a -i ${logfilepath}
-            else
-                echo -n '0' | tee -a -i ${logfilepath}
-            fi
-            echo -n '-' | tee -a -i ${logfilepath}
-        elif [[ ${NUM_HOST_INTERFACES} -gt 0 ]] ; then
-            # More than zero (1) interfaces, something to process
-            if ${APISCRIPTVERBOSE} ; then
-                echo -n "${NUM_HOST_INTERFACES}"', ' | tee -a -i ${logfilepath}
-            else
-                echo -n "${NUM_HOST_INTERFACES}" | tee -a -i ${logfilepath}
-            fi
-            HOSTSARR+=("${line}")
-            let HostInterfacesCount=HostInterfacesCount+${NUM_HOST_INTERFACES}
-            echo -n '!' | tee -a -i ${logfilepath}
+        # MODIFIED 2022-05-02 -
+        if [ "${line}" == '' ]; then
+            # ${line} value is nul, so skip adding to array
+            echo -n '%' | tee -a -i ${logfilepath}
         else
-            # ?? Whatever..., so skip
+            # ${line} value is NOT nul, so add to array
+            
+            ALLHOSTSARR+=("${line}")
+            
+            echo -n '.' | tee -a -i ${logfilepath}
+            
+            arraylength=${#ALLHOSTSARR[@]}
+            arrayelement=$((arraylength-1))
+            
             if ${APISCRIPTVERBOSE} ; then
-                echo -n '0, ' | tee -a -i ${logfilepath}
-            else
-                echo -n '0' | tee -a -i ${logfilepath}
+                # Verbose mode ON
+                # Output list of all hosts found
+                echo -n ' '"${line}"', ' | tee -a -i ${logfilepath}
+                echo -n "$(eval echo ${line})"', ' >> ${logfilepath}
+                echo -n "$arraylength"', ' >> ${logfilepath}
+                echo -n "$arrayelement"', ' | tee -a -i ${logfilepath}
+                #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"', ' | tee -a -i ${logfilepath}
             fi
-            echo -n '-' | tee -a -i ${logfilepath}
+            
+            #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
+            INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
+            
+            NUM_HOST_INTERFACES=${INTERFACES_COUNT}
+            
+            if [ x"${NUM_HOST_INTERFACES}" == x"" ] ; then
+                # There are null objects, so skip
+                if ${APISCRIPTVERBOSE} ; then
+                    echo -n '0, ' | tee -a -i ${logfilepath}
+                else
+                    echo -n '0' | tee -a -i ${logfilepath}
+                fi
+                echo -n '-' | tee -a -i ${logfilepath}
+            elif [[ ${NUM_HOST_INTERFACES} -lt 1 ]] ; then
+                # no objects of this type
+                if ${APISCRIPTVERBOSE} ; then
+                    echo -n '0, ' | tee -a -i ${logfilepath}
+                else
+                    echo -n '0' | tee -a -i ${logfilepath}
+                fi
+                echo -n '-' | tee -a -i ${logfilepath}
+            elif [[ ${NUM_HOST_INTERFACES} -gt 0 ]] ; then
+                # More than zero (1) interfaces, something to process
+                if ${APISCRIPTVERBOSE} ; then
+                    echo -n "${NUM_HOST_INTERFACES}"', ' | tee -a -i ${logfilepath}
+                else
+                    echo -n "${NUM_HOST_INTERFACES}" | tee -a -i ${logfilepath}
+                fi
+                HOSTSARR+=("${line}")
+                let HostInterfacesCount=HostInterfacesCount+${NUM_HOST_INTERFACES}
+                echo -n '!' | tee -a -i ${logfilepath}
+            else
+                # ?? Whatever..., so skip
+                if ${APISCRIPTVERBOSE} ; then
+                    echo -n '0, ' | tee -a -i ${logfilepath}
+                else
+                    echo -n '0' | tee -a -i ${logfilepath}
+                fi
+                echo -n '-' | tee -a -i ${logfilepath}
+            fi
+            
         fi
         
         if ${APISCRIPTVERBOSE} ; then
@@ -5511,14 +5571,14 @@ PopulateArrayOfHostInterfacesFromMgmtDB () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-02-15
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-05-02
 
 
 # -------------------------------------------------------------------------------------------------
 # PopulateArrayOfHostInterfacesFromJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-02-15 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-05-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -5571,64 +5631,77 @@ PopulateArrayOfHostInterfacesFromJSONRepository () {
     fi
     
     while read -r line; do
-        
-        ALLHOSTSARR+=("${line}")
-        
-        echo -n `${dtzs}`${dtzsep} '.' | tee -a -i ${logfilepath}
-        
-        arraylength=${#ALLHOSTSARR[@]}
-        arrayelement=$((arraylength-1))
-        
         if ${APISCRIPTVERBOSE} ; then
             # Verbose mode ON
-            # Output list of all hosts found
-            echo -n ' '"${line}"', ' | tee -a -i ${logfilepath}
-            echo -n "$(eval echo ${line})"', ' >> ${logfilepath}
-            echo -n "$arraylength"', ' >> ${logfilepath}
-            echo -n "$arrayelement"', ' | tee -a -i ${logfilepath}
-            #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"', ' | tee -a -i ${logfilepath}
+            echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         fi
         
-        #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
-        #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
-        INTERFACES_COUNT=$(cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"$(eval echo ${line})"'") | .interfaces | length')
-        
-        NUM_HOST_INTERFACES=${INTERFACES_COUNT}
-        
-        if [ x"${NUM_HOST_INTERFACES}" == x"" ] ; then
-            # There are null objects, so skip
-            if ${APISCRIPTVERBOSE} ; then
-                echo -n '0, ' | tee -a -i ${logfilepath}
-            else
-                echo -n '0' | tee -a -i ${logfilepath}
-            fi
-            echo -n '-' | tee -a -i ${logfilepath}
-        elif [[ ${NUM_HOST_INTERFACES} -lt 1 ]] ; then
-            # no objects of this type
-            if ${APISCRIPTVERBOSE} ; then
-                echo -n '0, ' | tee -a -i ${logfilepath}
-            else
-                echo -n '0' | tee -a -i ${logfilepath}
-            fi
-            echo -n '-' | tee -a -i ${logfilepath}
-        elif [[ ${NUM_HOST_INTERFACES} -gt 0 ]] ; then
-            # More than zero (1) interfaces, something to process
-            if ${APISCRIPTVERBOSE} ; then
-                echo -n "${NUM_HOST_INTERFACES}"', ' | tee -a -i ${logfilepath}
-            else
-                echo -n "${NUM_HOST_INTERFACES}" | tee -a -i ${logfilepath}
-            fi
-            HOSTSARR+=("${line}")
-            let HostInterfacesCount=HostInterfacesCount+${NUM_HOST_INTERFACES}
-            echo -n '!' | tee -a -i ${logfilepath}
+        # MODIFIED 2022-05-02 -
+        if [ "${line}" == '' ]; then
+            # ${line} value is nul, so skip adding to array
+            echo -n '%' | tee -a -i ${logfilepath}
         else
-            # ?? Whatever..., so skip
+            # ${line} value is NOT nul, so add to array
+            
+            ALLHOSTSARR+=("${line}")
+            
+            echo -n `${dtzs}`${dtzsep} '.' | tee -a -i ${logfilepath}
+            
+            arraylength=${#ALLHOSTSARR[@]}
+            arrayelement=$((arraylength-1))
+            
             if ${APISCRIPTVERBOSE} ; then
-                echo -n '0, ' | tee -a -i ${logfilepath}
-            else
-                echo -n '0' | tee -a -i ${logfilepath}
+                # Verbose mode ON
+                # Output list of all hosts found
+                echo -n ' '"${line}"', ' | tee -a -i ${logfilepath}
+                echo -n "$(eval echo ${line})"', ' >> ${logfilepath}
+                echo -n "$arraylength"', ' >> ${logfilepath}
+                echo -n "$arrayelement"', ' | tee -a -i ${logfilepath}
+                #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"', ' | tee -a -i ${logfilepath}
             fi
-            echo -n '-' | tee -a -i ${logfilepath}
+            
+            #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
+            #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
+            INTERFACES_COUNT=$(cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"$(eval echo ${line})"'") | .interfaces | length')
+            
+            NUM_HOST_INTERFACES=${INTERFACES_COUNT}
+            
+            if [ x"${NUM_HOST_INTERFACES}" == x"" ] ; then
+                # There are null objects, so skip
+                if ${APISCRIPTVERBOSE} ; then
+                    echo -n '0, ' | tee -a -i ${logfilepath}
+                else
+                    echo -n '0' | tee -a -i ${logfilepath}
+                fi
+                echo -n '-' | tee -a -i ${logfilepath}
+            elif [[ ${NUM_HOST_INTERFACES} -lt 1 ]] ; then
+                # no objects of this type
+                if ${APISCRIPTVERBOSE} ; then
+                    echo -n '0, ' | tee -a -i ${logfilepath}
+                else
+                    echo -n '0' | tee -a -i ${logfilepath}
+                fi
+                echo -n '-' | tee -a -i ${logfilepath}
+            elif [[ ${NUM_HOST_INTERFACES} -gt 0 ]] ; then
+                # More than zero (1) interfaces, something to process
+                if ${APISCRIPTVERBOSE} ; then
+                    echo -n "${NUM_HOST_INTERFACES}"', ' | tee -a -i ${logfilepath}
+                else
+                    echo -n "${NUM_HOST_INTERFACES}" | tee -a -i ${logfilepath}
+                fi
+                HOSTSARR+=("${line}")
+                let HostInterfacesCount=HostInterfacesCount+${NUM_HOST_INTERFACES}
+                echo -n '!' | tee -a -i ${logfilepath}
+            else
+                # ?? Whatever..., so skip
+                if ${APISCRIPTVERBOSE} ; then
+                    echo -n '0, ' | tee -a -i ${logfilepath}
+                else
+                    echo -n '0' | tee -a -i ${logfilepath}
+                fi
+                echo -n '-' | tee -a -i ${logfilepath}
+            fi
+            
         fi
         
         if ${APISCRIPTVERBOSE} ; then
@@ -5651,7 +5724,7 @@ PopulateArrayOfHostInterfacesFromJSONRepository () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-02-15
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-05-02
 
 
 # -------------------------------------------------------------------------------------------------
@@ -6361,7 +6434,7 @@ GetHostInterfacesProcessor () {
 # GetHostInterfaces proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-04-29 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-05-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -6371,11 +6444,53 @@ GetHostInterfaces () {
     
     errorreturn=0
     
-    GetHostInterfacesProcessor
-    errorreturn=$?
+    # MODIFIED 2022-05-02 -
     
-    if ${APISCRIPTVERBOSE} ; then
-        echo `${dtzs}`${dtzsep} '  Done with Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype} | tee -a -i ${logfilepath}
+    if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        fi
+    elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        fi
+    elif ${OnlySystemObjects} ; then
+        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        fi
+    else
+        export APICLIexportnameaddon=${APICLIexportnameaddon}
+    fi
+    
+    # MODIFIED 2022-05-02 -
+    
+    if ${ExportTypeIsStandard} ; then
+        objectstotal_object=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+        export number_object="${objectstotal_object}"
+        
+        if [ ${number_object} -le 0 ] ; then
+            # No ${APICLIobjectstype} found
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'No '${APICLIobjectstype}' to generate '${APICLIcomplexobjectstype}' members from!' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        else
+            GetHostInterfacesProcessor
+            errorreturn=$?
+        fi
+        
+        if ${APISCRIPTVERBOSE} ; then
+            echo `${dtzs}`${dtzsep} '  Done with Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype} | tee -a -i ${logfilepath}
+        fi
+    else
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Not "standard" Export Type :  '${TypeOfExport}' so do not handle '${APICLIcomplexobjectstype}' for '${APICLIobjectstype}'!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     fi
     
     if [ ${errorreturn} != 0 ] ; then
@@ -6424,7 +6539,7 @@ GetHostInterfaces () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-04-29
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-05-02
 
 
 # -------------------------------------------------------------------------------------------------
@@ -6837,7 +6952,7 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
 # GetObjectElementCriteriaBased proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-04-29 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-05-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -6846,6 +6961,30 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
 GetObjectElementCriteriaBased () {
     
     errorreturn=0
+    
+    # MODIFIED 2022-05-02 -
+    
+    if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        fi
+    elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        fi
+    elif ${OnlySystemObjects} ; then
+        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+        fi
+    else
+        export APICLIexportnameaddon=${APICLIexportnameaddon}
+    fi
     
     if ${ExportTypeIsStandard} ; then
         
@@ -6921,7 +7060,7 @@ GetObjectElementCriteriaBased () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-04-29
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-05-02
 
 
 # -------------------------------------------------------------------------------------------------
