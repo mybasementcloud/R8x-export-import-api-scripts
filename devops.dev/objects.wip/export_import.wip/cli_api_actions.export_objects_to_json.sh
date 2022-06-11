@@ -17,9 +17,9 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=005
-ScriptSubRevision=20
-ScriptDate=2022-05-03
+ScriptRevision=010
+ScriptSubRevision=030
+ScriptDate=2022-05-05
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
@@ -209,10 +209,10 @@ CheckAPIKeepAlive () {
     if ${LoggedIntoMgmtCli} ; then
         echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
         if ${addversion2keepalive} ; then
-            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
+            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
             export errorreturn=$?
         else
-            mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
+            mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
             export errorreturn=$?
         fi
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
@@ -609,8 +609,8 @@ printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIJSONfileexportpost'
 
 echo `${dtzs}`${dtzsep} >> ${templogfilepath}
 
-cat ${templogfilepath} >> ${logfilepath} 2>> ${logfilepath}
-rm -v ${templogfilepath} >> ${logfilepath} 2>> ${logfilepath}
+cat ${templogfilepath} >> ${logfilepath} 2>&1
+rm -v ${templogfilepath} >> ${logfilepath} 2>&1
 
 # ------------------------------------------------------------------------
 
@@ -829,7 +829,7 @@ SlurpJSONFilesIntoSingleFile () {
     
     echo `${dtzs}`${dtzsep} 'Copy Final slurped JSON file "'${Slurpfinalfilefqpn}'"' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '  to JSON Results file "'${Finaljsonfileexport}'"' | tee -a -i ${logfilepath}
-    cp -fv ${Slurpfinalfilefqpn} ${Finaljsonfileexport} >> ${logfilepath} 2>> ${logfilepath}
+    cp -fv ${Slurpfinalfilefqpn} ${Finaljsonfileexport} >> ${logfilepath} 2>&1
     
     if ${APISCRIPTVERBOSE} ; then
         if ! ${NOWAIT} ; then
@@ -933,7 +933,7 @@ ExportRAWObjectToJSON () {
         export Slurpworkfolder=${APICLIJSONpathexportwip}
         
         if [ ! -r ${APICLIJSONpathexportwip} ] ; then
-            mkdir -p -v ${APICLIJSONpathexportwip} >> ${logfilepath} 2>> ${logfilepath}
+            mkdir -p -v ${APICLIJSONpathexportwip} >> ${logfilepath} 2>&1
         fi
     fi
     
@@ -1078,7 +1078,7 @@ ExportRAWObjectToJSON () {
                         # exported json file is not zero length, so process for slurp
                         echo `${dtzs}`${dtzsep} '      Dump to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
                         #cat ${APICLIfileexport} | jq '.objects[]' > ${Slurpworkfileexport}
-                        cp -fv ${APICLIfileexport} ${Slurpworkfileexport} >> ${logfilepath} 2>> ${logfilepath}
+                        cp -fv ${APICLIfileexport} ${Slurpworkfileexport} >> ${logfilepath} 2>&1
                     else
                         # exported json file is zero length, so do not process file for slurp
                         if ${APISCRIPTVERBOSE} ; then
@@ -1130,7 +1130,7 @@ ExportRAWObjectToJSON () {
                         # exported json file is not zero length, so process for slurp
                         echo `${dtzs}`${dtzsep} '      Dump to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
                         #cat ${APICLIfileexport} | jq '.objects[]' > ${Slurpworkfileexport}
-                        cp -fv ${APICLIfileexport} ${Slurpworkfileexport} >> ${logfilepath} 2>> ${logfilepath}
+                        cp -fv ${APICLIfileexport} ${Slurpworkfileexport} >> ${logfilepath} 2>&1
                     else
                         # exported json file is zero length, so do not process file for slurp
                         if ${APISCRIPTVERBOSE} ; then
@@ -1256,7 +1256,7 @@ ExportRAWObjectToJSON () {
                 if [ -s ${APICLIfileexport} ] ; then
                     # exported json file is not zero length, so process for slurp
                     # copy the broken json file as the slurpstar file to the slurp work area
-                    cp -fv ${APICLIfileexport} ${Slurpstarfilefqpn} >> ${logfilepath} 2>> ${logfilepath}
+                    cp -fv ${APICLIfileexport} ${Slurpstarfilefqpn} >> ${logfilepath} 2>&1
                     
                     echo `${dtzs}`${dtzsep} '  Single broken JSON file created, need to SLURP to fix the file!' | tee -a -i ${logfilepath}
                     echo `${dtzs}`${dtzsep} '  Slurp this file     :  '${Slurpstarfilefqpn} | tee -a -i ${logfilepath}
@@ -1275,7 +1275,7 @@ ExportRAWObjectToJSON () {
                     echo '  "total": '${SLURP_TOTAL} >> ${Slurpstarfilefqpn}
                     echo '}' >> ${Slurpstarfilefqpn}
                     
-                    cp -fv ${Slurpstarfilefqpn} ${APICLIfileexport} >> ${logfilepath} 2>> ${logfilepath}
+                    cp -fv ${Slurpstarfilefqpn} ${APICLIfileexport} >> ${logfilepath} 2>&1
                 fi
                 
                 # Handle placement of final object JSON file into standing current object repository next
@@ -1328,10 +1328,10 @@ ExportRAWObjectToJSON () {
             fi
             
             if [ ! -r ${JSONRepopathworking} ] ; then
-                mkdir -p -v ${JSONRepopathworking} >> ${logfilepath} 2>> ${logfilepath}
-                chmod 775 ${JSONRepopathworking} >> ${logfilepath} 2>> ${logfilepath}
+                mkdir -p -v ${JSONRepopathworking} >> ${logfilepath} 2>&1
+                chmod 775 ${JSONRepopathworking} >> ${logfilepath} 2>&1
             else
-                chmod 775 ${JSONRepopathworking} >> ${logfilepath} 2>> ${logfilepath}
+                chmod 775 ${JSONRepopathworking} >> ${logfilepath} 2>&1
             fi
             
             export JSONRepofilepost='_'${JSONRepoDetailname}'_'${JSONRepofilesuffix}
@@ -1340,7 +1340,7 @@ ExportRAWObjectToJSON () {
             
             echo `${dtzs}`${dtzsep} 'Copy Final Export JSON file "'${Finaljsonfileexport}'"' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} '  to JSON Repository file "'${JSONRepoFileexport}'"' | tee -a -i ${logfilepath}
-            cp -fv ${Finaljsonfileexport} ${JSONRepoFileexport} >> ${logfilepath} 2>> ${logfilepath}
+            cp -fv ${Finaljsonfileexport} ${JSONRepoFileexport} >> ${logfilepath} 2>&1
             
         fi
         

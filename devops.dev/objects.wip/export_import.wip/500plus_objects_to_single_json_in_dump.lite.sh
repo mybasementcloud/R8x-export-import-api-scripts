@@ -17,9 +17,9 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=005
-ScriptSubRevision=20
-ScriptDate=2022-05-03
+ScriptRevision=010
+ScriptSubRevision=030
+ScriptDate=2022-05-05
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
@@ -200,16 +200,18 @@ ShowHelp () {
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-if [ -z "$1" ]; then
+if [ -z "${1}" ]; then
     ShowHelp
     exit 1
 fi
 
-#OBJECTSTYPE=$1
+#OBJECTSTYPE=${1}
 #OBJECTSTYPE=${OBJECTSTYPE//\"}
+#OBJECTSTYPE=${OBJECTSTYPE//\'}
 
-OPT=$1
+OPT=${1}
 OPT=${OPT//\"}
+OPT=${OPT//\'}
 
 case "${OPT}" in
     # Help and Standard Operations
@@ -226,122 +228,152 @@ case "${OPT}" in
     hosts )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     networks )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     groups )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'groups-with-exclusion' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'address-ranges' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'dns-domains' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'security-zones' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'dynamic-objects' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'application-sites' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'application-site-categories' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'application-site-groups' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     tags )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'simple-gateways' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     times )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'time-groups' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'access-roles' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'opsec-applications' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'services-tcp' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'services-udp' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'services-icmp' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'services-icmp6' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'services-sctp' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'services-other' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'services-dce-rpc' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'services-rpc' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'service-groups' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'users' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'user-groups' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'user-templates' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'identity-tags' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     # Anything unknown is recorded for later
     * )
@@ -351,11 +383,11 @@ case "${OPT}" in
 esac
 
 
-if [ -z "$2" ]; then
+if [ -z "${2}" ]; then
     DETAILSSET=full
-elif [ "$2" == "full" ]; then
+elif [ "${2}" == "full" ]; then
     DETAILSSET=full
-elif [ "$2" == "standard" ]; then
+elif [ "${2}" == "standard" ]; then
     DETAILSSET=standard
 else
     DETAILSSET=full
@@ -372,10 +404,10 @@ export OUTPUTFOLDER=./dump/${DATEDTGS}.${OBJECTSTYPE}'_1-json'
 export OUTPUTFILEPREFIX=test.${OBJECTSTYPE}.${DETAILSSET}
 
 if [ ! -r ${OUTPUTFOLDER} ] ; then
-    mkdir -p -v ${OUTPUTFOLDER} >> ${logfilepath} 2>> ${logfilepath}
-    chmod 775 ${OUTPUTFOLDER} >> ${logfilepath} 2>> ${logfilepath}
+    mkdir -p -v ${OUTPUTFOLDER} >> ${logfilepath} 2>&1
+    chmod 775 ${OUTPUTFOLDER} >> ${logfilepath} 2>&1
 else
-    chmod 775 ${OUTPUTFOLDER} >> ${logfilepath} 2>> ${logfilepath}
+    chmod 775 ${OUTPUTFOLDER} >> ${logfilepath} 2>&1
 fi
 
 

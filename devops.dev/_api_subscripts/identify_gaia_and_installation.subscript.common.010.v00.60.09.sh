@@ -17,9 +17,9 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=005
-ScriptSubRevision=20
-ScriptDate=2022-05-03
+ScriptRevision=010
+ScriptSubRevision=030
+ScriptDate=2022-05-05
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09

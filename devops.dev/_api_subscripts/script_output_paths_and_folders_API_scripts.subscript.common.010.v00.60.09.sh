@@ -17,9 +17,9 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=005
-ScriptSubRevision=20
-ScriptDate=2022-05-03
+ScriptRevision=010
+ScriptSubRevision=030
+ScriptDate=2022-05-05
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
@@ -453,11 +453,11 @@ HandleLaunchInHomeFolder () {
         #not where we're expecting to be, since ${outputpathroot} is missing here
         #maybe this hasn't been run here yet.
         #OK, so make the expected folder and set permissions we need
-        mkdir -p -v ${outputpathroot} >> ${logfilepath} 2>> ${logfilepath}
-        chmod 775 ${outputpathroot} >> ${logfilepath} 2>> ${logfilepath}
+        mkdir -p -v ${outputpathroot} >> ${logfilepath} 2>&1
+        chmod 775 ${outputpathroot} >> ${logfilepath} 2>&1
     else
         #set permissions we need
-        chmod 775 ${outputpathroot} >> ${logfilepath} 2>> ${logfilepath}
+        chmod 775 ${outputpathroot} >> ${logfilepath} 2>&1
     fi
     
     #Now that outputroot is not in /home/ let's work on where we are working from
@@ -725,10 +725,10 @@ ConfigureRootPath () {
     echo `${dtzs}`${dtzsep} '${APICLIpathroot} = '${APICLIpathroot} >> ${logfilepath}
     
     if [ ! -r ${APICLIpathroot} ] ; then
-        mkdir -p -v ${APICLIpathroot} >> ${logfilepath} 2>> ${logfilepath}
-        chmod 775 ${APICLIpathroot} >> ${logfilepath} 2>> ${logfilepath}
+        mkdir -p -v ${APICLIpathroot} >> ${logfilepath} 2>&1
+        chmod 775 ${APICLIpathroot} >> ${logfilepath} 2>&1
     else
-        chmod 775 ${APICLIpathroot} >> ${logfilepath} 2>> ${logfilepath}
+        chmod 775 ${APICLIpathroot} >> ${logfilepath} 2>&1
     fi
         
     if ${OutputDTGSSubfolder} ; then
@@ -758,10 +758,10 @@ ConfigureRootPath () {
     echo `${dtzs}`${dtzsep} '${APICLIpathbase} = '${APICLIpathbase} >> ${logfilepath}
     
     if [ ! -r ${APICLIpathbase} ] ; then
-        mkdir -p -v ${APICLIpathbase} >> ${logfilepath} 2>> ${logfilepath}
-        chmod 775 ${APICLIpathbase} >> ${logfilepath} 2>> ${logfilepath}
+        mkdir -p -v ${APICLIpathbase} >> ${logfilepath} 2>&1
+        chmod 775 ${APICLIpathbase} >> ${logfilepath} 2>&1
     else
-        chmod 775 ${APICLIpathbase} >> ${logfilepath} 2>> ${logfilepath}
+        chmod 775 ${APICLIpathbase} >> ${logfilepath} 2>&1
     fi
     
     if ${script_use_json_repo} ; then
@@ -791,14 +791,18 @@ ConfigureRootPath () {
             export JSONRepopathroot=${customerjsonrepofolderroot}
         fi
         
+        echo `${dtzs}`${dtzsep} '${JSONRepopathroot} = '${JSONRepopathroot} >> ${logfilepath}
+        
         if [ ! -r ${JSONRepopathroot} ] ; then
-            mkdir -p -v ${JSONRepopathroot} >> ${logfilepath} 2>> ${logfilepath}
-            chmod 775 ${JSONRepopathroot} >> ${logfilepath} 2>> ${logfilepath}
+            mkdir -p -v ${JSONRepopathroot} >> ${logfilepath} 2>&1
+            chmod 775 ${JSONRepopathroot} >> ${logfilepath} 2>&1
         else
-            chmod 775 ${JSONRepopathroot} >> ${logfilepath} 2>> ${logfilepath}
+            chmod 775 ${JSONRepopathroot} >> ${logfilepath} 2>&1
         fi
         
         export JSONRepopathbase=${JSONRepopathroot}
+        
+        echo `${dtzs}`${dtzsep} '${JSONRepopathbase} = '${JSONRepopathbase} >> ${logfilepath}
     fi
 }
 
@@ -930,6 +934,7 @@ HandleScriptInNOHUPModeLogging () {
         
         if [ -n ${CLIparm_NOHUPDTG} ]; then
             export script2nohupDTG=${CLIparm_NOHUPDTG//\"}
+            export script2nohupDTG=${CLIparm_NOHUPDTG//\'}
         else
             #export script2nohupDTG=${DATEDTGS}
             export script2nohupDTG=${DATEDTG}

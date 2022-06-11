@@ -17,9 +17,9 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=005
-ScriptSubRevision=20
-ScriptDate=2022-05-03
+ScriptRevision=010
+ScriptSubRevision=030
+ScriptDate=2022-05-05
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
@@ -140,6 +140,68 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 # Root script declarations
 # -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# GetScriptSourceFolder - Get the actual source folder for the running script
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-05-05 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+GetScriptSourceFolder () {
+    #
+    # repeated procedure description
+    #
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    SOURCE="${BASH_SOURCE[0]}"
+    while [ -h "${SOURCE}" ]; do # resolve ${SOURCE} until the file is no longer a symlink
+        TARGET="$(readlink "${SOURCE}")"
+        if [[ ${TARGET} == /* ]]; then
+            echo `${dtzs}`${dtzsep} "SOURCE '${SOURCE}' is an absolute symlink to '${TARGET}'" >> ${logfilepath}
+            SOURCE="${TARGET}"
+        else
+            DIR="$( dirname "${SOURCE}" )"
+            echo `${dtzs}`${dtzsep} "SOURCE '${SOURCE}' is a relative symlink to '${TARGET}' (relative to '${DIR}')" >> ${logfilepath}
+            SOURCE="${DIR}/${TARGET}" # if ${SOURCE} was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+        fi
+    done
+    
+    echo `${dtzs}`${dtzsep} "SOURCE is '${SOURCE}'" | tee -a -i ${logfilepath}
+    
+    RDIR="$( dirname "${SOURCE}" )"
+    DIR="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
+    if [ "${DIR}" != "${RDIR}" ]; then
+        echo `${dtzs}`${dtzsep} "DIR '${RDIR}' resolves to '${DIR}'" >> ${logfilepath}
+    fi
+    echo `${dtzs}`${dtzsep} "DIR is '${DIR}'" >> ${logfilepath}
+    
+    export ScriptSourceFolder=${DIR}
+    
+    echo `${dtzs}`${dtzsep} "ScriptSourceFolder is '${ScriptSourceFolder}'" | tee -a -i ${logfilepath}
+    
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-05-05
+
+
+# MODIFIED 2022-05-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# We need the Script's actual source folder to find subscripts
+#
+GetScriptSourceFolder
+
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-05-05
+
 
 # ADDED 2018-11-20 -
 
@@ -371,7 +433,7 @@ export WAITTIME=15
 # Configure location for api subscripts
 # -------------------------------------------------------------------------------------------------
 
-# ADDED 2021-11-09 - MODIFIED 2021-11-09 -
+# ADDED 2021-11-09 - MODIFIED 2022-05-04 -
 #
 # Presumptive folder structure for R8X API Management CLI (mgmt_cli) Template based scripts
 #
@@ -384,6 +446,7 @@ export WAITTIME=15
 # ...<script_home_folder>/objects[.wip]                         ## objects[.wip] folder for objects operations focused scripts
 # ...<script_home_folder>/objects[.wip]/csv_tools[.wip]         ## csv_tools[.wip] folder for objects operations for csv handling focused scripts
 # ...<script_home_folder>/objects[.wip]/export_import[.wip]     ## export_import[.wip] folder for objects operations export, import, set, rename, and delete focused scripts
+# ...<script_home_folder>/objects[.wip]/object_operations       ## object_operations folder for objects operations and testing scripts
 # ...<script_home_folder>/Policy_and_Layers[.wip]               ## Policy_and_Layers[.wip] folder for policy and layers operations focused scripts
 # ...<script_home_folder>/Session_Cleanup[.wip]                 ## Session_Cleanup[.wip] folder for Session Cleanup operation focused scripts
 # ...<script_home_folder>/tools.MDSM[.wip]                      ## tools.MDSM[.wip] folder for Tools focused on MDSM operations scripts
@@ -404,12 +467,57 @@ export api_subscripts_checkfile=api_subscripts_version.${APISubscriptsLevel}.v${
 if [ -r "${api_subscripts_default_root}/${api_subscripts_default_folder}/${api_subscripts_checkfile}" ]; then
     # OK, found the api subscripts in the default root
     export api_subscripts_root=${api_subscripts_default_root}
+    pushd ${api_subscripts_root} >> ${logfilepath}
+    errorreturn=$?
+    
+    if [ ${errorreturn} -ne 0 ] ; then
+        # we apparently didn't start where expected, so dumping
+        echo `${dtzs}`${dtzsep} 'Required target folder '"${api_subscripts_root}"' not found, exiting!' | tee -a -i ${logfilepath}
+        #popd >> ${logfilepath}
+        exit 254
+    else
+        #OK, so we are where we want to be relative to the script targets
+        export api_subscripts_root=`pwd`
+    fi
+    
+    # Return to the script operations folder
+    popd >> ${logfilepath}
 elif [ -r "./${api_subscripts_default_folder}/${api_subscripts_checkfile}" ]; then
     # OK, didn't find the api subscripts in the default root, instead found them in the working folder
     export api_subscripts_root=.
+    pushd ${api_subscripts_root} >> ${logfilepath}
+    errorreturn=$?
+    
+    if [ ${errorreturn} -ne 0 ] ; then
+        # we apparently didn't start where expected, so dumping
+        echo `${dtzs}`${dtzsep} 'Required target folder '"${api_subscripts_root}"' not found, exiting!' | tee -a -i ${logfilepath}
+        #popd >> ${logfilepath}
+        exit 254
+    else
+        #OK, so we are where we want to be relative to the script targets
+        export api_subscripts_root=`pwd`
+    fi
+    
+    # Return to the script operations folder
+    popd >> ${logfilepath}
 elif [ -r "../../${api_subscripts_default_folder}/${api_subscripts_checkfile}" ]; then
     # OK, didn't find the api subscripts in the default root, or in the working folder, but they were two (2) levels up
     export api_subscripts_root=../..
+    pushd ${api_subscripts_root} >> ${logfilepath}
+    errorreturn=$?
+    
+    if [ ${errorreturn} -ne 0 ] ; then
+        # we apparently didn't start where expected, so dumping
+        echo `${dtzs}`${dtzsep} 'Required target folder '"${api_subscripts_root}"' not found, exiting!' | tee -a -i ${logfilepath}
+        #popd >> ${logfilepath}
+        exit 254
+    else
+        #OK, so we are where we want to be relative to the script targets
+        export api_subscripts_root=`pwd`
+    fi
+    
+    # Return to the script operations folder
+    popd >> ${logfilepath}
 else
     # OK, didn't find the api subscripts where we expect to find them, so this is bad!
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
@@ -559,13 +667,22 @@ export DefaultAPIObjectLimit=${MaxAPIObjectLimit}
 export DefaultAPIObjectLimitMDSM=${RecommendedAPIObjectLimitMDSM}
 export DefaultAPIObjectLimitMDSMSlowObjects=${SlowObjectAPIObjectLimitMDSMSlow}
 
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2022-05-04 -
+
 # Configure basic information for formation of file path for action handler scripts
 #
 # APIScriptActionFileRoot - root path to for action handler scripts
 # APIScriptActionFileFolder - folder under root path to for action handler scripts
 # APIScriptActionFilePath - path, for action handler scripts
 #
-export APIScriptActionFileRoot=.
+
+export APIScriptActionFileRoot=${ScriptSourceFolder}
+
 export APIScriptActionFileFolder=
 
 export APIScriptActionFilePrefix=cli_api_actions
@@ -575,6 +692,10 @@ export APIScriptJSONActionFilename=${APIScriptActionFilePrefix}.'export_objects_
 
 export APIScriptCSVActionFilename=${APIScriptActionFilePrefix}.'export_objects_to_csv'.sh
 #export APIScriptCSVActionFilename=${APIScriptActionFilePrefix}'_actions_to_csv_'${APIScriptVersion}.sh
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-20
@@ -705,56 +826,13 @@ ForceShowTempLogFile () {
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ REMOVED 2020-11-16
-
-
-# -------------------------------------------------------------------------------------------------
-# GetScriptSourceFolder - Get the actual source folder for the running script
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MOVED 2022-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-GetScriptSourceFolder () {
-    #
-    # repeated procedure description
-    #
-    
-    echo `${dtzs}`${dtzsep} >> ${logfilepath}
-    
-    SOURCE="${BASH_SOURCE[0]}"
-    while [ -h "${SOURCE}" ]; do # resolve ${SOURCE} until the file is no longer a symlink
-        TARGET="$(readlink "${SOURCE}")"
-        if [[ ${TARGET} == /* ]]; then
-            echo `${dtzs}`${dtzsep} "SOURCE '${SOURCE}' is an absolute symlink to '${TARGET}'" >> ${logfilepath}
-            SOURCE="${TARGET}"
-        else
-            DIR="$( dirname "${SOURCE}" )"
-            echo `${dtzs}`${dtzsep} "SOURCE '${SOURCE}' is a relative symlink to '${TARGET}' (relative to '${DIR}')" >> ${logfilepath}
-            SOURCE="${DIR}/${TARGET}" # if ${SOURCE} was a relative symlink, we need to resolve it relative to the path where the symlink file was located
-        fi
-    done
-    
-    echo `${dtzs}`${dtzsep} "SOURCE is '${SOURCE}'" >> ${logfilepath}
-    
-    RDIR="$( dirname "${SOURCE}" )"
-    DIR="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
-    if [ "${DIR}" != "${RDIR}" ]; then
-        echo `${dtzs}`${dtzsep} "DIR '${RDIR}' resolves to '${DIR}'" >> ${logfilepath}
-    fi
-    echo `${dtzs}`${dtzsep} "DIR is '${DIR}'" >> ${logfilepath}
-    
-    export ScriptSourceFolder=${DIR}
-    echo `${dtzs}`${dtzsep} "ScriptSourceFolder is '${ScriptSourceFolder}'" >> ${logfilepath}
-    
-    echo `${dtzs}`${dtzsep} >> ${logfilepath}
-    
-    return 0
-}
+#GetScriptSourceFolder
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
-
-
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MOVED 2022-05-04
 # REMOVED 2020-11-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
@@ -773,17 +851,6 @@ GetScriptSourceFolder () {
 # End of procedures block
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2020-11-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# We need the Script's actual source folder to find subscripts
-#
-GetScriptSourceFolder
-
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-16
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2165,10 +2232,10 @@ CheckAPIKeepAlive () {
     if ${LoggedIntoMgmtCli} ; then
         echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
         if ${addversion2keepalive} ; then
-            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
+            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
             export errorreturn=$?
         else
-            mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
+            mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
             export errorreturn=$?
         fi
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
@@ -2410,7 +2477,7 @@ fi
 # Start :  Check that Action Handler Scripts exist before executing
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CheckExportActionHandlerScripts () {
@@ -2436,6 +2503,9 @@ CheckExportActionHandlerScripts () {
     else
         export APIScriptActionFilePath=${APIScriptActionFileRoot}
     fi
+    
+    export expandedpath=$(cd ${APIScriptActionFilePath} ; pwd)
+    export APIScriptActionFilePath=${expandedpath}
     
     export APIScriptJSONActionFile=${APIScriptActionFilePath}/${APIScriptJSONActionFilename}
     export APIScriptCSVActionFile=${APIScriptActionFilePath}/${APIScriptCSVActionFilename}
@@ -2488,7 +2558,7 @@ CheckExportActionHandlerScripts () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-21
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED MODIFIED 2022-05-04
 
 # -------------------------------------------------------------------------------------------------
 # End :  Check that Action Handler Scripts exist before executing
@@ -3042,6 +3112,7 @@ export LoggedIntoMgmtCli=false
 for j in "${DOMAINSARRAY[@]}" ; do
     workdomain=${j}
     workdomain=${workdomain//\"}
+    workdomain=${workdomain//\'}
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Domain :  >'${workdomain}'< ' | tee -a -i ${logfilepath}

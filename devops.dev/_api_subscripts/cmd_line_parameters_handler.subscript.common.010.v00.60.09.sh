@@ -17,9 +17,9 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=005
-ScriptSubRevision=20
-ScriptDate=2022-05-03
+ScriptRevision=010
+ScriptSubRevision=030
+ScriptDate=2022-05-05
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
@@ -1089,7 +1089,7 @@ ProcessCommandLineParametersAndSetValues () {
     
     #
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-06
-    # MODIFIED 2022-03-10 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    # MODIFIED 2022-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
     while [ -n "$1" ]; do
@@ -1154,6 +1154,7 @@ ProcessCommandLineParametersAndSetValues () {
                     # For internal storage, remove the quotes surrounding the api-key, 
                     # will add back on utilization
                     CLIparm_api_key=${CLIparm_api_key//\"}
+                    CLIparm_api_key=${CLIparm_api_key//\'}
                     CLIparm_use_api_key=true
                     #shift
                     ;;
@@ -1162,6 +1163,7 @@ ProcessCommandLineParametersAndSetValues () {
                     # For internal storage, remove the quotes surrounding the api context value, 
                     # will add back on utilization
                     CLIparm_api_context=${CLIparm_api_context//\"}
+                    CLIparm_api_context=${CLIparm_api_context//\'}
                     CLIparm_use_api_context=true
                     shift
                     ;;
@@ -1176,6 +1178,7 @@ ProcessCommandLineParametersAndSetValues () {
                 -d=* | --domain=* )
                     CLIparm_domain="${OPT#*=}"
                     CLIparm_domain=${CLIparm_domain//\"}
+                    CLIparm_domain=${CLIparm_domain//\'}
                     #shift
                     ;;
                 -s=* | --session-file=* )
@@ -1185,11 +1188,13 @@ ProcessCommandLineParametersAndSetValues () {
                 --session-timeout=* )
                     CLIparm_sessiontimeout="${OPT#*=}"
                     CLIparm_sessiontimeout=${CLIparm_sessiontimeout//\"}
+                    CLIparm_sessiontimeout=${CLIparm_sessiontimeout//\'}
                     #shift
                     ;;
                 --conn-timeout=* | --CTO=* )
                     CLIparm_connectiontimeout="${OPT#*=}"
                     CLIparm_connectiontimeout=${CLIparm_connectiontimeout//\"}
+                    CLIparm_connectiontimeout=${CLIparm_connectiontimeout//\'}
                     #shift
                     ;;
                 -l=* | --log-path=* )
@@ -1214,6 +1219,7 @@ ProcessCommandLineParametersAndSetValues () {
                     # For internal storage, remove the quotes surrounding the api-key, 
                     # will add back on utilization
                     CLIparm_api_key=${CLIparm_api_key//\"}
+                    CLIparm_api_key=${CLIparm_api_key//\'}
                     CLIparm_use_api_key=true
                     shift
                     ;;
@@ -1222,6 +1228,7 @@ ProcessCommandLineParametersAndSetValues () {
                     # For internal storage, remove the quotes surrounding the api context value, 
                     # will add back on utilization
                     CLIparm_api_context=${CLIparm_api_context//\"}
+                    CLIparm_api_context=${CLIparm_api_context//\'}
                     CLIparm_use_api_context=true
                     shift
                     ;;
@@ -1234,6 +1241,7 @@ ProcessCommandLineParametersAndSetValues () {
                     # For internal storage, remove the quotes surrounding the api context value, 
                     # will add back on utilization
                     CLIparm_api_context=${CLIparm_api_key//\"}
+                    CLIparm_api_context=${CLIparm_api_key//\'}
                     CLIparm_use_api_context=true
                     shift
                     ;;
@@ -1248,6 +1256,7 @@ ProcessCommandLineParametersAndSetValues () {
                 -d | --domain )
                     CLIparm_domain="$2"
                     CLIparm_domain=${CLIparm_domain//\"}
+                    CLIparm_domain=${CLIparm_domain//\'}
                     shift
                     ;;
                 -s | --session-file )
@@ -1257,11 +1266,13 @@ ProcessCommandLineParametersAndSetValues () {
                 --session-timeout )
                     CLIparm_sessiontimeout="$2"
                     CLIparm_sessiontimeout=${CLIparm_sessiontimeout//\"}
+                    CLIparm_sessiontimeout=${CLIparm_sessiontimeout//\'}
                     shift
                     ;;
                 --conn-timeout | --CTO )
                     CLIparm_connectiontimeout="$2"
                     CLIparm_connectiontimeout=${CLIparm_connectiontimeout//\"}
+                    CLIparm_connectiontimeout=${CLIparm_connectiontimeout//\'}
                     shift
                     ;;
                 -l | --log-path )
@@ -1389,11 +1400,13 @@ ProcessCommandLineParametersAndSetValues () {
                 --MAXOBJECTS=* )
                     CLIparm_MAXOBJECTS="${OPT#*=}"
                     CLIparm_MAXOBJECTS=${CLIparm_MAXOBJECTS//\"}
+                    CLIparm_MAXOBJECTS=${CLIparm_MAXOBJECTS//\'}
                     #shift
                     ;;
                 --MAXOBJECTS )
                     CLIparm_MAXOBJECTS="$2"
                     CLIparm_MAXOBJECTS=${CLIparm_MAXOBJECTS//\"}
+                    CLIparm_MAXOBJECTS=${CLIparm_MAXOBJECTS//\'}
                     shift
                     ;;
                 --KEEPCSVWIP )
@@ -1412,11 +1425,13 @@ ProcessCommandLineParametersAndSetValues () {
                 -t=* | --type-of-export=* )
                     CLIparm_TypeOfExport="${OPT#*=}"
                     CLIparm_TypeOfExport=${CLIparm_TypeOfExport//\"}
+                    CLIparm_TypeOfExport=${CLIparm_TypeOfExport//\'}
                     #shift
                     ;;
                 -t | --type-of-export )
                     CLIparm_TypeOfExport="$2"
                     CLIparm_TypeOfExport=${CLIparm_TypeOfExport//\"}
+                    CLIparm_TypeOfExport=${CLIparm_TypeOfExport//\'}
                     shift
                     ;;
                 -f=* | --format=* )
@@ -1453,34 +1468,50 @@ ProcessCommandLineParametersAndSetValues () {
                     ;;
                 -x=* | --export-path=* )
                     CLIparm_exportpath="${OPT#*=}"
+                    CLIparm_exportpath=${CLIparm_exportpath//\"}
+                    CLIparm_exportpath=${CLIparm_exportpath//\'}
                     #shift
                     ;;
                 -x | --export-path )
                     CLIparm_exportpath="$2"
+                    CLIparm_exportpath=${CLIparm_exportpath//\"}
+                    CLIparm_exportpath=${CLIparm_exportpath//\'}
                     shift
                     ;;
                 -i=* | --import-path=* )
                     CLIparm_importpath="${OPT#*=}"
+                    CLIparm_importpath=${CLIparm_importpath//\"}
+                    CLIparm_importpath=${CLIparm_importpath//\'}
                     #shift
                     ;;
                 -i | --import-path )
                     CLIparm_importpath="$2"
+                    CLIparm_importpath=${CLIparm_importpath//\"}
+                    CLIparm_importpath=${CLIparm_importpath//\'}
                     shift
                     ;;
                 -k=* | --delete-path=* )
                     CLIparm_deletepath="${OPT#*=}"
+                    CLIparm_deletepath=${CLIparm_deletepath//\"}
+                    CLIparm_deletepath=${CLIparm_deletepath//\'}
                     #shift
                     ;;
                 -k | --delete-path )
                     CLIparm_deletepath="$2"
+                    CLIparm_deletepath=${CLIparm_deletepath//\"}
+                    CLIparm_deletepath=${CLIparm_deletepath//\'}
                     shift
                     ;;
                 -c=* | --csv=* )
                     CLIparm_csvpath="${OPT#*=}"
+                    CLIparm_csvpath=${CLIparm_csvpath//\"}
+                    CLIparm_csvpath=${CLIparm_csvpath//\'}
                     #shift
                     ;;
                 -c | --csv )
                     CLIparm_csvpath="$2"
+                    CLIparm_csvpath=${CLIparm_csvpath//\"}
+                    CLIparm_csvpath=${CLIparm_csvpath//\'}
                     shift
                     ;;
                 # Anything unknown is recorded for later
@@ -1510,7 +1541,7 @@ ProcessCommandLineParametersAndSetValues () {
     eval set -- ${REMAINS}
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-05-04
     # MODIFIED 2022-03-10 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
@@ -1618,12 +1649,13 @@ ProcessCommandLineParametersAndSetValues () {
     
     #
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
-    # MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    # MODIFIED 2022-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
     # MODIFIED 2022-03-11 -
     export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
     export CLIparm_TypeOfExport=${CLIparm_TypeOfExport//\"}
+    export CLIparm_TypeOfExport=${CLIparm_TypeOfExport//\'}
     #export TypeOfExport=${CLIparm_TypeOfExport}
     #export ExportTypeIsStandard=true
     
@@ -1673,6 +1705,7 @@ ProcessCommandLineParametersAndSetValues () {
     # ADDED 2022-03-10 -
     export CLIparm_format=${CLIparm_format}
     export CLIparm_format=${CLIparm_format//\"}
+    export CLIparm_format=${CLIparm_format//\'}
     export CLIparm_formatall=false
     export CLIparm_formatcsv=false
     export CLIparm_formatjson=false
@@ -1704,6 +1737,7 @@ ProcessCommandLineParametersAndSetValues () {
         export CLIparm_detailslevel=${CLIparm_detailslevel}
     fi
     export CLIparm_detailslevel=${CLIparm_detailslevel//\"}
+    export CLIparm_detailslevel=${CLIparm_detailslevel//\'}
     export CLIparm_detailslevelall=true
     export CLIparm_detailslevelfull=true
     export CLIparm_detailslevelstandard=true
@@ -1868,15 +1902,28 @@ ProcessCommandLineParametersAndSetValues () {
     
     export CLIparm_NODOMAINFOLDERS=${CLIparm_NODOMAINFOLDERS}
     
+    # MODIFIED 2022-05-04 -
+    
     export CLIparm_exportpath=${CLIparm_exportpath}
+    export CLIparm_exportpath=${CLIparm_exportpath//\"}
+    export CLIparm_exportpath=${CLIparm_exportpath//\'}
+    
     export CLIparm_importpath=${CLIparm_importpath}
+    export CLIparm_importpath=${CLIparm_importpath//\"}
+    export CLIparm_importpath=${CLIparm_importpath//\'}
+    
     export CLIparm_deletepath=${CLIparm_deletepath}
+    export CLIparm_deletepath=${CLIparm_deletepath//\"}
+    export CLIparm_deletepath=${CLIparm_deletepath//\'}
     
     export CLIparm_csvpath=${CLIparm_csvpath}
+    export CLIparm_csvpath=${CLIparm_csvpath//\"}
+    export CLIparm_csvpath=${CLIparm_csvpath//\'}
+    
     export REMAINS=${REMAINS}
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-05-04
     
     return 0
 }

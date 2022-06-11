@@ -17,9 +17,9 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=005
-ScriptSubRevision=20
-ScriptDate=2022-05-03
+ScriptRevision=010
+ScriptSubRevision=030
+ScriptDate=2022-05-05
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
@@ -209,10 +209,10 @@ CheckAPIKeepAlive () {
     if ${LoggedIntoMgmtCli} ; then
         echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
         if ${addversion2keepalive} ; then
-            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
+            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
             export errorreturn=$?
         else
-            mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>> ${logfilepath}
+            mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
             export errorreturn=$?
         fi
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
@@ -530,8 +530,8 @@ printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIJSONfileexportpost'
 
 echo `${dtzs}`${dtzsep} >> ${templogfilepath}
 
-cat ${templogfilepath} >> ${logfilepath} 2>> ${logfilepath}
-rm -v ${templogfilepath} >> ${logfilepath} 2>> ${logfilepath}
+cat ${templogfilepath} >> ${logfilepath} 2>&1
+rm -v ${templogfilepath} >> ${logfilepath} 2>&1
 
 # ------------------------------------------------------------------------
 
@@ -759,23 +759,23 @@ SetupExportObjectsToCSVviaJQ () {
     export JSONRepoFile=${JSONRepopathworking}/${JSONRepofilepre}${JSONRepofilename}${JSONRepofilepost}
     
     if [ ! -r ${APICLICSVpathexportwip} ] ; then
-        mkdir -p -v ${APICLICSVpathexportwip} >> ${logfilepath} 2>> ${logfilepath}
+        mkdir -p -v ${APICLICSVpathexportwip} >> ${logfilepath} 2>&1
     fi
     
     if [ -r ${APICLICSVfile} ] ; then
-        rm ${APICLICSVfile} >> ${logfilepath} 2>> ${logfilepath}
+        rm ${APICLICSVfile} >> ${logfilepath} 2>&1
     fi
     if [ -r ${APICLICSVfileheader} ] ; then
-        rm ${APICLICSVfileheader} >> ${logfilepath} 2>> ${logfilepath}
+        rm ${APICLICSVfileheader} >> ${logfilepath} 2>&1
     fi
     if [ -r ${APICLICSVfiledata} ] ; then
-        rm ${APICLICSVfiledata} >> ${logfilepath} 2>> ${logfilepath}
+        rm ${APICLICSVfiledata} >> ${logfilepath} 2>&1
     fi
     if [ -r ${APICLICSVfilesort} ] ; then
-        rm ${APICLICSVfilesort} >> ${logfilepath} 2>> ${logfilepath}
+        rm ${APICLICSVfilesort} >> ${logfilepath} 2>&1
     fi
     if [ -r ${APICLICSVfileoriginal} ] ; then
-        rm ${APICLICSVfileoriginal} >> ${logfilepath} 2>> ${logfilepath}
+        rm ${APICLICSVfileoriginal} >> ${logfilepath} 2>&1
     fi
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
@@ -4063,23 +4063,23 @@ SetupExportComplexObjectsToCSVviaJQ () {
     export JSONRepoFile=${JSONRepopathworking}/${JSONRepofilepre}${JSONRepofilename}${JSONRepofilepost}
     
     if [ ! -r ${APICLICSVpathexportwip} ] ; then
-        mkdir -p -v ${APICLICSVpathexportwip} >> ${logfilepath} 2>> ${logfilepath}
+        mkdir -p -v ${APICLICSVpathexportwip} >> ${logfilepath} 2>&1
     fi
     
     if [ -r ${APICLICSVfile} ] ; then
-        rm ${APICLICSVfile} >> ${logfilepath} 2>> ${logfilepath}
+        rm ${APICLICSVfile} >> ${logfilepath} 2>&1
     fi
     if [ -r ${APICLICSVfileheader} ] ; then
-        rm ${APICLICSVfileheader} >> ${logfilepath} 2>> ${logfilepath}
+        rm ${APICLICSVfileheader} >> ${logfilepath} 2>&1
     fi
     if [ -r ${APICLICSVfiledata} ] ; then
-        rm ${APICLICSVfiledata} >> ${logfilepath} 2>> ${logfilepath}
+        rm ${APICLICSVfiledata} >> ${logfilepath} 2>&1
     fi
     if [ -r ${APICLICSVfilesort} ] ; then
-        rm ${APICLICSVfilesort} >> ${logfilepath} 2>> ${logfilepath}
+        rm ${APICLICSVfilesort} >> ${logfilepath} 2>&1
     fi
     if [ -r ${APICLICSVfileoriginal} ] ; then
-        rm ${APICLICSVfileoriginal} >> ${logfilepath} 2>> ${logfilepath}
+        rm ${APICLICSVfileoriginal} >> ${logfilepath} 2>&1
     fi
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}

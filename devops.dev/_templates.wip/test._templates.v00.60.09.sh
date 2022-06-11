@@ -17,9 +17,9 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=005
-ScriptSubRevision=20
-ScriptDate=2022-05-03
+ScriptRevision=010
+ScriptSubRevision=030
+ScriptDate=2022-05-05
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
@@ -134,6 +134,68 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 # Root script declarations
 # -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# GetScriptSourceFolder - Get the actual source folder for the running script
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-05-05 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+GetScriptSourceFolder () {
+    #
+    # repeated procedure description
+    #
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    SOURCE="${BASH_SOURCE[0]}"
+    while [ -h "${SOURCE}" ]; do # resolve ${SOURCE} until the file is no longer a symlink
+        TARGET="$(readlink "${SOURCE}")"
+        if [[ ${TARGET} == /* ]]; then
+            echo `${dtzs}`${dtzsep} "SOURCE '${SOURCE}' is an absolute symlink to '${TARGET}'" >> ${logfilepath}
+            SOURCE="${TARGET}"
+        else
+            DIR="$( dirname "${SOURCE}" )"
+            echo `${dtzs}`${dtzsep} "SOURCE '${SOURCE}' is a relative symlink to '${TARGET}' (relative to '${DIR}')" >> ${logfilepath}
+            SOURCE="${DIR}/${TARGET}" # if ${SOURCE} was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+        fi
+    done
+    
+    echo `${dtzs}`${dtzsep} "SOURCE is '${SOURCE}'" | tee -a -i ${logfilepath}
+    
+    RDIR="$( dirname "${SOURCE}" )"
+    DIR="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
+    if [ "${DIR}" != "${RDIR}" ]; then
+        echo `${dtzs}`${dtzsep} "DIR '${RDIR}' resolves to '${DIR}'" >> ${logfilepath}
+    fi
+    echo `${dtzs}`${dtzsep} "DIR is '${DIR}'" >> ${logfilepath}
+    
+    export ScriptSourceFolder=${DIR}
+    
+    echo `${dtzs}`${dtzsep} "ScriptSourceFolder is '${ScriptSourceFolder}'" | tee -a -i ${logfilepath}
+    
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-05-05
+
+
+# MODIFIED 2022-05-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# We need the Script's actual source folder to find subscripts
+#
+GetScriptSourceFolder
+
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-05-05
+
 
 # ADDED 2018-11-20 -
 
