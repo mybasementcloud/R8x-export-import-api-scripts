@@ -17,13 +17,13 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=010
-ScriptSubRevision=030
-ScriptDate=2022-05-05
+ScriptRevision=015
+ScriptSubRevision=005
+ScriptDate=2022-06-10
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
-APISubscriptsRevision=005
+APISubscriptsRevision=015
 
 #
 
@@ -2892,7 +2892,7 @@ ImportSimpleObjects () {
     #export APICLIImportCSVfile=${APICLICSVImportpathbase}/${APICLICSVobjecttype}'_'${APICLIdetaillvl}'_csv'${APICLICSVfileexportsuffix}
     export APICLIImportCSVfile=${APICLICSVImportpathbase}/${APICLIfilename}
     
-    export OutputPath=${APICLIpathexport}/${APICLIfileexportpre}'add_'${APICLIobjecttype}'_'${APICLIfileexportext}
+    export OutputPath=${APICLIpathexport}/${APICLIfileexportpre}'add_'${APICLIobjecttype}'_results.'${APICLIfileexportext}
     
     if [ ! -r ${APICLIImportCSVfile} ] ; then
         # no CSV file for this type of object
@@ -4027,7 +4027,7 @@ ConfigureComplexObjects () {
     #export APICLIImportCSVfile=${APICLICSVImportpathbase}/${APICLICSVobjecttype}'_'${APICLIdetaillvl}'_csv'${APICLICSVfileexportsuffix}
     export APICLIImportCSVfile=${APICLICSVImportpathbase}/${APICLIfilename}
     
-    export OutputPath=${APICLIpathexport}/${APICLIfileexportpre}'set_'${APICLICSVobjecttype}'_'${APICLIfileexportext}
+    export OutputPath=${APICLIpathexport}/${APICLIfileexportpre}'set_'${APICLICSVobjecttype}'_results.'${APICLIfileexportext}
     
     if [ ! -r ${APICLIImportCSVfile} ] ; then
         # no CSV file for this type of object

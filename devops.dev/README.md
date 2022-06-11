@@ -4,13 +4,13 @@ Check Point R8x Export, Import, Set/Update, Rename to new-name, and Delete mgmt_
 
 Additional documentation and information will be provided in .md, .tsv, and potentially .xlsx files in the repository.
 
-## UPDATED:  2022-05-05
+## UPDATED:  2022-06-10
 
 Interim update, reorganize the README.MD and add a Quick Start
 
 ## Overview
 
-The export, import, set-update, rename-to-new-name, and delete using CSV files scripts in this post, currently version 00.60.09.010 dated 2022-05-05, are intended to allow operations on an existing R80, R80.10, R80.20[|.M1|.M2], R80.30, R80.40, R81, and R81.10 [EA R81.20 possibly] Check Point management server (SMS or MDM) from bash expert mode on the Check Point management server host or another API enabled Check Point management server host instance (Check Point Gaia OS R8X) able to authenticate and reach the target management server host.  Utilization from other LINUX releases is not supported, tested, or assumed to work.
+The export, import, set-update, rename-to-new-name, and delete using CSV files scripts in this post, currently version 00.60.09.015 dated 2022-06-10, are intended to allow operations on an existing R80, R80.10, R80.20[|.M1|.M2], R80.30, R80.40, R81, R81.10 and EA R81.20 [WIP (Work-In-Progress)]] Check Point management server (SMS or MDM) from bash expert mode on the Check Point management server host or another API enabled Check Point management server host instance (Check Point Gaia OS R8X) able to authenticate and reach the target management server host.  Utilization from other LINUX releases is not supported, tested, or assumed to work.
 
 - Check Point Management API documentation is here:
 <https://sc1.checkpoint.com/documents/latest/APIs/index.html#introduction>
@@ -82,7 +82,7 @@ To quickly start working with the scripts, do the following.
 
       Example:  ```tar -xvf devops.dev.{version}.tgz```
 
-      ```tar -xvf devops.dev.v00.60.09.010.tgz```
+      ```tar -xvf devops.dev.v00.60.09.015.tgz```
 
 4. Goto to the export import folder
 
@@ -119,6 +119,7 @@ Presumptive folder structure for R8X API Management CLI (mgmt_cli) Template base
 |./objects[.wip]|folder for objects operations focused scripts|
 |./objects[.wip]/csv_tools[.wip]|folder for objects operations for csv handling focused scripts|
 |./objects[.wip]/export_import[.wip]|folder for objects operations export, import, set, rename, and delete focused scripts|
+|./objects[.wip]/object_operations|folder for objects operations export, import, set, rename, and delete focused scripts|
 |./Policy_and_Layers[.wip]|folder for policy and layers operations focused scripts|
 |./Session_Cleanup[.wip]|folder for Session Cleanup operation focused scripts|
 |./tools.MDSM[.wip]|folder for Tools focused on MDSM operations scripts|

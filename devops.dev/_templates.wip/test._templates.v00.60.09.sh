@@ -17,13 +17,13 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=010
-ScriptSubRevision=030
-ScriptDate=2022-05-05
+ScriptRevision=015
+ScriptSubRevision=005
+ScriptDate=2022-06-10
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
-APISubscriptsRevision=005
+APISubscriptsRevision=015
 
 #
 
@@ -392,10 +392,27 @@ export Script2TestPath=.
 #
 #export currentapisslport=$(clish -c "show web ssl-port" | cut -d " " -f 2)
 #
-export pythonpath=${MDS_FWDIR}/Python/bin/
-export get_api_local_port=`${pythonpath}/python ${MDS_FWDIR}/scripts/api_get_port.py -f json | ${JQ} '. | .external_port'`
-export api_local_port=${get_api_local_port//\"/}
-export currentapisslport=${api_local_port}
+
+if [ -r ${MDS_FWDIR}/Python/bin/python3 ] ; then
+    # Working on R81.20 EA or later, where python3 replaces the regular python call
+    #
+    #export currentapisslport=$(clish -c "show web ssl-port" | cut -d " " -f 2)
+    #
+    export pythonpath=${MDS_FWDIR}/Python/bin
+    export get_api_local_port=`${pythonpath}/python3 ${MDS_FWDIR}/scripts/api_get_port.py -f json | ${JQ} '. | .external_port'`
+    export api_local_port=${get_api_local_port//\"/}
+    export currentapisslport=${api_local_port}
+else
+    # Not working MaaS so will check locally for Gaia web SSL port setting
+    # Removing dependency on clish to avoid collissions when database is locked
+    #
+    #export currentapisslport=$(clish -c "show web ssl-port" | cut -d " " -f 2)
+    #
+    export pythonpath=${MDS_FWDIR}/Python/bin
+    export get_api_local_port=`${pythonpath}/python ${MDS_FWDIR}/scripts/api_get_port.py -f json | ${JQ} '. | .external_port'`
+    export api_local_port=${get_api_local_port//\"/}
+    export currentapisslport=${api_local_port}
+fi
 
 export TestSSLport=${currentapisslport}
 

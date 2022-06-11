@@ -17,13 +17,13 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=010
-ScriptSubRevision=030
-ScriptDate=2022-05-05
+ScriptRevision=015
+ScriptSubRevision=005
+ScriptDate=2022-06-10
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
-APISubscriptsRevision=005
+APISubscriptsRevision=015
 
 #
 
@@ -264,7 +264,7 @@ CheckAndUnlockGaiaDB () {
 # clishIndependentVersionCheck - Removing dependency on clish to avoid collissions when database is locked
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-11-09 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 clishIndependentVersionCheck () {
@@ -278,7 +278,7 @@ clishIndependentVersionCheck () {
         #
         # Test string, use this to validate if there are problems:
         #
-        #export pythonpath=${MDS_FWDIR}/Python/bin/;echo ${pythonpath};echo
+        #export pythonpath=${MDS_FWDIR}/Python/bin;echo ${pythonpath};echo
         #${pythonpath}/python --help
         #${pythonpath}/python --version
         #
@@ -305,11 +305,23 @@ clishIndependentVersionCheck () {
                 # Requires that ${JQ} is properly defined in the script
                 # so ${UseJSONJQ} = true must be set on template version 0.32.0 and higher
                 #
-                export pythonpath=${MDS_FWDIR}/Python/bin/
-                if ${UseJSONJQ} ; then
-                    export get_platform_release=`${pythonpath}/python ${MDS_FWDIR}/scripts/get_platform.py -f json | ${JQ} '. | .release'`
+                export pythonpath=${MDS_FWDIR}/Python/bin
+                if [ -r ${pythonpath}/python3 ] ; then
+                    # Working on R81.20 EA or later, where python3 replaces the regular python call
+                    #
+                    if ${UseJSONJQ} ; then
+                        export get_platform_release=`${pythonpath}/python3 ${MDS_FWDIR}/scripts/get_platform.py -f json | ${JQ} '. | .release'`
+                    else
+                        export get_platform_release=`${pythonpath}/python3 ${MDS_FWDIR}/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+                    fi
                 else
-                    export get_platform_release=`${pythonpath}/python ${MDS_FWDIR}/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+                    # Not working with python3 available, trying the regular python
+                    #
+                    if ${UseJSONJQ} ; then
+                        export get_platform_release=`${pythonpath}/python ${MDS_FWDIR}/scripts/get_platform.py -f json | ${JQ} '. | .release'`
+                    else
+                        export get_platform_release=`${pythonpath}/python ${MDS_FWDIR}/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+                    fi
                 fi
                 
                 export platform_release=${get_platform_release//\"/}
@@ -324,7 +336,7 @@ clishIndependentVersionCheck () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-11-09
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-06-10
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------

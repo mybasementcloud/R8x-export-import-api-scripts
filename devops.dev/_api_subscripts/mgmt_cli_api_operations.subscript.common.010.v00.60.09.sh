@@ -17,13 +17,13 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=010
-ScriptSubRevision=030
-ScriptDate=2022-05-05
+ScriptRevision=015
+ScriptSubRevision=005
+ScriptDate=2022-06-10
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
-APISubscriptsRevision=005
+APISubscriptsRevision=015
 
 #
 
@@ -246,7 +246,7 @@ ForceShowTempLogFile () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-10 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -261,13 +261,22 @@ GaiaWebSSLPortCheck () {
     elif [ ! -z "${CLIparm_mgmt}" ] ; then
         # Remote management server operation stipulates standard HTTPS/SSL so always port 443
         export currentapisslport=443
+    elif [ -r ${MDS_FWDIR}/Python/bin/python3 ] ; then
+        # Working on R81.20 EA or later, where python3 replaces the regular python call
+        #
+        #export currentapisslport=$(clish -c "show web ssl-port" | cut -d " " -f 2)
+        #
+        export pythonpath=${MDS_FWDIR}/Python/bin
+        export get_api_local_port=`${pythonpath}/python3 ${MDS_FWDIR}/scripts/api_get_port.py -f json | ${JQ} '. | .external_port'`
+        export api_local_port=${get_api_local_port//\"/}
+        export currentapisslport=${api_local_port}
     else
         # Not working MaaS so will check locally for Gaia web SSL port setting
         # Removing dependency on clish to avoid collissions when database is locked
         #
         #export currentapisslport=$(clish -c "show web ssl-port" | cut -d " " -f 2)
         #
-        export pythonpath=${MDS_FWDIR}/Python/bin/
+        export pythonpath=${MDS_FWDIR}/Python/bin
         export get_api_local_port=`${pythonpath}/python ${MDS_FWDIR}/scripts/api_get_port.py -f json | ${JQ} '. | .external_port'`
         export api_local_port=${get_api_local_port//\"/}
         export currentapisslport=${api_local_port}
@@ -285,7 +294,7 @@ GaiaWebSSLPortCheck () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-10
 
 
 # -------------------------------------------------------------------------------------------------
@@ -385,7 +394,7 @@ ScriptAPIVersionCheck () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-11-09 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -420,10 +429,26 @@ subCheckStatusOfAPI () {
         echo `${dtzs}`${dtzsep} | tee -a -i ${subscriptstemplogfilepath}
     else
         
-        export pythonpath=${MDS_FWDIR}/Python/bin/
-        export get_api_local_port=`${pythonpath}/python ${MDS_FWDIR}/scripts/api_get_port.py -f json | ${JQ} '. | .external_port'`
-        export api_local_port=${get_api_local_port//\"/}
-        export currentapisslport=${api_local_port}
+        if [ -r ${MDS_FWDIR}/Python/bin/python3 ] ; then
+            # Working on R81.20 EA or later, where python3 replaces the regular python call
+            #
+            #export currentapisslport=$(clish -c "show web ssl-port" | cut -d " " -f 2)
+            #
+            export pythonpath=${MDS_FWDIR}/Python/bin
+            export get_api_local_port=`${pythonpath}/python3 ${MDS_FWDIR}/scripts/api_get_port.py -f json | ${JQ} '. | .external_port'`
+            export api_local_port=${get_api_local_port//\"/}
+            export currentapisslport=${api_local_port}
+        else
+            # Not working MaaS so will check locally for Gaia web SSL port setting
+            # Removing dependency on clish to avoid collissions when database is locked
+            #
+            #export currentapisslport=$(clish -c "show web ssl-port" | cut -d " " -f 2)
+            #
+            export pythonpath=${MDS_FWDIR}/Python/bin
+            export get_api_local_port=`${pythonpath}/python ${MDS_FWDIR}/scripts/api_get_port.py -f json | ${JQ} '. | .external_port'`
+            export api_local_port=${get_api_local_port//\"/}
+            export currentapisslport=${api_local_port}
+        fi
         
         echo `${dtzs}`${dtzsep} 'First make sure we do not have any issues:' >> ${subscriptstemplogfilepath}
         echo `${dtzs}`${dtzsep} >> ${subscriptstemplogfilepath}
@@ -514,7 +539,7 @@ subCheckStatusOfAPI () {
 #fi
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-11-09
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-06-10
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------

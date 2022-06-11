@@ -2,7 +2,7 @@
 	"filetype" : "environmentment_info.api_scripts",
 	"fileversion" : "07.00.00",
 	"filerevision" : "000",
-	"filedate" : "2022-05-05",
+	"filedate" : "2022-06-10",
 	"fileinformationlevel" : "000",
 	"MinCMDTemplateVersion" : "07.00.00"
 	}, 
@@ -19,7 +19,7 @@
 		"Language" : "Windows_CMD",
 		"Extension" : "CMD"
 		},
-	"ScriptDate" : "2022-05-05",
+	"ScriptDate" : "2022-06-10",
 	"ScriptVersion" : "06.08.03",
 	"ScriptRevision" : "002",
 	"ScriptTweak" : "45",
