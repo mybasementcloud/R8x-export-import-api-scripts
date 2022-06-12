@@ -17,9 +17,9 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=015
-ScriptSubRevision=005
-ScriptDate=2022-06-10
+ScriptRevision=020
+ScriptSubRevision=045
+ScriptDate=2022-06-11
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
@@ -194,7 +194,7 @@ ForceShowTempLogFile () {
 # Check API Keep Alive Status - CheckAPIKeepAlive
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-04-29 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-11:02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Check API Keep Alive Status.
@@ -206,16 +206,30 @@ CheckAPIKeepAlive () {
     
     errorreturn=0
     
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    
+    tempworklogfile=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.keepalivecheck.log
+    
     if ${LoggedIntoMgmtCli} ; then
-        echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+        #echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check : ... ' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        
         if ${addversion2keepalive} ; then
-            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+            #mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} > ${tempworklogfile} 2>&1
             export errorreturn=$?
         else
-            mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+            #mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+            mgmt_cli keepalive -s ${APICLIsessionfile} > ${tempworklogfile} 2>&1
             export errorreturn=$?
         fi
-        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        
+        cat ${tempworklogfile} >> ${logfilepath}
+        rm ${tempworklogfile} >> ${logfilepath} 2>&1
+        
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Keep Alive Check errorreturn = [ '${errorreturn}' ]' | tee -a -i ${logfilepath}
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
@@ -236,6 +250,7 @@ CheckAPIKeepAlive () {
         fi
     else
         # Uhhh what, this check should only happen if logged in
+        echo `${dtzs}`${dtzsep} ' Executing mgmt_cli login instead of mgmt_cli keepalive check ?!?...  ' | tee -a -i ${logfilepath}
         
         export LoggedIntoMgmtCli=false
         
@@ -250,11 +265,13 @@ CheckAPIKeepAlive () {
         fi
     fi
     
+    echo `${dtzs}`${dtzsep} 'Keep Alive Check completed!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-04-29
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-06-11:02
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -264,17 +281,48 @@ CheckAPIKeepAlive () {
 # ConfigureObjectQuerySelector - Configure Object Query Selector value objectqueryselector
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-04-29 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-11:03 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ConfigureObjectQuerySelector () {
     #
     
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} ' -- ConfigureObjectQuerySelector:' >> ${logfilepath}
+    
     # -------------------------------------------------------------------------------------------------
-    # Configure Object Query Selector value objectqueryselector
+    # Configure specific object selection query elements
     # -------------------------------------------------------------------------------------------------
     
-    export objectqueryselector=
+    # MODIFIED  -
+    
+    export objecttypeselectorelement=
+    
+    if [ x"${APIobjectspecificselector00key}" == x"" ] ; then
+        # The value of ${APIobjectspecificselector00key} is empty
+        export objecttypeselectorelement=
+    elif [ "${APIobjectspecificselector00key}" == "true" ] ; then 
+        # The value of ${APIobjectspecificselector00key} is boolean true, so check if the value of ${APICLIexportcriteria01key} is true
+        export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'"' 
+    elif [ "${APIobjectspecificselector00key}" == "false" ] ; then 
+        # The value of ${APIobjectspecificselector00key} is boolean false, so check if the value of ${APICLIexportcriteria01key} is not true
+        export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'" | not'
+    else 
+        # The value of ${APIobjectspecificselector00key} is a string, not boolean or empty so we assume ${APIobjectspecificselector00value} is the target value
+        if [ x"${APIobjectspecificselector00value}" != x"" ] ; then
+            export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'" == "'"${APIobjectspecificselector00value}"'"'
+        else
+            echo `${dtzs}`${dtzsep} ' -- APIobjectspecificselector00key Passed EMPTY!' >> ${logfilepath}
+            export objecttypeselectorelement=
+        fi
+    fi
+    echo `${dtzs}`${dtzsep} '    - APIobjectspecificselector00key   :  '${APIobjectspecificselector00key} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - APIobjectspecificselector00value :  '${APIobjectspecificselector00value} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - objecttypeselectorelement        :  '${objecttypeselectorelement} >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    # Configure specific query elements for system object selection
+    # -------------------------------------------------------------------------------------------------
     
     # Current alternative if more options to exclude are needed
     export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
@@ -293,47 +341,84 @@ ConfigureObjectQuerySelector () {
     
     export creatorissystemselector='."meta-info"."creator" = "System"'
     
+    echo `${dtzs}`${dtzsep} '    - systemobjectdomains              :  '${systemobjectdomains} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - notsystemobjectselector          :  '${notsystemobjectselector} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - onlysystemobjectselector         :  '${onlysystemobjectselector} >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    # Configure Object Query Selector element value systemobjectqueryselectorelement
+    # -------------------------------------------------------------------------------------------------
+    
+    export systemobjectqueryselectorelement=
+    
     if ${NoSystemObjects} ; then
         # Ignore System Objects
         if ${CreatorIsNotSystem} ; then
             # Ignore System Objects and no creator = System
-            export objectqueryselector='select( ('${notsystemobjectselector}') and ('${notcreatorissystemselector}') )'
+            export systemobjectqueryselectorelement='('${notsystemobjectselector}') and ('${notcreatorissystemselector}')'
         else
             # Ignore System Objects
-            export objectqueryselector='select('${notsystemobjectselector}')'
+            export systemobjectqueryselectorelement=${notsystemobjectselector}
         fi
     elif ${OnlySystemObjects} ; then
         # Select only System Objects
         if ${CreatorIsSystem} ; then
             # select only System Objects and creator = System
-            export objectqueryselector='select( ('${onlysystemobjectselector}') and ('${creatorissystemselector}') )'
+            export systemobjectqueryselectorelement='('${onlysystemobjectselector}') and ('${creatorissystemselector}')'
         else
             # select only System Objects
-            export objectqueryselector='select('${onlysystemobjectselector}')'
+            export systemobjectqueryselectorelement=${onlysystemobjectselector}
         fi
     else
         # Include System Objects
         if ${CreatorIsNotSystem} ; then
             # Include System Objects and no creator = System
-            export objectqueryselector='select( '${notcreatorissystemselector}')'
+            export systemobjectqueryselectorelement=${notcreatorissystemselector}
         elif ${CreatorIsSystem} ; then
             # Include System Objects and no creator = System
-            export objectqueryselector='select( '${creatorissystemselector}')'
+            export systemobjectqueryselectorelement=''${creatorissystemselector}
         else
             # Include System Objects
-            export objectqueryselector=
+            export systemobjectqueryselectorelement=
         fi
     fi
     
-    echo `${dtzs}`${dtzsep} ' -- ConfigureObjectQuerySelector:' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} '    - NoSystemObjects='${NoSystemObjects}' OnlySystemObjects='${OnlySystemObjects}' CreatorIsNotSystem='${CreatorIsNotSystem}' CreatorIsSystem='${CreatorIsSystem} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - systemobjectqueryselectorelement :  '${systemobjectqueryselectorelement} >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    # Configure Object Query Selector value objectqueryselector
+    # -------------------------------------------------------------------------------------------------
+    
+    export objectqueryselector=
+    
+    if [ x"${objecttypeselectorelement}" != x"" ] ; then
+        # ${objecttypeselectorelement} is not empty, so we have a starting selector
+        export objectqueryselector='select( '
+        export objectqueryselector=${objectqueryselector}${objecttypeselectorelement}
+        if [ x"${systemobjectqueryselectorelement}" != x"" ] ; then
+            # ${objecttypeselectorelement} is not empty, so we have a starting selector
+            export objectqueryselector=${objectqueryselector}' and '${systemobjectqueryselectorelement}
+        fi
+        export objectqueryselector=${objectqueryselector}' )'
+    else
+        if [ x"${systemobjectqueryselectorelement}" != x"" ] ; then
+            # ${objecttypeselectorelement} is not empty, so we have a starting selector
+            export objectqueryselector='select( '
+            export objectqueryselector=${objectqueryselector}${systemobjectqueryselectorelement}
+            export objectqueryselector=${objectqueryselector}' )'
+        fi
+    fi
+    
     echo `${dtzs}`${dtzsep} '    - Object Query Selector = ['${objectqueryselector}']' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     
     return 0
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-04-29
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-11:03
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -856,7 +941,7 @@ SlurpJSONFilesIntoSingleFile () {
 # Main Operational repeated proceedure - ExportRAWObjectToJSON
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-03-11 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-11:03 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The Main Operational Procedure is the meat of the script's repeated actions.
@@ -896,33 +981,28 @@ ExportRAWObjectToJSON () {
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    # MODIFIED 2022-04-22 -
+    # -------------------------------------------------------------------------------------------------
+    # Configure object selection query selector
+    # -------------------------------------------------------------------------------------------------
     
-    # System Object selection operands
-    # This one won't work because upgrades set all objects to creator = System
-    # export notsystemobjectselector='select(."meta-info"."creator" != "System")'
-    #export notsystemobjectselector='select(."meta-info"."creator" | contains ("System") | not)'
-    #
-    # This should work if assumptions aren't wrong
-    #export notsystemobjectselector='select(."domain"."name" != "Check Point Data")'
+    # MODIFIED 2022-06-11 - 
+    # Current alternative if more options to exclude are needed, now there is a procedure for that
     
-    #
-    # This should work, but might need more tweeks if other data types use more values
-    #export notsystemobjectselector='select(."domain"."name" | contains ("Check Point Data", "APPI Data", "IPS Data") | not)'
-    #export notsystemobjectselector='select(any(."domain"."name"; in("Check Point Data", "APPI Data", "IPS Data")) | not)'
-    #export notsystemobjectselector='select((."domain"."name" != "Check Point Data") and (."domain"."name" != "APPI Data") and (."domain"."name" != "IPS Data"))'
-    
-    #
-    # Future alternative if more options to exclude are needed
-    #export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
-    #export notsystemobjectselector='select(."domain"."name" as $a | ['${systemobjectdomains}'] | index($a) | not)'
-    #export notsystemobjectselector='select(.objects[]."domain"."name" as $a | ['${systemobjectdomains}'] | index($a) | not)'
-    #export notsystemobjectselector='.objects[] | select(."domain"."name" as $a | ['${systemobjectdomains}'] | index($a) | not)'
-    #export notsystemobjectselector='select(."domain"."name" as $a | ['${systemobjectdomains}'] | index($a) | not)'
-    
-    # MODIFIED 2022-04-22 - 
-    # Current alternative if more options to exclude are needed
     ConfigureObjectQuerySelector
+    
+    # -------------------------------------------------------------------------------------------------
+    # Configure basic parameters
+    # -------------------------------------------------------------------------------------------------
+    
+    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}' --conn-timeout '${APICLIconntimeout}
+    
+    export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
+    
+    export MgmtCLI_Show_OpParms='details-level "'${APICLIdetaillvl}'" '${MgmtCLI_Base_OpParms}
+    
+    if ${APIobjectderefgrpmem} ; then
+        export MgmtCLI_Show_OpParms='dereference-group-members true '${MgmtCLI_Show_OpParms}
+    fi
     
     export DoFileSlurp=false
     
@@ -942,25 +1022,23 @@ ExportRAWObjectToJSON () {
         export APICLIfilename=${APICLIfilename}'_'${APICLIexportnameaddon}
     fi
     
-    export Workingfilename=${APICLIfilename}
-    export APICLIfileexport=${APICLIpathexport}/${APICLIfileexportpre}${Workingfilename}${APICLIfileexportpost}
-    export APICLIJSONfilelast=${Slurpworkfolder}/${APICLIfileexportpre}${Workingfilename}'_last'${APICLIJSONfileexportpost}
-    
-    export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}' --conn-timeout '${APICLIconntimeout}
-    
-    export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
-    
-    export MgmtCLI_Show_OpParms='details-level "'${APICLIdetaillvl}'" '${MgmtCLI_Base_OpParms}
-    
-    if ${APIobjectderefgrpmem} ; then
-        export MgmtCLI_Show_OpParms='dereference-group-members true '${MgmtCLI_Show_OpParms}
-    fi
+    # -------------------------------------------------------------------------------------------------
     
     CheckAPIKeepAlive
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'Start Processing '${APICLIobjecttype}':' | tee -a -i ${logfilepath}
     
     objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard ${MgmtCLI_Base_OpParms} | ${JQ} ".total")
     
     objectstoshow=${objectstotal}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    export Workingfilename=${APICLIfilename}
+    export APICLIfileexport=${APICLIpathexport}/${APICLIfileexportpre}${Workingfilename}${APICLIfileexportpost}
+    export APICLIJSONfilelast=${Slurpworkfolder}/${APICLIfileexportpre}${Workingfilename}'_last'${APICLIJSONfileexportpost}
     
     errorreturn=0
     
@@ -992,6 +1070,8 @@ ExportRAWObjectToJSON () {
             fi
         fi
         
+        objectstotalformatted=`printf "%05d" ${objectstotal}`
+        
         while [ ${objectslefttoshow} -ge 1 ] ; do
             # we have objects to process
             
@@ -1002,6 +1082,9 @@ ExportRAWObjectToJSON () {
             #    export APICLIfileexport=${APICLIpathexport}/${APICLIfileexportpre}${APICLIobjectstype}'_'${currentoffset}'_'${APICLIfileexportpost}
             #fi
             
+            currentoffsetformatted=`printf "%05d" ${currentoffset}`
+            nextoffsetformatted=`printf "%05d" ${nextoffset}`
+            
             # 2017-11-20 Updating naming of files for multiple ${WorkAPIObjectLimit} chunks to clean-up name listing
             if [ ${objectstotal} -gt ${WorkAPIObjectLimit} ] ; then
                 # Export file for the next ${WorkAPIObjectLimit} objects
@@ -1011,10 +1094,6 @@ ExportRAWObjectToJSON () {
                 fi
                 
                 #export APICLIfilename=${APICLIfilename}'_'${currentoffset}'-'${nextoffset}'_of_'${objectstotal}
-                
-                currentoffsetformatted=`printf "%05d" ${currentoffset}`
-                nextoffsetformatted=`printf "%05d" ${nextoffset}`
-                objectstotalformatted=`printf "%05d" ${objectstotal}`
                 export Workingfilename=${APICLIfilename}'_'${currentoffsetformatted}'-'${nextoffsetformatted}'_of_'${objectstotalformatted}
                 
                 #export APICLIfileexport=${APICLIpathexport}/${APICLIfileexportpre}${APICLIobjectstype}'_'${currentoffset}'_'${APICLIfileexportpost}
@@ -1031,32 +1110,42 @@ ExportRAWObjectToJSON () {
                 echo `${dtzs}`${dtzsep} '    Dump to '${APICLIfileexport} >> ${logfilepath}
             fi
             
-            # MODIFIED 2022-04-22 -
+            # Operational Steps
+            # 1.  Export required object data for objecttype to working JSON file ${APICLIJSONfilelast}
+            # 2.  Based on export type, so NoSystemsObjects, OnlySystemObjects, or all objects, execute dump of ${APICLIJSONfilelast} through jq using potential object selectors, to export file ${APICLIfileexport}
+            # 3.  If needed, copy file for slurp operation to ${Slurpworkfileexport} 
+            
+            # MODIFIED  -
+            
+            #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | '"${notsystemobjectselector}" >> ${APICLIfileexport}
+            #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '. | '"${notsystemobjectselector}" >> ${APICLIfileexport}
+            #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '. | '"${notsystemobjectselector}" > ${APICLIfileexport}
+            #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | '"${notsystemobjectselector}" > ${APICLIfileexport}
+            #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} >> ${APICLIfileexport}
+            #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} > ${APICLIfileexport}
+            
+            if ${APISCRIPTVERBOSE} ; then
+                echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentoffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLIJSONfilelast} | tee -a -i ${logfilepath}
+            else
+                echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentoffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLIJSONfilelast} >> ${logfilepath}
+            fi
+            
+            mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} > ${APICLIJSONfilelast}
+            errorreturn=$?
+            
+            if [ ${errorreturn} != 0 ] ; then
+                # Something went wrong, terminate
+                echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON : Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                return ${errorreturn}
+            fi
+            
+            # MODIFIED  -
             
             if ${NoSystemObjects} ; then
                 # Ignore System Objects
                 if ${APISCRIPTVERBOSE} ; then
                     echo `${dtzs}`${dtzsep} '      No System Objects.  Selector = '${objectqueryselector} | tee -a -i ${logfilepath}
                 fi
-                #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | '"${notsystemobjectselector}" >> ${APICLIfileexport}
-                #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '. | '"${notsystemobjectselector}" >> ${APICLIfileexport}
-                #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '. | '"${notsystemobjectselector}" > ${APICLIfileexport}
-                #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | ${JQ} '.objects[] | '"${notsystemobjectselector}" > ${APICLIfileexport}
-                
-                if ${APISCRIPTVERBOSE} ; then
-                    echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentoffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLIJSONfilelast} | tee -a -i ${logfilepath}
-                else
-                    echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentoffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLIJSONfilelast} >> ${logfilepath}
-                fi
-                
-                mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} > ${APICLIJSONfilelast}
-                errorreturn=$?
-                
-                if [ ${errorreturn} != 0 ] ; then
-                    # Something went wrong, terminate
-                    echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON : Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-                    return ${errorreturn}
-                fi
                 
                 cat ${APICLIJSONfilelast} | ${JQ} '.objects[] | '"${objectqueryselector}" > ${APICLIfileexport}
                 errorreturn=$?
@@ -1066,50 +1155,12 @@ ExportRAWObjectToJSON () {
                     echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
                     return ${errorreturn}
                 fi
-                
-                if ${DoFileSlurp} ; then
-                    #echo `${dtzs}`${dtzsep} '      Dump to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
-                    #GETDATA=`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | jq '.'`
-                    #DATA=`echo ${GETDATA} | jq '.objects[] | '"${notsystemobjectselector}"`
-                    
-                    #echo ${DATA} >> ${Slurpworkfileexport}
-                    
-                    if [ -s ${APICLIfileexport} ] ; then
-                        # exported json file is not zero length, so process for slurp
-                        echo `${dtzs}`${dtzsep} '      Dump to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
-                        #cat ${APICLIfileexport} | jq '.objects[]' > ${Slurpworkfileexport}
-                        cp -fv ${APICLIfileexport} ${Slurpworkfileexport} >> ${logfilepath} 2>&1
-                    else
-                        # exported json file is zero length, so do not process file for slurp
-                        if ${APISCRIPTVERBOSE} ; then
-                            echo `${dtzs}`${dtzsep} '      NOT dumping zero lenghth file to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
-                        else
-                            echo `${dtzs}`${dtzsep} '      NOT dumping zero lenghth file to slurp work file '${Slurpworkfileexport} >> ${logfilepath}
-                        fi
-                    fi
-                fi
-                
             elif ${OnlySystemObjects} ; then
                 # Select only System Objects
                 if ${APISCRIPTVERBOSE} ; then
                     echo `${dtzs}`${dtzsep} '      Only System Objects.  Selector = '${objectqueryselector} | tee -a -i ${logfilepath}
                 fi
                 
-                if ${APISCRIPTVERBOSE} ; then
-                    echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentoffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLIJSONfilelast} | tee -a -i ${logfilepath}
-                else
-                    echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentoffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLIJSONfilelast} >> ${logfilepath}
-                fi
-                
-                mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} > ${APICLIJSONfilelast}
-                errorreturn=$?
-                
-                if [ ${errorreturn} != 0 ] ; then
-                    # Something went wrong, terminate
-                    echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON : Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-                    return ${errorreturn}
-                fi
-                
                 cat ${APICLIJSONfilelast} | ${JQ} '.objects[] | '"${objectqueryselector}" > ${APICLIfileexport}
                 errorreturn=$?
                 
@@ -1118,53 +1169,15 @@ ExportRAWObjectToJSON () {
                     echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
                     return ${errorreturn}
                 fi
-                
-                if ${DoFileSlurp} ; then
-                    #echo `${dtzs}`${dtzsep} '      Dump to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
-                    #GETDATA=`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | jq '.'`
-                    #DATA=`echo ${GETDATA} | jq '.objects[] | '"${notsystemobjectselector}"`
-                    
-                    #echo ${DATA} >> ${Slurpworkfileexport}
-                    
-                    if [ -s ${APICLIfileexport} ] ; then
-                        # exported json file is not zero length, so process for slurp
-                        echo `${dtzs}`${dtzsep} '      Dump to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
-                        #cat ${APICLIfileexport} | jq '.objects[]' > ${Slurpworkfileexport}
-                        cp -fv ${APICLIfileexport} ${Slurpworkfileexport} >> ${logfilepath} 2>&1
-                    else
-                        # exported json file is zero length, so do not process file for slurp
-                        if ${APISCRIPTVERBOSE} ; then
-                            echo `${dtzs}`${dtzsep} '      NOT dumping zero lenghth file to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
-                        else
-                            echo `${dtzs}`${dtzsep} '      NOT dumping zero lenghth file to slurp work file '${Slurpworkfileexport} >> ${logfilepath}
-                        fi
-                    fi
-                fi
-                
             else
                 # Don't Ignore System Objects
                 if ${APISCRIPTVERBOSE} ; then
                     echo `${dtzs}`${dtzsep} '      All objects, including System Objects' | tee -a -i ${logfilepath}
                 fi
-                #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} >> ${APICLIfileexport}
-                #mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} > ${APICLIfileexport}
                 
-                if ${APISCRIPTVERBOSE} ; then
-                    echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentoffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLIJSONfilelast} | tee -a -i ${logfilepath}
-                else
-                    echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' limit '${WorkAPIObjectLimit}' offset '${currentoffset}' '${MgmtCLI_Show_OpParms}' \> '${APICLIJSONfilelast} >> ${logfilepath}
-                fi
-                
-                mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} > ${APICLIJSONfilelast}
-                errorreturn=$?
-                
-                if [ ${errorreturn} != 0 ] ; then
-                    # Something went wrong, terminate
-                    echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON : Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-                    return ${errorreturn}
-                fi
-                
-                cat ${APICLIJSONfilelast} > ${APICLIfileexport}
+                # Processing the file through jq stripping the objects creates a problem file
+                cat ${APICLIJSONfilelast} | jq '.objects[]' > ${APICLIfileexport}
+                #cat ${APICLIJSONfilelast} > ${APICLIfileexport}
                 errorreturn=$?
                 
                 if [ ${errorreturn} != 0 ] ; then
@@ -1172,28 +1185,22 @@ ExportRAWObjectToJSON () {
                     echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
                     return ${errorreturn}
                 fi
-                
-                if ${DoFileSlurp} ; then
-                    #echo `${dtzs}`${dtzsep} '      Dump to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
-                    #GETDATA=`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentoffset} ${MgmtCLI_Show_OpParms} | jq '.'`
-                    #DATA=`echo ${GETDATA} | jq '.objects[]'`
-                    
-                    #echo ${DATA} >> ${Slurpworkfileexport}
-                    
-                    if [ -s ${APICLIfileexport} ] ; then
-                        # exported json file is not zero length, so process for slurp
-                        echo `${dtzs}`${dtzsep} '      Dump to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
-                        cat ${APICLIfileexport} | jq '.objects[]' > ${Slurpworkfileexport}
+            fi
+            
+            if ${DoFileSlurp} ; then
+                if [ -s ${APICLIfileexport} ] ; then
+                    # exported json file is not zero length, so process for slurp
+                    echo `${dtzs}`${dtzsep} '      Dump to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
+                    #cat ${APICLIfileexport} | jq '.objects[]' > ${Slurpworkfileexport}
+                    cp -fv ${APICLIfileexport} ${Slurpworkfileexport} >> ${logfilepath} 2>&1
+                else
+                    # exported json file is zero length, so do not process file for slurp
+                    if ${APISCRIPTVERBOSE} ; then
+                        echo `${dtzs}`${dtzsep} '      NOT dumping zero lenghth file to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
                     else
-                        # exported json file is zero length, so do not process file for slurp
-                        if ${APISCRIPTVERBOSE} ; then
-                            echo `${dtzs}`${dtzsep} '      NOT dumping zero lenghth file to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
-                        else
-                            echo `${dtzs}`${dtzsep} '      NOT dumping zero lenghth file to slurp work file '${Slurpworkfileexport} >> ${logfilepath}
-                        fi
+                        echo `${dtzs}`${dtzsep} '      NOT dumping zero lenghth file to slurp work file '${Slurpworkfileexport} >> ${logfilepath}
                     fi
                 fi
-                
             fi
             
             objectslefttoshow=`expr ${objectslefttoshow} - ${WorkAPIObjectLimit}`
@@ -1217,6 +1224,7 @@ ExportRAWObjectToJSON () {
         fi
         export Finaljsonfileexport=${APICLIpathexport}/${APICLIfileexportpre}${Finaljsonfilename}${APICLIfileexportpost}
         
+        # MODIFIED  -
         
         if ${DoFileSlurp} ; then
             # Slurp the collection of JSON files into a single JSON already
@@ -1275,12 +1283,99 @@ ExportRAWObjectToJSON () {
                     echo '  "total": '${SLURP_TOTAL} >> ${Slurpstarfilefqpn}
                     echo '}' >> ${Slurpstarfilefqpn}
                     
-                    cp -fv ${Slurpstarfilefqpn} ${APICLIfileexport} >> ${logfilepath} 2>&1
+                    #cp -fv ${Slurpstarfilefqpn} ${APICLIfileexport} >> ${logfilepath} 2>&1
+                    cp -fv ${Slurpstarfilefqpn} ${Finaljsonfileexport} >> ${logfilepath} 2>&1
+                fi
+                
+                # Handle placement of final object JSON file into standing current object repository next
+            elif ${OnlySystemObjects} ; then
+                # When working with only System objects, the process generates a broken json file that needs to be fixed
+                # fixing the broken json file is done via the Slurp process, but we only have a single file versus a collection;
+                # however, we need to still set things up for operation
+                
+                # Slurp the single JSON files into a single JSON already
+                
+                export Slurpstarfilename=${APICLIobjectstype}
+                if [ x"${APICLIexportnameaddon}" != x"" ] ; then
+                    export Slurpstarfilename=${Slurpstarfilename}'_'${APICLIexportnameaddon}
+                fi
+                export Slurpstarfilename=${Slurpstarfilename}'_ALL_OSO_of_'${objectstotalformatted}
+                export Slurpstarfilefqpn=${Slurpworkfolder}/${APICLIfileexportpre}${Slurpstarfilename}${APICLIfileexportpost}
+                
+                if [ -s ${APICLIfileexport} ] ; then
+                    # exported json file is not zero length, so process for slurp
+                    # copy the broken json file as the slurpstar file to the slurp work area
+                    cp -fv ${APICLIfileexport} ${Slurpstarfilefqpn} >> ${logfilepath} 2>&1
+                    
+                    echo `${dtzs}`${dtzsep} '  Single broken JSON file created, need to SLURP to fix the file!' | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} '  Slurp this file     :  '${Slurpstarfilefqpn} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} '  Slurp into this file :  '${Finaljsonfileexport} | tee -a -i ${logfilepath}
+                    
+                    #SlurpJSONFilesIntoSingleFile ${Slurpstarfilefqpn} ${Finaljsonfileexport}
+                    SlurpJSONFilesIntoSingleFile
+                else
+                    # exported json file is zero length, so process build manual file
+                    export SLURP_TOTAL=0
+                    
+                    echo '{ ' > ${Slurpstarfilefqpn}
+                    echo '  "objects": [],' >> ${Slurpstarfilefqpn}
+                    echo '  "from": 0,' >> ${Slurpstarfilefqpn}
+                    echo '  "to": '${SLURP_TOTAL}',' >> ${Slurpstarfilefqpn}
+                    echo '  "total": '${SLURP_TOTAL} >> ${Slurpstarfilefqpn}
+                    echo '}' >> ${Slurpstarfilefqpn}
+                    
+                    #cp -fv ${Slurpstarfilefqpn} ${APICLIfileexport} >> ${logfilepath} 2>&1
+                    cp -fv ${Slurpstarfilefqpn} ${Finaljsonfileexport} >> ${logfilepath} 2>&1
                 fi
                 
                 # Handle placement of final object JSON file into standing current object repository next
             else
-                echo `${dtzs}`${dtzsep} '  Only single JSON file created, no need to SLURP together the file!' | tee -a -i ${logfilepath}
+                #echo `${dtzs}`${dtzsep} '  Only single JSON file created, no need to SLURP together the file!' | tee -a -i ${logfilepath}
+                #if [ x"${APICLIfileexport}" != x"${Finaljsonfileexport}" ] ; then
+                #    # Making sure we have the final output file in the correct name and at the correct path
+                #    cp -fv ${APICLIfileexport} ${Finaljsonfileexport} >> ${logfilepath} 2>&1
+                #fi
+                
+                # Apparently a problem was introduced with the last update, the process generates a broken json file that needs to be fixed
+                # fixing the broken json file is done via the Slurp process, but we only have a single file versus a collection;
+                # however, we need to still set things up for operation
+                
+                # Slurp the single JSON files into a single JSON already
+                
+                export Slurpstarfilename=${APICLIobjectstype}
+                if [ x"${APICLIexportnameaddon}" != x"" ] ; then
+                    export Slurpstarfilename=${Slurpstarfilename}'_'${APICLIexportnameaddon}
+                fi
+                export Slurpstarfilename=${Slurpstarfilename}'_ALL_'${objectstotalformatted}
+                export Slurpstarfilefqpn=${Slurpworkfolder}/${APICLIfileexportpre}${Slurpstarfilename}${APICLIfileexportpost}
+                
+                if [ -s ${APICLIfileexport} ] ; then
+                    # exported json file is not zero length, so process for slurp
+                    # copy the broken json file as the slurpstar file to the slurp work area
+                    cp -fv ${APICLIfileexport} ${Slurpstarfilefqpn} >> ${logfilepath} 2>&1
+                    
+                    echo `${dtzs}`${dtzsep} '  Single broken JSON file created, need to SLURP to fix the file!' | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} '  Slurp this file     :  '${Slurpstarfilefqpn} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} '  Slurp into this file :  '${Finaljsonfileexport} | tee -a -i ${logfilepath}
+                    
+                    #SlurpJSONFilesIntoSingleFile ${Slurpstarfilefqpn} ${Finaljsonfileexport}
+                    SlurpJSONFilesIntoSingleFile
+                else
+                    # exported json file is zero length, so process build manual file
+                    export SLURP_TOTAL=0
+                    
+                    echo '{ ' > ${Slurpstarfilefqpn}
+                    echo '  "objects": [],' >> ${Slurpstarfilefqpn}
+                    echo '  "from": 0,' >> ${Slurpstarfilefqpn}
+                    echo '  "to": '${SLURP_TOTAL}',' >> ${Slurpstarfilefqpn}
+                    echo '  "total": '${SLURP_TOTAL} >> ${Slurpstarfilefqpn}
+                    echo '}' >> ${Slurpstarfilefqpn}
+                    
+                    #cp -fv ${Slurpstarfilefqpn} ${APICLIfileexport} >> ${logfilepath} 2>&1
+                    cp -fv ${Slurpstarfilefqpn} ${Finaljsonfileexport} >> ${logfilepath} 2>&1
+                fi
+                
+                # Handle placement of final object JSON file into standing current object repository next
             fi
         fi
         
@@ -1372,7 +1467,7 @@ ExportRAWObjectToJSON () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-03-11
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-06-11:03
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1561,6 +1656,8 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APIobjectderefgrpmem=false
@@ -1578,6 +1675,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APIobjectderefgrpmem=false
@@ -1595,6 +1694,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.2
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1612,6 +1713,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=true
@@ -1629,6 +1732,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1646,6 +1751,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APIobjectderefgrpmem=false
@@ -1663,6 +1770,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APIobjectderefgrpmem=false
@@ -1680,6 +1789,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1697,6 +1808,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1714,6 +1827,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1731,6 +1846,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1748,6 +1865,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1765,6 +1884,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1782,6 +1903,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=true
 export APIobjectderefgrpmem=false
@@ -1799,6 +1922,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1816,6 +1941,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1833,6 +1960,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1850,6 +1979,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1867,6 +1998,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1884,6 +2017,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1901,6 +2036,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=true
@@ -1918,6 +2055,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1935,6 +2074,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1952,6 +2093,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1969,6 +2112,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -1986,6 +2131,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.8
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2003,6 +2150,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.8
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2035,6 +2184,8 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2052,6 +2203,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2069,6 +2222,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2086,6 +2241,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2103,6 +2260,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2120,6 +2279,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2137,6 +2298,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2154,6 +2317,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2171,6 +2336,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2188,6 +2355,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2205,6 +2374,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2222,6 +2393,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=true
@@ -2239,6 +2412,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2256,6 +2431,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2273,6 +2450,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=true
@@ -2316,6 +2495,8 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2338,6 +2519,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=true
@@ -2360,6 +2543,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -2382,6 +2567,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false

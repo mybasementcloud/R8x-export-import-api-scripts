@@ -17,9 +17,9 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=015
-ScriptSubRevision=005
-ScriptDate=2022-06-10
+ScriptRevision=020
+ScriptSubRevision=045
+ScriptDate=2022-06-11
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
@@ -2217,7 +2217,7 @@ ScriptOutputPathsforAPIScripts "$@"
 # Check API Keep Alive Status - CheckAPIKeepAlive
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-04-29 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-11:02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Check API Keep Alive Status.
@@ -2229,16 +2229,30 @@ CheckAPIKeepAlive () {
     
     errorreturn=0
     
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    
+    tempworklogfile=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.keepalivecheck.log
+    
     if ${LoggedIntoMgmtCli} ; then
-        echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+        #echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check : ... ' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        
         if ${addversion2keepalive} ; then
-            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+            #mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} > ${tempworklogfile} 2>&1
             export errorreturn=$?
         else
-            mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+            #mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+            mgmt_cli keepalive -s ${APICLIsessionfile} > ${tempworklogfile} 2>&1
             export errorreturn=$?
         fi
-        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        
+        cat ${tempworklogfile} >> ${logfilepath}
+        rm ${tempworklogfile} >> ${logfilepath} 2>&1
+        
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Keep Alive Check errorreturn = [ '${errorreturn}' ]' | tee -a -i ${logfilepath}
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
@@ -2259,6 +2273,7 @@ CheckAPIKeepAlive () {
         fi
     else
         # Uhhh what, this check should only happen if logged in
+        echo `${dtzs}`${dtzsep} ' Executing mgmt_cli login instead of mgmt_cli keepalive check ?!?...  ' | tee -a -i ${logfilepath}
         
         export LoggedIntoMgmtCli=false
         
@@ -2273,11 +2288,13 @@ CheckAPIKeepAlive () {
         fi
     fi
     
+    echo `${dtzs}`${dtzsep} 'Keep Alive Check completed!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-04-29
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-06-11:02
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -2995,17 +3012,48 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # ConfigureObjectQuerySelector - Configure Object Query Selector value objectqueryselector
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-04-29 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-11:03 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ConfigureObjectQuerySelector () {
     #
     
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} ' -- ConfigureObjectQuerySelector:' >> ${logfilepath}
+    
     # -------------------------------------------------------------------------------------------------
-    # Configure Object Query Selector value objectqueryselector
+    # Configure specific object selection query elements
     # -------------------------------------------------------------------------------------------------
     
-    export objectqueryselector=
+    # MODIFIED  -
+    
+    export objecttypeselectorelement=
+    
+    if [ x"${APIobjectspecificselector00key}" == x"" ] ; then
+        # The value of ${APIobjectspecificselector00key} is empty
+        export objecttypeselectorelement=
+    elif [ "${APIobjectspecificselector00key}" == "true" ] ; then 
+        # The value of ${APIobjectspecificselector00key} is boolean true, so check if the value of ${APICLIexportcriteria01key} is true
+        export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'"' 
+    elif [ "${APIobjectspecificselector00key}" == "false" ] ; then 
+        # The value of ${APIobjectspecificselector00key} is boolean false, so check if the value of ${APICLIexportcriteria01key} is not true
+        export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'" | not'
+    else 
+        # The value of ${APIobjectspecificselector00key} is a string, not boolean or empty so we assume ${APIobjectspecificselector00value} is the target value
+        if [ x"${APIobjectspecificselector00value}" != x"" ] ; then
+            export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'" == "'"${APIobjectspecificselector00value}"'"'
+        else
+            echo `${dtzs}`${dtzsep} ' -- APIobjectspecificselector00key Passed EMPTY!' >> ${logfilepath}
+            export objecttypeselectorelement=
+        fi
+    fi
+    echo `${dtzs}`${dtzsep} '    - APIobjectspecificselector00key   :  '${APIobjectspecificselector00key} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - APIobjectspecificselector00value :  '${APIobjectspecificselector00value} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - objecttypeselectorelement        :  '${objecttypeselectorelement} >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    # Configure specific query elements for system object selection
+    # -------------------------------------------------------------------------------------------------
     
     # Current alternative if more options to exclude are needed
     export systemobjectdomains='"Check Point Data", "APPI Data", "IPS Data"'
@@ -3024,47 +3072,84 @@ ConfigureObjectQuerySelector () {
     
     export creatorissystemselector='."meta-info"."creator" = "System"'
     
+    echo `${dtzs}`${dtzsep} '    - systemobjectdomains              :  '${systemobjectdomains} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - notsystemobjectselector          :  '${notsystemobjectselector} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - onlysystemobjectselector         :  '${onlysystemobjectselector} >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    # Configure Object Query Selector element value systemobjectqueryselectorelement
+    # -------------------------------------------------------------------------------------------------
+    
+    export systemobjectqueryselectorelement=
+    
     if ${NoSystemObjects} ; then
         # Ignore System Objects
         if ${CreatorIsNotSystem} ; then
             # Ignore System Objects and no creator = System
-            export objectqueryselector='select( ('${notsystemobjectselector}') and ('${notcreatorissystemselector}') )'
+            export systemobjectqueryselectorelement='('${notsystemobjectselector}') and ('${notcreatorissystemselector}')'
         else
             # Ignore System Objects
-            export objectqueryselector='select('${notsystemobjectselector}')'
+            export systemobjectqueryselectorelement=${notsystemobjectselector}
         fi
     elif ${OnlySystemObjects} ; then
         # Select only System Objects
         if ${CreatorIsSystem} ; then
             # select only System Objects and creator = System
-            export objectqueryselector='select( ('${onlysystemobjectselector}') and ('${creatorissystemselector}') )'
+            export systemobjectqueryselectorelement='('${onlysystemobjectselector}') and ('${creatorissystemselector}')'
         else
             # select only System Objects
-            export objectqueryselector='select('${onlysystemobjectselector}')'
+            export systemobjectqueryselectorelement=${onlysystemobjectselector}
         fi
     else
         # Include System Objects
         if ${CreatorIsNotSystem} ; then
             # Include System Objects and no creator = System
-            export objectqueryselector='select( '${notcreatorissystemselector}')'
+            export systemobjectqueryselectorelement=${notcreatorissystemselector}
         elif ${CreatorIsSystem} ; then
             # Include System Objects and no creator = System
-            export objectqueryselector='select( '${creatorissystemselector}')'
+            export systemobjectqueryselectorelement=''${creatorissystemselector}
         else
             # Include System Objects
-            export objectqueryselector=
+            export systemobjectqueryselectorelement=
         fi
     fi
     
-    echo `${dtzs}`${dtzsep} ' -- ConfigureObjectQuerySelector:' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} '    - NoSystemObjects='${NoSystemObjects}' OnlySystemObjects='${OnlySystemObjects}' CreatorIsNotSystem='${CreatorIsNotSystem}' CreatorIsSystem='${CreatorIsSystem} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - systemobjectqueryselectorelement :  '${systemobjectqueryselectorelement} >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    # Configure Object Query Selector value objectqueryselector
+    # -------------------------------------------------------------------------------------------------
+    
+    export objectqueryselector=
+    
+    if [ x"${objecttypeselectorelement}" != x"" ] ; then
+        # ${objecttypeselectorelement} is not empty, so we have a starting selector
+        export objectqueryselector='select( '
+        export objectqueryselector=${objectqueryselector}${objecttypeselectorelement}
+        if [ x"${systemobjectqueryselectorelement}" != x"" ] ; then
+            # ${objecttypeselectorelement} is not empty, so we have a starting selector
+            export objectqueryselector=${objectqueryselector}' and '${systemobjectqueryselectorelement}
+        fi
+        export objectqueryselector=${objectqueryselector}' )'
+    else
+        if [ x"${systemobjectqueryselectorelement}" != x"" ] ; then
+            # ${objecttypeselectorelement} is not empty, so we have a starting selector
+            export objectqueryselector='select( '
+            export objectqueryselector=${objectqueryselector}${systemobjectqueryselectorelement}
+            export objectqueryselector=${objectqueryselector}' )'
+        fi
+    fi
+    
     echo `${dtzs}`${dtzsep} '    - Object Query Selector = ['${objectqueryselector}']' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     
     return 0
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-04-29
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-11:03
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -3224,7 +3309,7 @@ SetupExportObjectsToCSVviaJQ () {
 # The FinalizeExportObjectsToCSVviaJQ
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-11 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 FinalizeExportObjectsToCSVviaJQ () {
@@ -3239,23 +3324,28 @@ FinalizeExportObjectsToCSVviaJQ () {
         echo `${dtzs}`${dtzsep} 'Terminating!' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         return 254
-        
-    elif [ ! -r "${APICLICSVfiledata}" ] ; then
+    fi
+    
+    # Changing this behavior since it's nonsense to quit here because of missing data file, that could be on purpose
+    if [ ! -r "${APICLICSVfiledata}" ] ; then
         # Uh, Oh, something went wrong, no data file
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '!!!! Error data file missing : '${APICLICSVfiledata} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Terminating!' | tee -a -i ${logfilepath}
+        #echo `${dtzs}`${dtzsep} '!!!! Error data file missing : '${APICLICSVfiledata} | tee -a -i ${logfilepath}
+        #echo `${dtzs}`${dtzsep} 'Terminating!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '!! data file is missing so no data : '${APICLICSVfiledata} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Skipping CSV creation!' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        return 253
-        
-    elif [ ! -s "${APICLICSVfiledata}" ] ; then
+        #return 253
+        return 0
+    fi
+    
+    if [ ! -s "${APICLICSVfiledata}" ] ; then
         # data file is empty, nothing was found
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} '!! data file is empty : '${APICLICSVfiledata} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} 'Skipping CSV creation!' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         return 0
-        
     fi
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
@@ -3290,7 +3380,7 @@ FinalizeExportObjectsToCSVviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-21
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-11
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3583,7 +3673,7 @@ ConfigureExportCSVandJQParameters () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2022-03-11 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-11 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The ExportObjectsToCSVviaJQ is the meat of the script's repeated actions.
@@ -3630,6 +3720,7 @@ ExportObjectsToCSVviaJQ () {
     
     ConfigureExportCSVandJQParameters
     errorreturn=$?
+    
     if [ ${errorreturn} != 0 ] ; then
         # Something went wrong, terminate
         echo `${dtzs}`${dtzsep} 'Problem found in procedure ConfigureExportCSVandJQParameters! error returned = '${errorreturn} | tee -a -i ${logfilepath}
@@ -3642,6 +3733,7 @@ ExportObjectsToCSVviaJQ () {
     
     SetupExportObjectsToCSVviaJQ
     errorreturn=$?
+    
     if [ ${errorreturn} != 0 ] ; then
         # Something went wrong, terminate
         echo `${dtzs}`${dtzsep} 'Problem found in procedure SetupExportObjectsToCSVviaJQ! error returned = '${errorreturn} | tee -a -i ${logfilepath}
@@ -3659,6 +3751,7 @@ ExportObjectsToCSVviaJQ () {
     #
     # MODIFIED 2022-04-22 - 
     # Current alternative if more options to exclude are needed
+    
     ConfigureObjectQuerySelector
     
     # -------------------------------------------------------------------------------------------------
@@ -3778,6 +3871,7 @@ ExportObjectsToCSVviaJQ () {
         export domgmtcliquery=false
         echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
     fi
+    
     if ${domgmtcliquery} ; then
         # Execute the mgmt_cli query of the management host database
         
@@ -3916,6 +4010,7 @@ ExportObjectsToCSVviaJQ () {
     
     FinalizeExportObjectsToCSVviaJQ
     errorreturn=$?
+    
     if [ ${errorreturn} != 0 ] ; then
         # Something went wrong, terminate
         echo `${dtzs}`${dtzsep} 'ExportObjectsToCSVviaJQ : Problem found in procedure FinalizeExportObjectsToCSVviaJQ! error return = '${errorreturn} | tee -a -i ${logfilepath}
@@ -3939,7 +4034,7 @@ ExportObjectsToCSVviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-11
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-11
 
 
 # -------------------------------------------------------------------------------------------------
@@ -4183,6 +4278,8 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APIobjectderefgrpmem=false
@@ -4228,6 +4325,8 @@ fi
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APIobjectderefgrpmem=false
@@ -4293,6 +4392,8 @@ esac
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APIobjectderefgrpmem=false
@@ -4327,6 +4428,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.2
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4359,6 +4462,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=true
@@ -4391,6 +4496,8 @@ export number_of_objects=${number_groups}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4423,6 +4530,8 @@ export number_of_objects=${number_groupswithexclusion}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APIobjectderefgrpmem=false
@@ -4457,6 +4566,8 @@ export number_of_objects=${number_addressranges}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APIobjectderefgrpmem=false
@@ -4491,6 +4602,8 @@ export number_of_objects=${number_multicastaddressranges}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4523,6 +4636,8 @@ export number_of_objects=${number_dnsdomains}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4559,6 +4674,8 @@ export number_of_objects=${number_securityzones}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4595,6 +4712,8 @@ export number_of_objects=${number_dynamicobjects}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4631,6 +4750,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4667,6 +4788,8 @@ export number_of_objects=${number_simplegateways}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4703,6 +4826,8 @@ export number_of_objects=${number_simpleclusters}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=true
 export APIobjectderefgrpmem=false
@@ -4739,6 +4864,8 @@ export number_of_objects=${number_checkpointhosts}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4778,6 +4905,8 @@ export number_of_objects=${number_times}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4814,6 +4943,8 @@ export number_of_objects=${number_time_groups}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4850,6 +4981,8 @@ export number_of_objects=${number_access_roles}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4892,6 +5025,8 @@ export number_of_objects=${number_opsec_applications}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4928,6 +5063,8 @@ export number_of_objects=${number_trustedclients}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4964,6 +5101,8 @@ export number_of_objects=${number_number_lsvprofiles}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=true
@@ -5000,6 +5139,8 @@ export number_of_objects=${number_gsnhandovergroups}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5038,6 +5179,8 @@ export number_of_objects=${number_accesspointnames}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5087,6 +5230,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5117,6 +5262,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.8
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5151,6 +5298,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.8
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5191,6 +5340,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.8
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5236,6 +5387,8 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5276,6 +5429,8 @@ export number_of_objects=${number_services_tcp}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5316,6 +5471,8 @@ export number_of_objects=${number_services_udp}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5354,6 +5511,8 @@ export number_of_objects=${number_services_icmp}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5392,6 +5551,8 @@ export number_of_objects=${number_services_icmp6}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5432,6 +5593,8 @@ export number_of_objects=${number_services_sctp}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5474,6 +5637,8 @@ export number_of_objects=${number_services_other}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5512,6 +5677,8 @@ export number_of_objects=${number_services_dce_rpc}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5550,6 +5717,8 @@ export number_of_objects=${number_services_rpc}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5670,6 +5839,8 @@ export number_of_objects=${number_servicescitrixtcp}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5708,6 +5879,8 @@ export number_of_objects=${number_servicescitrixtcp}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5746,6 +5919,8 @@ export number_of_objects=${number_servicescompoundtcp}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=true
@@ -5794,6 +5969,8 @@ fi
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5935,6 +6112,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -5978,6 +6157,8 @@ export number_of_objects=${number_application_site_categories}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=true
@@ -6036,6 +6217,8 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -6080,6 +6263,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -6147,6 +6332,8 @@ esac
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=true
@@ -6188,6 +6375,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -6230,6 +6419,8 @@ CheckAPIVersionAndExecuteOperation
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -6292,6 +6483,8 @@ esac
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -6530,7 +6723,7 @@ SetupExportComplexObjectsToCSVviaJQ () {
 # FinalizeExportComplexObjectsToCSVviaJQ
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-10-22 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-11 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 FinalizeExportComplexObjectsToCSVviaJQ () {
@@ -6545,23 +6738,28 @@ FinalizeExportComplexObjectsToCSVviaJQ () {
         echo `${dtzs}`${dtzsep} 'Terminating!' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         return 254
-        
-    elif [ ! -r "${APICLICSVfiledata}" ] ; then
+    fi
+    
+    # Changing this behavior since it's nonsense to quit here because of missing data file, that could be on purpose
+    if [ ! -r "${APICLICSVfiledata}" ] ; then
         # Uh, Oh, something went wrong, no data file
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '!!!! Error data file missing : '${APICLICSVfiledata} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Terminating!' | tee -a -i ${logfilepath}
+        #echo `${dtzs}`${dtzsep} '!!!! Error data file missing : '${APICLICSVfiledata} | tee -a -i ${logfilepath}
+        #echo `${dtzs}`${dtzsep} 'Terminating!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '!! data file is missing so no data : '${APICLICSVfiledata} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Skipping CSV creation!' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        return 253
-        
-    elif [ ! -s "${APICLICSVfiledata}" ] ; then
+        #return 253
+        return 0
+    fi
+    
+    if [ ! -s "${APICLICSVfiledata}" ] ; then
         # data file is empty, nothing was found
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} '!! data file is empty : '${APICLICSVfiledata} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} 'Skipping CSV creation!' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         return 0
-        
     fi
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
@@ -6595,7 +6793,7 @@ FinalizeExportComplexObjectsToCSVviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-22
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-11
 
 
 # -------------------------------------------------------------------------------------------------
@@ -7032,7 +7230,7 @@ DumpArrayOfObjectsType () {
 # CollectMembersInObjectsTypeWithMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-04-29:02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-11 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -7071,20 +7269,22 @@ CollectMembersInObjectsTypeWithMgmtDB () {
         if [ x"${NUM_OBJECTSTYPE_MEMBERS}" == x"" ] ; then
             # There are null objects, so skip
             
-            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = NULL (0 zero)' >> ${logfilepath}
+            #echo `${dtzs}`${dtzsep} 'Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = NULL (0 zero)' >> ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = NULL (0 zero)' | tee -a -i ${logfilepath}
             
             #return 0
             
         elif [[ ${NUM_OBJECTSTYPE_MEMBERS} -lt 1 ]] ; then
             # no objects of this type
             
-            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members < 1 ['${NUM_OBJECTSTYPE_MEMBERS}'] (0 zero)' >> ${logfilepath}
+            #echo `${dtzs}`${dtzsep} 'Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members < 1 ['${NUM_OBJECTSTYPE_MEMBERS}'] (0 zero)' >> ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members < 1 ['${NUM_OBJECTSTYPE_MEMBERS}'] (0 zero)' | tee -a -i ${logfilepath}
             
             #return 0
            
         else
             # More than zero (1) interfaces, something to process
-            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = '"${NUM_OBJECTSTYPE_MEMBERS}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = '"${NUM_OBJECTSTYPE_MEMBERS}" | tee -a -i ${logfilepath}
             
             export CSVJQmemberparms='"'${objectnametoevaluate}'", '${CSVJQmemberparmsbase}
             
@@ -7121,14 +7321,14 @@ CollectMembersInObjectsTypeWithMgmtDB () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-04-29:02
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-11
 
 
 # -------------------------------------------------------------------------------------------------
 # CollectMembersInObjectsTypeWithJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-04-29:02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-11 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -7168,20 +7368,22 @@ CollectMembersInObjectsTypeWithJSONRepository () {
         if [ x"${NUM_OBJECTSTYPE_MEMBERS}" == x"" ] ; then
             # There are null objects, so skip
             
-            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = NULL (0 zero)' >> ${logfilepath}
+            #echo `${dtzs}`${dtzsep} 'Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = NULL (0 zero)' >> ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = NULL (0 zero)' | tee -a -i ${logfilepath}
             
             #return 0
            
         elif [[ ${NUM_OBJECTSTYPE_MEMBERS} -lt 1 ]] ; then
             # no objects of this type
             
-            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members < 1 ['${NUM_OBJECTSTYPE_MEMBERS}'] (0 zero)' >> ${logfilepath}
+            #echo `${dtzs}`${dtzsep} 'Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members < 1 ['${NUM_OBJECTSTYPE_MEMBERS}'] (0 zero)' >> ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members < 1 ['${NUM_OBJECTSTYPE_MEMBERS}'] (0 zero)' | tee -a -i ${logfilepath}
             
             #return 0
            
         else
             # More than zero (1) interfaces, something to process
-            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = '"${NUM_OBJECTSTYPE_MEMBERS}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = '"${NUM_OBJECTSTYPE_MEMBERS}" | tee -a -i ${logfilepath}
             
             export CSVJQmemberparms='"'${objectnametoevaluate}'", '${CSVJQmemberparmsbase}
             
@@ -7217,7 +7419,7 @@ CollectMembersInObjectsTypeWithJSONRepository () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-04-29:02
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-11
 
 
 # -------------------------------------------------------------------------------------------------
@@ -7594,6 +7796,8 @@ GenericComplexObjectsMembersHandler () {
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=true
@@ -7620,6 +7824,8 @@ export CSVFileHeader='"name","members.add"'
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -7646,6 +7852,8 @@ GenericComplexObjectsMembersHandler
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -7672,6 +7880,8 @@ GenericComplexObjectsMembersHandler
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=true
@@ -7698,6 +7908,8 @@ export CSVFileHeader='"name","members.add"'
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=true
@@ -7726,6 +7938,8 @@ export CSVFileHeader='"name","members.add"'
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=true
@@ -8338,7 +8552,7 @@ DumpArrayOfHostsObjects () {
 # CollectInterfacesInHostObjectsFromMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-04-29 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-11 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -8381,20 +8595,20 @@ CollectInterfacesInHostObjectsFromMgmtDB () {
         if [ x"${NUM_HOST_INTERFACES}" == x"" ] ; then
             # There are null objects, so skip
             
-            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = NULL (0 zero)'
+            echo `${dtzs}`${dtzsep} 'host '"${hostnametoevaluate}"' number of interfaces = NULL (0 zero)' | tee -a -i ${logfilepath}
             
             #return 0
            
         elif [[ ${NUM_HOST_INTERFACES} -lt 1 ]] ; then
             # no objects of this type
             
-            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = 0 (0 zero)'
+            echo `${dtzs}`${dtzsep} 'host '"${hostnametoevaluate}"' number of interfaces = 0 (0 zero)' | tee -a -i ${logfilepath}
             
             #return 0
            
         elif [[ ${NUM_HOST_INTERFACES} -gt 0 ]] ; then
             # More than zero (0) interfaces, something to process
-            echo `${dtzs}`${dtzsep} host "${hostnametoevaluate}"' number of interfaces = '"${NUM_HOST_INTERFACES}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'host '"${hostnametoevaluate}"' number of interfaces = '"${NUM_HOST_INTERFACES}" | tee -a -i ${logfilepath}
             
             export CSVJQinterfaceparms='"'${hostnametoevaluate}'", '${CSVJQinterfaceparmsbase}
             
@@ -8426,7 +8640,7 @@ CollectInterfacesInHostObjectsFromMgmtDB () {
             
         else
             # ?? Whatever..., so skip
-            echo `${dtzs}`${dtzsep}' host '"${hostnametoevaluate}"' number of interfaces = NONE (0 zero)' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'host '"${hostnametoevaluate}"' number of interfaces = NONE (0 zero)' | tee -a -i ${logfilepath}
         fi
         
     done
@@ -8435,14 +8649,14 @@ CollectInterfacesInHostObjectsFromMgmtDB () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-04-29
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-11
 
 
 # -------------------------------------------------------------------------------------------------
 # CollectInterfacesInHostObjectsFromJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-04-29 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-11 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -8486,20 +8700,20 @@ CollectInterfacesInHostObjectsFromJSONRepository () {
         if [ x"${NUM_HOST_INTERFACES}" == x"" ] ; then
             # There are null objects, so skip
             
-            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = NULL (0 zero)'
+            echo `${dtzs}`${dtzsep} 'host '"${hostnametoevaluate}"' number of interfaces = NULL (0 zero)' | tee -a -i ${logfilepath}
             
             #return 0
            
         elif [[ ${NUM_HOST_INTERFACES} -lt 1 ]] ; then
             # no objects of this type
             
-            echo `${dtzs}`${dtzsep}' Object '"${APICLIobjecttype}"' with name '"${objectnametoevaluate}"' number of members = 0 (0 zero)'
+            echo `${dtzs}`${dtzsep} 'host '"${hostnametoevaluate}"' number of interfaces =  0 (0 zero)' | tee -a -i ${logfilepath}
             
             #return 0
            
         elif [[ ${NUM_HOST_INTERFACES} -gt 0 ]] ; then
             # More than zero (0) interfaces, something to process
-            echo `${dtzs}`${dtzsep} host "${hostnametoevaluate}"' number of interfaces = '"${NUM_HOST_INTERFACES}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'host '"${hostnametoevaluate}"' number of interfaces = '"${NUM_HOST_INTERFACES}" | tee -a -i ${logfilepath}
             
             export CSVJQinterfaceparms='"'${hostnametoevaluate}'", '${CSVJQinterfaceparmsbase}
             
@@ -8529,7 +8743,7 @@ CollectInterfacesInHostObjectsFromJSONRepository () {
             
         else
             # ?? Whatever..., so skip
-            echo `${dtzs}`${dtzsep}' host '"${hostnametoevaluate}"' number of interfaces = NONE (0 zero)' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'host '"${hostnametoevaluate}"' number of interfaces = NONE (0 zero)' | tee -a -i ${logfilepath}
         fi
         
     done
@@ -8538,7 +8752,7 @@ CollectInterfacesInHostObjectsFromJSONRepository () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-04-29
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-11
 
 
 # -------------------------------------------------------------------------------------------------
@@ -8995,7 +9209,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # ExportObjectElementCriteriaBasedToCSVviaJQ
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-04-29 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-11:04 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The ExportObjectElementCriteriaBasedToCSVviaJQ is the meat of the script's repeated actions.
@@ -9008,6 +9222,9 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
     #
     
     errorreturn=0
+    
+    echo `${dtzs}`${dtzsep} 'Start ExportObjectElementCriteriaBasedToCSVviaJQ ' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     
     # MODIFIED 2021-10-22 -
     
@@ -9042,8 +9259,16 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
         export MgmtCLI_Show_OpParms='dereference-group-members true '${MgmtCLI_Show_OpParms}
     fi
     
-    # Back to what worked.
-    # MODIFIED 2022-04-29 -
+    # -------------------------------------------------------------------------------------------------
+    # Configure object criteria 01 selection query elements objecttypecriteriaselectorelement
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2022-06-11 -
+    
+    # MODIFIED 2022-04-22 - 
+    # Current alternative if more options to exclude are needed
+    
+    ConfigureObjectQuerySelector
     
     #export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" == "'"${APICLIexportcriteria01value}"'"'
     # For the Boolean values of ${APICLIexportcriteria01value} we need to check that the text value is true or folse, to be specific
@@ -9058,47 +9283,43 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
         export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" == "'"${APICLIexportcriteria01value}"'"'
     fi
     
-    # !! FAIL !!
-    # MODIFIED 2022-04-22 -
-    
-    #export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" == "'"${APICLIexportcriteria01value}"'"'
-    #if ${APICLIexportcriteria01value} ; then 
-        # The value of ${APICLIexportcriteria01value} is boolean true, so check if the value of ${APICLIexportcriteria01key} is true
-        #export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'"' 
-    #elif ! ${APICLIexportcriteria01value} ; then 
-        # The value of ${APICLIexportcriteria01value} is boolean false, so check if the value of ${APICLIexportcriteria01key} is not true
-        #export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" | not'
-    #else 
-        # The value of ${APICLIexportcriteria01value} is a string, not boolean, so check if the value of ${APICLIexportcriteria01key} is the same
-        #export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" == "'"${APICLIexportcriteria01value}"'"'
-    #fi
-    
-    # MODIFIED 2022-04-22 -
-    
-    # System Object selection operands
-    # MODIFIED 2022-04-22 - 
-    # Current alternative if more options to exclude are needed
-    ConfigureObjectQuerySelector
+    echo `${dtzs}`${dtzsep} '    - APICLIexportcriteria01value       :  '${APICLIexportcriteria01value} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - APICLIexportcriteria01value       :  '${APICLIexportcriteria01value} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - objecttypecriteriaselectorelement :  '${objecttypecriteriaselectorelement} >> ${logfilepath}
     
     # We need to assemble a more complicated selection method for this
     #
-    if ${NoSystemObjects} ; then
-        # Ignore System Objects
-        export userauthobjectselector='select(('"${objectqueryselector}"') and ('"${objecttypecriteriaselectorelement}"'))'
-    elif ${OnlySystemObjects} ; then
-        # Ignore System Objects
-        export userauthobjectselector='select(('"${objectqueryselector}"') and ('"${objecttypecriteriaselectorelement}"'))'
-    elif ${CreatorIsNotSystem} ; then
-        # Ignore System Objects
-        export userauthobjectselector='select(('"${objectqueryselector}"') and ('"${objecttypecriteriaselectorelement}"'))'
-    elif ${CreatorIsSystem} ; then
-        # Ignore System Objects
-        export userauthobjectselector='select(('"${objectqueryselector}"') and ('"${objecttypecriteriaselectorelement}"'))'
-    else
-        # Don't Ignore System Objects
-        export userauthobjectselector='select('"${objecttypecriteriaselectorelement}"')'
+    export userauthobjectselector='select( '
+    
+    if [ x"${objecttypeselectorelement}" != x"" ] ; then
+        export userauthobjectselector=${userauthobjectselector}' ( '"${objecttypeselectorelement}"' ) and ( '
     fi
     
+    if ${NoSystemObjects} ; then
+        # Ignore System Objects
+        export userauthobjectselector=${userauthobjectselector}'( '"${systemobjectqueryselectorelement}"' ) and ( '"${objecttypecriteriaselectorelement}"' )'
+    elif ${OnlySystemObjects} ; then
+        # Ignore System Objects
+        export userauthobjectselector=${userauthobjectselector}'( '"${systemobjectqueryselectorelement}"' ) and ( '"${objecttypecriteriaselectorelement}" ')'
+    elif ${CreatorIsNotSystem} ; then
+        # Ignore System Objects
+        export userauthobjectselector=${userauthobjectselector}'( '"${systemobjectqueryselectorelement}"' ) and ( '"${objecttypecriteriaselectorelement}" ')'
+    elif ${CreatorIsSystem} ; then
+        # Ignore System Objects
+        export userauthobjectselector=${userauthobjectselector}'( '"${systemobjectqueryselectorelement}"' ) and ( '"${objecttypecriteriaselectorelement}" ')'
+    else
+        # Don't Ignore System Objects
+        export userauthobjectselector=${userauthobjectselector}${objecttypecriteriaselectorelement}
+    fi
+    
+    if [ x"${objecttypeselectorelement}" != x"" ] ; then
+        export userauthobjectselector=${userauthobjectselector}' )'
+    fi
+    
+    export userauthobjectselector=${userauthobjectselector}' )'
+    
+    echo `${dtzs}`${dtzsep} '    - userauthobjectselector = ['"${userauthobjectselector}"']' >> ${logfilepath}
+
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '  '${APICLIcomplexobjectstype}' - Populate up to next '${WorkAPIObjectLimit}' '${APICLIobjecttype}' objects starting with object '${currentuseroffset}' of '${objectslefttoshow}' remaining!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '  '${APICLIcomplexobjectstype}' - Selection criteria '${userauthobjectselector} | tee -a -i ${logfilepath}
@@ -9309,7 +9530,7 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-04-29
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-11:04
 
 
 # -------------------------------------------------------------------------------------------------
@@ -9439,6 +9660,8 @@ GetObjectElementCriteriaBased () {
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -9749,6 +9972,8 @@ fi
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -10063,6 +10288,8 @@ fi
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false

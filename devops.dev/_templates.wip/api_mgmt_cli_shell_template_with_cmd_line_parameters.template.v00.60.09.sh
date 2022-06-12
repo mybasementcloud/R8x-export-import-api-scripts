@@ -17,9 +17,9 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=015
-ScriptSubRevision=005
-ScriptDate=2022-06-10
+ScriptRevision=020
+ScriptSubRevision=045
+ScriptDate=2022-06-11
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
@@ -3693,7 +3693,7 @@ ScriptOutputPathsforAPIScripts "$@"
 # Check API Keep Alive Status - CheckAPIKeepAlive
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-04-29 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-11:02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Check API Keep Alive Status.
@@ -3705,16 +3705,30 @@ CheckAPIKeepAlive () {
     
     errorreturn=0
     
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    
+    tempworklogfile=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.keepalivecheck.log
+    
     if ${LoggedIntoMgmtCli} ; then
-        echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+        #echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check : ... ' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        
         if ${addversion2keepalive} ; then
-            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+            #mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} > ${tempworklogfile} 2>&1
             export errorreturn=$?
         else
-            mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+            #mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+            mgmt_cli keepalive -s ${APICLIsessionfile} > ${tempworklogfile} 2>&1
             export errorreturn=$?
         fi
-        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        
+        cat ${tempworklogfile} >> ${logfilepath}
+        rm ${tempworklogfile} >> ${logfilepath} 2>&1
+        
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Keep Alive Check errorreturn = [ '${errorreturn}' ]' | tee -a -i ${logfilepath}
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
@@ -3735,6 +3749,7 @@ CheckAPIKeepAlive () {
         fi
     else
         # Uhhh what, this check should only happen if logged in
+        echo `${dtzs}`${dtzsep} ' Executing mgmt_cli login instead of mgmt_cli keepalive check ?!?...  ' | tee -a -i ${logfilepath}
         
         export LoggedIntoMgmtCli=false
         
@@ -3749,11 +3764,13 @@ CheckAPIKeepAlive () {
         fi
     fi
     
+    echo `${dtzs}`${dtzsep} 'Keep Alive Check completed!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-04-29
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-06-11:02
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -4147,8 +4164,12 @@ fi
 
 # meat START
 
-echo `${dtzs}`${dtzsep} Do something...
-echo `${dtzs}`${dtzsep} 
+echo `${dtzs}`${dtzsep} 'Do something...' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+CheckAPIKeepAlive
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 #export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}' --conn-timeout '${APICLIconntimeout}
 #export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'

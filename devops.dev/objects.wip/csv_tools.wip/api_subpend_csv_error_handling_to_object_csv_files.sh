@@ -17,9 +17,9 @@
 #
 #
 ScriptVersion=00.60.09
-ScriptRevision=015
-ScriptSubRevision=005
-ScriptDate=2022-06-10
+ScriptRevision=020
+ScriptSubRevision=045
+ScriptDate=2022-06-11
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
@@ -3604,7 +3604,7 @@ ScriptOutputPathsforAPIScripts "$@"
 # Check API Keep Alive Status - CheckAPIKeepAlive
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-04-29 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-11:02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Check API Keep Alive Status.
@@ -3616,16 +3616,30 @@ CheckAPIKeepAlive () {
     
     errorreturn=0
     
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    
+    tempworklogfile=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.keepalivecheck.log
+    
     if ${LoggedIntoMgmtCli} ; then
-        echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+        #echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check : ... ' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        
         if ${addversion2keepalive} ; then
-            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+            #mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} > ${tempworklogfile} 2>&1
             export errorreturn=$?
         else
-            mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+            #mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+            mgmt_cli keepalive -s ${APICLIsessionfile} > ${tempworklogfile} 2>&1
             export errorreturn=$?
         fi
-        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        
+        cat ${tempworklogfile} >> ${logfilepath}
+        rm ${tempworklogfile} >> ${logfilepath} 2>&1
+        
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Keep Alive Check errorreturn = [ '${errorreturn}' ]' | tee -a -i ${logfilepath}
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
@@ -3646,6 +3660,7 @@ CheckAPIKeepAlive () {
         fi
     else
         # Uhhh what, this check should only happen if logged in
+        echo `${dtzs}`${dtzsep} ' Executing mgmt_cli login instead of mgmt_cli keepalive check ?!?...  ' | tee -a -i ${logfilepath}
         
         export LoggedIntoMgmtCli=false
         
@@ -3660,11 +3675,13 @@ CheckAPIKeepAlive () {
         fi
     fi
     
+    echo `${dtzs}`${dtzsep} 'Keep Alive Check completed!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-04-29
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-06-11:02
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -4457,6 +4474,8 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=host
@@ -4473,6 +4492,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=host
@@ -4489,6 +4510,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=network
@@ -4505,6 +4528,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.2
 export APIobjectcansetifexists=false
 export APICLIobjecttype=wildcard
@@ -4521,6 +4546,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=group
@@ -4537,6 +4564,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=group-with-exclusion
@@ -4553,6 +4582,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=address-range
@@ -4569,6 +4600,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=multicast-address-range
@@ -4585,6 +4618,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=dns-domain
@@ -4601,6 +4636,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=security-zone
@@ -4617,6 +4654,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=dynamic-object
@@ -4633,6 +4672,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=tag
@@ -4649,6 +4690,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=simple-gateway
@@ -4665,6 +4708,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6
 export APIobjectcansetifexists=false
 export APICLIobjecttype=simple-cluster
@@ -4681,6 +4726,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=checkpoint-hosts
@@ -4697,6 +4744,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=time
@@ -4713,6 +4762,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=time-group
@@ -4729,6 +4780,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=access-role
@@ -4745,6 +4798,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=opsec-application
@@ -4761,6 +4816,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=trusted-client
@@ -4777,6 +4834,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6
 export APIobjectcansetifexists=false
 export APICLIobjecttype=lsv-profile
@@ -4793,6 +4852,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=gsn-handover-group
@@ -4809,6 +4870,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=access-point-names
@@ -4825,6 +4888,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-server
@@ -4841,6 +4906,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4858,6 +4925,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.8
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4875,6 +4944,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.8
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
@@ -4907,6 +4978,8 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-tcp
@@ -4923,6 +4996,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-udp
@@ -4939,6 +5014,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-icmp
@@ -4955,6 +5032,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-icmp6
@@ -4971,6 +5050,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-sctp
@@ -4987,6 +5068,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-other
@@ -5003,6 +5086,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-dce-rpc
@@ -5019,6 +5104,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-rpc
@@ -5035,6 +5122,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-gtp
@@ -5051,6 +5140,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-citrix-tcp
@@ -5067,6 +5158,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-compound-tcp
@@ -5083,6 +5176,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-group
@@ -5104,6 +5199,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site
@@ -5126,6 +5223,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-category
@@ -5148,6 +5247,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-group
@@ -5192,6 +5293,8 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -5213,6 +5316,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-group
@@ -5234,6 +5339,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -5255,6 +5362,8 @@ RefactorObjectsCSV
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=identity-tag
@@ -5386,6 +5495,8 @@ ConfigureComplexObjects () {
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=group
@@ -5404,6 +5515,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=time-group
@@ -5422,6 +5535,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APICLIobjecttype=tacacs-group
@@ -5440,6 +5555,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=service-group
@@ -5458,6 +5575,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=application-site-group
@@ -5477,6 +5596,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-group
@@ -5495,6 +5616,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=true
 export APICLIobjecttype=host
@@ -5515,6 +5638,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -5535,6 +5660,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -5555,6 +5682,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -5575,6 +5704,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -5595,6 +5726,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -5615,6 +5748,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user
@@ -5635,6 +5770,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -5655,6 +5792,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -5675,6 +5814,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -5695,6 +5836,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -5715,6 +5858,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -5735,6 +5880,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template
@@ -5755,6 +5902,8 @@ ConfigureComplexObjects
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APIobjectminversion=1.6.1
 export APIobjectcansetifexists=false
 export APICLIobjecttype=user-template

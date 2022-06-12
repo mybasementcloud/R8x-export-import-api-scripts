@@ -1,8 +1,8 @@
 { "file_meta_info" : {
 	"filetype" : "solution_info.api_scripts",
 	"fileversion" : "06.08.04",
-	"filerevision" : "001",
-	"filedate" : "2022-06-10",
+	"filerevision" : "000",
+	"filedate" : "2022-06-11",
 	"fileinformationlevel" : "000",
 	"MinCMDTemplateVersion" : "06.03.01"
 	}, 
@@ -17,8 +17,8 @@
 		},
 	"ScriptDate" : "2022-06-10",
 	"ScriptVersion" : "06.08.04",
-	"ScriptRevision" : "002",
-	"ScriptTweak" : "45",
+	"ScriptRevision" : "000",
+	"ScriptTweak" : "15",
 	"TemplateVersion" : "06.08.04"
 	},
 "script_details" : { 
@@ -26,10 +26,10 @@
 		"Language" : "bash",
 		"Extension" : "sh"
 		},
-	"ScriptDate" : "2022-06-10",
+	"ScriptDate" : "2022-06-11",
 	"ScriptVersion" : "00.60.09",
-	"ScriptRevision" : "015",
-	"ScriptTweak" : "005",
+	"ScriptRevision" : "020",
+	"ScriptTweak" : "045",
 	"TemplateVersion" : "00.60.09",
 	"TemplateLevel" : "@NA",
 	"SubScriptsLevel" : "@NA",
@@ -40,13 +40,13 @@
 		"Language" : "bash",
 		"Extension" : "sh"
 		},
-	"ScriptDate" : "2022-06-10",
+	"ScriptDate" : "2022-06-11",
 	"ScriptVersion" : "00.60.09",
-	"ScriptRevision" : "015",
-	"ScriptTweak" : "005",
+	"ScriptRevision" : "020",
+	"ScriptTweak" : "045",
 	"TemplateVersion" : "00.60.09",
 	"APISubScriptsLevel" : "010",
 	"APISubScriptsVersion" : "00.60.09",
-	"APISubScriptsRevision" : "015"
+	"APISubScriptsRevision" : "020"
 	}
 }

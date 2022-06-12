@@ -1,8 +1,8 @@
 { "file_meta_info" : {
 	"fileversion" : "0.60.9",
-	"filerevision" : "015",
-	"filesubrevision" : "005",
-	"filedate" : "2022-06-10"
+	"filerevision" : "020",
+	"filesubrevision" : "025",
+	"filedate" : "2022-06-11"
 }, 
 "default_csv_export_elements" : [ {
 	"name" : "common",
@@ -59,6 +59,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"ipv4-address\",\"ipv6-address\",\"nat-settings.auto-rule\",\"nat-settings.hide-behind\",\"nat-settings.install-on\",\"nat-settings.ipv4-address\",\"nat-settings.ipv6-address\",\"nat-settings.method\"",
 	"CSVJQparms" : ".[\"ipv4-address\"], .[\"ipv6-address\"], .[\"nat-settings\"][\"auto-rule\"], .[\"nat-settings\"][\"hide-behind\"], .[\"nat-settings\"][\"install-on\", .[\"nat-settings\"][\"ipv4-address\"], .[\"nat-settings\"][\"ipv6-address\"], .[\"nat-settings\"][\"method\""
@@ -76,6 +78,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"ipv4-address\",\"ipv6-address\"",
 	"CSVJQparms" : ".[\"ipv4-address\"], .[\"ipv6-address\"]"
@@ -93,6 +97,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"broadcast\",\"subnet4\",\"mask-length4\",\"subnet6\",\"mask-length6\",\"nat-settings.auto-rule\",\"nat-settings.hide-behind\",\"nat-settings.install-on\",\"nat-settings.method\"",
 	"CSVJQparms" : ".[\"broadcast\"], .[\"subnet4\"], .[\"mask-length4\"], .[\"subnet6\"], .[\"mask-length6\"], .[\"nat-settings\"][\"auto-rule\"], .[\"nat-settings\"][\"hide-behind\"], .[\"nat-settings\"][\"install-on\"], .[\"nat-settings\"][\"method\"]"
@@ -110,6 +116,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"ipv4-address\",\"ipv4-mask-wildcard\",\"ipv6-address\",\"ipv6-mask-wildcard\"",
 	"CSVJQparms" : ".[\"ipv4-address\"], .[\"ipv4-mask-wildcard\"], .[\"ipv6-address\"], .[\"ipv6-mask-wildcard\"]"
@@ -127,6 +135,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -144,6 +154,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "",
 	"CSVFileHeader" : "\"include\",\"except\"",
 	"CSVJQparms" : ".[\"include\"][\"name\"], .[\"except\"][\"name\"]"
@@ -161,6 +173,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"ipv4-address-first\",\"ipv4-address-last\",\"ipv6-address-first\",\"ipv6-address-last\"",
 	"CSVJQparms" : ".[\"ipv4-address-first\"], .[\"ipv4-address-last\"], .[\"ipv6-address-first\"], .[\"ipv6-address-last\"]"
@@ -178,6 +192,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"ipv4-address-first\",\"ipv4-address-last\",\"ipv6-address-first\",\"ipv6-address-last\"",
 	"CSVJQparms" : ".[\"ipv4-address-first\"], .[\"ipv4-address-last\"], .[\"ipv6-address-first\"], .[\"ipv6-address-last\"]"
@@ -195,6 +211,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"is-sub-domain\"",
 	"CSVJQparms" : ".[\"is-sub-domain\"]"
@@ -212,6 +230,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -229,6 +249,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -246,6 +268,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -263,6 +287,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -280,6 +306,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -297,6 +325,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -314,6 +344,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"start.date\",\"start.time\",\"start.iso-8601\",\"start.posix\",\"start-now\",\"end.date\",\"end.time\",\"end.iso-8601\",\"end.posix\",\"end-never\",\"recurrence.pattern\"",
 	"CSVJQparms" : ".[\"start\"][\"date\"], .[\"start\"][\"time\"], .[\"start\"][\"iso-8601\"], .[\"start\"][\"posix\"], .[\"start-now\"], .[\"end\"][\"date\"], .[\"end\"][\"time\"], .[\"end\"][\"iso-8601\"], .[\"end\"][\"posix\"], .[\"end-never\"], .[\"recurrence\"][\"pattern\"]"
@@ -331,6 +363,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -348,6 +382,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -365,6 +401,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"type\",\"cpmi.enabled\",\"cpmi.administrator-profile\",\"cpmi.use-administrator-credentials\",\"lea.enabled\",\"lea.access-permissions\",\"lea.administrator-profile\"",
 	"CSVJQparms" : ".[\"type\"], .[\"cpmi\"][\"enabled\"], .[\"cpmi\"][\"administrator-profile\"], .[\"cpmi\"][\"use-administrator-credentials\"], .[\"lea\"][\"enabled\"], .[\"lea\"][\"access-permissions\"], .[\"lea\"][\"administrator-profile\"]"
@@ -382,6 +420,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -399,6 +439,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -416,6 +458,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -433,6 +477,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -450,6 +496,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"server-type\",\"server\",\"service\",\"priority\",\"encryption\",\"secret-key\"",
 	"CSVJQparms" : ".[\"server-type\"], .[\"server\"][\"name\"], .[\"service\"][\"name\"], .[\"priority\"], .[\"encryption\"], \"\""
@@ -467,6 +515,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -484,6 +534,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"security-profile\",\"sic.ip-address\",\"provisioning-state\",\"provisioning-settings.provisioning-profile\"",
 	"CSVJQparms" : ".[\"security-profile\"], .[\"ip-address\"], .[\"provisioning-state\"], .[\"provisioning-settings\"][\"provisioning-profile\"]"
@@ -501,6 +553,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"security-profile\",\"ip-address\",\"sic-name\",\"sic-state\",\"version\",\"os-name\",\"provisioning-state\",\"provisioning-settings.provisioning-profile\"",
 	"CSVJQparms" : ".[\"security-profile\"], .[\"ip-address\"], .[\"sic-name\"], .[\"sic-state\"], .[\"version\"], .[\"os-name\"], .[\"provisioning-state\"], .[\"provisioning-settings\"][\"provisioning-profile\"]"
@@ -518,6 +572,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -535,6 +591,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"port\",\"protocol\",\"source-port\",\"aggressive-aging.enable\",\"aggressive-aging.default-timeout\",\"aggressive-aging.timeout\",\"aggressive-aging.use-default-timeout\",\"keep-connections-open-after-policy-installation\",\"match-by-protocol-signature\",\"match-for-any\",\"override-default-settings\",\"session-timeout\",\"use-default-session-timeout\",\"sync-connections-on-cluster\"",
 	"CSVJQparms" : ".[\"port\"], .[\"protocol\"], .[\"source-port\"], .[\"aggressive-aging\"][\"enable\"], .[\"aggressive-aging\"][\"default-timeout\"], .[\"aggressive-aging\"][\"timeout\"], .[\"aggressive-aging\"][\"use-default-timeout\"], .[\"keep-connections-open-after-policy-installation\"], .[\"match-by-protocol-signature\"], .[\"match-for-any\"], .[\"override-default-settings\"], .[\"session-timeout\"], .[\"use-default-session-timeout\"], .[\"sync-connections-on-cluster\"]"
@@ -552,6 +610,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"port\",\"protocol\",\"source-port\",\"accept-replies\",\"aggressive-aging.enable\",\"aggressive-aging.default-timeout\",\"aggressive-aging.timeout\",\"aggressive-aging.use-default-timeout\",\"keep-connections-open-after-policy-installation\",\"match-by-protocol-signature\",\"match-for-any\",\"override-default-settings\",\"session-timeout\",\"use-default-session-timeout\",\"sync-connections-on-cluster\"",
 	"CSVJQparms" : ".[\"port\"], .[\"protocol\"], .[\"source-port\"], .[\"accept-replies\"], .[\"aggressive-aging\"][\"enable\"], .[\"aggressive-aging\"][\"default-timeout\"], .[\"aggressive-aging\"][\"timeout\"], .[\"aggressive-aging\"][\"use-default-timeout\"], .[\"keep-connections-open-after-policy-installation\"], .[\"match-by-protocol-signature\"], .[\"match-for-any\"], .[\"override-default-settings\"], .[\"session-timeout\"], .[\"use-default-session-timeout\"], .[\"sync-connections-on-cluster\"]"
@@ -569,6 +629,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"icmp-code\",\"icmp-type\",\"keep-connections-open-after-policy-installation\"",
 	"CSVJQparms" : ".[\"icmp-code\"], .[\"icmp-type\"], .[\"keep-connections-open-after-policy-installation\"]"
@@ -586,6 +648,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"icmp-code\",\"icmp-type\",\"keep-connections-open-after-policy-installation\"",
 	"CSVJQparms" : ".[\"icmp-code\"], .[\"icmp-type\"], .[\"keep-connections-open-after-policy-installation\"]"
@@ -603,6 +667,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"port\",\"source-port\",\"aggressive-aging.enable\",\"aggressive-aging.default-timeout\",\"aggressive-aging.timeout\",\"aggressive-aging.use-default-timeout\",\"keep-connections-open-after-policy-installation\",\"match-for-any\",\"session-timeout\",\"use-default-session-timeout\",\"sync-connections-on-cluster\"",
 	"CSVJQparms" : ".[\"port\"], .[\"source-port\"], .[\"aggressive-aging\"][\"enable\"], .[\"aggressive-aging\"][\"default-timeout\"], .[\"aggressive-aging\"][\"timeout\"], .[\"aggressive-aging\"][\"use-default-timeout\"], .[\"keep-connections-open-after-policy-installation\"], .[\"match-for-any\"], .[\"session-timeout\"], .[\"use-default-session-timeout\"], .[\"sync-connections-on-cluster\"]"
@@ -620,6 +686,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"port\",\"source-port\",\"accept-replies\",\"ip-protocol\",\"action\",\"match\",\"aggressive-aging.enable\",\"aggressive-aging.default-timeout\",\"aggressive-aging.timeout\",\"aggressive-aging.use-default-timeout\",\"keep-connections-open-after-policy-installation\",\"match-for-any\",\"override-default-settings\",\"session-timeout\",\"use-default-session-timeout\",\"sync-connections-on-cluster\"",
 	"CSVJQparms" : ".[\"port\"], .[\"source-port\"], .[\"accept-replies\"], .[\"ip-protocol\"], .[\"action\"], .[\"match\"], .[\"aggressive-aging\"][\"enable\"], .[\"aggressive-aging\"][\"default-timeout\"], .[\"aggressive-aging\"][\"timeout\"], .[\"aggressive-aging\"][\"use-default-timeout\"], .[\"keep-connections-open-after-policy-installation\"], .[\"match-for-any\"], .[\"override-default-settings\"], .[\"session-timeout\"], .[\"use-default-session-timeout\"], .[\"sync-connections-on-cluster\"]"
@@ -637,6 +705,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"interface-uuid\",\"keep-connections-open-after-policy-installation\"",
 	"CSVJQparms" : ".[\"interface-uuid\"], .[\"keep-connections-open-after-policy-installation\"]"
@@ -654,6 +724,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"program-number\",\"keep-connections-open-after-policy-installation\"",
 	"CSVJQparms" : ".[\"program-number], .[\"keep-connections-open-after-policy-installation\"]"
@@ -671,6 +743,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"version\",\"allow-usage-of-static-ip\",\"cs-fallback-and-srvcc\",\"restoration-and-recovery\",\"reverse-service\",\"trace-management\",\"access-point-name.enable\",\"access-point-name.apn\",\"apply-access-policy-on-user-traffic.enable\",\"apply-access-policy-on-user-traffic.add-imsi-field-to-log\",\"imsi-prefix.enable\",\"imsi-prefix.prefix\",\"interface-profile.profile\",\"interface-profile.custom-message-types\",\"ldap-group.enable\",\"ldap-group.group\",\"ldap-group.according-to\",\"ms-isdn.enable\",\"ms-isdn.ms-isdn\",\"selection-mode.enable\",\"selection-mode.mode\",\"radio-access-technology.utran\",\"radio-access-technology.geran\",\"radio-access-technology.wlan\",\"radio-access-technology.gan\",\"radio-access-technology.hspa-evolution\",\"radio-access-technology.eutran\",\"radio-access-technology.virtual\",\"radio-access-technology.nb-iot\",\"radio-access-technology.other-types-range.enable\",\"radio-access-technology.other-types-range.types\"",
 	"CSVJQparms" : ".[\"version\"], .[\"allow-usage-of-static-ip\"], .[\"cs-fallback-and-srvcc\"], .[\"restoration-and-recovery\"], .[\"reverse-service\"], .[\"trace-management\"], .[\"access-point-name\"][\"enable\"], .[\"access-point-name\"][\"apn\"][\"name\"], .[\"apply-access-policy-on-user-traffic\"][\"enable\"], .[\"apply-access-policy-on-user-traffic\"][\"add-imsi-field-to-log\"], .[\"imsi-prefix\"][\"enable\"], .[\"imsi-prefix\"][\"prefix\"], .[\"interface-profile\"][\"profile\"][\"name\"], .[\"interface-profile\"][\"custom-message-types\"], .[\"ldap-group\"][\"enable\"], .[\"ldap-group\"][\"group\"][\"name\"], .[\"ldap-group\"][\"according-to\"], .[\"ms-isdn\"][\"enable\"], .[\"ms-isdn\"][\"ms-isdn\"], .[\"selection-mode\"][\"enable\"], .[\"selection-mode\"][\"mode\"], .[\"radio-access-technology\"][\"utran\"], .[\"radio-access-technology\"][\"geran\"], .[\"radio-access-technology\"][\"wlan\"], .[\"radio-access-technology\"][\"gan\"], .[\"radio-access-technology\"][\"hspa-evolution\"], .[\"radio-access-technology\"][\"eutran\"], .[\"radio-access-technology\"][\"virtual\"], .[\"radio-access-technology\"][\"nb-iot\"], .[\"radio-access-technology\"][\"other-types-range\"][\"enable\"], .[\"radio-access-technology\"][\"other-types-range\"][\"types\"]"
@@ -688,6 +762,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"application\"",
 	"CSVJQparms" : ".[\"application\"]"
@@ -705,6 +781,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"compound-service\",\"keep-connections-open-after-policy-installation\"",
 	"CSVJQparms" : ".[\"compound-service\"], .[\"keep-connections-open-after-policy-installation\"]"
@@ -722,6 +800,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -739,6 +819,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 50,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"primary-category\",\"description\",\"urls-defined-as-regular-expression\",\"url-list.0\",\"application-signature.0\",\"additional-categories.0\"",
 	"CSVJQparms" : ".[\"primary-category\"], .[\"description\"], .[\"urls-defined-as-regular-expression\"], .[\"url-list\"][0], .[\"application-signature\"][0], .[\"additional-categories\"][0]"
@@ -756,6 +838,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 50,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"application-id\",\"primary-category\",\"description\",\"risk\",\"urls-defined-as-regular-expression\",\"user-defined\",\"url-list.0\",\"url-list.1\",\"url-list.2\",\"url-list.3\",\"url-list.4\",\"application-signature.0\",\"application-signature.1\",\"application-signature.2\",\"application-signature.3\",\"application-signature.4\",\"additional-categories.0\",\"additional-categories.1\",\"additional-categories.2\",\"additional-categories.3\",\"additional-categories.4\"",
 	"CSVJQparms" : ".[\"application-id\"], .[\"primary-category\"], .[\"description\"], .[\"risk\"], .[\"urls-defined-as-regular-expression\"], .[\"user-defined\"], .[\"url-list\"][0], .[\"url-list\"][1], .[\"url-list\"][2], .[\"url-list\"][3], .[\"url-list\"][4], .[\"application-signature\"][0], .[\"application-signature\"][1], .[\"application-signature\"][2], .[\"application-signature\"][3], .[\"application-signature\"][4], .[\"additional-categories\"][0], .[\"additional-categories\"][1], .[\"additional-categories\"][2], .[\"additional-categories\"][3], .[\"additional-categories\"][4]"
@@ -773,6 +857,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"user-defined\",\"read-only\", \"meta-info.creator\"",
 	"CSVJQparms" : ".[\"user-defined\"], .[\"read-only\"], .[\"meta-info\"][\"creator\"]"
@@ -790,6 +876,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"user-defined\",\"read-only\", \"meta-info.creator\"",
 	"CSVJQparms" : ".[\"user-defined\"], .[\"read-only\"], .[\"meta-info\"][\"creator\"]"
@@ -807,6 +895,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"template\",\"e-mail\",\"phone-number\",\"encryption.enable-ike\", \"encryption.enable-public-key\", \"encryption.enable-shared-secret\"",
 	"CSVJQparms" : ".[\"template\"], .[\"e-mail\"], .[\"phone-number\"], .[\"encryption\"][\"ike\"], .[\"encryption\"][\"public-key\"], .[\"encryption\"][\"shared-secret\"]"
@@ -824,6 +914,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"template\",\"e-mail\",\"phone-number\",\"authentication-method\",\"radius-server.name\",\"tacacs-server.name\",\"expiration-date\",\"encryption.enable-ike\", \"encryption.enable-public-key\", \"encryption.enable-shared-secret\"",
 	"CSVJQparms" : ".[\"template\"], .[\"e-mail\"], .[\"phone-number\"], .[\"authentication-method\"], .[\"radius-server\"][\"name\"], .[\"tacacs-server\"][\"name\"], .[\"expiration-date\"][\"iso-8601\"], .[\"encryption\"][\"ike\"], .[\"encryption\"][\"public-key\"], .[\"encryption\"][\"shared-secret\"]"
@@ -841,6 +933,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"email\"",
 	"CSVJQparms" : ".[\"email\"]"
@@ -858,6 +952,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"authentication-method\",\"radius-server.name\",\"tacacs-server.name\",\"encryption.enable-ike\", \"encryption.enable-public-key\", \"encryption.enable-shared-secret\"",
 	"CSVJQparms" : ".[\"authentication-method\"], .[\"radius-server\"][\"name\"], .[\"tacacs-server\"][\"name\"], .[\"encryption\"][\"ike\"], .[\"encryption\"][\"public-key\"], .[\"encryption\"][\"shared-secret\"]"
@@ -875,6 +971,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"authentication-method\",\"radius-server.name\",\"tacacs-server.name\",\"expiration-by-global-properties\",\"expiration-date\",\"encryption.enable-ike\", \"encryption.enable-public-key\", \"encryption.enable-shared-secret\"",
 	"CSVJQparms" : ".[\"authentication-method\"], .[\"radius-server\"][\"name\"], .[\"tacacs-server\"][\"name\"], .[\"expiration-by-global-properties\"], .[\"expiration-date\"][\"iso-8601\"], .[\"encryption\"][\"ike\"], .[\"encryption\"][\"public-key\"], .[\"encryption\"][\"shared-secret\"]"
@@ -892,6 +990,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -912,6 +1012,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"members.add\"",
 	"CSVJQparms" : ".[\"name\"], .[\"members\"]['$COUNTER'][\"name\"]"
@@ -931,6 +1033,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"members.add\"",
 	"CSVJQparms" : ".[\"name\"], .[\"members\"]['$COUNTER'][\"name\"]"
@@ -955,6 +1059,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"members.add\"",
 	"CSVJQparms" : ".[\"name\"], .[\"members\"]['$COUNTER'][\"name\"]"
@@ -974,6 +1080,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"members.add\"",
 	"CSVJQparms" : ".[\"name\"], .[\"members\"]['$COUNTER'][\"name\"]"
@@ -994,6 +1102,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "\"name\",\"interfaces.add.name\",\"interfaces.add.subnet4\",\"interfaces.add.mask-length4\",\"interfaces.add.subnet6\",\"interfaces.add.mask-length6\",\"interfaces.add.color\",\"interfaces.add.comments\"",
 	"CSVJQparms" : ".[\"name\"], .[\"interfaces\"]['$COUNTER'][\"name\"], .[\"interfaces\"]['$COUNTER'][\"subnet4\"], .[\"interfaces\"]['$COUNTER'][\"mask-length4\"], .[\"interfaces\"]['$COUNTER'][\"subnet6\"], .[\"interfaces\"]['$COUNTER'][\"mask-length6\"], .[\"interfaces\"]['$COUNTER'][\"color\"], .[\"interfaces\"]['$COUNTER'][\"comments\"]"
@@ -1011,6 +1121,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"authentication-method\",\"password\"",
 	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"], .[\"Pr0v1d3Us3rPa$$W0rdH3r3!\"]",
@@ -1030,6 +1142,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"authentication-method\"",
 	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"]",
@@ -1049,6 +1163,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"authentication-method\"",
 	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"]",
@@ -1068,6 +1184,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"authentication-method\",\"radius-server.name\"",
 	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"], .[\"radius-server\"][\"name\"]",
@@ -1087,6 +1205,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"authentication-method\",\"tacacs-server.nam\"",
 	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"], .[\"tacacs-server\"][\"name\"]",
@@ -1106,6 +1226,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"authentication-method\"",
 	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"]",
@@ -1125,6 +1247,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"authentication-method\",\"password\"",
 	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"], .[\"Pr0v1d3Us3rPa$$W0rdH3r3!\"]",
@@ -1144,6 +1268,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"authentication-method\"",
 	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"]",
@@ -1163,6 +1289,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"authentication-method\"",
 	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"]",
@@ -1182,6 +1310,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"authentication-method\",\"radius-server.name\"",
 	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"], .[\"radius-server\"][\"name\"]",
@@ -1201,6 +1331,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"authentication-method\",\"tacacs-server.nam\"",
 	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"], .[\"tacacs-server\"][\"name\"]",
@@ -1220,6 +1352,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"authentication-method\"",
 	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"]",
@@ -1239,6 +1373,8 @@
 	"recommended-limit-percent" : "100%",
 	"MDSM-recommended-limit" : 200,
 	"MDSM-recommended-limit-percent" : "100%",
+	"objectspecificselector00key" : "",
+	"objectspecificselector00value" : "",
 	"sortparms" : "'-f -t , -k 1,2'",
 	"CSVFileHeader" : "\"name\",\"authentication-method\"",
 	"CSVJQparms" : ".[\"name\"], .[\"authentication-method\"]",

@@ -1,6 +1,6 @@
 # LIMITATIONS and CAVEATS
 
-## UPDATED:  2022-06-10
+## UPDATED:  2022-06-11
 
 This document outlines limitations and caveats to the implementation of R8X API export, import, set-update, and delete scripts utilizing bash mgmt_cli commands.
 
@@ -23,6 +23,13 @@ In some cases,
 Testing of all scenarios is not plausible, so issues and problems should be reported for review and potential future fix.
 
 This is a best effort development operation and benefitting of financial incentive, so missing features or capabilities might be addressed in the future, but there are zero guarantees.
+
+## LIMITATIONS and CAVEATS VERSION SPECIFIC
+
+R81.20 EA - This release has provided some issues with changes under the hood of Gaia and also some challenges in changes to the API version 1.9 handling of objects on import via mgmt_cli.
+
+- Service objects may fail to import if the values for aggressive aging set use of default timeout, but the column for timeout does not have a zero value, which might be exported because the database includes that issue.
+- User and User Template objects import has some issues that still need investigation
 
 ## LIMITATIONS and CAVEATS Authentication
 
