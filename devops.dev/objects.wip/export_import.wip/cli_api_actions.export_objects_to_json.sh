@@ -18,8 +18,8 @@
 #
 ScriptVersion=00.60.09
 ScriptRevision=020
-ScriptSubRevision=045
-ScriptDate=2022-06-11
+ScriptSubRevision=055
+ScriptDate=2022-06-12
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
@@ -281,7 +281,7 @@ CheckAPIKeepAlive () {
 # ConfigureObjectQuerySelector - Configure Object Query Selector value objectqueryselector
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-11:03 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-12:02 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ConfigureObjectQuerySelector () {
@@ -344,6 +344,15 @@ ConfigureObjectQuerySelector () {
     echo `${dtzs}`${dtzsep} '    - systemobjectdomains              :  '${systemobjectdomains} >> ${logfilepath}
     echo `${dtzs}`${dtzsep} '    - notsystemobjectselector          :  '${notsystemobjectselector} >> ${logfilepath}
     echo `${dtzs}`${dtzsep} '    - onlysystemobjectselector         :  '${onlysystemobjectselector} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - notcreatorissystemselector       :  '${notcreatorissystemselector} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - creatorissystemselector          :  '${creatorissystemselector} >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} '    - NoSystemObjects    ='${NoSystemObjects} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - OnlySystemObjects  ='${OnlySystemObjects} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - CreatorIsNotSystem ='${CreatorIsNotSystem} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - CreatorIsSystem    ='${CreatorIsSystem} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure Object Query Selector element value systemobjectqueryselectorelement
@@ -355,7 +364,7 @@ ConfigureObjectQuerySelector () {
         # Ignore System Objects
         if ${CreatorIsNotSystem} ; then
             # Ignore System Objects and no creator = System
-            export systemobjectqueryselectorelement='('${notsystemobjectselector}') and ('${notcreatorissystemselector}')'
+            export systemobjectqueryselectorelement='( '"${notsystemobjectselector}"' ) and ( '"${notcreatorissystemselector}"' )'
         else
             # Ignore System Objects
             export systemobjectqueryselectorelement=${notsystemobjectselector}
@@ -364,7 +373,7 @@ ConfigureObjectQuerySelector () {
         # Select only System Objects
         if ${CreatorIsSystem} ; then
             # select only System Objects and creator = System
-            export systemobjectqueryselectorelement='('${onlysystemobjectselector}') and ('${creatorissystemselector}')'
+            export systemobjectqueryselectorelement='( '"${onlysystemobjectselector}"' ) and ( '"${creatorissystemselector}"' )'
         else
             # select only System Objects
             export systemobjectqueryselectorelement=${onlysystemobjectselector}
@@ -376,14 +385,13 @@ ConfigureObjectQuerySelector () {
             export systemobjectqueryselectorelement=${notcreatorissystemselector}
         elif ${CreatorIsSystem} ; then
             # Include System Objects and no creator = System
-            export systemobjectqueryselectorelement=''${creatorissystemselector}
+            export systemobjectqueryselectorelement=${creatorissystemselector}
         else
             # Include System Objects
             export systemobjectqueryselectorelement=
         fi
     fi
     
-    echo `${dtzs}`${dtzsep} '    - NoSystemObjects='${NoSystemObjects}' OnlySystemObjects='${OnlySystemObjects}' CreatorIsNotSystem='${CreatorIsNotSystem}' CreatorIsSystem='${CreatorIsSystem} >> ${logfilepath}
     echo `${dtzs}`${dtzsep} '    - systemobjectqueryselectorelement :  '${systemobjectqueryselectorelement} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
@@ -395,17 +403,17 @@ ConfigureObjectQuerySelector () {
     if [ x"${objecttypeselectorelement}" != x"" ] ; then
         # ${objecttypeselectorelement} is not empty, so we have a starting selector
         export objectqueryselector='select( '
-        export objectqueryselector=${objectqueryselector}${objecttypeselectorelement}
+        export objectqueryselector=${objectqueryselector}"${objecttypeselectorelement}"
         if [ x"${systemobjectqueryselectorelement}" != x"" ] ; then
             # ${objecttypeselectorelement} is not empty, so we have a starting selector
-            export objectqueryselector=${objectqueryselector}' and '${systemobjectqueryselectorelement}
+            export objectqueryselector=${objectqueryselector}' and ( '"${systemobjectqueryselectorelement}"' )'
         fi
         export objectqueryselector=${objectqueryselector}' )'
     else
         if [ x"${systemobjectqueryselectorelement}" != x"" ] ; then
             # ${objecttypeselectorelement} is not empty, so we have a starting selector
             export objectqueryselector='select( '
-            export objectqueryselector=${objectqueryselector}${systemobjectqueryselectorelement}
+            export objectqueryselector=${objectqueryselector}"${systemobjectqueryselectorelement}"
             export objectqueryselector=${objectqueryselector}' )'
         fi
     fi
@@ -418,7 +426,7 @@ ConfigureObjectQuerySelector () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-11:03
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-12:02
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------

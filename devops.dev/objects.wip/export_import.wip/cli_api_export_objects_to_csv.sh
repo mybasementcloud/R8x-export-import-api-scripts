@@ -18,8 +18,8 @@
 #
 ScriptVersion=00.60.09
 ScriptRevision=020
-ScriptSubRevision=045
-ScriptDate=2022-06-11
+ScriptSubRevision=055
+ScriptDate=2022-06-12
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
@@ -3012,7 +3012,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # ConfigureObjectQuerySelector - Configure Object Query Selector value objectqueryselector
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-11:03 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-12:02 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ConfigureObjectQuerySelector () {
@@ -3075,6 +3075,15 @@ ConfigureObjectQuerySelector () {
     echo `${dtzs}`${dtzsep} '    - systemobjectdomains              :  '${systemobjectdomains} >> ${logfilepath}
     echo `${dtzs}`${dtzsep} '    - notsystemobjectselector          :  '${notsystemobjectselector} >> ${logfilepath}
     echo `${dtzs}`${dtzsep} '    - onlysystemobjectselector         :  '${onlysystemobjectselector} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - notcreatorissystemselector       :  '${notcreatorissystemselector} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - creatorissystemselector          :  '${creatorissystemselector} >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} '    - NoSystemObjects    ='${NoSystemObjects} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - OnlySystemObjects  ='${OnlySystemObjects} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - CreatorIsNotSystem ='${CreatorIsNotSystem} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - CreatorIsSystem    ='${CreatorIsSystem} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure Object Query Selector element value systemobjectqueryselectorelement
@@ -3086,7 +3095,7 @@ ConfigureObjectQuerySelector () {
         # Ignore System Objects
         if ${CreatorIsNotSystem} ; then
             # Ignore System Objects and no creator = System
-            export systemobjectqueryselectorelement='('${notsystemobjectselector}') and ('${notcreatorissystemselector}')'
+            export systemobjectqueryselectorelement='( '"${notsystemobjectselector}"' ) and ( '"${notcreatorissystemselector}"' )'
         else
             # Ignore System Objects
             export systemobjectqueryselectorelement=${notsystemobjectselector}
@@ -3095,7 +3104,7 @@ ConfigureObjectQuerySelector () {
         # Select only System Objects
         if ${CreatorIsSystem} ; then
             # select only System Objects and creator = System
-            export systemobjectqueryselectorelement='('${onlysystemobjectselector}') and ('${creatorissystemselector}')'
+            export systemobjectqueryselectorelement='( '"${onlysystemobjectselector}"' ) and ( '"${creatorissystemselector}"' )'
         else
             # select only System Objects
             export systemobjectqueryselectorelement=${onlysystemobjectselector}
@@ -3107,14 +3116,13 @@ ConfigureObjectQuerySelector () {
             export systemobjectqueryselectorelement=${notcreatorissystemselector}
         elif ${CreatorIsSystem} ; then
             # Include System Objects and no creator = System
-            export systemobjectqueryselectorelement=''${creatorissystemselector}
+            export systemobjectqueryselectorelement=${creatorissystemselector}
         else
             # Include System Objects
             export systemobjectqueryselectorelement=
         fi
     fi
     
-    echo `${dtzs}`${dtzsep} '    - NoSystemObjects='${NoSystemObjects}' OnlySystemObjects='${OnlySystemObjects}' CreatorIsNotSystem='${CreatorIsNotSystem}' CreatorIsSystem='${CreatorIsSystem} >> ${logfilepath}
     echo `${dtzs}`${dtzsep} '    - systemobjectqueryselectorelement :  '${systemobjectqueryselectorelement} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
@@ -3126,17 +3134,17 @@ ConfigureObjectQuerySelector () {
     if [ x"${objecttypeselectorelement}" != x"" ] ; then
         # ${objecttypeselectorelement} is not empty, so we have a starting selector
         export objectqueryselector='select( '
-        export objectqueryselector=${objectqueryselector}${objecttypeselectorelement}
+        export objectqueryselector=${objectqueryselector}"${objecttypeselectorelement}"
         if [ x"${systemobjectqueryselectorelement}" != x"" ] ; then
             # ${objecttypeselectorelement} is not empty, so we have a starting selector
-            export objectqueryselector=${objectqueryselector}' and '${systemobjectqueryselectorelement}
+            export objectqueryselector=${objectqueryselector}' and ( '"${systemobjectqueryselectorelement}"' )'
         fi
         export objectqueryselector=${objectqueryselector}' )'
     else
         if [ x"${systemobjectqueryselectorelement}" != x"" ] ; then
             # ${objecttypeselectorelement} is not empty, so we have a starting selector
             export objectqueryselector='select( '
-            export objectqueryselector=${objectqueryselector}${systemobjectqueryselectorelement}
+            export objectqueryselector=${objectqueryselector}"${systemobjectqueryselectorelement}"
             export objectqueryselector=${objectqueryselector}' )'
         fi
     fi
@@ -3149,7 +3157,7 @@ ConfigureObjectQuerySelector () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-11:03
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-12:02
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -9208,10 +9216,94 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
 # -------------------------------------------------------------------------------------------------
+# ConfigureCriteriaBasedObjectQuerySelector
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-12:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+ConfigureCriteriaBasedObjectQuerySelector () {
+    #
+    # Configure Query Selector for Criteria based exports
+    #
+    
+    errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    # Configure object criteria 01 selection query elements objecttypecriteriaselectorelement
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2022-06-11 -
+    
+    ConfigureObjectQuerySelector
+    
+    #export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" == "'"${APICLIexportcriteria01value}"'"'
+    # For the Boolean values of ${APICLIexportcriteria01value} we need to check that the text value is true or folse, to be specific
+    if [ "${APICLIexportcriteria01value}" == "true" ] ; then 
+        # The value of ${APICLIexportcriteria01value} is boolean true, so check if the value of ${APICLIexportcriteria01key} is true
+        export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'"' 
+    elif [ "${APICLIexportcriteria01value}" == "false" ] ; then 
+        # The value of ${APICLIexportcriteria01value} is boolean false, so check if the value of ${APICLIexportcriteria01key} is not true
+        export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" | not'
+    else 
+        # The value of ${APICLIexportcriteria01value} is a string, not boolean, so check if the value of ${APICLIexportcriteria01key} is the same
+        export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" == "'"${APICLIexportcriteria01value}"'"'
+    fi
+    
+    echo `${dtzs}`${dtzsep} '    - APICLIexportcriteria01value       :  '${APICLIexportcriteria01value} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - APICLIexportcriteria01value       :  '${APICLIexportcriteria01value} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    - objecttypecriteriaselectorelement :  '${objecttypecriteriaselectorelement} >> ${logfilepath}
+    
+    # We need to assemble a more complicated selection method for this
+    #
+    export userauthobjectselector='select( '
+    
+    if [ x"${objecttypeselectorelement}" != x"" ] ; then
+        #export userauthobjectselector=${userauthobjectselector}'( '"${objecttypeselectorelement}"' ) and ( '
+        export userauthobjectselector=${userauthobjectselector}'( '"${objecttypeselectorelement}"' ) and '
+    fi
+    
+    if ${NoSystemObjects} ; then
+        # Ignore System Objects
+        export userauthobjectselector=${userauthobjectselector}'( '"${systemobjectqueryselectorelement}"' ) and ( '"${objecttypecriteriaselectorelement}"' )'
+    elif ${OnlySystemObjects} ; then
+        # Ignore System Objects
+        export userauthobjectselector=${userauthobjectselector}'( '"${systemobjectqueryselectorelement}"' ) and ( '"${objecttypecriteriaselectorelement}"' )'
+    elif ${CreatorIsNotSystem} ; then
+        # Ignore System Objects
+        export userauthobjectselector=${userauthobjectselector}'( '"${systemobjectqueryselectorelement}"' ) and ( '"${objecttypecriteriaselectorelement}"' )'
+    elif ${CreatorIsSystem} ; then
+        # Ignore System Objects
+        export userauthobjectselector=${userauthobjectselector}'( '"${systemobjectqueryselectorelement}"' ) and ( '"${objecttypecriteriaselectorelement}"' )'
+    else
+        # Don't Ignore System Objects
+        export userauthobjectselector=${userauthobjectselector}'( '"${objecttypecriteriaselectorelement}"' )'
+    fi
+    
+    #if [ x"${objecttypeselectorelement}" != x"" ] ; then
+        #export userauthobjectselector=${userauthobjectselector}' )'
+    #fi
+    
+    export userauthobjectselector=${userauthobjectselector}' )'
+    
+    echo `${dtzs}`${dtzsep} '    - userauthobjectselector = ['"${userauthobjectselector}"']' >> ${logfilepath}
+    
+    return ${errorreturn}
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-06-12:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
 # ExportObjectElementCriteriaBasedToCSVviaJQ
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-11:04 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-12 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The ExportObjectElementCriteriaBasedToCSVviaJQ is the meat of the script's repeated actions.
@@ -9245,6 +9337,7 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
     
     SetupExportComplexObjectsToCSVviaJQ
     errorreturn=$?
+    
     if [ ${errorreturn} != 0 ] ; then
         # Something went wrong, terminate
         echo `${dtzs}`${dtzsep} 'Problem found in procedure SetupExportComplexObjectsToCSVviaJQ! error return = '${errorreturn} | tee -a -i ${logfilepath}
@@ -9262,66 +9355,17 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
     fi
     
     # -------------------------------------------------------------------------------------------------
-    # Configure object criteria 01 selection query elements objecttypecriteriaselectorelement
+    # Configure object criteria 01 selection query ${userauthobjectselector} 
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2022-06-11 -
+    export userauthobjectselector=
     
-    # MODIFIED 2022-04-22 - 
-    # Current alternative if more options to exclude are needed
+    ConfigureCriteriaBasedObjectQuerySelector
     
-    ConfigureObjectQuerySelector
+    # -------------------------------------------------------------------------------------------------
+    # Start processing
+    # -------------------------------------------------------------------------------------------------
     
-    #export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" == "'"${APICLIexportcriteria01value}"'"'
-    # For the Boolean values of ${APICLIexportcriteria01value} we need to check that the text value is true or folse, to be specific
-    if [ "${APICLIexportcriteria01value}" == "true" ] ; then 
-        # The value of ${APICLIexportcriteria01value} is boolean true, so check if the value of ${APICLIexportcriteria01key} is true
-        export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'"' 
-    elif [ "${APICLIexportcriteria01value}" == "false" ] ; then 
-        # The value of ${APICLIexportcriteria01value} is boolean false, so check if the value of ${APICLIexportcriteria01key} is not true
-        export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" | not'
-    else 
-        # The value of ${APICLIexportcriteria01value} is a string, not boolean, so check if the value of ${APICLIexportcriteria01key} is the same
-        export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" == "'"${APICLIexportcriteria01value}"'"'
-    fi
-    
-    echo `${dtzs}`${dtzsep} '    - APICLIexportcriteria01value       :  '${APICLIexportcriteria01value} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - APICLIexportcriteria01value       :  '${APICLIexportcriteria01value} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - objecttypecriteriaselectorelement :  '${objecttypecriteriaselectorelement} >> ${logfilepath}
-    
-    # We need to assemble a more complicated selection method for this
-    #
-    export userauthobjectselector='select( '
-    
-    if [ x"${objecttypeselectorelement}" != x"" ] ; then
-        export userauthobjectselector=${userauthobjectselector}' ( '"${objecttypeselectorelement}"' ) and ( '
-    fi
-    
-    if ${NoSystemObjects} ; then
-        # Ignore System Objects
-        export userauthobjectselector=${userauthobjectselector}'( '"${systemobjectqueryselectorelement}"' ) and ( '"${objecttypecriteriaselectorelement}"' )'
-    elif ${OnlySystemObjects} ; then
-        # Ignore System Objects
-        export userauthobjectselector=${userauthobjectselector}'( '"${systemobjectqueryselectorelement}"' ) and ( '"${objecttypecriteriaselectorelement}" ')'
-    elif ${CreatorIsNotSystem} ; then
-        # Ignore System Objects
-        export userauthobjectselector=${userauthobjectselector}'( '"${systemobjectqueryselectorelement}"' ) and ( '"${objecttypecriteriaselectorelement}" ')'
-    elif ${CreatorIsSystem} ; then
-        # Ignore System Objects
-        export userauthobjectselector=${userauthobjectselector}'( '"${systemobjectqueryselectorelement}"' ) and ( '"${objecttypecriteriaselectorelement}" ')'
-    else
-        # Don't Ignore System Objects
-        export userauthobjectselector=${userauthobjectselector}${objecttypecriteriaselectorelement}
-    fi
-    
-    if [ x"${objecttypeselectorelement}" != x"" ] ; then
-        export userauthobjectselector=${userauthobjectselector}' )'
-    fi
-    
-    export userauthobjectselector=${userauthobjectselector}' )'
-    
-    echo `${dtzs}`${dtzsep} '    - userauthobjectselector = ['"${userauthobjectselector}"']' >> ${logfilepath}
-
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '  '${APICLIcomplexobjectstype}' - Populate up to next '${WorkAPIObjectLimit}' '${APICLIobjecttype}' objects starting with object '${currentuseroffset}' of '${objectslefttoshow}' remaining!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '  '${APICLIcomplexobjectstype}' - Selection criteria '${userauthobjectselector} | tee -a -i ${logfilepath}
@@ -9532,7 +9576,7 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-11:04
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-12
 
 
 # -------------------------------------------------------------------------------------------------

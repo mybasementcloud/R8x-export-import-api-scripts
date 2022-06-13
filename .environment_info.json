@@ -2,7 +2,8 @@
 	"filetype" : "environmentment_info.api_scripts",
 	"fileversion" : "07.00.00",
 	"filerevision" : "000",
-	"filedate" : "2022-06-11",
+	"filesubrevision" : "050",
+	"filedate" : "2022-06-12",
 	"fileinformationlevel" : "000",
 	"MinCMDTemplateVersion" : "07.00.00"
 	}, 
@@ -14,15 +15,30 @@
 	"dtzs" : "date -u +%Y%m%d-%T-%Z",
 	"dtzsep" : " | "
 	},
-"example_CMD_script_details" : { 
+"CMD_script_detail" : { 
 	"ScriptType" : {
 		"Language" : "Windows_CMD",
 		"Extension" : "CMD"
 		},
 	"ScriptDate" : "2022-06-10",
-	"ScriptVersion" : "06.08.03",
-	"ScriptRevision" : "002",
-	"ScriptTweak" : "45",
-	"TemplateVersion" : "06.08.03"
+	"ScriptVersion" : "06.08.04",
+	"ScriptRevision" : "000",
+	"ScriptTweak" : "15",
+	"TemplateVersion" : "06.08.04"
+	},
+"api_script_details" : {
+	"ScriptType" : {
+		"Language" : "bash",
+		"Extension" : "sh"
+		},
+	"ScriptDate" : "2022-06-12",
+	"ScriptVersion" : "00.60.09",
+	"ScriptRevision" : "020",
+	"ScriptTweak" : "055",
+	"TemplateVersion" : "00.60.09",
+	"APISubScriptsLevel" : "010",
+	"APISubScriptsVersion" : "00.60.09",
+	"APISubScriptsRevision" : "020"
 	}
+
 }
