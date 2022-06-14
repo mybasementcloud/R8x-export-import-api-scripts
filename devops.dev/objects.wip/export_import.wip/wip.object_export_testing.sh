@@ -18,12 +18,12 @@
 #
 ScriptVersion=00.60.09
 ScriptRevision=020
-ScriptSubRevision=055
-ScriptDate=2022-06-12
+ScriptSubRevision=085
+ScriptDate=2022-06-13
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
-APISubscriptsRevision=015
+APISubscriptsRevision=020
 
 #
 
@@ -3012,7 +3012,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # ConfigureObjectQuerySelector - Configure Object Query Selector value objectqueryselector
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-12:02 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-13:03 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ConfigureObjectQuerySelector () {
@@ -3020,23 +3020,46 @@ ConfigureObjectQuerySelector () {
     
     echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} ' -- ConfigureObjectQuerySelector:' >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'XX' "${XX}" >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure specific object selection query elements
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED  -
+    # Reference Example for the new objecttype specific criteria from the criteria based exports in the complex objects
+    
+    #export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" == "'"${APICLIexportcriteria01value}"'"'
+    # For the Boolean values of ${APICLIexportcriteria01value} we need to check that the text value is true or folse, to be specific
+    #if [ "${APICLIexportcriteria01value}" == "true" ] ; then 
+        # The value of ${APICLIexportcriteria01value} is boolean true, so check if the value of ${APICLIexportcriteria01key} is true
+        #export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'"' 
+    #elif [ "${APICLIexportcriteria01value}" == "false" ] ; then 
+        # The value of ${APICLIexportcriteria01value} is boolean false, so check if the value of ${APICLIexportcriteria01key} is not true
+        #export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" | not'
+    #else 
+        # The value of ${APICLIexportcriteria01value} is a string, not boolean, so check if the value of ${APICLIexportcriteria01key} is the same
+        #export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" == "'"${APICLIexportcriteria01value}"'"'
+    #fi
+    
+    #echo `${dtzs}`${dtzsep} '    - APICLIexportcriteria01value       :  '${APICLIexportcriteria01value} >> ${logfilepath}
+    #echo `${dtzs}`${dtzsep} '    - APICLIexportcriteria01value       :  '${APICLIexportcriteria01value} >> ${logfilepath}
+    #echo `${dtzs}`${dtzsep} '    - objecttypecriteriaselectorelement :  '${objecttypecriteriaselectorelement} >> ${logfilepath}
+    
+    # MODIFIED 2022-06-13 -
     
     export objecttypeselectorelement=
     
     if [ x"${APIobjectspecificselector00key}" == x"" ] ; then
         # The value of ${APIobjectspecificselector00key} is empty
         export objecttypeselectorelement=
-    elif [ "${APIobjectspecificselector00key}" == "true" ] ; then 
-        # The value of ${APIobjectspecificselector00key} is boolean true, so check if the value of ${APICLIexportcriteria01key} is true
+    elif [ x"${APIobjectspecificselector00value}" == x"" ] ; then
+        # The value of ${APIobjectspecificselector00value} is empty
+        export objecttypeselectorelement=
+    elif [ "${APIobjectspecificselector00value}" == "true" ] ; then 
+        # The value of ${APIobjectspecificselector00value} is boolean true, so check if the value of ${APICLIexportcriteria01key} is true
         export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'"' 
-    elif [ "${APIobjectspecificselector00key}" == "false" ] ; then 
-        # The value of ${APIobjectspecificselector00key} is boolean false, so check if the value of ${APICLIexportcriteria01key} is not true
+    elif [ "${APIobjectspecificselector00value}" == "false" ] ; then 
+        # The value of ${APIobjectspecificselector00value} is boolean false, so check if the value of ${APICLIexportcriteria01key} is not true
         export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'" | not'
     else 
         # The value of ${APIobjectspecificselector00key} is a string, not boolean or empty so we assume ${APIobjectspecificselector00value} is the target value
@@ -3047,9 +3070,9 @@ ConfigureObjectQuerySelector () {
             export objecttypeselectorelement=
         fi
     fi
-    echo `${dtzs}`${dtzsep} '    - APIobjectspecificselector00key   :  '${APIobjectspecificselector00key} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - APIobjectspecificselector00value :  '${APIobjectspecificselector00value} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - objecttypeselectorelement        :  '${objecttypeselectorelement} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'APIobjectspecificselector00key' ${APIobjectspecificselector00key} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'APIobjectspecificselector00value' ${APIobjectspecificselector00value} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'objecttypeselectorelement' ${objecttypeselectorelement} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure specific query elements for system object selection
@@ -3072,18 +3095,18 @@ ConfigureObjectQuerySelector () {
     
     export creatorissystemselector='."meta-info"."creator" = "System"'
     
-    echo `${dtzs}`${dtzsep} '    - systemobjectdomains              :  '${systemobjectdomains} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - notsystemobjectselector          :  '${notsystemobjectselector} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - onlysystemobjectselector         :  '${onlysystemobjectselector} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - notcreatorissystemselector       :  '${notcreatorissystemselector} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - creatorissystemselector          :  '${creatorissystemselector} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'systemobjectdomains' ${systemobjectdomains} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'notsystemobjectselector' ${notsystemobjectselector} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'onlysystemobjectselector' ${onlysystemobjectselector} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'notcreatorissystemselector' ${notcreatorissystemselector} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'creatorissystemselector' ${creatorissystemselector} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     
-    echo `${dtzs}`${dtzsep} '    - NoSystemObjects    ='${NoSystemObjects} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - OnlySystemObjects  ='${OnlySystemObjects} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - CreatorIsNotSystem ='${CreatorIsNotSystem} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - CreatorIsSystem    ='${CreatorIsSystem} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'NoSystemObjects' ${NoSystemObjects} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'OnlySystemObjects' ${OnlySystemObjects} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'CreatorIsNotSystem' ${CreatorIsNotSystem} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'CreatorIsSystem' ${CreatorIsSystem} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure Object Query Selector element value systemobjectqueryselectorelement
@@ -3123,7 +3146,7 @@ ConfigureObjectQuerySelector () {
         fi
     fi
     
-    echo `${dtzs}`${dtzsep} '    - systemobjectqueryselectorelement :  '${systemobjectqueryselectorelement} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'systemobjectqueryselectorelement' ${systemobjectqueryselectorelement} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure Object Query Selector value objectqueryselector
@@ -3157,7 +3180,7 @@ ConfigureObjectQuerySelector () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-12:02
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-13:03
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -3812,7 +3835,7 @@ ExportObjectsToCSVviaJQ () {
     
     export domgmtcliquery=false
     
-    # MODIFIED 2022-04-29 -
+    # MODIFIED 2022-06-13 -
     if ${UseJSONRepo} ; then
         # Use of JSON Repository Enabled
         echo `${dtzs}`${dtzsep} 'Check use of JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
@@ -3821,9 +3844,19 @@ ExportObjectsToCSVviaJQ () {
             if [[ ${JSONRepoObjectsTotal} -gt 0 ]] ; then
                 # JSON Repository has content
                 if ${script_use_json_repo} ; then
-                    # Use of JSON Repository is indicated
-                    export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    # Check if we have different content in repository than expected
+                    if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
+                        # JSON Repository has the same number of objects as the management database
+                        # Use of JSON Repository is indicated
+                        export domgmtcliquery=false
+                        echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    else
+                        # JSON Repository has a differnt number of objects than the management database, 
+                        # so something definitely changed and we probably can't use the repository
+                        export domgmtcliquery=true
+                        echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
+                        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    fi
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -3840,9 +3873,19 @@ ExportObjectsToCSVviaJQ () {
             if [[ ${JSONRepoObjectsTotal} -gt 0 ]] ; then
                 # JSON Repository has content
                 if ${script_use_json_repo} ; then
-                    # Use of JSON Repository is indicated
-                    export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    # Check if we have different content in repository than expected
+                    if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
+                        # JSON Repository has the same number of objects as the management database
+                        # Use of JSON Repository is indicated
+                        export domgmtcliquery=false
+                        echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    else
+                        # JSON Repository has a differnt number of objects than the management database, 
+                        # so something definitely changed and we probably can't use the repository
+                        export domgmtcliquery=true
+                        echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
+                        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    fi
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -3861,7 +3904,7 @@ ExportObjectsToCSVviaJQ () {
                 if ${script_use_json_repo} ; then
                     # Use of JSON Repository is indicated
                     export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -3871,6 +3914,7 @@ ExportObjectsToCSVviaJQ () {
                 # JSON Repository has a differnt number of objects than the management database, 
                 # so something definitely changed and we probably can't use the repository
                 export domgmtcliquery=true
+                echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         fi
@@ -4100,13 +4144,15 @@ GetNumberOfObjectsviaJQ () {
 # CheckAPIVersionAndExecuteOperation :  Check the API Version running where we're logged in and if good execute operation
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-03-11 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-13 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CheckAPIVersionAndExecuteOperation () {
     #
     # Check the API Version running where we're logged in and if good execute operation
     #
+    
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
     
     # MODIFIED 2021-10-25 -
     
@@ -4207,13 +4253,15 @@ CheckAPIVersionAndExecuteOperation () {
     fi
     
     echo `${dtzs}`${dtzsep} 'CheckAPIVersionAndExecuteOperation procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    
     return ${errorreturn}
     
     #
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-11
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-13
 
 
 # -------------------------------------------------------------------------------------------------
@@ -5090,7 +5138,7 @@ GetArrayOfObjectsType () {
     
     export domgmtcliquery=false
     
-    # MODIFIED 2022-04-29 -
+    # MODIFIED 2022-06-13 -
     if ${UseJSONRepo} ; then
         # Use of JSON Repository Enabled
         echo `${dtzs}`${dtzsep} 'Check use of JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
@@ -5099,9 +5147,19 @@ GetArrayOfObjectsType () {
             if [[ ${JSONRepoObjectsTotal} -gt 0 ]] ; then
                 # JSON Repository has content
                 if ${script_use_json_repo} ; then
-                    # Use of JSON Repository is indicated
-                    export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    # Check if we have different content in repository than expected
+                    if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
+                        # JSON Repository has the same number of objects as the management database
+                        # Use of JSON Repository is indicated
+                        export domgmtcliquery=false
+                        echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    else
+                        # JSON Repository has a differnt number of objects than the management database, 
+                        # so something definitely changed and we probably can't use the repository
+                        export domgmtcliquery=true
+                        echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
+                        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    fi
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -5118,9 +5176,19 @@ GetArrayOfObjectsType () {
             if [[ ${JSONRepoObjectsTotal} -gt 0 ]] ; then
                 # JSON Repository has content
                 if ${script_use_json_repo} ; then
-                    # Use of JSON Repository is indicated
-                    export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    # Check if we have different content in repository than expected
+                    if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
+                        # JSON Repository has the same number of objects as the management database
+                        # Use of JSON Repository is indicated
+                        export domgmtcliquery=false
+                        echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    else
+                        # JSON Repository has a differnt number of objects than the management database, 
+                        # so something definitely changed and we probably can't use the repository
+                        export domgmtcliquery=true
+                        echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
+                        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    fi
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -5139,7 +5207,7 @@ GetArrayOfObjectsType () {
                 if ${script_use_json_repo} ; then
                     # Use of JSON Repository is indicated
                     export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -5149,6 +5217,7 @@ GetArrayOfObjectsType () {
                 # JSON Repository has a differnt number of objects than the management database, 
                 # so something definitely changed and we probably can't use the repository
                 export domgmtcliquery=true
+                echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         fi
@@ -5529,7 +5598,7 @@ CollectMembersInObjectsType () {
     
     export domgmtcliquery=false
     
-    # MODIFIED 2022-04-29 -
+    # MODIFIED 2022-06-13 -
     if ${UseJSONRepo} ; then
         # Use of JSON Repository Enabled
         echo `${dtzs}`${dtzsep} 'Check use of JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
@@ -5538,9 +5607,19 @@ CollectMembersInObjectsType () {
             if [[ ${JSONRepoObjectsTotal} -gt 0 ]] ; then
                 # JSON Repository has content
                 if ${script_use_json_repo} ; then
-                    # Use of JSON Repository is indicated
-                    export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    # Check if we have different content in repository than expected
+                    if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
+                        # JSON Repository has the same number of objects as the management database
+                        # Use of JSON Repository is indicated
+                        export domgmtcliquery=false
+                        echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    else
+                        # JSON Repository has a differnt number of objects than the management database, 
+                        # so something definitely changed and we probably can't use the repository
+                        export domgmtcliquery=true
+                        echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
+                        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    fi
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -5557,9 +5636,19 @@ CollectMembersInObjectsType () {
             if [[ ${JSONRepoObjectsTotal} -gt 0 ]] ; then
                 # JSON Repository has content
                 if ${script_use_json_repo} ; then
-                    # Use of JSON Repository is indicated
-                    export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    # Check if we have different content in repository than expected
+                    if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
+                        # JSON Repository has the same number of objects as the management database
+                        # Use of JSON Repository is indicated
+                        export domgmtcliquery=false
+                        echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    else
+                        # JSON Repository has a differnt number of objects than the management database, 
+                        # so something definitely changed and we probably can't use the repository
+                        export domgmtcliquery=true
+                        echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
+                        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    fi
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -5578,7 +5667,7 @@ CollectMembersInObjectsType () {
                 if ${script_use_json_repo} ; then
                     # Use of JSON Repository is indicated
                     export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -5588,6 +5677,7 @@ CollectMembersInObjectsType () {
                 # JSON Repository has a differnt number of objects than the management database, 
                 # so something definitely changed and we probably can't use the repository
                 export domgmtcliquery=true
+                echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         fi
@@ -5921,7 +6011,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # PopulateArrayOfHostInterfacesFromMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-05-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-13 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -5935,14 +6025,12 @@ PopulateArrayOfHostInterfacesFromMgmtDB () {
     # APICLICSVsortparms can change due to the nature of the object
     #
     
-    # MODIFIED 2022-04-22 -
+    # MODIFIED 2022-06-11 -
     
-    # System Object selection operands
-    # MODIFIED 2022-04-22 - 
-    # Current alternative if more options to exclude are needed
     ConfigureObjectQuerySelector
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} "  ${APICLIobjectstype} - Populate Array of Host Interfaces from Management Database via mgmt_cli!" | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} "  ${APICLIobjectstype} - Populate up to next ${WorkAPIObjectLimit} ${APICLIobjecttype} objects starting with object ${currenthostoffset} of ${objectslefttoshow} remaining!" | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
@@ -5968,17 +6056,9 @@ PopulateArrayOfHostInterfacesFromMgmtDB () {
     # break the string into an array - each element of the array is a line in the original string
     # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
     
-    if ${APISCRIPTVERBOSE} ; then
-        # Verbose mode ON
-        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    fi
+    echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     while read -r line; do
-        if ${APISCRIPTVERBOSE} ; then
-            # Verbose mode ON
-            echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        fi
-        
         # MODIFIED 2022-05-02 -
         if [ "${line}" == '' ]; then
             # ${line} value is nul, so skip adding to array
@@ -6049,10 +6129,13 @@ PopulateArrayOfHostInterfacesFromMgmtDB () {
         if ${APISCRIPTVERBOSE} ; then
             # Verbose mode ON
             echo | tee -a -i ${logfilepath}
+            echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         fi
         
     done <<< "${MGMT_CLI_HOSTS_STRING}"
     errorreturn=$?
+    
+    echo | tee -a -i ${logfilepath}
     
     if ${APISCRIPTVERBOSE} ; then
         # Verbose mode ON
@@ -6066,14 +6149,14 @@ PopulateArrayOfHostInterfacesFromMgmtDB () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-05-02
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-13
 
 
 # -------------------------------------------------------------------------------------------------
 # PopulateArrayOfHostInterfacesFromJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-05-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-13:02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -6095,7 +6178,7 @@ PopulateArrayOfHostInterfacesFromJSONRepository () {
     ConfigureObjectQuerySelector
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} "  ${APICLIobjectstype} - Populate up to next ${WorkAPIObjectLimit} ${APICLIobjecttype} objects starting with object ${currenthostoffset} of ${objectslefttoshow} remaining!" | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} "  ${APICLIobjectstype} - Populate Array of Host Interfaces from JSON Repository!" | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     # MGMT_CLI_HOSTS_STRING is a string with multiple lines. Each line contains a name of a host.
@@ -6120,17 +6203,9 @@ PopulateArrayOfHostInterfacesFromJSONRepository () {
     # break the string into an array - each element of the array is a line in the original string
     # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
     
-    if ${APISCRIPTVERBOSE} ; then
-        # Verbose mode ON
-        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    fi
+    echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     while read -r line; do
-        if ${APISCRIPTVERBOSE} ; then
-            # Verbose mode ON
-            echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        fi
-        
         # MODIFIED 2022-05-02 -
         if [ "${line}" == '' ]; then
             # ${line} value is nul, so skip adding to array
@@ -6140,7 +6215,7 @@ PopulateArrayOfHostInterfacesFromJSONRepository () {
             
             ALLHOSTSARR+=("${line}")
             
-            echo -n `${dtzs}`${dtzsep} '.' | tee -a -i ${logfilepath}
+            echo -n '.' | tee -a -i ${logfilepath}
             
             arraylength=${#ALLHOSTSARR[@]}
             arrayelement=$((arraylength-1))
@@ -6202,10 +6277,14 @@ PopulateArrayOfHostInterfacesFromJSONRepository () {
         if ${APISCRIPTVERBOSE} ; then
             # Verbose mode ON
             echo | tee -a -i ${logfilepath}
+            echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         fi
+        
         
     done <<< "${JSON_REPO_HOSTS_STRING}"
     errorreturn=$?
+    
+    echo | tee -a -i ${logfilepath}
     
     if ${APISCRIPTVERBOSE} ; then
         # Verbose mode ON
@@ -6219,7 +6298,7 @@ PopulateArrayOfHostInterfacesFromJSONRepository () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-05-02
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-13:02
 
 
 # -------------------------------------------------------------------------------------------------
@@ -6286,7 +6365,7 @@ GetArrayOfHostInterfaces () {
     
     export domgmtcliquery=false
     
-    # MODIFIED 2022-04-29 -
+    # MODIFIED 2022-06-13 -
     if ${UseJSONRepo} ; then
         # Use of JSON Repository Enabled
         echo `${dtzs}`${dtzsep} 'Check use of JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
@@ -6295,9 +6374,19 @@ GetArrayOfHostInterfaces () {
             if [[ ${JSONRepoObjectsTotal} -gt 0 ]] ; then
                 # JSON Repository has content
                 if ${script_use_json_repo} ; then
-                    # Use of JSON Repository is indicated
-                    export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    # Check if we have different content in repository than expected
+                    if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
+                        # JSON Repository has the same number of objects as the management database
+                        # Use of JSON Repository is indicated
+                        export domgmtcliquery=false
+                        echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    else
+                        # JSON Repository has a differnt number of objects than the management database, 
+                        # so something definitely changed and we probably can't use the repository
+                        export domgmtcliquery=true
+                        echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
+                        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    fi
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -6314,9 +6403,19 @@ GetArrayOfHostInterfaces () {
             if [[ ${JSONRepoObjectsTotal} -gt 0 ]] ; then
                 # JSON Repository has content
                 if ${script_use_json_repo} ; then
-                    # Use of JSON Repository is indicated
-                    export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    # Check if we have different content in repository than expected
+                    if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
+                        # JSON Repository has the same number of objects as the management database
+                        # Use of JSON Repository is indicated
+                        export domgmtcliquery=false
+                        echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    else
+                        # JSON Repository has a differnt number of objects than the management database, 
+                        # so something definitely changed and we probably can't use the repository
+                        export domgmtcliquery=true
+                        echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
+                        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    fi
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -6335,7 +6434,7 @@ GetArrayOfHostInterfaces () {
                 if ${script_use_json_repo} ; then
                     # Use of JSON Repository is indicated
                     export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -6345,6 +6444,7 @@ GetArrayOfHostInterfaces () {
                 # JSON Repository has a differnt number of objects than the management database, 
                 # so something definitely changed and we probably can't use the repository
                 export domgmtcliquery=true
+                echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         fi
@@ -6720,7 +6820,7 @@ CollectInterfacesInHostObjects () {
     
     export domgmtcliquery=false
     
-    # MODIFIED 2022-04-29 -
+    # MODIFIED 2022-06-13 -
     if ${UseJSONRepo} ; then
         # Use of JSON Repository Enabled
         echo `${dtzs}`${dtzsep} 'Check use of JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
@@ -6729,9 +6829,19 @@ CollectInterfacesInHostObjects () {
             if [[ ${JSONRepoObjectsTotal} -gt 0 ]] ; then
                 # JSON Repository has content
                 if ${script_use_json_repo} ; then
-                    # Use of JSON Repository is indicated
-                    export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    # Check if we have different content in repository than expected
+                    if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
+                        # JSON Repository has the same number of objects as the management database
+                        # Use of JSON Repository is indicated
+                        export domgmtcliquery=false
+                        echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    else
+                        # JSON Repository has a differnt number of objects than the management database, 
+                        # so something definitely changed and we probably can't use the repository
+                        export domgmtcliquery=true
+                        echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
+                        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    fi
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -6748,9 +6858,19 @@ CollectInterfacesInHostObjects () {
             if [[ ${JSONRepoObjectsTotal} -gt 0 ]] ; then
                 # JSON Repository has content
                 if ${script_use_json_repo} ; then
-                    # Use of JSON Repository is indicated
-                    export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    # Check if we have different content in repository than expected
+                    if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
+                        # JSON Repository has the same number of objects as the management database
+                        # Use of JSON Repository is indicated
+                        export domgmtcliquery=false
+                        echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    else
+                        # JSON Repository has a differnt number of objects than the management database, 
+                        # so something definitely changed and we probably can't use the repository
+                        export domgmtcliquery=true
+                        echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
+                        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    fi
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -6769,7 +6889,7 @@ CollectInterfacesInHostObjects () {
                 if ${script_use_json_repo} ; then
                     # Use of JSON Repository is indicated
                     export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -6779,6 +6899,7 @@ CollectInterfacesInHostObjects () {
                 # JSON Repository has a differnt number of objects than the management database, 
                 # so something definitely changed and we probably can't use the repository
                 export domgmtcliquery=true
+                echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         fi
@@ -7124,7 +7245,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # ConfigureCriteriaBasedObjectQuerySelector
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-12:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-13:02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ConfigureCriteriaBasedObjectQuerySelector () {
@@ -7133,6 +7254,8 @@ ConfigureCriteriaBasedObjectQuerySelector () {
     #
     
     errorreturn=0
+    
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'XX' "${XX}" >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure object criteria 01 selection query elements objecttypecriteriaselectorelement
@@ -7155,9 +7278,9 @@ ConfigureCriteriaBasedObjectQuerySelector () {
         export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" == "'"${APICLIexportcriteria01value}"'"'
     fi
     
-    echo `${dtzs}`${dtzsep} '    - APICLIexportcriteria01value       :  '${APICLIexportcriteria01value} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - APICLIexportcriteria01value       :  '${APICLIexportcriteria01value} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - objecttypecriteriaselectorelement :  '${objecttypecriteriaselectorelement} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'APICLIexportcriteria01key' ${APICLIexportcriteria01key} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'APICLIexportcriteria01value' ${APICLIexportcriteria01value} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'objecttypecriteriaselectorelement' ${objecttypecriteriaselectorelement} >> ${logfilepath}
     
     # We need to assemble a more complicated selection method for this
     #
@@ -7197,7 +7320,7 @@ ConfigureCriteriaBasedObjectQuerySelector () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-06-12:01
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-06-13:02
 
 
 # -------------------------------------------------------------------------------------------------
@@ -7310,7 +7433,7 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
     
     export domgmtcliquery=false
     
-    # MODIFIED 2022-04-29 -
+    # MODIFIED 2022-06-13 -
     if ${UseJSONRepo} ; then
         # Use of JSON Repository Enabled
         echo `${dtzs}`${dtzsep} 'Check use of JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
@@ -7319,9 +7442,19 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
             if [[ ${JSONRepoObjectsTotal} -gt 0 ]] ; then
                 # JSON Repository has content
                 if ${script_use_json_repo} ; then
-                    # Use of JSON Repository is indicated
-                    export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    # Check if we have different content in repository than expected
+                    if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
+                        # JSON Repository has the same number of objects as the management database
+                        # Use of JSON Repository is indicated
+                        export domgmtcliquery=false
+                        echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    else
+                        # JSON Repository has a differnt number of objects than the management database, 
+                        # so something definitely changed and we probably can't use the repository
+                        export domgmtcliquery=true
+                        echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
+                        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    fi
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -7338,9 +7471,19 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
             if [[ ${JSONRepoObjectsTotal} -gt 0 ]] ; then
                 # JSON Repository has content
                 if ${script_use_json_repo} ; then
-                    # Use of JSON Repository is indicated
-                    export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    # Check if we have different content in repository than expected
+                    if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
+                        # JSON Repository has the same number of objects as the management database
+                        # Use of JSON Repository is indicated
+                        export domgmtcliquery=false
+                        echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    else
+                        # JSON Repository has a differnt number of objects than the management database, 
+                        # so something definitely changed and we probably can't use the repository
+                        export domgmtcliquery=true
+                        echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
+                        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    fi
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -7359,7 +7502,7 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
                 if ${script_use_json_repo} ; then
                     # Use of JSON Repository is indicated
                     export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
                 else
                     # Use of JSON Repository is denied
                     export domgmtcliquery=true
@@ -7369,6 +7512,7 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
                 # JSON Repository has a differnt number of objects than the management database, 
                 # so something definitely changed and we probably can't use the repository
                 export domgmtcliquery=true
+                echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
             fi
         fi

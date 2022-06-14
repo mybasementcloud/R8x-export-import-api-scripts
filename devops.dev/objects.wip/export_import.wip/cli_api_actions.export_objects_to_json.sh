@@ -18,12 +18,12 @@
 #
 ScriptVersion=00.60.09
 ScriptRevision=020
-ScriptSubRevision=055
-ScriptDate=2022-06-12
+ScriptSubRevision=085
+ScriptDate=2022-06-13
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
-APISubscriptsRevision=015
+APISubscriptsRevision=020
 
 #
 
@@ -281,7 +281,7 @@ CheckAPIKeepAlive () {
 # ConfigureObjectQuerySelector - Configure Object Query Selector value objectqueryselector
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-12:02 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-13:03 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ConfigureObjectQuerySelector () {
@@ -289,23 +289,46 @@ ConfigureObjectQuerySelector () {
     
     echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} ' -- ConfigureObjectQuerySelector:' >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'XX' "${XX}" >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure specific object selection query elements
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED  -
+    # Reference Example for the new objecttype specific criteria from the criteria based exports in the complex objects
+    
+    #export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" == "'"${APICLIexportcriteria01value}"'"'
+    # For the Boolean values of ${APICLIexportcriteria01value} we need to check that the text value is true or folse, to be specific
+    #if [ "${APICLIexportcriteria01value}" == "true" ] ; then 
+        # The value of ${APICLIexportcriteria01value} is boolean true, so check if the value of ${APICLIexportcriteria01key} is true
+        #export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'"' 
+    #elif [ "${APICLIexportcriteria01value}" == "false" ] ; then 
+        # The value of ${APICLIexportcriteria01value} is boolean false, so check if the value of ${APICLIexportcriteria01key} is not true
+        #export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" | not'
+    #else 
+        # The value of ${APICLIexportcriteria01value} is a string, not boolean, so check if the value of ${APICLIexportcriteria01key} is the same
+        #export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" == "'"${APICLIexportcriteria01value}"'"'
+    #fi
+    
+    #echo `${dtzs}`${dtzsep} '    - APICLIexportcriteria01value       :  '${APICLIexportcriteria01value} >> ${logfilepath}
+    #echo `${dtzs}`${dtzsep} '    - APICLIexportcriteria01value       :  '${APICLIexportcriteria01value} >> ${logfilepath}
+    #echo `${dtzs}`${dtzsep} '    - objecttypecriteriaselectorelement :  '${objecttypecriteriaselectorelement} >> ${logfilepath}
+    
+    # MODIFIED 2022-06-13 -
     
     export objecttypeselectorelement=
     
     if [ x"${APIobjectspecificselector00key}" == x"" ] ; then
         # The value of ${APIobjectspecificselector00key} is empty
         export objecttypeselectorelement=
-    elif [ "${APIobjectspecificselector00key}" == "true" ] ; then 
-        # The value of ${APIobjectspecificselector00key} is boolean true, so check if the value of ${APICLIexportcriteria01key} is true
+    elif [ x"${APIobjectspecificselector00value}" == x"" ] ; then
+        # The value of ${APIobjectspecificselector00value} is empty
+        export objecttypeselectorelement=
+    elif [ "${APIobjectspecificselector00value}" == "true" ] ; then 
+        # The value of ${APIobjectspecificselector00value} is boolean true, so check if the value of ${APICLIexportcriteria01key} is true
         export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'"' 
-    elif [ "${APIobjectspecificselector00key}" == "false" ] ; then 
-        # The value of ${APIobjectspecificselector00key} is boolean false, so check if the value of ${APICLIexportcriteria01key} is not true
+    elif [ "${APIobjectspecificselector00value}" == "false" ] ; then 
+        # The value of ${APIobjectspecificselector00value} is boolean false, so check if the value of ${APICLIexportcriteria01key} is not true
         export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'" | not'
     else 
         # The value of ${APIobjectspecificselector00key} is a string, not boolean or empty so we assume ${APIobjectspecificselector00value} is the target value
@@ -316,9 +339,9 @@ ConfigureObjectQuerySelector () {
             export objecttypeselectorelement=
         fi
     fi
-    echo `${dtzs}`${dtzsep} '    - APIobjectspecificselector00key   :  '${APIobjectspecificselector00key} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - APIobjectspecificselector00value :  '${APIobjectspecificselector00value} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - objecttypeselectorelement        :  '${objecttypeselectorelement} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'APIobjectspecificselector00key' ${APIobjectspecificselector00key} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'APIobjectspecificselector00value' ${APIobjectspecificselector00value} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'objecttypeselectorelement' ${objecttypeselectorelement} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure specific query elements for system object selection
@@ -341,18 +364,18 @@ ConfigureObjectQuerySelector () {
     
     export creatorissystemselector='."meta-info"."creator" = "System"'
     
-    echo `${dtzs}`${dtzsep} '    - systemobjectdomains              :  '${systemobjectdomains} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - notsystemobjectselector          :  '${notsystemobjectselector} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - onlysystemobjectselector         :  '${onlysystemobjectselector} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - notcreatorissystemselector       :  '${notcreatorissystemselector} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - creatorissystemselector          :  '${creatorissystemselector} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'systemobjectdomains' ${systemobjectdomains} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'notsystemobjectselector' ${notsystemobjectselector} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'onlysystemobjectselector' ${onlysystemobjectselector} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'notcreatorissystemselector' ${notcreatorissystemselector} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'creatorissystemselector' ${creatorissystemselector} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     
-    echo `${dtzs}`${dtzsep} '    - NoSystemObjects    ='${NoSystemObjects} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - OnlySystemObjects  ='${OnlySystemObjects} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - CreatorIsNotSystem ='${CreatorIsNotSystem} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '    - CreatorIsSystem    ='${CreatorIsSystem} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'NoSystemObjects' ${NoSystemObjects} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'OnlySystemObjects' ${OnlySystemObjects} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'CreatorIsNotSystem' ${CreatorIsNotSystem} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'CreatorIsSystem' ${CreatorIsSystem} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure Object Query Selector element value systemobjectqueryselectorelement
@@ -392,7 +415,7 @@ ConfigureObjectQuerySelector () {
         fi
     fi
     
-    echo `${dtzs}`${dtzsep} '    - systemobjectqueryselectorelement :  '${systemobjectqueryselectorelement} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'systemobjectqueryselectorelement' ${systemobjectqueryselectorelement} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure Object Query Selector value objectqueryselector
@@ -426,7 +449,7 @@ ConfigureObjectQuerySelector () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-12:02
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-13:03
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -1486,11 +1509,14 @@ ExportRAWObjectToJSON () {
 # CheckAPIVersionAndExecuteOperation :  Check the API Version running where we're logged in and if good execute operation
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-03-11 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-13 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CheckAPIVersionAndExecuteOperation () {
     #
+    
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    
     GetAPIVersion=$(mgmt_cli show api-versions -f json -s ${APICLIsessionfile} | ${JQ} '.["current-version"]' -r)
     export CheckAPIVersion=${GetAPIVersion}
     
@@ -1581,13 +1607,15 @@ CheckAPIVersionAndExecuteOperation () {
     fi
     
     echo `${dtzs}`${dtzsep} 'CheckAPIVersionAndExecuteOperation procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    
     return ${errorreturn}
     
     #
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-11
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-13
 
 
 # -------------------------------------------------------------------------------------------------

@@ -2,8 +2,8 @@
 	"filetype" : "environmentment_info.api_scripts",
 	"fileversion" : "07.00.00",
 	"filerevision" : "000",
-	"filesubrevision" : "050",
-	"filedate" : "2022-06-12",
+	"filesubrevision" : "085",
+	"filedate" : "2022-06-13",
 	"fileinformationlevel" : "000",
 	"MinCMDTemplateVersion" : "07.00.00"
 	}, 
@@ -31,10 +31,10 @@
 		"Language" : "bash",
 		"Extension" : "sh"
 		},
-	"ScriptDate" : "2022-06-12",
+	"ScriptDate" : "2022-06-13",
 	"ScriptVersion" : "00.60.09",
 	"ScriptRevision" : "020",
-	"ScriptTweak" : "055",
+	"ScriptTweak" : "085",
 	"TemplateVersion" : "00.60.09",
 	"APISubScriptsLevel" : "010",
 	"APISubScriptsVersion" : "00.60.09",

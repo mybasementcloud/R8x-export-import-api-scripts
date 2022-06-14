@@ -18,12 +18,12 @@
 #
 ScriptVersion=00.60.09
 ScriptRevision=020
-ScriptSubRevision=055
-ScriptDate=2022-06-12
+ScriptSubRevision=085
+ScriptDate=2022-06-13
 TemplateVersion=00.60.09
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.09
-APISubscriptsRevision=015
+APISubscriptsRevision=020
 
 #
 
@@ -2678,17 +2678,21 @@ ProcessCommandLineParametersAndSetValues () {
                     ;;
                 --NSO | --no-system-objects )
                     CLIparm_NoSystemObjects=true
-                    CLIparm_CreatorIsNotSystem=true
+                    CLIparm_OnlySystemObjects=false
+                    #CLIparm_CreatorIsNotSystem=true
                     ;;
                 --OSO | --only-system-objects )
                     CLIparm_OnlySystemObjects=true
-                    CLIparm_CreatorIsSystemm=true
+                    CLIparm_NoSystemObjects=false
+                    #CLIparm_CreatorIsSystemm=true
                     ;;
                 --CREATORISNOTSYSTEM | --NOSYS )
                     CLIparm_CreatorIsNotSystem=true
+                    CLIparm_CreatorIsSystemm=false
                     ;;
                 --CREATORISSYSTEM )
                     CLIparm_CreatorIsSystemm=true
+                    CLIparm_CreatorIsNotSystem=false
                     ;;
                 --CSVERR | --CSVADDEXPERRHANDLE )
                     CLIparm_CSVADDEXPERRHANDLE=true
