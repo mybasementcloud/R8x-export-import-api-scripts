@@ -1,8 +1,8 @@
 { "file_meta_info" : {
-	"fileversion" : "0.60.9",
-	"filerevision" : "020",
-	"filesubrevision" : "085",
-	"filedate" : "2022-06-13"
+	"fileversion" : "0.60.10",
+	"filerevision" : "000",
+	"filesubrevision" : "060",
+	"filedate" : "2022-06-17"
 }, 
 "testing_meta_info" : {
 	"testrevision" : "0090",

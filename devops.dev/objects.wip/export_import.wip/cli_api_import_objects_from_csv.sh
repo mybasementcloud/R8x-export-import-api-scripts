@@ -16,14 +16,15 @@
 # SCRIPT Object import using CSV file for API CLI Operations
 #
 #
-ScriptVersion=00.60.09
-ScriptRevision=020
-ScriptSubRevision=085
-ScriptDate=2022-06-13
-TemplateVersion=00.60.09
+ScriptVersion=00.60.10
+ScriptRevision=000
+ScriptSubRevision=060
+ScriptDate=2022-06-18
+TemplateVersion=00.60.10
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.09
-APISubscriptsRevision=020
+APISubscriptsVersion=00.60.10
+APISubscriptsRevision=000
+
 
 #
 
@@ -1103,19 +1104,20 @@ export CLIparm_NOHUPPATH=
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
-# MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
 # Specific Scripts Command Line Parameters
 #
 # --type-of-export <export_type> | --type-of-export=<export_type>
-#  Supported <export_type> values for export to CSV :  <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">
+#  Supported <export_type> values for export to CSV :  <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name"|"name-for-delete">
 #    "standard" {DEFAULT} :  Standard Export of all supported object key values
 #    "name-only"          :  Export of just the name key value for object
 #    "name-and-uid"       :  Export of name and uid key value for object
 #    "uid-only"           :  Export of just the uid key value of objects
 #    "rename-to-new-name" :  Export of name key value for object rename
+#    "name-for-delete"    :  Export of name key value for object delete also sets other settings needed for clean delete control CSV
 #    For an export for a delete operation via CSV, use "name-only"
 #
 # -f <format[all|csv|json]> | --format <format[all|csv|json]> | -f=<format[all|csv|json]> | --format=<format[all|csv|json]> 
@@ -1165,10 +1167,11 @@ export CLIparm_NOHUPPATH=
 #  export_type :  <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">
 #      For an export for a delete operation via CSV, use "name-only"
 #
-#export TypeOfExport="standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name"
+#export TypeOfExport="standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name|"name-for-delete""
 export TypeOfExport="standard"
 export CLIparm_TypeOfExport=${TypeOfExport}
 export ExportTypeIsStandard=true
+export ExportTypeIsName4Delete=false
 
 # ADDED 2020-11-23 -
 # Define output format from all, csv, or json
@@ -1391,7 +1394,7 @@ export CLIparm_importpath=
 export CLIparm_deletepath=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-18
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3557,6 +3560,44 @@ CheckAPIVersionAndExecuteOperation
 # tacacs-server objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."server-type"'
+export APIobjectspecificselector00value="TACACS"
+export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=tacacs-server
+export APICLIobjectstype=tacacs-servers
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=TACACS_only
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."server-type"'
+export APIobjectspecificselector00value="TACACS_PLUS_"
+export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=tacacs-server
+export APICLIobjectstype=tacacs-servers
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=TACACSplus_only
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
@@ -3648,6 +3689,46 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # services-tcp objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-tcp
+export APICLIobjectstype=services-tcp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=using_default_timout
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-tcp
+export APICLIobjectstype=services-tcp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=not_using_default_timout
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
@@ -3658,15 +3739,55 @@ export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
 export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
 # services-udp objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-udp
+export APICLIobjectstype=services-udp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=using_default_timout
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-udp
+export APICLIobjectstype=services-udp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=not_using_default_timout
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
@@ -3677,9 +3798,9 @@ export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
 export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3724,6 +3845,46 @@ CheckAPIVersionAndExecuteOperation
 # services-sctp objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-sctp
+export APICLIobjectstype=services-sctp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=using_default_timout
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-sctp
+export APICLIobjectstype=services-sctp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=not_using_default_timout
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
@@ -3734,15 +3895,55 @@ export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
 export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
 # services-other objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-other
+export APICLIobjectstype=services-other
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=using_default_timout
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-other
+export APICLIobjectstype=services-other
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=not_using_default_timout
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
@@ -3753,9 +3954,9 @@ export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
 export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
-CheckAPIVersionAndExecuteOperation
+#CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
@@ -4066,6 +4267,52 @@ CheckAPIVersionAndExecuteOperation
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Updatable Objects
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# ADDED 2022-06-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Updatable Objects' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2022-06-16
+
+# ADDED 2022-06-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# updatable-objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APIobjectminversion=1.3
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=updatable-object
+export APICLIobjectstype=updatable-objects
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2022-06-16
 
 
 # -------------------------------------------------------------------------------------------------

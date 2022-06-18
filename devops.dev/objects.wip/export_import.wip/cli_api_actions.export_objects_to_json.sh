@@ -16,14 +16,14 @@
 # SCRIPT Object dump to JSON action operations for API CLI Operations
 #
 #
-ScriptVersion=00.60.09
-ScriptRevision=020
-ScriptSubRevision=085
-ScriptDate=2022-06-13
-TemplateVersion=00.60.09
+ScriptVersion=00.60.10
+ScriptRevision=000
+ScriptSubRevision=060
+ScriptDate=2022-06-18
+TemplateVersion=00.60.10
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.09
-APISubscriptsRevision=020
+APISubscriptsVersion=00.60.10
+APISubscriptsRevision=000
 
 #
 
@@ -281,7 +281,7 @@ CheckAPIKeepAlive () {
 # ConfigureObjectQuerySelector - Configure Object Query Selector value objectqueryselector
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-13:03 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-18:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ConfigureObjectQuerySelector () {
@@ -290,6 +290,7 @@ ConfigureObjectQuerySelector () {
     echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} ' -- ConfigureObjectQuerySelector:' >> ${logfilepath}
     #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'XX' "${XX}" >> ${logfilepath}
+    #echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'XX' ' : ' >> ${logfilepath} ; echo ${XX} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure specific object selection query elements
@@ -326,22 +327,28 @@ ConfigureObjectQuerySelector () {
         export objecttypeselectorelement=
     elif [ "${APIobjectspecificselector00value}" == "true" ] ; then 
         # The value of ${APIobjectspecificselector00value} is boolean true, so check if the value of ${APICLIexportcriteria01key} is true
-        export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'"' 
+        #export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'"' 
+        export objecttypeselectorelement=${APIobjectspecificselector00key}
     elif [ "${APIobjectspecificselector00value}" == "false" ] ; then 
         # The value of ${APIobjectspecificselector00value} is boolean false, so check if the value of ${APICLIexportcriteria01key} is not true
-        export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'" | not'
+        #export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'" | not'
+        export objecttypeselectorelement=${APIobjectspecificselector00key}' | not'
     else 
         # The value of ${APIobjectspecificselector00key} is a string, not boolean or empty so we assume ${APIobjectspecificselector00value} is the target value
         if [ x"${APIobjectspecificselector00value}" != x"" ] ; then
-            export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'" == "'"${APIobjectspecificselector00value}"'"'
+            #export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'" == "'"${APIobjectspecificselector00value}"'"'
+            export objecttypeselectorelement=${APIobjectspecificselector00key}' == "'"${APIobjectspecificselector00value}"'"'
         else
             echo `${dtzs}`${dtzsep} ' -- APIobjectspecificselector00key Passed EMPTY!' >> ${logfilepath}
             export objecttypeselectorelement=
         fi
     fi
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'APIobjectspecificselector00key' ${APIobjectspecificselector00key} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'APIobjectspecificselector00value' ${APIobjectspecificselector00value} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'objecttypeselectorelement' ${objecttypeselectorelement} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'APIobjectspecificselector00key' ${APIobjectspecificselector00key} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'APIobjectspecificselector00value' ${APIobjectspecificselector00value} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'objecttypeselectorelement' ${objecttypeselectorelement} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'APIobjectspecificselector00key' ' : ' >> ${logfilepath} ; echo ${APIobjectspecificselector00key} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'APIobjectspecificselector00value' ' : ' >> ${logfilepath} ; echo ${APIobjectspecificselector00value} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'objecttypeselectorelement' ' : ' >> ${logfilepath} ; echo ${objecttypeselectorelement} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure specific query elements for system object selection
@@ -364,18 +371,23 @@ ConfigureObjectQuerySelector () {
     
     export creatorissystemselector='."meta-info"."creator" = "System"'
     
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'systemobjectdomains' ${systemobjectdomains} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'notsystemobjectselector' ${notsystemobjectselector} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'onlysystemobjectselector' ${onlysystemobjectselector} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'notcreatorissystemselector' ${notcreatorissystemselector} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'creatorissystemselector' ${creatorissystemselector} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'systemobjectdomains' ${systemobjectdomains} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'notsystemobjectselector' ${notsystemobjectselector} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'onlysystemobjectselector' ${onlysystemobjectselector} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'notcreatorissystemselector' ${notcreatorissystemselector} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'creatorissystemselector' ${creatorissystemselector} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'systemobjectdomains' ' : ' >> ${logfilepath} ; echo ${systemobjectdomains} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'notsystemobjectselector' ' : ' >> ${logfilepath} ; echo ${notsystemobjectselector} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'onlysystemobjectselector' ' : ' >> ${logfilepath} ; echo ${onlysystemobjectselector} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'notcreatorissystemselector' ' : ' >> ${logfilepath} ; echo ${notcreatorissystemselector} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'creatorissystemselector' ' : ' >> ${logfilepath} ; echo ${creatorissystemselector} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'NoSystemObjects' ${NoSystemObjects} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'OnlySystemObjects' ${OnlySystemObjects} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'CreatorIsNotSystem' ${CreatorIsNotSystem} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'CreatorIsSystem' ${CreatorIsSystem} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s  : %s\n" 'NoSystemObjects' ${NoSystemObjects} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s  : %s\n" 'OnlySystemObjects' ${OnlySystemObjects} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s  : %s\n" 'CreatorIsNotSystem' ${CreatorIsNotSystem} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s  : %s\n" 'CreatorIsSystem' ${CreatorIsSystem} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure Object Query Selector element value systemobjectqueryselectorelement
@@ -415,21 +427,26 @@ ConfigureObjectQuerySelector () {
         fi
     fi
     
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'systemobjectqueryselectorelement' ${systemobjectqueryselectorelement} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'systemobjectqueryselectorelement' ${systemobjectqueryselectorelement} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'systemobjectqueryselectorelement' ' : ' >> ${logfilepath} ; echo ${systemobjectqueryselectorelement} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure Object Query Selector value objectqueryselector
     # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2022-06-18 -
     
     export objectqueryselector=
     
     if [ x"${objecttypeselectorelement}" != x"" ] ; then
         # ${objecttypeselectorelement} is not empty, so we have a starting selector
         export objectqueryselector='select( '
-        export objectqueryselector=${objectqueryselector}"${objecttypeselectorelement}"
         if [ x"${systemobjectqueryselectorelement}" != x"" ] ; then
             # ${objecttypeselectorelement} is not empty, so we have a starting selector
+            export objectqueryselector=${objectqueryselector}'( '"${objecttypeselectorelement}"' )'
             export objectqueryselector=${objectqueryselector}' and ( '"${systemobjectqueryselectorelement}"' )'
+        else
+            export objectqueryselector=${objectqueryselector}"${objecttypeselectorelement}"
         fi
         export objectqueryselector=${objectqueryselector}' )'
     else
@@ -449,7 +466,7 @@ ConfigureObjectQuerySelector () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-13:03
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-18:01
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -1172,6 +1189,9 @@ ExportRAWObjectToJSON () {
             
             # MODIFIED  -
             
+            # MODIFIED 2022-06-17
+            #
+            
             if ${NoSystemObjects} ; then
                 # Ignore System Objects
                 if ${APISCRIPTVERBOSE} ; then
@@ -1190,6 +1210,20 @@ ExportRAWObjectToJSON () {
                 # Select only System Objects
                 if ${APISCRIPTVERBOSE} ; then
                     echo `${dtzs}`${dtzsep} '      Only System Objects.  Selector = '${objectqueryselector} | tee -a -i ${logfilepath}
+                fi
+                
+                cat ${APICLIJSONfilelast} | ${JQ} '.objects[] | '"${objectqueryselector}" > ${APICLIfileexport}
+                errorreturn=$?
+                
+                if [ ${errorreturn} != 0 ] ; then
+                    # Something went wrong, terminate
+                    echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                    return ${errorreturn}
+                fi
+            elif [ x"${objectqueryselector}" != x"" ] ; then
+                # Don't forget to handle cases where object types need selection criteria handled
+                if ${APISCRIPTVERBOSE} ; then
+                    echo `${dtzs}`${dtzsep} '      Selected objects based on object type criteria' | tee -a -i ${logfilepath}
                 fi
                 
                 cat ${APICLIJSONfilelast} | ${JQ} '.objects[] | '"${objectqueryselector}" > ${APICLIfileexport}
@@ -2127,6 +2161,44 @@ CheckAPIVersionAndExecuteOperation
 # tacacs-server objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."server-type"'
+export APIobjectspecificselector00value="TACACS"
+export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=tacacs-server
+export APICLIobjectstype=tacacs-servers
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=TACACS_only
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."server-type"'
+export APIobjectspecificselector00value="TACACS_PLUS_"
+export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=tacacs-server
+export APICLIobjectstype=tacacs-servers
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=TACACSplus_only
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
@@ -2218,6 +2290,46 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # services-tcp objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-tcp
+export APICLIobjectstype=services-tcp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=using_default_timout
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-tcp
+export APICLIobjectstype=services-tcp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=not_using_default_timout
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
@@ -2237,6 +2349,46 @@ CheckAPIVersionAndExecuteOperation
 # services-udp objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-udp
+export APICLIobjectstype=services-udp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=using_default_timout
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-udp
+export APICLIobjectstype=services-udp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=not_using_default_timout
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
@@ -2294,6 +2446,46 @@ CheckAPIVersionAndExecuteOperation
 # services-sctp objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-sctp
+export APICLIobjectstype=services-sctp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=using_default_timout
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-sctp
+export APICLIobjectstype=services-sctp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=not_using_default_timout
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
@@ -2313,6 +2505,46 @@ CheckAPIVersionAndExecuteOperation
 # services-other objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-other
+export APICLIobjectstype=services-other
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=using_default_timout
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-other
+export APICLIobjectstype=services-other
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=not_using_default_timout
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
@@ -2617,6 +2849,76 @@ CheckAPIVersionAndExecuteOperation
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Updatable Objects
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# ADDED 2022-06-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Updatable Objects' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2022-06-16
+
+# ADDED 2022-06-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# updatable-objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APIobjectminversion=1.3
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=updatable-object
+export APICLIobjectstype=updatable-objects
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2022-06-16
+
+# ADDED 2022-06-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# updatable-objects-repository-content - Reference information
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APIobjectminversion=1.3
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=updatable-objects-repository-content
+export APICLIobjectstype=updatable-objects-repository-content
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=REFERENCE
+
+CheckAPIVersionAndExecuteOperation
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2022-06-16
 
 
 # -------------------------------------------------------------------------------------------------

@@ -16,14 +16,14 @@
 # Testing schema for SMS
 #
 #
-ScriptVersion=00.60.09
-ScriptRevision=020
-ScriptSubRevision=085
-ScriptDate=2022-06-13
-TemplateVersion=00.60.09
+ScriptVersion=00.60.10
+ScriptRevision=000
+ScriptSubRevision=060
+ScriptDate=2022-06-18
+TemplateVersion=00.60.10
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.09
-APISubscriptsRevision=020
+APISubscriptsVersion=00.60.10
+APISubscriptsRevision=000
 
 #
 
@@ -65,5 +65,5 @@ exit 0
 ./cli_api_export_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --NSO --CSVERR -t "name-and-uid"
 ./cli_api_export_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --NSO --CSVERR -t "uid-only"
 ./cli_api_export_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --NSO --CSVERR -t "rename-to-new-name"
-
+./cli_api_export_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO -t 'name-for-delete'
 

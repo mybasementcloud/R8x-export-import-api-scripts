@@ -16,14 +16,15 @@
 # SCRIPT test reading json export objects definition file
 #
 #
-ScriptVersion=00.60.09
-ScriptRevision=020
-ScriptSubRevision=085
-ScriptDate=2022-06-13
-TemplateVersion=00.60.09
+ScriptVersion=00.60.10
+ScriptRevision=000
+ScriptSubRevision=060
+ScriptDate=2022-06-18
+TemplateVersion=00.60.10
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.09
-APISubscriptsRevision=020
+APISubscriptsVersion=00.60.10
+APISubscriptsRevision=000
+
 
 #
 

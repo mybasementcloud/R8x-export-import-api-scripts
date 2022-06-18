@@ -16,14 +16,14 @@
 # SCRIPT Object dump to CSV action operations for API CLI Operations
 #
 #
-ScriptVersion=00.60.09
-ScriptRevision=020
-ScriptSubRevision=085
-ScriptDate=2022-06-13
-TemplateVersion=00.60.09
+ScriptVersion=00.60.10
+ScriptRevision=000
+ScriptSubRevision=060
+ScriptDate=2022-06-18
+TemplateVersion=00.60.10
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.09
-APISubscriptsRevision=020
+APISubscriptsVersion=00.60.10
+APISubscriptsRevision=000
 
 #
 
@@ -593,7 +593,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # ConfigureObjectQuerySelector - Configure Object Query Selector value objectqueryselector
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-13:03 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-18:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ConfigureObjectQuerySelector () {
@@ -602,6 +602,7 @@ ConfigureObjectQuerySelector () {
     echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} ' -- ConfigureObjectQuerySelector:' >> ${logfilepath}
     #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'XX' "${XX}" >> ${logfilepath}
+    #echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'XX' ' : ' >> ${logfilepath} ; echo ${XX} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure specific object selection query elements
@@ -638,22 +639,28 @@ ConfigureObjectQuerySelector () {
         export objecttypeselectorelement=
     elif [ "${APIobjectspecificselector00value}" == "true" ] ; then 
         # The value of ${APIobjectspecificselector00value} is boolean true, so check if the value of ${APICLIexportcriteria01key} is true
-        export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'"' 
+        #export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'"' 
+        export objecttypeselectorelement=${APIobjectspecificselector00key}
     elif [ "${APIobjectspecificselector00value}" == "false" ] ; then 
         # The value of ${APIobjectspecificselector00value} is boolean false, so check if the value of ${APICLIexportcriteria01key} is not true
-        export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'" | not'
+        #export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'" | not'
+        export objecttypeselectorelement=${APIobjectspecificselector00key}' | not'
     else 
         # The value of ${APIobjectspecificselector00key} is a string, not boolean or empty so we assume ${APIobjectspecificselector00value} is the target value
         if [ x"${APIobjectspecificselector00value}" != x"" ] ; then
-            export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'" == "'"${APIobjectspecificselector00value}"'"'
+            #export objecttypeselectorelement='."'"${APIobjectspecificselector00key}"'" == "'"${APIobjectspecificselector00value}"'"'
+            export objecttypeselectorelement=${APIobjectspecificselector00key}' == "'"${APIobjectspecificselector00value}"'"'
         else
             echo `${dtzs}`${dtzsep} ' -- APIobjectspecificselector00key Passed EMPTY!' >> ${logfilepath}
             export objecttypeselectorelement=
         fi
     fi
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'APIobjectspecificselector00key' ${APIobjectspecificselector00key} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'APIobjectspecificselector00value' ${APIobjectspecificselector00value} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'objecttypeselectorelement' ${objecttypeselectorelement} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'APIobjectspecificselector00key' ${APIobjectspecificselector00key} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'APIobjectspecificselector00value' ${APIobjectspecificselector00value} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'objecttypeselectorelement' ${objecttypeselectorelement} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'APIobjectspecificselector00key' ' : ' >> ${logfilepath} ; echo ${APIobjectspecificselector00key} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'APIobjectspecificselector00value' ' : ' >> ${logfilepath} ; echo ${APIobjectspecificselector00value} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'objecttypeselectorelement' ' : ' >> ${logfilepath} ; echo ${objecttypeselectorelement} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure specific query elements for system object selection
@@ -676,18 +683,23 @@ ConfigureObjectQuerySelector () {
     
     export creatorissystemselector='."meta-info"."creator" = "System"'
     
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'systemobjectdomains' ${systemobjectdomains} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'notsystemobjectselector' ${notsystemobjectselector} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'onlysystemobjectselector' ${onlysystemobjectselector} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'notcreatorissystemselector' ${notcreatorissystemselector} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'creatorissystemselector' ${creatorissystemselector} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'systemobjectdomains' ${systemobjectdomains} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'notsystemobjectselector' ${notsystemobjectselector} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'onlysystemobjectselector' ${onlysystemobjectselector} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'notcreatorissystemselector' ${notcreatorissystemselector} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'creatorissystemselector' ${creatorissystemselector} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'systemobjectdomains' ' : ' >> ${logfilepath} ; echo ${systemobjectdomains} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'notsystemobjectselector' ' : ' >> ${logfilepath} ; echo ${notsystemobjectselector} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'onlysystemobjectselector' ' : ' >> ${logfilepath} ; echo ${onlysystemobjectselector} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'notcreatorissystemselector' ' : ' >> ${logfilepath} ; echo ${notcreatorissystemselector} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'creatorissystemselector' ' : ' >> ${logfilepath} ; echo ${creatorissystemselector} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'NoSystemObjects' ${NoSystemObjects} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'OnlySystemObjects' ${OnlySystemObjects} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'CreatorIsNotSystem' ${CreatorIsNotSystem} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'CreatorIsSystem' ${CreatorIsSystem} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s  : %s\n" 'NoSystemObjects' ${NoSystemObjects} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s  : %s\n" 'OnlySystemObjects' ${OnlySystemObjects} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s  : %s\n" 'CreatorIsNotSystem' ${CreatorIsNotSystem} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s  : %s\n" 'CreatorIsSystem' ${CreatorIsSystem} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure Object Query Selector element value systemobjectqueryselectorelement
@@ -727,21 +739,26 @@ ConfigureObjectQuerySelector () {
         fi
     fi
     
-    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'systemobjectqueryselectorelement' ${systemobjectqueryselectorelement} >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'systemobjectqueryselectorelement' ${systemobjectqueryselectorelement} >> ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'systemobjectqueryselectorelement' ' : ' >> ${logfilepath} ; echo ${systemobjectqueryselectorelement} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure Object Query Selector value objectqueryselector
     # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2022-06-18 -
     
     export objectqueryselector=
     
     if [ x"${objecttypeselectorelement}" != x"" ] ; then
         # ${objecttypeselectorelement} is not empty, so we have a starting selector
         export objectqueryselector='select( '
-        export objectqueryselector=${objectqueryselector}"${objecttypeselectorelement}"
         if [ x"${systemobjectqueryselectorelement}" != x"" ] ; then
             # ${objecttypeselectorelement} is not empty, so we have a starting selector
+            export objectqueryselector=${objectqueryselector}'( '"${objecttypeselectorelement}"' )'
             export objectqueryselector=${objectqueryselector}' and ( '"${systemobjectqueryselectorelement}"' )'
+        else
+            export objectqueryselector=${objectqueryselector}"${objecttypeselectorelement}"
         fi
         export objectqueryselector=${objectqueryselector}' )'
     else
@@ -761,7 +778,7 @@ ConfigureObjectQuerySelector () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-13:03
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-18:01
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -1000,7 +1017,7 @@ FinalizeExportObjectsToCSVviaJQ () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2022-05-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-17 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The StandardExportCSVandJQParameters handles standard configuration of the CSV and JQ export parameters.
@@ -1011,28 +1028,58 @@ StandardExportCSVandJQParameters () {
     
     errorreturn=0
     
-    # MODIFIED 2021-01-18 -
+    # MODIFIED 2022-06-17 -
     #
-    # The standard output for each CSV is name, color, comments block, by default.  This
-    # object data exists for all objects, plus the UID.  In the future there may be  more
+    # The standard output for most CSV is name, color, comments block, by default.  This
+    # object data exists for almost all objects, plus the UID.  In the future there may be  more
     # CLI Parameter controls provided to just dump the name, name & UID, or just UID 
     # instead of the full dump of values.  These are useful for things like delete operations
     #
+    export CSVParmsIncludeName=true
+    case "${APICLIobjectstype}" in
+        'updatable-objects' )
+            export CSVParmsIncludeName=false
+            ;;
+        # Anything unknown is recorded for later
+        * )
+            export CSVParmsIncludeName=true
+            ;;
+    esac
     
-    if [ x"${CSVFileHeader}" != x"" ] ; then
-        # CSVFileHeader is NOT blank or empty
-        export CSVFileHeader='"name","color","comments",'${CSVFileHeader}
+    if ${CSVParmsIncludeName} ; then
+        # The object type has "name" parameter for export / import
+        if [ x"${CSVFileHeader}" != x"" ] ; then
+            # CSVFileHeader is NOT blank or empty
+            export CSVFileHeader='"name","color","comments",'${CSVFileHeader}
+        else
+            # CSVFileHeader is blank or empty
+            export CSVFileHeader='"name","color","comments"'
+        fi
+        
+        if [ x"${CSVJQparms}" != x"" ] ; then
+            # CSVFileHeader is NOT blank or empty
+            export CSVJQparms='.["name"], .["color"], .["comments"], '${CSVJQparms}
+        else
+            # CSVFileHeader is blank or empty
+            export CSVJQparms='.["name"], .["color"], .["comments"]'
+        fi
     else
-        # CSVFileHeader is blank or empty
-        export CSVFileHeader='"name","color","comments"'
-    fi
-    
-    if [ x"${CSVJQparms}" != x"" ] ; then
-        # CSVFileHeader is NOT blank or empty
-        export CSVJQparms='.["name"], .["color"], .["comments"], '${CSVJQparms}
-    else
-        # CSVFileHeader is blank or empty
-        export CSVJQparms='.["name"], .["color"], .["comments"]'
+        # The object type DOES NOT HAVE "name" parameter for export / import
+        if [ x"${CSVFileHeader}" != x"" ] ; then
+            # CSVFileHeader is NOT blank or empty, so put that before the color and comments
+            export CSVFileHeader=${CSVFileHeader}',"color","comments"'
+        else
+            # CSVFileHeader is blank or empty
+            export CSVFileHeader='"color","comments"'
+        fi
+        
+        if [ x"${CSVJQparms}" != x"" ] ; then
+            # CSVFileHeader is NOT blank or empty, so put that before the color and comments
+            export CSVJQparms=${CSVJQparms}', .["color"], .["comments"]'
+        else
+            # CSVFileHeader is blank or empty
+            export CSVJQparms='.["color"], .["comments"]'
+        fi
     fi
     
     # MODIFIED 2021-01-16 -
@@ -1088,7 +1135,7 @@ StandardExportCSVandJQParameters () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-05-02
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-17
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1100,7 +1147,7 @@ StandardExportCSVandJQParameters () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2022-02-15 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The SpecialExportCSVandJQParameters handles Special configuration of the CSV and JQ export parameters.
@@ -1165,7 +1212,7 @@ SpecialExportCSVandJQParameters () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-02-15
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-18
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1177,7 +1224,7 @@ SpecialExportCSVandJQParameters () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2022-02-14 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The ConfigureExportCSVandJQParameters handles standard configuration of the CSV and JQ export parameters.
@@ -1199,7 +1246,7 @@ ConfigureExportCSVandJQParameters () {
     
     echo `${dtzs}`${dtzsep} 'Type of export :  '${TypeOfExport}' for objects of type '${APICLIobjecttype} | tee -a -i ${logfilepath}
     
-    # MODIFIED 2022-02-14 -
+    # MODIFIED 2022-06-18 -
     
     case "${TypeOfExport}" in
         # a "Standard" export operation
@@ -1235,7 +1282,7 @@ ConfigureExportCSVandJQParameters () {
             export APICLIdetaillvl=uid
             SpecialExportCSVandJQParameters
             ;;
-        # a "rename-to-new-nam" export operation
+        # a "rename-to-new-name" export operation
         'rename-to-new-name' )
             export CSVFileHeader='"name","new-name"'
             export CSVJQparms='.["name"], .["name"]'
@@ -1246,13 +1293,22 @@ ConfigureExportCSVandJQParameters () {
             #
             #SpecialExportCSVandJQParameters
             ;;
+        # a "name-for-delete" export operation
+        'name-for-delete' )
+            export CSVFileHeader='"name"'
+            export CSVJQparms='.["name"]'
+            #export APICLIexportnameaddon=
+            #export APICLIexportnameaddon='name-only'
+            export APICLIdetaillvl=name
+            SpecialExportCSVandJQParameters
+            ;;
         # Anything unknown is handled as "standard"
         * )
             StandardExportCSVandJQParameters
             ;;
     esac
     
-    # MODIFIED 2021-01-28 -
+    # MODIFIED 2022-06-18 -
     
     if ${CSVADDEXPERRHANDLE} ; then
         export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
@@ -1261,9 +1317,11 @@ ConfigureExportCSVandJQParameters () {
         # May need to add plumbing to handle the case that not all objects types might support set-if-exists
         # For now just keep it separate
         #
-        if ${APIobjectcansetifexists} ; then
-            export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
-            export CSVJQparms=${CSVJQparms}', true'
+        if ! ${ExportTypeIsName4Delete} ; then 
+            if ${APIobjectcansetifexists} ; then
+                export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
+                export CSVJQparms=${CSVJQparms}', true'
+            fi
         fi
     fi
     
@@ -1273,7 +1331,7 @@ ConfigureExportCSVandJQParameters () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-02-14
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-18
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2814,19 +2872,71 @@ CheckAPIVersionAndExecuteOperation
 # tacacs-server objects
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-29 -
+# MODIFIED 2022-06-17 -
 
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
+export APIobjectspecificselector00key='."server-type"'
+export APIobjectspecificselector00value="TACACS"
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
 export APICLIobjecttype=tacacs-server
 export APICLIobjectstype=tacacs-servers
 export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
+export APICLIexportnameaddon=TACACS_only
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"server-type"'
+export CSVFileHeader=${CSVFileHeader}',"server"'
+export CSVFileHeader=${CSVFileHeader}',"service"'
+export CSVFileHeader=${CSVFileHeader}',"priority"'
+export CSVFileHeader=${CSVFileHeader}',"encryption"'
+#export CSVFileHeader=${CSVFileHeader}',"secret-key"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
+#export CSVFileHeader=${CSVFileHeader}',"icon"'
+
+export CSVJQparms=
+export CSVJQparms='.["server-type"]'
+#export CSVJQparms='"TACACS"'
+export CSVJQparms=${CSVJQparms}', .["server"]["name"]'
+export CSVJQparms=${CSVJQparms}', .["service"]["name"]'
+export CSVJQparms=${CSVJQparms}', .["priority"]'
+export CSVJQparms=${CSVJQparms}', .["encryption"]'
+#export CSVJQparms=${CSVJQparms}', ""'
+#export CSVJQparms=${CSVJQparms}', "Y0urS3cr3tK3yH3r3!"'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
+#export CSVJQparms=${CSVJQparms}', .["icon"]'
+
+objectstotal_tacacsservers=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_tacacsservers="${objectstotal_tacacsservers}"
+export number_of_objects=${number_tacacsservers}
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."server-type"'
+export APIobjectspecificselector00value="TACACS_PLUS_"
+export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=tacacs-server
+export APICLIobjectstype=tacacs-servers
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=TACACSplus_only
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -2845,13 +2955,67 @@ export CSVFileHeader=${CSVFileHeader}',"secret-key"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-export CSVJQparms='.["server-type"]'
+#export CSVJQparms='.["server-type"]'
+export CSVJQparms='"TACACS+"'
+export CSVJQparms=${CSVJQparms}', .["server"]["name"]'
+export CSVJQparms=${CSVJQparms}', .["service"]["name"]'
+export CSVJQparms=${CSVJQparms}', .["priority"]'
+export CSVJQparms=${CSVJQparms}', .["encryption"]'
+#export CSVJQparms=${CSVJQparms}', ""'
+export CSVJQparms=${CSVJQparms}', "Y0urS3cr3tK3yH3r3!"'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
+#export CSVJQparms=${CSVJQparms}', .["icon"]'
+
+objectstotal_tacacsservers=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_tacacsservers="${objectstotal_tacacsservers}"
+export number_of_objects=${number_tacacsservers}
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2022-06-17 -
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=tacacs-server
+export APICLIobjectstype=tacacs-servers
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=REFERENCE
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"server-type"'
+export CSVFileHeader=${CSVFileHeader}',"server"'
+export CSVFileHeader=${CSVFileHeader}',"service"'
+export CSVFileHeader=${CSVFileHeader}',"priority"'
+export CSVFileHeader=${CSVFileHeader}',"encryption"'
+export CSVFileHeader=${CSVFileHeader}',"secret-key"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
+#export CSVFileHeader=${CSVFileHeader}',"icon"'
+
+export CSVJQparms=
+#export CSVJQparms='.["server-type"]'
+export CSVJQparms='"TACACS+"'
 export CSVJQparms=${CSVJQparms}', .["server"]["name"]'
 export CSVJQparms=${CSVJQparms}', .["service"]["name"]'
 export CSVJQparms=${CSVJQparms}', .["priority"]'
 export CSVJQparms=${CSVJQparms}', .["encryption"]'
 export CSVJQparms=${CSVJQparms}', ""'
-#export CSVJQparms=${CSVJQparms}', "Y0urP4$$w04dH3r3"'
+#export CSVJQparms=${CSVJQparms}', "Y0urS3cr3tK3yH3r3!"'
 #export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
@@ -3024,6 +3188,94 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # services-tcp objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-tcp
+export APICLIobjectstype=services-tcp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=using_default_timout
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"port","protocol","source-port"'
+#export CSVFileHeader=${CSVFileHeader}',"aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.timeout","aggressive-aging.use-default-timeout"'
+export CSVFileHeader=${CSVFileHeader}',"aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.use-default-timeout"'
+export CSVFileHeader=${CSVFileHeader}',"keep-connections-open-after-policy-installation","match-by-protocol-signature","match-for-any","override-default-settings"'
+export CSVFileHeader=${CSVFileHeader}',"session-timeout","use-default-session-timeout","sync-connections-on-cluster"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+
+export CSVJQparms=
+export CSVJQparms='.["port"], .["protocol"], .["source-port"]'
+#export CSVJQparms=${CSVJQparms}', .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["timeout"], .["aggressive-aging"]["use-default-timeout"]'
+export CSVJQparms=${CSVJQparms}', .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["use-default-timeout"]'
+export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installation"], .["match-by-protocol-signature"], .["match-for-any"], .["override-default-settings"]'
+export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+
+objectstotal_services_tcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_services_tcp="${objectstotal_services_tcp}"
+export number_of_objects=${number_services_tcp}
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-tcp
+export APICLIobjectstype=services-tcp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=not_using_default_timout
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"port","protocol","source-port"'
+export CSVFileHeader=${CSVFileHeader}',"aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.timeout","aggressive-aging.use-default-timeout"'
+export CSVFileHeader=${CSVFileHeader}',"keep-connections-open-after-policy-installation","match-by-protocol-signature","match-for-any","override-default-settings"'
+export CSVFileHeader=${CSVFileHeader}',"session-timeout","use-default-session-timeout","sync-connections-on-cluster"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+
+export CSVJQparms=
+export CSVJQparms='.["port"], .["protocol"], .["source-port"]'
+export CSVJQparms=${CSVJQparms}', .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["timeout"], .["aggressive-aging"]["use-default-timeout"]'
+export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installation"], .["match-by-protocol-signature"], .["match-for-any"], .["override-default-settings"]'
+export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+
+objectstotal_services_tcp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_services_tcp="${objectstotal_services_tcp}"
+export number_of_objects=${number_services_tcp}
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
@@ -3034,7 +3286,7 @@ export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
 export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -3066,6 +3318,94 @@ CheckAPIVersionAndExecuteOperation
 # services-udp objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-udp
+export APICLIobjectstype=services-udp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=using_default_timout
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"port","protocol","source-port"'
+#export CSVFileHeader=${CSVFileHeader}',"accept-replies","aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.timeout","aggressive-aging.use-default-timeout"'
+export CSVFileHeader=${CSVFileHeader}',"accept-replies","aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.use-default-timeout"'
+export CSVFileHeader=${CSVFileHeader}',"keep-connections-open-after-policy-installation","match-by-protocol-signature","match-for-any","override-default-settings"'
+export CSVFileHeader=${CSVFileHeader}',"session-timeout","use-default-session-timeout","sync-connections-on-cluster"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+
+export CSVJQparms=
+export CSVJQparms='.["port"], .["protocol"], .["source-port"]'
+#export CSVJQparms=${CSVJQparms}', .["accept-replies"], .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["timeout"], .["aggressive-aging"]["use-default-timeout"]'
+export CSVJQparms=${CSVJQparms}', .["accept-replies"], .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["use-default-timeout"]'
+export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installation"], .["match-by-protocol-signature"], .["match-for-any"], .["override-default-settings"]'
+export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+
+objectstotal_services_udp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_services_udp="${objectstotal_services_udp}"
+export number_of_objects=${number_services_udp}
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-udp
+export APICLIobjectstype=services-udp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=not_using_default_timout
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"port","protocol","source-port"'
+export CSVFileHeader=${CSVFileHeader}',"accept-replies","aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.timeout","aggressive-aging.use-default-timeout"'
+export CSVFileHeader=${CSVFileHeader}',"keep-connections-open-after-policy-installation","match-by-protocol-signature","match-for-any","override-default-settings"'
+export CSVFileHeader=${CSVFileHeader}',"session-timeout","use-default-session-timeout","sync-connections-on-cluster"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+
+export CSVJQparms=
+export CSVJQparms='.["port"], .["protocol"], .["source-port"]'
+export CSVJQparms=${CSVJQparms}', .["accept-replies"], .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["timeout"], .["aggressive-aging"]["use-default-timeout"]'
+export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installation"], .["match-by-protocol-signature"], .["match-for-any"], .["override-default-settings"]'
+export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+
+objectstotal_services_udp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_services_udp="${objectstotal_services_udp}"
+export number_of_objects=${number_services_udp}
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
@@ -3076,7 +3416,7 @@ export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
 export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -3188,6 +3528,94 @@ CheckAPIVersionAndExecuteOperation
 # services-sctp objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-sctp
+export APICLIobjectstype=services-sctp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=using_default_timout
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"port","source-port"'
+#export CSVFileHeader=${CSVFileHeader}',"aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.timeout","aggressive-aging.use-default-timeout"'
+export CSVFileHeader=${CSVFileHeader}',"aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.use-default-timeout"'
+export CSVFileHeader=${CSVFileHeader}',"keep-connections-open-after-policy-installation","match-for-any"'
+export CSVFileHeader=${CSVFileHeader}',"session-timeout","use-default-session-timeout","sync-connections-on-cluster"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+
+export CSVJQparms=
+export CSVJQparms='.["port"], .["source-port"]'
+#export CSVJQparms=${CSVJQparms}', .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["timeout"], .["aggressive-aging"]["use-default-timeout"]'
+export CSVJQparms=${CSVJQparms}', .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["use-default-timeout"]'
+export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installation"], .["match-for-any"]'
+export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+
+objectstotal_services_sctp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_services_sctp="${objectstotal_services_sctp}"
+export number_of_objects=${number_services_sctp}
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-sctp
+export APICLIobjectstype=services-sctp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=not_using_default_timout
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"port","source-port"'
+export CSVFileHeader=${CSVFileHeader}',"aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.timeout","aggressive-aging.use-default-timeout"'
+export CSVFileHeader=${CSVFileHeader}',"keep-connections-open-after-policy-installation","match-for-any"'
+export CSVFileHeader=${CSVFileHeader}',"session-timeout","use-default-session-timeout","sync-connections-on-cluster"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+
+export CSVJQparms=
+export CSVJQparms='.["port"], .["source-port"]'
+export CSVJQparms=${CSVJQparms}', .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["timeout"], .["aggressive-aging"]["use-default-timeout"]'
+export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installation"], .["match-for-any"]'
+export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+
+objectstotal_services_sctp=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_services_sctp="${objectstotal_services_sctp}"
+export number_of_objects=${number_services_sctp}
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
@@ -3198,7 +3626,7 @@ export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
 export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -3230,6 +3658,98 @@ CheckAPIVersionAndExecuteOperation
 # services-other objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-other
+export APICLIobjectstype=services-other
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=using_default_timout
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"port","source-port"'
+export CSVFileHeader=${CSVFileHeader}',"accept-replies","ip-protocol","action","match"'
+#export CSVFileHeader=${CSVFileHeader}',"aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.timeout","aggressive-aging.use-default-timeout"'
+export CSVFileHeader=${CSVFileHeader}',"aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.use-default-timeout"'
+export CSVFileHeader=${CSVFileHeader}',"keep-connections-open-after-policy-installation","match-for-any","override-default-settings"'
+export CSVFileHeader=${CSVFileHeader}',"session-timeout","use-default-session-timeout","sync-connections-on-cluster"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+
+export CSVJQparms=
+export CSVJQparms='.["port"], .["source-port"]'
+export CSVJQparms=${CSVJQparms}', .["accept-replies"], .["ip-protocol"], .["action"], .["match"]'
+#export CSVJQparms=${CSVJQparms}', .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["timeout"], .["aggressive-aging"]["use-default-timeout"]'
+export CSVJQparms=${CSVJQparms}', .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["use-default-timeout"]'
+export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installation"], .["match-for-any"], .["override-default-settings"]'
+export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+
+objectstotal_services_other=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_services_other="${objectstotal_services_other}"
+export number_of_objects=${number_services_other}
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-other
+export APICLIobjectstype=services-other
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=not_using_default_timout
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"port","source-port"'
+export CSVFileHeader=${CSVFileHeader}',"accept-replies","ip-protocol","action","match"'
+export CSVFileHeader=${CSVFileHeader}',"aggressive-aging.enable","aggressive-aging.default-timeout","aggressive-aging.timeout","aggressive-aging.use-default-timeout"'
+export CSVFileHeader=${CSVFileHeader}',"keep-connections-open-after-policy-installation","match-for-any","override-default-settings"'
+export CSVFileHeader=${CSVFileHeader}',"session-timeout","use-default-session-timeout","sync-connections-on-cluster"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+
+export CSVJQparms=
+export CSVJQparms='.["port"], .["source-port"]'
+export CSVJQparms=${CSVJQparms}', .["accept-replies"], .["ip-protocol"], .["action"], .["match"]'
+export CSVJQparms=${CSVJQparms}', .["aggressive-aging"]["enable"], .["aggressive-aging"]["default-timeout"], .["aggressive-aging"]["timeout"], .["aggressive-aging"]["use-default-timeout"]'
+export CSVJQparms=${CSVJQparms}', .["keep-connections-open-after-policy-installation"], .["match-for-any"], .["override-default-settings"]'
+export CSVJQparms=${CSVJQparms}', .["session-timeout"], .["use-default-session-timeout"], .["sync-connections-on-cluster"]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+
+objectstotal_services_other=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_services_other="${objectstotal_services_other}"
+export number_of_objects=${number_services_other}
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
@@ -3240,7 +3760,7 @@ export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
 export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -4156,6 +4676,185 @@ CheckAPIVersionAndExecuteOperation
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-01-28
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Updatable Objects
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# ADDED 2022-06-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Updatable Objects' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2022-06-16
+
+# ADDED 2022-06-17 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# updatable-objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APIobjectminversion=1.3
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=updatable-object
+export APICLIobjectstype=updatable-objects
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"uid-in-updatable-objects-repository"'
+#export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"icon"'
+
+export CSVJQparms=
+export CSVJQparms='.["uid-in-data-center"]'
+#export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["icon"]'
+
+objectstotal_identity_tags=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_updatable_objects="${objectstotal_identity_tags}"
+export number_of_objects=${number_updatable_objects}
+
+CheckAPIVersionAndExecuteOperation
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2022-06-17
+
+# ADDED 2022-06-17 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# updatable-objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APIobjectminversion=1.3
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=updatable-object
+export APICLIobjectstype=updatable-objects
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"name","name-in-data-center","uid-in-data-center","type-in-data-center"'
+export CSVFileHeader=${CSVFileHeader}',"additional-properties.0.name","additional-properties.0.value"'
+export CSVFileHeader=${CSVFileHeader}',"additional-properties.1.name","additional-properties.1.value"'
+export CSVFileHeader=${CSVFileHeader}',"additional-properties.2.name","additional-properties.2.value"'
+export CSVFileHeader=${CSVFileHeader}',"additional-properties.3.name","additional-properties.3.value"'
+export CSVFileHeader=${CSVFileHeader}',"additional-properties.4.name","additional-properties.4.value"'
+export CSVFileHeader=${CSVFileHeader}',"additional-properties.5.name","additional-properties.5.value"'
+export CSVFileHeader=${CSVFileHeader}',"additional-properties.6.name","additional-properties.6.value"'
+export CSVFileHeader=${CSVFileHeader}',"data-center.uid","data-center.name","data-center.type","data-center.domain.name"'
+export CSVFileHeader=${CSVFileHeader}',"data-center-object-meta-info.updated-on-data-center.posix","data-center-object-meta-info.updated-on-data-center.iso-8601"'
+#export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"icon"'
+
+export CSVJQparms=
+export CSVJQparms='.["name"], .["name-in-data-center"], .["uid-in-data-center"], .["type-in-data-center"]'
+export CSVJQparms=${CSVJQparms}', .["additional-properties"][0]["name"], .["additional-properties"][0]["value"]'
+export CSVJQparms=${CSVJQparms}', .["additional-properties"][1]["name"], .["additional-properties"][1]["value"]'
+export CSVJQparms=${CSVJQparms}', .["additional-properties"][2]["name"], .["additional-properties"][2]["value"]'
+export CSVJQparms=${CSVJQparms}', .["additional-properties"][3]["name"], .["additional-properties"][3]["value"]'
+export CSVJQparms=${CSVJQparms}', .["additional-properties"][4]["name"], .["additional-properties"][4]["value"]'
+export CSVJQparms=${CSVJQparms}', .["additional-properties"][5]["name"], .["additional-properties"][5]["value"]'
+export CSVJQparms=${CSVJQparms}', .["additional-properties"][6]["name"], .["additional-properties"][6]["value"]'
+export CSVJQparms=${CSVJQparms}', .["data-center"]["uid"], .["data-center"]["name"], .["data-center"]["type"], .["data-center"]["domain"]["name"]'
+export CSVJQparms=${CSVJQparms}', .["data-center-object-meta-info"]["updated-on-data-center"]["posix"], .["data-center"]["updated-on-data-center"]["iso-8601"]'
+#export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["icon"]'
+
+objectstotal_identity_tags=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_updatable_objects="${objectstotal_identity_tags}"
+export number_of_objects=${number_updatable_objects}
+
+CheckAPIVersionAndExecuteOperation
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2022-06-17
+
+# ADDED 2022-06-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# -------------------------------------------------------------------------------------------------
+# updatable-objects-repository-content
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APIobjectminversion=1.3
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=updatable-objects-repository-content
+export APICLIobjectstype=updatable-objects-repository-content
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"name-in-updatable-objects-repository", "uid-in-updatable-objects-repository"'
+export CSVFileHeader=${CSVFileHeader}',"additional-properties.description"'
+export CSVFileHeader=${CSVFileHeader}',"additional-properties.info-text"'
+export CSVFileHeader=${CSVFileHeader}',"additional-properties.info-url"'
+export CSVFileHeader=${CSVFileHeader}',"additional-properties.uri"'
+export CSVFileHeader=${CSVFileHeader}',"updatable-object.name","updatable-object.uid","updatable-object.type"'
+#export CSVFileHeader=${CSVFileHeader}',"OBJECT_PARAMETER_HEADERS"'
+#export CSVFileHeader=${CSVFileHeader}',"icon"'
+
+export CSVJQparms=
+export CSVJQparms='.["name-in-updatable-objects-repository"], .["uid-in-updatable-objects-repository"]'
+export CSVJQparms=${CSVJQparms}', .["additional-properties"]["description"]'
+export CSVJQparms=${CSVJQparms}', .["additional-properties"]["info-text"]'
+export CSVJQparms=${CSVJQparms}', .["additional-properties"]["info-url"]'
+export CSVJQparms=${CSVJQparms}', .["additional-properties"]["uri"]'
+export CSVJQparms=${CSVJQparms}', .["updatable-object"]["name"], .["updatable-object"]["uid"], .["updatable-object"]["type"]'
+#export CSVJQparms=${CSVJQparms}', .["OBJECT_PARAMETERS"]'
+#export CSVJQparms=${CSVJQparms}', .["icon"]'
+
+objectstotal_identity_tags=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_updatable_objects="${objectstotal_identity_tags}"
+export number_of_objects=${number_updatable_objects}
+
+CheckAPIVersionAndExecuteOperation
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2022-06-16
 
 
 # -------------------------------------------------------------------------------------------------

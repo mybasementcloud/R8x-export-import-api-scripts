@@ -16,14 +16,15 @@
 # SCRIPT Object export to JSON (standard and full details), and CSV file for API CLI Operations
 #
 #
-ScriptVersion=00.60.09
-ScriptRevision=020
-ScriptSubRevision=085
-ScriptDate=2022-06-13
-TemplateVersion=00.60.09
+ScriptVersion=00.60.10
+ScriptRevision=000
+ScriptSubRevision=060
+ScriptDate=2022-06-18
+TemplateVersion=00.60.10
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.09
-APISubscriptsRevision=020
+APISubscriptsVersion=00.60.10
+APISubscriptsRevision=000
+
 
 #
 
@@ -1103,19 +1104,20 @@ export CLIparm_NOHUPPATH=
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
-# MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
 # Specific Scripts Command Line Parameters
 #
 # --type-of-export <export_type> | --type-of-export=<export_type>
-#  Supported <export_type> values for export to CSV :  <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">
+#  Supported <export_type> values for export to CSV :  <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name"|"name-for-delete">
 #    "standard" {DEFAULT} :  Standard Export of all supported object key values
 #    "name-only"          :  Export of just the name key value for object
 #    "name-and-uid"       :  Export of name and uid key value for object
 #    "uid-only"           :  Export of just the uid key value of objects
 #    "rename-to-new-name" :  Export of name key value for object rename
+#    "name-for-delete"    :  Export of name key value for object delete also sets other settings needed for clean delete control CSV
 #    For an export for a delete operation via CSV, use "name-only"
 #
 # -f <format[all|csv|json]> | --format <format[all|csv|json]> | -f=<format[all|csv|json]> | --format=<format[all|csv|json]> 
@@ -1165,10 +1167,11 @@ export CLIparm_NOHUPPATH=
 #  export_type :  <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">
 #      For an export for a delete operation via CSV, use "name-only"
 #
-#export TypeOfExport="standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name"
+#export TypeOfExport="standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name|"name-for-delete""
 export TypeOfExport="standard"
 export CLIparm_TypeOfExport=${TypeOfExport}
 export ExportTypeIsStandard=true
+export ExportTypeIsName4Delete=false
 
 # ADDED 2020-11-23 -
 # Define output format from all, csv, or json
@@ -1391,7 +1394,7 @@ export CLIparm_importpath=
 export CLIparm_deletepath=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-18
 
 
 # -------------------------------------------------------------------------------------------------

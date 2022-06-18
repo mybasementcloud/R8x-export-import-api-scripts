@@ -2,7 +2,8 @@
 	"filetype" : "solution_info.api_scripts",
 	"fileversion" : "06.08.04",
 	"filerevision" : "000",
-	"filedate" : "2022-06-12",
+	"filesubrevision" : "060",
+	"filedate" : "2022-06-18",
 	"fileinformationlevel" : "000",
 	"MinCMDTemplateVersion" : "06.03.01"
 	}, 
@@ -15,7 +16,7 @@
 		"Language" : "Windows_CMD",
 		"Extension" : "CMD"
 		},
-	"ScriptDate" : "2022-06-10",
+	"ScriptDate" : "2022-06-18",
 	"ScriptVersion" : "06.08.04",
 	"ScriptRevision" : "000",
 	"ScriptTweak" : "15",
@@ -26,11 +27,11 @@
 		"Language" : "bash",
 		"Extension" : "sh"
 		},
-	"ScriptDate" : "2022-06-13",
-	"ScriptVersion" : "00.60.09",
-	"ScriptRevision" : "020",
-	"ScriptTweak" : "085",
-	"TemplateVersion" : "00.60.09",
+	"ScriptDate" : "2022-06-18",
+	"ScriptVersion" : "00.60.10",
+	"ScriptRevision" : "000",
+	"ScriptTweak" : "060",
+	"TemplateVersion" : "00.60.10",
 	"TemplateLevel" : "@NA",
 	"SubScriptsLevel" : "@NA",
 	"SubScriptsVersion" : "@NA"
@@ -40,13 +41,13 @@
 		"Language" : "bash",
 		"Extension" : "sh"
 		},
-	"ScriptDate" : "2022-06-13",
-	"ScriptVersion" : "00.60.09",
-	"ScriptRevision" : "020",
-	"ScriptTweak" : "085",
-	"TemplateVersion" : "00.60.09",
+	"ScriptDate" : "2022-06-18",
+	"ScriptVersion" : "00.60.10",
+	"ScriptRevision" : "000",
+	"ScriptTweak" : "060",
+	"TemplateVersion" : "00.60.10",
 	"APISubScriptsLevel" : "010",
-	"APISubScriptsVersion" : "00.60.09",
-	"APISubScriptsRevision" : "020"
+	"APISubScriptsVersion" : "00.60.10",
+	"APISubScriptsRevision" : "000"
 	}
 }

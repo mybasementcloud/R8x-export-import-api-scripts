@@ -16,14 +16,15 @@
 # SCRIPT Subpend CSV Error Handling to CSV files
 #
 #
-ScriptVersion=00.60.09
-ScriptRevision=020
-ScriptSubRevision=085
-ScriptDate=2022-06-13
-TemplateVersion=00.60.09
+ScriptVersion=00.60.10
+ScriptRevision=000
+ScriptSubRevision=060
+ScriptDate=2022-06-18
+TemplateVersion=00.60.10
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.09
-APISubscriptsRevision=020
+APISubscriptsVersion=00.60.10
+APISubscriptsRevision=000
+
 
 #
 
@@ -976,19 +977,20 @@ export CLIparm_NOHUPPATH=
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
-# MODIFIED 2021-11-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2022-06-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
 # Specific Scripts Command Line Parameters
 #
 # --type-of-export <export_type> | --type-of-export=<export_type>
-#  Supported <export_type> values for export to CSV :  <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">
+#  Supported <export_type> values for export to CSV :  <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name"|"name-for-delete">
 #    "standard" {DEFAULT} :  Standard Export of all supported object key values
 #    "name-only"          :  Export of just the name key value for object
 #    "name-and-uid"       :  Export of name and uid key value for object
 #    "uid-only"           :  Export of just the uid key value of objects
 #    "rename-to-new-name" :  Export of name key value for object rename
+#    "name-for-delete"    :  Export of name key value for object delete also sets other settings needed for clean delete control CSV
 #    For an export for a delete operation via CSV, use "name-only"
 #
 # -f <format[all|csv|json]> | --format <format[all|csv|json]> | -f=<format[all|csv|json]> | --format=<format[all|csv|json]> 
@@ -1038,10 +1040,11 @@ export CLIparm_NOHUPPATH=
 #  export_type :  <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name">
 #      For an export for a delete operation via CSV, use "name-only"
 #
-#export TypeOfExport="standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name"
+#export TypeOfExport="standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name|"name-for-delete""
 export TypeOfExport="standard"
 export CLIparm_TypeOfExport=${TypeOfExport}
 export ExportTypeIsStandard=true
+export ExportTypeIsName4Delete=false
 
 # ADDED 2020-11-23 -
 # Define output format from all, csv, or json
@@ -1264,7 +1267,7 @@ export CLIparm_importpath=
 export CLIparm_deletepath=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-18
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1577,8 +1580,15 @@ dumpcliparmparseresults () {
     
     #
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
-    # MODIFIED 2022-04-22 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    # MODIFIED 2022-06-18 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
+    
+    # ADDED 2021-02-03 -
+    echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_TypeOfExport' "${CLIparm_TypeOfExport}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'TypeOfExport' "${TypeOfExport}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'ExportTypeIsStandard' "${ExportTypeIsStandard}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'ExportTypeIsName4Delete' "${ExportTypeIsName4Delete}" >> ${dumpcliparmslogfilepath}
     
     echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_NoSystemObjects' "${CLIparm_NoSystemObjects}" >> ${dumpcliparmslogfilepath}
@@ -1596,11 +1606,6 @@ dumpcliparmparseresults () {
     echo `${dtzs}`${dtzsep}  >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVADDEXPERRHANDLE' "${CSVADDEXPERRHANDLE}" >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_CSVADDEXPERRHANDLE' "${CLIparm_CSVADDEXPERRHANDLE}" >> ${dumpcliparmslogfilepath}
-    
-    # ADDED 2021-02-03 -
-    echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_TypeOfExport' "${CLIparm_TypeOfExport}" >> ${dumpcliparmslogfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'TypeOfExport' "${TypeOfExport}" >> ${dumpcliparmslogfilepath}
     
     echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_format' "${CLIparm_format}" >> ${dumpcliparmslogfilepath}
@@ -1678,7 +1683,7 @@ dumpcliparmparseresults () {
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'remains' "${REMAINS}" >> ${dumpcliparmslogfilepath}
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-04-22
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-18
     # MODIFIED 2021-02-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     # Improved local CLI parameter dump handler
@@ -2201,6 +2206,13 @@ doshowhelp () {
         echo
         echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --10-TAGS --CSVERR --CSVALL'
         echo
+        echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --10-TAGS --CSVERR'
+        echo
+        echo ' Example of export for delete via CSV operation'
+        echo
+        echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --NO-TAGS --CSVERR -t "name-for-delete"'
+        echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS -t "name-for-delete"'
+        echo
         echo ' Example of call from nohup initiator script, do_script_nohup from bash 4 Check Point scripts'
         echo
         echo ' ]# '${ScriptName}' --api-key "@#ohtobeanapikey%" --SO --format=all --details=full --NOHUP --NOHUP-DTG 2027-11-11-2323CST --NOHUP-PATH "/var/log/__customer/scripts"'
@@ -2219,9 +2231,12 @@ doshowhelp () {
         echo
         echo ' Example: Delete:'
         echo
-        echo ' ]# '${ScriptName}' -u fooAdmin -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump" -x "/var/tmp/script_dump/export" -k "/var/tmp/delete"'
+        echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS -k "/var/tmp/delete"'
         echo
-        echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS -x "/var/tmp/script_dump/export4delete" -k "/var/tmp/delete"'
+        echo ' ]# '${ScriptName}' -v -r --RESULTS -k "/var/log/__customer/devops.mydata/delete_csv.2022-06-18"'
+        echo
+        echo ' - Example Delete operation with results directed to location indicated by "-x <file_path>":'
+        echo ' ]# '${ScriptName}' -u fooAdmin -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump" -k "/var/tmp/delete" -x "/var/tmp/script_dump/export"'
     fi
     
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
@@ -2895,7 +2910,7 @@ ProcessCommandLineParametersAndSetValues () {
     # MODIFIED 2022-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
-    # MODIFIED 2022-03-11 -
+    # MODIFIED 2022-06-18 -
     export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
     export CLIparm_TypeOfExport=${CLIparm_TypeOfExport//\"}
     export CLIparm_TypeOfExport=${CLIparm_TypeOfExport//\'}
@@ -2908,30 +2923,42 @@ ProcessCommandLineParametersAndSetValues () {
             export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
             export TypeOfExport=${CLIparm_TypeOfExport}
             export ExportTypeIsStandard=true
+            export ExportTypeIsName4Delete=false
             ;;
         # a "name-only" export operation
         'name-only' )
             export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
             export TypeOfExport=${CLIparm_TypeOfExport}
             export ExportTypeIsStandard=false
+            export ExportTypeIsName4Delete=false
             ;;
         # a "name-and-uid" export operation
         'name-and-uid' )
             export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
             export TypeOfExport=${CLIparm_TypeOfExport}
             export ExportTypeIsStandard=false
+            export ExportTypeIsName4Delete=false
             ;;
         # a "uid-only" export operation
         'uid-only' )
             export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
             export TypeOfExport=${CLIparm_TypeOfExport}
             export ExportTypeIsStandard=false
+            export ExportTypeIsName4Delete=false
             ;;
-        # a "rename-to-new-nam" export operation
+        # a "rename-to-new-name" export operation
         'rename-to-new-name' )
             export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
             export TypeOfExport=${CLIparm_TypeOfExport}
             export ExportTypeIsStandard=false
+            export ExportTypeIsName4Delete=false
+            ;;
+        # a "name-for-delete" export operation
+        'name-for-delete' )
+            export CLIparm_TypeOfExport=${CLIparm_TypeOfExport}
+            export TypeOfExport=${CLIparm_TypeOfExport}
+            export ExportTypeIsStandard=false
+            export ExportTypeIsName4Delete=true
             ;;
         # Anything unknown is handled as "standard"
         * )
@@ -3163,10 +3190,44 @@ ProcessCommandLineParametersAndSetValues () {
     export CLIparm_csvpath=${CLIparm_csvpath//\"}
     export CLIparm_csvpath=${CLIparm_csvpath//\'}
     
+    # MODIFIED 2022-06-18 -
+    
+    if ${ExportTypeIsName4Delete} ; then 
+        # When export is for delete, configure these to ensure we only get what we need
+        echo `${dtzs}`${dtzsep} 'Exporting for Delete, overriding some settigns!  EXPORT-TYPE = '${CLIparm_TypeOfExport} >> ${logfilepath}
+        export CLIparm_formatall=true
+        export CLIparm_formatcsv=true
+        export CLIparm_formatjson=true
+        export CLIparm_detailslevelall=false
+        export CLIparm_detailslevelfull=true
+        export CLIparm_detailslevelstandard=false
+        export CLIparm_NoSystemObjects=true
+        export NoSystemObjects=true
+        export CLIparm_OnlySystemObjects=false
+        export OnlySystemObjects=false
+        export CLIparm_CreatorIsNotSystem=false
+        export CreatorIsNotSystem=false
+        export CLIparm_CreatorIsSystemm=false
+        export CreatorIsSystem=false
+        export CLIparm_CSVADDEXPERRHANDLE=true
+        export CSVADDEXPERRHANDLE=true
+        export CLIparm_CSVEXPORT05TAGS=false
+        export CLIparm_CSVEXPORT10TAGS=false
+        export CLIparm_CSVEXPORTNOTAGS=true
+        export CSVEXPORT05TAGS=false
+        export CSVEXPORT10TAGS=false
+        export CSVEXPORTNOTAGS=true
+        export CLIparm_CSVEXPORTDATADOMAIN=false
+        export CLIparm_CSVEXPORTDATACREATOR=false
+    else
+        # When export is not for delete not changes
+        echo `${dtzs}`${dtzsep} 'NOT Exporting for Delete, keeping configured settigns!  EXPORT-TYPE = '${CLIparm_TypeOfExport} >> ${logfilepath}
+    fi
+    
     export REMAINS=${REMAINS}
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-05-04
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-06-18
     
     return 0
 }
@@ -4890,12 +4951,51 @@ RefactorObjectsCSV
 # tacacs-server objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."server-type"'
+export APIobjectspecificselector00value="TACACS"
+export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=tacacs-server
+export APICLIobjectstype=tacacs-servers
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=TACACS_only
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."server-type"'
+export APIobjectspecificselector00value="TACACS_PLUS_"
+export APIobjectminversion=1.7
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=tacacs-server
+export APICLIobjectstype=tacacs-servers
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=TACACSplus_only
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
 export APIobjectspecificselector00value=
 export APIobjectminversion=1.7
 export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
 export APICLIobjecttype=tacacs-server
 export APICLIobjectstype=tacacs-servers
 export APICLICSVobjecttype=${APICLIobjectstype}
@@ -4980,16 +5080,57 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # services-tcp objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-tcp
+export APICLIobjectstype=services-tcp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=using_default_timout
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-tcp
+export APICLIobjectstype=services-tcp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=not_using_default_timout
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
 export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
 export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
 RefactorObjectsCSV
 
@@ -4998,16 +5139,57 @@ RefactorObjectsCSV
 # services-udp objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-udp
+export APICLIobjectstype=services-udp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=using_default_timout
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-udp
+export APICLIobjectstype=services-udp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=not_using_default_timout
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
 export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
 export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
 RefactorObjectsCSV
 
@@ -5052,16 +5234,57 @@ RefactorObjectsCSV
 # services-sctp objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-sctp
+export APICLIobjectstype=services-sctp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=using_default_timout
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-sctp
+export APICLIobjectstype=services-sctp
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=not_using_default_timout
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
 export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
 export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
 RefactorObjectsCSV
 
@@ -5070,16 +5293,57 @@ RefactorObjectsCSV
 # services-other objects
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-other
+export APICLIobjectstype=services-other
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=using_default_timout
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APIobjectminversion=1.1
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=service-other
+export APICLIobjectstype=services-other
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=not_using_default_timout
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2022-06-17 -
+#
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 export APIobjectspecificselector00key=
 export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
 export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
 export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
 RefactorObjectsCSV
 
@@ -5379,6 +5643,63 @@ RefactorObjectsCSV
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
+
+
+# -------------------------------------------------------------------------------------------------
+# updatable-objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APIobjectminversion=1.3
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=updatable-object
+export APICLIobjectstype=updatable-objects
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+# updatable-objects
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APIobjectminversion=1.3
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=updatable-object
+export APICLIobjectstype=updatable-objects
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+RefactorObjectsCSV
+
+
+# -------------------------------------------------------------------------------------------------
+# updatable-objects-repository-content
+# -------------------------------------------------------------------------------------------------
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APIobjectminversion=1.3
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APICLIobjecttype=updatable-objects-repository-content
+export APICLIobjectstype=updatable-objects-repository-content
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+RefactorObjectsCSV
 
 
 # -------------------------------------------------------------------------------------------------

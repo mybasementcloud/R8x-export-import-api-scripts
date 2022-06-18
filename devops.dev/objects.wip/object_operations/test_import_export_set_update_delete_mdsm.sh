@@ -13,14 +13,15 @@
 # Test Import Export Set-Update Delete Execution collection - test environment - MDSM
 #
 #
-ScriptVersion=00.60.09
-ScriptRevision=020
-ScriptSubRevision=085
-ScriptDate=2022-06-13
-TemplateVersion=00.60.09
+ScriptVersion=00.60.10
+ScriptRevision=000
+ScriptSubRevision=060
+ScriptDate=2022-06-18
+TemplateVersion=00.60.10
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.09
-APISubscriptsRevision=020
+APISubscriptsVersion=00.60.10
+APISubscriptsRevision=000
+
 
 #
 
@@ -208,6 +209,7 @@ export TESTOPSARRAY+=("cli_api_import_objects_from_csv.sh -v -r --NOWAIT --RESUL
 export TESTOPSARRAY+=("cli_api_export_objects_to_csv.sh -v -r --NOWAIT --RESULTS -d "Global" --NSO --10-TAGS --CSVERR")
 export TESTOPSARRAY+=("cli_api_set_update_objects_from_csv.sh -v -r --NOWAIT --RESULTS -d "Global" -i '"${test_script_work_folder}"/test/set_update.csv'")
 export TESTOPSARRAY+=("cli_api_export_objects_to_csv.sh -v -r --NOWAIT --RESULTS -d "Global" --NSO --10-TAGS --CSVERR")
+export TESTOPSARRAY+=("cli_api_export_objects_to_csv.sh -r -v --NOWAIT --RESULTS -d "Global" -t 'name-for-delete'")
 export TESTOPSARRAY+=("cli_api_delete_objects_using_csv.sh -v -r --NOWAIT --RESULTS -d "Global" -k '"${test_script_work_folder}"/test/delete.csv'")
 export TESTOPSARRAY+=("cli_api_export_objects_to_csv.sh -v -r --NOWAIT --RESULTS -d "Global" --NSO --10-TAGS --CSVERR")
 
@@ -233,18 +235,20 @@ export TESTOPSARRAY+=("cli_api_export_objects_to_csv.sh -v -r --NOWAIT --RESULTS
 #export TESTOPSARRAY+=("cli_api_export_all_domains_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --OSO --10-TAGS --CSVALL")
 
 # --type-of-export <export_type> | --type-of-export=<export_type>
-#  Supported <export_type> values for export to CSV :  <"standard"|'name-only'|'name-and-uid'|'uid-only'|'rename-to-new-name'>
+#  Supported <export_type> values for export to CSV :  <"standard"|"name-only"|"name-and-uid"|"uid-only"|"rename-to-new-name"|"name-for-delete">
 #    "standard" {DEFAULT} :  Standard Export of all supported object key values
-#    'name-only'          :  Export of just the name key value for object
-#    'name-and-uid'       :  Export of name and uid key value for object
-#    'uid-only'           :  Export of just the uid key value of objects
-#    'rename-to-new-name' :  Export of name key value for object rename
-#    For an export for a delete operation via CSV, use 'name-only'
+#    "name-only"          :  Export of just the name key value for object
+#    "name-and-uid"       :  Export of name and uid key value for object
+#    "uid-only"           :  Export of just the uid key value of objects
+#    "rename-to-new-name" :  Export of name key value for object rename
+#    "name-for-delete"    :  Export of name key value for object delete also sets other settings needed for clean delete control CSV
+#    For an export for a delete operation via CSV, use "name-only"
 
 #export TESTOPSARRAY+=("cli_api_export_all_domains_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --NSO --CSVERR -t 'name-only'")
 #export TESTOPSARRAY+=("cli_api_export_all_domains_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --NSO --CSVERR -t 'name-and-uid'")
 #export TESTOPSARRAY+=("cli_api_export_all_domains_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --NSO --CSVERR -t 'uid-only'")
 #export TESTOPSARRAY+=("cli_api_export_all_domains_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --NSO --CSVERR -t 'rename-to-new-name'")
+#export TESTOPSARRAY+=("cli_api_export_all_domains_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO -t 'name-for-delete'")
 
 
 # -------------------------------------------------------------------------------------------------
