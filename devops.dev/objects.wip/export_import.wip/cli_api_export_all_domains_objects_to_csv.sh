@@ -16,13 +16,13 @@
 # SCRIPT Export objects from all domains, object export to CSV file for API CLI Operations
 #
 #
-ScriptVersion=00.60.10
+ScriptVersion=00.60.11
 ScriptRevision=000
-ScriptSubRevision=060
-ScriptDate=2022-06-18
-TemplateVersion=00.60.10
+ScriptSubRevision=030
+ScriptDate=2022-06-24
+TemplateVersion=00.60.11
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.10
+APISubscriptsVersion=00.60.11
 APISubscriptsRevision=000
 
 

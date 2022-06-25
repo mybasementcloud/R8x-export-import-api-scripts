@@ -16,13 +16,13 @@
 # SCRIPT Object rename to new-name using CSV file for API CLI Operations
 #
 #
-ScriptVersion=00.60.10
+ScriptVersion=00.60.11
 ScriptRevision=000
-ScriptSubRevision=060
-ScriptDate=2022-06-18
-TemplateVersion=00.60.10
+ScriptSubRevision=030
+ScriptDate=2022-06-24
+TemplateVersion=00.60.11
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.10
+APISubscriptsVersion=00.60.11
 APISubscriptsRevision=000
 
 
@@ -2903,8 +2903,14 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 SetUpdateSimpleObjects () {
     #
-    # Screen width template for sizing, default width of 80 characters assumed
-    #
+    
+    if ! ${APIobjectdorename} ; then
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Object '${APICLIobjecttype}' does NOT support RENAME!  APIobjectdorename = '${APIobjectdorename} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Skipping!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        return 0
+    fi
     
     export APICLIfilename=${APICLICSVobjecttype}
     if [ x"${APICLIexportnameaddon}" != x"" ] ; then
@@ -3122,16 +3128,25 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # host objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=true
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=true
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3141,16 +3156,25 @@ CheckAPIVersionAndExecuteOperation
 # host objects - NO NAT Details
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=true
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=true
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=NO_NAT
 
 CheckAPIVersionAndExecuteOperation
@@ -3160,16 +3184,25 @@ CheckAPIVersionAndExecuteOperation
 # network objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=true
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=network
 export APICLIobjectstype=networks
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=true
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3179,16 +3212,25 @@ CheckAPIVersionAndExecuteOperation
 # wildcard objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.2
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=wildcard
 export APICLIobjectstype=wildcards
+export APIobjectminversion=1.2
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3198,16 +3240,25 @@ CheckAPIVersionAndExecuteOperation
 # group objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=true
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=true
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3217,16 +3268,25 @@ CheckAPIVersionAndExecuteOperation
 # group-with-exclusion objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=group-with-exclusion
 export APICLIobjectstype=groups-with-exclusion
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3236,16 +3296,25 @@ CheckAPIVersionAndExecuteOperation
 # address-range objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=true
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=address-range
 export APICLIobjectstype=address-ranges
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=true
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3255,16 +3324,25 @@ CheckAPIVersionAndExecuteOperation
 # multicast-address-ranges objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=true
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=multicast-address-range
 export APICLIobjectstype=multicast-address-ranges
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=true
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3274,16 +3352,25 @@ CheckAPIVersionAndExecuteOperation
 # dns-domain objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=dns-domain
 export APICLIobjectstype=dns-domains
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3293,16 +3380,25 @@ CheckAPIVersionAndExecuteOperation
 # security-zone objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=security-zone
 export APICLIobjectstype=security-zones
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3312,73 +3408,53 @@ CheckAPIVersionAndExecuteOperation
 # dynamic-objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=dynamic-object
 export APICLIobjectstype=dynamic-objects
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
 
 # -------------------------------------------------------------------------------------------------
-# tags
+# tag objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=tag
 export APICLIobjectstype=tags
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# simple-gateways
-# -------------------------------------------------------------------------------------------------
-
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
 export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APICLIobjecttype=simple-gateway
-export APICLIobjectstype=simple-gateways
 export APICLICSVobjecttype=${APICLIobjectstype}
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# simple-clusters
-# -------------------------------------------------------------------------------------------------
-
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.6
+
+export APIobjectdoexport=true
+export APIobjectdoimport=false
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
 export APIobjectcansetifexists=false
 export APIobjectderefgrpmem=false
-export APICLIobjecttype=simple-cluster
-export APICLIobjectstype=simple-clusters
-export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3388,16 +3464,25 @@ CheckAPIVersionAndExecuteOperation
 # checkpoint-hosts
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=true
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=checkpoint-hosts
 export APICLIobjectstype=checkpoint-hosts
+export APIobjectminversion=1.6.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=true
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3407,16 +3492,25 @@ CheckAPIVersionAndExecuteOperation
 # times
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=time
 export APICLIobjectstype=times
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3426,16 +3520,25 @@ CheckAPIVersionAndExecuteOperation
 # time_groups
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3445,16 +3548,25 @@ CheckAPIVersionAndExecuteOperation
 # access-roles
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=access-role
 export APICLIobjectstype=access-roles
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3464,16 +3576,25 @@ CheckAPIVersionAndExecuteOperation
 # opsec-applications
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=opsec-application
 export APICLIobjectstype=opsec-applications
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3483,16 +3604,25 @@ CheckAPIVersionAndExecuteOperation
 # trusted-client objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=trusted-client
 export APICLIobjectstype=trusted-clients
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3502,16 +3632,25 @@ CheckAPIVersionAndExecuteOperation
 # lsv-profile objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.6
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=lsv-profile
 export APICLIobjectstype=lsv-profiles
+export APIobjectminversion=1.6
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3521,16 +3660,25 @@ CheckAPIVersionAndExecuteOperation
 # gsn-handover-group objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=true
 export APICLIobjecttype=gsn-handover-group
 export APICLIobjectstype=gsn-handover-groups
+export APIobjectminversion=1.6.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=true
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3540,16 +3688,25 @@ CheckAPIVersionAndExecuteOperation
 # access-point-name objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=access-point-names
 export APICLIobjectstype=access-point-names
+export APIobjectminversion=1.6.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3561,16 +3718,25 @@ CheckAPIVersionAndExecuteOperation
 
 # MODIFIED 2022-06-17 -
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key='."server-type"'
-export APIobjectspecificselector00value="TACACS"
-export APIobjectminversion=1.7
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=tacacs-server
 export APICLIobjectstype=tacacs-servers
+export APIobjectminversion=1.7
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key='."server-type"'
+export APIobjectspecificselector00value="TACACS"
 export APICLIexportnameaddon=TACACS_only
 
 CheckAPIVersionAndExecuteOperation
@@ -3580,16 +3746,25 @@ CheckAPIVersionAndExecuteOperation
 
 # MODIFIED 2022-06-17 -
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key='."server-type"'
-export APIobjectspecificselector00value="TACACS_PLUS_"
-export APIobjectminversion=1.7
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=tacacs-server
 export APICLIobjectstype=tacacs-servers
+export APIobjectminversion=1.7
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key='."server-type"'
+export APIobjectspecificselector00value="TACACS_PLUS_"
 export APICLIexportnameaddon=TACACSplus_only
 
 CheckAPIVersionAndExecuteOperation
@@ -3597,16 +3772,25 @@ CheckAPIVersionAndExecuteOperation
 
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.7
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=tacacs-server
 export APICLIobjectstype=tacacs-servers
+export APIobjectminversion=1.7
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3616,16 +3800,250 @@ CheckAPIVersionAndExecuteOperation
 # tacacs-groups objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.7
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=tacacs-group
 export APICLIobjectstype=tacacs-groups
+export APIobjectminversion=1.7
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# smtp-servers objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=smtp-server
+export APICLIobjectstype=smtp-servers
+export APIobjectminversion=1.9
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key='."authentication"'
+export APIobjectspecificselector00value=false
+export APICLIexportnameaddon=no_authentication
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=smtp-server
+export APICLIobjectstype=smtp-servers
+export APIobjectminversion=1.9
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key='."authentication"'
+export APIobjectspecificselector00value=true
+export APICLIexportnameaddon=with_authentication
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=smtp-server
+export APICLIobjectstype=smtp-servers
+export APIobjectminversion=1.9
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+#CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=smtp-server
+export APICLIobjectstype=smtp-servers
+export APIobjectminversion=1.9
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# network-feeds objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=network-feed
+export APICLIobjectstype=network-feeds
+export APIobjectminversion=1.9
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# interoperable-devices objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=interoperable-device
+export APICLIobjectstype=interoperable-devices
+export APIobjectminversion=1.9
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Gateways & Clusters
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# simple-gateway objects
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=simple-gateway
+export APICLIobjectstype=simple-gateways
+export APIobjectminversion=1.1
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# -------------------------------------------------------------------------------------------------
+# simple-clusters
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=simple-cluster
+export APICLIobjectstype=simple-clusters
+export APIobjectminversion=1.6
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3635,16 +4053,25 @@ CheckAPIVersionAndExecuteOperation
 # lsm-gateways objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.8
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=lsm-gateway
 export APICLIobjectstype=lsm-gateways
+export APIobjectminversion=1.8
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3654,16 +4081,25 @@ CheckAPIVersionAndExecuteOperation
 # lsm-clusters objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.8
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=lsm-cluster
 export APICLIobjectstype=lsm-clusters
+export APIobjectminversion=1.8
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3689,16 +4125,26 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 # MODIFIED 2022-06-17 -
 #
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
-export APIobjectspecificselector00value=true
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
+
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
 export APICLIexportnameaddon=using_default_timout
 
 CheckAPIVersionAndExecuteOperation
@@ -3708,16 +4154,26 @@ CheckAPIVersionAndExecuteOperation
 
 # MODIFIED 2022-06-17 -
 #
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
-export APIobjectspecificselector00value=false
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
+
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
 export APICLIexportnameaddon=not_using_default_timout
 
 CheckAPIVersionAndExecuteOperation
@@ -3727,16 +4183,26 @@ CheckAPIVersionAndExecuteOperation
 
 # MODIFIED 2022-06-17 -
 #
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
+
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
 export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
 #CheckAPIVersionAndExecuteOperation
@@ -3748,16 +4214,26 @@ export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
 # MODIFIED 2022-06-17 -
 #
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
-export APIobjectspecificselector00value=true
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
+
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
 export APICLIexportnameaddon=using_default_timout
 
 CheckAPIVersionAndExecuteOperation
@@ -3767,16 +4243,26 @@ CheckAPIVersionAndExecuteOperation
 
 # MODIFIED 2022-06-17 -
 #
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
-export APIobjectspecificselector00value=false
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
+
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
 export APICLIexportnameaddon=not_using_default_timout
 
 CheckAPIVersionAndExecuteOperation
@@ -3786,16 +4272,26 @@ CheckAPIVersionAndExecuteOperation
 
 # MODIFIED 2022-06-17 -
 #
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
+
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
 #CheckAPIVersionAndExecuteOperation
@@ -3805,16 +4301,25 @@ export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 # services-icmp objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-icmp
 export APICLIobjectstype=services-icmp
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3824,16 +4329,25 @@ CheckAPIVersionAndExecuteOperation
 # services-icmp6 objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-icmp6
 export APICLIobjectstype=services-icmp6
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3845,16 +4359,26 @@ CheckAPIVersionAndExecuteOperation
 
 # MODIFIED 2022-06-17 -
 #
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
-export APIobjectspecificselector00value=true
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
+
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
 export APICLIexportnameaddon=using_default_timout
 
 CheckAPIVersionAndExecuteOperation
@@ -3864,16 +4388,26 @@ CheckAPIVersionAndExecuteOperation
 
 # MODIFIED 2022-06-17 -
 #
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
-export APIobjectspecificselector00value=false
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
+
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
 export APICLIexportnameaddon=not_using_default_timout
 
 CheckAPIVersionAndExecuteOperation
@@ -3883,16 +4417,26 @@ CheckAPIVersionAndExecuteOperation
 
 # MODIFIED 2022-06-17 -
 #
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
+
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
 #CheckAPIVersionAndExecuteOperation
@@ -3904,16 +4448,26 @@ export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
 # MODIFIED 2022-06-17 -
 #
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
-export APIobjectspecificselector00value=true
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
+
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
 export APICLIexportnameaddon=using_default_timout
 
 CheckAPIVersionAndExecuteOperation
@@ -3923,16 +4477,26 @@ CheckAPIVersionAndExecuteOperation
 
 # MODIFIED 2022-06-17 -
 #
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
-export APIobjectspecificselector00value=false
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
+
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
 export APICLIexportnameaddon=not_using_default_timout
 
 CheckAPIVersionAndExecuteOperation
@@ -3942,16 +4506,26 @@ CheckAPIVersionAndExecuteOperation
 
 # MODIFIED 2022-06-17 -
 #
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
+
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 
 #CheckAPIVersionAndExecuteOperation
@@ -3961,16 +4535,25 @@ export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 # services-dce-rpc objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-dce-rpc
 export APICLIobjectstype=services-dce-rpc
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3980,16 +4563,25 @@ CheckAPIVersionAndExecuteOperation
 # services-rpc objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -3999,16 +4591,25 @@ CheckAPIVersionAndExecuteOperation
 # services-gtp objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.7
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-gtp
 export APICLIobjectstype=services-gtp
+export APIobjectminversion=1.7
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -4018,16 +4619,25 @@ CheckAPIVersionAndExecuteOperation
 # service-citrix-tcp objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-citrix-tcp
 export APICLIobjectstype=services-citrix-tcp
+export APIobjectminversion=1.6.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -4037,16 +4647,25 @@ CheckAPIVersionAndExecuteOperation
 # service-compound-tcp objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=service-compound-tcp
 export APICLIobjectstype=services-compound-tcp
+export APIobjectminversion=1.6.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -4056,16 +4675,25 @@ CheckAPIVersionAndExecuteOperation
 # service-groups objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=true
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=true
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -4080,16 +4708,25 @@ CheckAPIVersionAndExecuteOperation
 # application-sites objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -4104,16 +4741,25 @@ CheckAPIVersionAndExecuteOperation
 # application-site-categories objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=application-site-category
 export APICLIobjectstype=application-site-categories
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -4128,16 +4774,25 @@ CheckAPIVersionAndExecuteOperation
 # application-site-groups objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=true
 export APICLIobjecttype=application-site-group
 export APICLIobjectstype=application-site-groups
+export APIobjectminversion=1.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=true
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -4175,16 +4830,25 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # users
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=user
 export APICLIobjectstype=users
+export APIobjectminversion=1.6.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -4199,16 +4863,25 @@ CheckAPIVersionAndExecuteOperation
 # user-groups
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=true
 export APICLIobjecttype=user-group
 export APICLIobjectstype=user-groups
+export APIobjectminversion=1.6.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=true
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -4223,16 +4896,25 @@ CheckAPIVersionAndExecuteOperation
 # user-templates
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=user-template
 export APICLIobjectstype=user-templates
+export APIobjectminversion=1.6.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -4247,16 +4929,25 @@ CheckAPIVersionAndExecuteOperation
 # identity-tags
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.6.1
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=identity-tag
 export APICLIobjectstype=identity-tags
+export APIobjectminversion=1.6.1
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
@@ -4293,16 +4984,25 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # updatable-objects
 # -------------------------------------------------------------------------------------------------
 
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APIobjectminversion=1.3
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
 export APICLIobjecttype=updatable-object
 export APICLIobjectstype=updatable-objects
+export APIobjectminversion=1.3
 export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=false
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation

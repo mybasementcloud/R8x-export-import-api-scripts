@@ -1,6 +1,6 @@
 # LIMITATIONS and CAVEATS
 
-## UPDATED:  2022-06-18
+## UPDATED:  2022-06-25
 
 This document outlines limitations and caveats to the implementation of R8X API export, import, set-update, and delete scripts utilizing bash mgmt_cli commands.
 
@@ -28,7 +28,7 @@ This is a best effort development operation and benefitting of financial incenti
 
 R81.20 EA Public T437 - This release has provided some issues with changes under the hood of Gaia and also some challenges in changes to the API version 1.9 handling of objects on import via mgmt_cli.
 
-- Service objects may fail to import if the values for aggressive aging set use of default timeout, but the column for timeout does not have a zero value, which might be exported because the database includes that issue.  FIXED:  release v00.60.10.000, now create multiple export files depending on the object type parameters.
+- Service objects may fail to import if the values for aggressive aging set use of default timeout, but the column for timeout does not have a zero value, which might be exported because the database includes that issue.  FIXED:  release v00.60.11.000, now create multiple export files depending on the object type parameters.
 - User and User Template objects import has some issues that still need investigation
 
 ## LIMITATIONS and CAVEATS Authentication
@@ -100,3 +100,17 @@ Currently RADIUS server object and RADIUS servers group object types do not exis
 - lsm-gateway and lsm-cluster objects are Work-In-Progress (WIP) and may not provide CSV results of value until further data can be collected and analyzed
 
 - v00.60.08.060 :  lsm-gateway[s] now provides limited CSV data that can work for import, as well as a CSV export NOT_FOR_IMPORT of raw information from the lsm-gateway objects as a reference for the implemented system.
+
+### SMTP Server Objects
+
+- The password field won't export, so it is populated with a placeholder value that needs to be either set before import, or reset on the object
+
+- Since the smtp-server object can exist with our without username and password, additional harvesting is required to harvest those smtp-servers with username and password (authenticaton = true), as well as those without username and password (authenticaton = false)
+
+### Network Feed Objects
+
+- This object has an option to configure any number of custom-header names and values and the current scripting (v00.60.11) harvests the first five (5) of these value pairs.  If more are required, either editing and expanding the number to cover the needed additional values is required.
+
+### Interoperable Device Objects
+
+- Since these are essentially third-party gateways, or gateways managed by other management servers, there are many more interfaces configured than just a single one.  The current implementation only harvests the first interface.  Additional interface harvesting may happen later, if code for that process is not significantly difficult.

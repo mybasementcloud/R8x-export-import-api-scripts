@@ -13,13 +13,13 @@
 # Test Export Execution for MDSM collection - test environment
 #
 #
-ScriptVersion=00.60.10
+ScriptVersion=00.60.11
 ScriptRevision=000
-ScriptSubRevision=060
-ScriptDate=2022-06-18
-TemplateVersion=00.60.10
+ScriptSubRevision=030
+ScriptDate=2022-06-24
+TemplateVersion=00.60.11
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.10
+APISubscriptsVersion=00.60.11
 APISubscriptsRevision=000
 
 
@@ -332,145 +332,6 @@ done
 
 
 echo `${cexdtzs}`${cexdtzsep} 'Test Series Completed'| tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} '--------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} '\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/' | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} '--------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} '--------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} '\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/' | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} '--------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-
-
-errorreturn=0
-
-export cexcommand='cli_api_export_all_domains_objects.sh -r -v --NOWAIT --RESULTS --format all --KEEPCSVWIP --SO --10-TAGS --CSVERR --CSVALL'
-echo `${cexdtzs}`${cexdtzsep} 'Executing operation:  '${test_script_work_folder}/${cexcommand} | tee -a -i ${cexlogfilepath}
-
-${test_script_work_folder}/${cexcommand}
-errorreturn=$?
-
-if [ ${errorreturn} != 0 ] ; then
-    # Something went wrong, terminate
-    echo `${cexdtzs}`${cexdtzsep} 'Error '${errorreturn}' in operation:  '${cexcommand} | tee -a -i ${cexlogfilepath}
-    echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-    exit ${errorreturn}
-fi
-
-
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} '\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/' | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-
-
-errorreturn=0
-
-export cexcommand='cli_api_export_all_domains_objects.sh -r -v --NOWAIT --RESULTS --format json --KEEPCSVWIP --NSO'
-echo `${cexdtzs}`${cexdtzsep} 'Executing operation:  '${test_script_work_folder}/${cexcommand} | tee -a -i ${cexlogfilepath}
-
-${test_script_work_folder}/${cexcommand}
-errorreturn=$?
-
-if [ ${errorreturn} != 0 ] ; then
-    # Something went wrong, terminate
-    echo `${cexdtzs}`${cexdtzsep} 'Error '${errorreturn}' in operation:  '${cexcommand} | tee -a -i ${cexlogfilepath}
-    echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-    exit ${errorreturn}
-fi
-
-
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} '\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/' | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-
-
-errorreturn=0
-
-export cexcommand='cli_api_export_all_domains_objects.sh -r -v --NOWAIT --RESULTS --format json --KEEPCSVWIP --OSO'
-echo `${cexdtzs}`${cexdtzsep} 'Executing operation:  '${test_script_work_folder}/${cexcommand} | tee -a -i ${cexlogfilepath}
-
-${test_script_work_folder}/${cexcommand}
-errorreturn=$?
-
-if [ ${errorreturn} != 0 ] ; then
-    # Something went wrong, terminate
-    echo `${cexdtzs}`${cexdtzsep} 'Error '${errorreturn}' in operation:  '${cexcommand} | tee -a -i ${cexlogfilepath}
-    echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-    exit ${errorreturn}
-fi
-
-
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} '\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/' | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-
-
-errorreturn=0
-
-export cexcommand='cli_api_export_all_domains_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --NSO --10-TAGS --CSVERR'
-echo `${cexdtzs}`${cexdtzsep} 'Executing operation:  '${test_script_work_folder}/${cexcommand} | tee -a -i ${cexlogfilepath}
-
-${test_script_work_folder}/${cexcommand}
-errorreturn=$?
-
-if [ ${errorreturn} != 0 ] ; then
-    # Something went wrong, terminate
-    echo `${cexdtzs}`${cexdtzsep} 'Error '${errorreturn}' in operation:  '${cexcommand} | tee -a -i ${cexlogfilepath}
-    echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-    exit ${errorreturn}
-fi
-
-
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} '\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/' | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-
-
-errorreturn=0
-
-export cexcommand='cli_api_export_all_domains_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --OSO --10-TAGS --CSVALL'
-echo `${cexdtzs}`${cexdtzsep} 'Executing operation:  '${test_script_work_folder}/${cexcommand} | tee -a -i ${cexlogfilepath}
-
-${test_script_work_folder}/${cexcommand}
-errorreturn=$?
-
-if [ ${errorreturn} != 0 ] ; then
-    # Something went wrong, terminate
-    echo `${cexdtzs}`${cexdtzsep} 'Error '${errorreturn}' in operation:  '${cexcommand} | tee -a -i ${cexlogfilepath}
-    echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-    exit ${errorreturn}
-fi
-
-
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} '\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/' | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-
-
-errorreturn=0
-
-export cexcommand='cli_api_export_all_domains_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --NSO --CSVERR -t 'rename-to-new-name''
-echo `${cexdtzs}`${cexdtzsep} 'Executing operation:  '${test_script_work_folder}/${cexcommand} | tee -a -i ${cexlogfilepath}
-
-${test_script_work_folder}/${cexcommand}
-errorreturn=$?
-
-if [ ${errorreturn} != 0 ] ; then
-    # Something went wrong, terminate
-    echo `${cexdtzs}`${cexdtzsep} 'Error '${errorreturn}' in operation:  '${cexcommand} | tee -a -i ${cexlogfilepath}
-    echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
-    exit ${errorreturn}
-fi
-
-
 echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 echo `${cexdtzs}`${cexdtzsep} '--------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
 echo `${cexdtzs}`${cexdtzsep} '\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/' | tee -a -i ${cexlogfilepath}

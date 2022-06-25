@@ -1,6 +1,6 @@
 # supported_objects.version.tsv - Overview
 
-## UPDATED:  2022-06-18
+## UPDATED:  2022-06-25
 
 ## Document Overview
 
@@ -31,16 +31,19 @@ The columns contents are as follows:
 - JSON Repository OBJECT :  
     This is the object type OBJECT referenced when using the JSON Repository.  Since the JSON Repository contains the object information, re-use of the same OBJECT is common where the data for the export object for specific elements are harvested from the main object, like group-members, which come from the group object.
 
-- Recommended SMS Limit :  
-    This is the recommended limit value for the number of objects to process in a specific export operation when operating on an SMS (Security Management Server).  This value will be refined and may get more specific details, since there are issues with large object in high volume queries due to imposed limitations in R81 and later (e.g. application-site object)
-
-- Recommended MDSM Limit :  
-    This is the recommended limit value for the number of objects to process in a specific export operation when operating on an MDSM (Multi-Domain Security Management) MDS (Multil-Domain Server).  This value will be refined and may get more specific details, with values for MDSM specific object limits, since there are issues with large object in high volume queries due to imposed limitations in R81 and later (e.g. application-site object)
+- Export Name Add-On :
+    This is the add-on to the file name for this exported object type varriant.
 
 - Minimum Version :  
     This is the minimum version of the API that is required to operate on the Check Point Management host to utilize the specific object type.  Scripts are writen to identify and handle only those object types that are available to that Management Host's API version installed.  Provisions to specifically indicate operational API version during execution are not present, so the specific Management Host's installed release version API version level is used, and this API version level is subject to modification by Jumbo HotFix installation.
 
      NOTE:  scripts are generally written using the latest release version, and specific nuances of API version level implementation are not currently adjusted for in downlevel application.  Problems should be raised to the author.
+
+- Recommended SMS Limit :  
+    This is the recommended limit value for the number of objects to process in a specific export operation when operating on an SMS (Security Management Server).  This value will be refined and may get more specific details, since there are issues with large object in high volume queries due to imposed limitations in R81 and later (e.g. application-site object)
+
+- Recommended MDSM Limit :  
+    This is the recommended limit value for the number of objects to process in a specific export operation when operating on an MDSM (Multi-Domain Security Management) MDS (Multil-Domain Server).  This value will be refined and may get more specific details, with values for MDSM specific object limits, since there are issues with large object in high volume queries due to imposed limitations in R81 and later (e.g. application-site object)
 
 - Supports set-if-exists :  
     Does the object type support the error handling operation "set-if-exists" (true/false)?

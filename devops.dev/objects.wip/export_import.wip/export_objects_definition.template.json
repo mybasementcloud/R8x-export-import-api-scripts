@@ -1,8 +1,10 @@
 { "file_meta_info" : {
-	"fileversion" : "0.60.10",
+	"fileversion" : "0.60.11",
 	"filerevision" : "000",
-	"filesubrevision" : "060",
-	"filedate" : "2022-06-17"
+	"filesubrevision" : "030",
+	"filedate" : "2022-06-24",
+	"fileinformationlevel" : "010",
+	"filelayout" : "010"
 }, 
 "default_csv_export_elements" : [ {
 	"name" : "common",
@@ -50,9 +52,13 @@
 	"name-plural" : "examples",
 	"objectgroup" : [
 		"Network Objects", 
+		"Gateways & Clusters", 
 		"Service & Applications",
+		"Updatable Objects", 
 		"Users"
 	 ],
+	"objectype" : "example",
+	"objectsype" : "examples",
 	"api-version" : [
 		"1.1", 
 		"1.2",
@@ -66,10 +72,6 @@
 		"1.8",
 		"1.9"
 	],
-	"cansetifexists" : "false",
-	"derefgrpmem" : "false",
-	"objectype" : "example",
-	"objectsype" : "examples",
 	"objectlimit" : [
 		500,
 		50,
@@ -95,6 +97,17 @@
 		"10%",
 		"10%-100%"
 	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objecttypehasname" : "true",
+	"CSVExportWIP" : "false",
+	"objectspecificselector" : [
+		{
+			"key" : "",
+			"value" : ""
+		}
+	],
+	"exportnameaddon" : "",
 	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -103,9 +116,13 @@
 	"name-plural" : "examples",
 	"objectgroup" : [
 		"Network Objects", 
+		"Gateways & Clusters", 
 		"Service & Applications",
+		"Updatable Objects", 
 		"Users"
 	 ],
+	"objectype" : "example",
+	"objectsype" : "examples",
 	"api-version" : [
 		"1.1", 
 		"1.2",
@@ -119,10 +136,6 @@
 		"1.8",
 		"1.9"
 	],
-	"cansetifexists" : "false",
-	"derefgrpmem" : "false",
-	"objectype" : "example",
-	"objectsype" : "examples",
 	"objectlimit" : [
 		500,
 		50,
@@ -148,6 +161,17 @@
 		"10%",
 		"10%-100%"
 	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objecttypehasname" : "true",
+	"CSVExportWIP" : "false",
+	"objectspecificselector" : [
+		{
+			"key" : "",
+			"value" : ""
+		}
+	],
+	"exportnameaddon" : "",
 	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -156,9 +180,13 @@
 	"name-plural" : "examples",
 	"objectgroup" : [
 		"Network Objects", 
+		"Gateways & Clusters", 
 		"Service & Applications",
+		"Updatable Objects", 
 		"Users"
 	 ],
+	"objectype" : "example",
+	"objectsype" : "examples",
 	"api-version" : [
 		"1.1", 
 		"1.2",
@@ -172,10 +200,6 @@
 		"1.8",
 		"1.9"
 	],
-	"cansetifexists" : "false",
-	"derefgrpmem" : "false",
-	"objectype" : "example",
-	"objectsype" : "examples",
 	"objectlimit" : [
 		500,
 		50,
@@ -201,6 +225,17 @@
 		"10%",
 		"10%-100%"
 	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objecttypehasname" : "true",
+	"CSVExportWIP" : "false",
+	"objectspecificselector" : [
+		{
+			"key" : "",
+			"value" : ""
+		}
+	],
+	"exportnameaddon" : "",
 	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -209,9 +244,13 @@
 	"name-plural" : "examples",
 	"objectgroup" : [
 		"Network Objects", 
+		"Gateways & Clusters", 
 		"Service & Applications",
+		"Updatable Objects", 
 		"Users"
 	 ],
+	"objectype" : "example",
+	"objectsype" : "examples",
 	"api-version" : [
 		"1.1", 
 		"1.2",
@@ -225,10 +264,6 @@
 		"1.8",
 		"1.9"
 	],
-	"cansetifexists" : "false",
-	"derefgrpmem" : "false",
-	"objectype" : "example",
-	"objectsype" : "examples",
 	"objectlimit" : [
 		500,
 		50,
@@ -254,6 +289,17 @@
 		"10%",
 		"10%-100%"
 	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objecttypehasname" : "true",
+	"CSVExportWIP" : "false",
+	"objectspecificselector" : [
+		{
+			"key" : "",
+			"value" : ""
+		}
+	],
+	"exportnameaddon" : "",
 	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -263,9 +309,15 @@
 	"name-plural" : "examples",
 	"objectgroup" : [
 		"Network Objects", 
+		"Gateways & Clusters", 
 		"Service & Applications",
+		"Updatable Objects", 
 		"Users"
 	 ],
+	"objectype" : "example",
+	"objectsype" : "examples",
+	"complexobjecttype" : "example",
+	"complexobjectstype" : "examples",
 	"api-version" : [
 		"1.1", 
 		"1.2",
@@ -279,12 +331,6 @@
 		"1.8",
 		"1.9"
 	],
-	"cansetifexists" : "false",
-	"derefgrpmem" : "false",
-	"objectype" : "example",
-	"objectsype" : "examples",
-	"complexobjecttype" : "example",
-	"complexobjectstype" : "examples",
 	"objectlimit" : [
 		500,
 		50,
@@ -310,6 +356,17 @@
 		"10%",
 		"10%-100%"
 	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objecttypehasname" : "true",
+	"CSVExportWIP" : "false",
+	"objectspecificselector" : [
+		{
+			"key" : "",
+			"value" : ""
+		}
+	],
+	"exportnameaddon" : "",
 	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -318,9 +375,15 @@
 	"name-plural" : "examples",
 	"objectgroup" : [
 		"Network Objects", 
+		"Gateways & Clusters", 
 		"Service & Applications",
+		"Updatable Objects", 
 		"Users"
 	 ],
+	"objectype" : "example",
+	"objectsype" : "examples",
+	"complexobjecttype" : "example",
+	"complexobjectstype" : "examples",
 	"api-version" : [
 		"1.1", 
 		"1.2",
@@ -334,12 +397,6 @@
 		"1.8",
 		"1.9"
 	],
-	"cansetifexists" : "false",
-	"derefgrpmem" : "false",
-	"objectype" : "example",
-	"objectsype" : "examples",
-	"complexobjecttype" : "example",
-	"complexobjectstype" : "examples",
 	"objectlimit" : [
 		500,
 		50,
@@ -365,6 +422,17 @@
 		"10%",
 		"10%-100%"
 	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objecttypehasname" : "true",
+	"CSVExportWIP" : "false",
+	"objectspecificselector" : [
+		{
+			"key" : "",
+			"value" : ""
+		}
+	],
+	"exportnameaddon" : "",
 	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -374,9 +442,15 @@
 	"name-plural" : "examples",
 	"objectgroup" : [
 		"Network Objects", 
+		"Gateways & Clusters", 
 		"Service & Applications",
+		"Updatable Objects", 
 		"Users"
 	 ],
+	"objectype" : "example",
+	"objectsype" : "examples",
+	"complexobjecttype" : "example",
+	"complexobjectstype" : "examples",
 	"api-version" : [
 		"1.1", 
 		"1.2",
@@ -390,12 +464,6 @@
 		"1.8",
 		"1.9"
 	],
-	"cansetifexists" : "false",
-	"derefgrpmem" : "false",
-	"objectype" : "example",
-	"objectsype" : "examples",
-	"complexobjecttype" : "example",
-	"complexobjectstype" : "examples",
 	"objectlimit" : [
 		500,
 		50,
@@ -421,6 +489,17 @@
 		"10%",
 		"10%-100%"
 	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objecttypehasname" : "true",
+	"CSVExportWIP" : "false",
+	"objectspecificselector" : [
+		{
+			"key" : "",
+			"value" : ""
+		}
+	],
+	"exportnameaddon" : "",
 	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
@@ -429,9 +508,15 @@
 	"name-plural" : "examples",
 	"objectgroup" : [
 		"Network Objects", 
+		"Gateways & Clusters", 
 		"Service & Applications",
+		"Updatable Objects", 
 		"Users"
 	 ],
+	"objectype" : "example",
+	"objectsype" : "examples",
+	"complexobjecttype" : "example",
+	"complexobjectstype" : "examples",
 	"api-version" : [
 		"1.1", 
 		"1.2",
@@ -445,12 +530,6 @@
 		"1.8",
 		"1.9"
 	],
-	"cansetifexists" : "false",
-	"derefgrpmem" : "false",
-	"objectype" : "example",
-	"objectsype" : "examples",
-	"complexobjecttype" : "example",
-	"complexobjectstype" : "examples",
 	"objectlimit" : [
 		500,
 		50,
@@ -476,17 +555,35 @@
 		"10%",
 		"10%-100%"
 	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objecttypehasname" : "true",
+	"CSVExportWIP" : "false",
+	"objectspecificselector" : [
+		{
+			"key" : "",
+			"value" : ""
+		}
+	],
+	"exportnameaddon" : "",
 	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
-}, {
+} ], 
+"complex_criteria_object_members" : [ {
 	"name" : "example",
 	"name-plural" : "examples",
 	"objectgroup" : [
 		"Network Objects", 
+		"Gateways & Clusters", 
 		"Service & Applications",
+		"Updatable Objects", 
 		"Users"
 	 ],
+	"objectype" : "example",
+	"objectsype" : "examples",
+	"complexobjecttype" : "example",
+	"complexobjectstype" : "examples",
 	"api-version" : [
 		"1.1", 
 		"1.2",
@@ -500,12 +597,6 @@
 		"1.8",
 		"1.9"
 	],
-	"cansetifexists" : "false",
-	"derefgrpmem" : "false",
-	"objectype" : "example",
-	"objectsype" : "examples",
-	"complexobjecttype" : "example",
-	"complexobjectstype" : "examples",
 	"objectlimit" : [
 		500,
 		50,
@@ -531,10 +622,25 @@
 		"10%",
 		"10%-100%"
 	],
+	"cansetifexists" : "false",
+	"derefgrpmem" : "false",
+	"objecttypehasname" : "true",
+	"CSVExportWIP" : "false",
+	"objectspecificselector" : [
+		{
+			"key" : "",
+			"value" : ""
+		}
+	],
+	"exportnameaddon" : "",
 	"sortparms" : 	"sortparms" : "'-f -t , -k 1,1'",
 	"CSVFileHeader" : "",
 	"CSVJQparms" : ""
-	"exportcheck01key" : "\"check_key\"",
-	"exportcheck01value" : "\"check_value\""
+	"exportcriteriaselector" : [
+		{
+			"criteria-key" : "\"check_key\"",
+			"criteria-value" : "\"check_value\""
+		}
+	]
 } ]
 }
