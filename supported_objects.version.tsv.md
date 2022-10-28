@@ -1,6 +1,6 @@
 # supported_objects.version.tsv - Overview
 
-## UPDATED:  2022-06-25
+## UPDATED:  2022-10-27
 
 ## Document Overview
 

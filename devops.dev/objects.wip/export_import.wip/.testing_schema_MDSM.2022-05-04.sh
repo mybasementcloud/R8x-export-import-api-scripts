@@ -16,13 +16,13 @@
 # Testing schema for MDSM MDS with domain "EXAMPLE-DEMO"
 #
 #
-ScriptVersion=00.60.11
+ScriptVersion=00.60.12
 ScriptRevision=000
-ScriptSubRevision=030
-ScriptDate=2022-06-24
-TemplateVersion=00.60.11
+ScriptSubRevision=050
+ScriptDate=2022-10-27
+TemplateVersion=00.60.12
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.11
+APISubscriptsVersion=00.60.12
 APISubscriptsRevision=000
 
 #
@@ -71,4 +71,5 @@ exit 0
 ./cli_api_export_all_domains_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --NSO --CSVERR -t "rename-to-new-name"
 ./cli_api_export_all_domains_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO -t 'name-for-delete'
 
+./cli_api_export_special_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --KEEPCSVWIP --NSO --10-TAGS --CSVERR -d "Global"
 

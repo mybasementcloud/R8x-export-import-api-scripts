@@ -16,13 +16,13 @@
 # SCRIPTS 500 PLUS OBJECTS dump to json handler
 #
 #
-ScriptVersion=00.60.11
+ScriptVersion=00.60.12
 ScriptRevision=000
-ScriptSubRevision=030
-ScriptDate=2022-06-24
-TemplateVersion=00.60.11
+ScriptSubRevision=050
+ScriptDate=2022-10-27
+TemplateVersion=00.60.12
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.11
+APISubscriptsVersion=00.60.12
 APISubscriptsRevision=000
 
 

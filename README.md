@@ -4,13 +4,13 @@ Check Point R8x Export, Import, Set/Update, Rename to new-name, and Delete mgmt_
 
 Additional documentation and information will be provided in .md, .tsv, and potentially .xlsx files in the repository.
 
-## UPDATED:  2022-06-25
+## UPDATED:  2022-10-27
 
 Interim update, reorganize the README.MD and add a Quick Start
 
 ## Overview
 
-The export, import, set-update, rename-to-new-name, and delete using CSV files scripts in this post, currently version 00.60.11.000 dated 2022-06-25, are intended to allow operations on an existing R80, R80.10, R80.20[|.M1|.M2], R80.30, R80.40, R81, R81.10 and EA R81.20 [WIP (Work-In-Progress)]] Check Point management server (SMS or MDM) from bash expert mode on the Check Point management server host or another API enabled Check Point management server host instance (Check Point Gaia OS R8X) able to authenticate and reach the target management server host.  Utilization from other LINUX releases is not supported, tested, or assumed to work.
+The export, import, set-update, rename-to-new-name, and delete using CSV files scripts in this post, currently version 00.60.12.000 dated 2022-10-27, are intended to allow operations on an existing R80, R80.10, R80.20[|.M1|.M2], R80.30, R80.40, R81, R81.10 and EA R81.20 [WIP (Work-In-Progress)]] Check Point management server (SMS or MDM) from bash expert mode on the Check Point management server host or another API enabled Check Point management server host instance (Check Point Gaia OS R8X) able to authenticate and reach the target management server host.  Utilization from other LINUX releases is not supported, tested, or assumed to work.
 
 - Check Point Management API documentation is here:
 <https://sc1.checkpoint.com/documents/latest/APIs/index.html#introduction>
@@ -83,7 +83,7 @@ To quickly start working with the scripts, do the following.
 
       Example:  ```tar -xvf devops.dev.{version}.tgz```
 
-      ```tar -xvf devops.dev.v00.60.11.000.tgz```
+      ```tar -xvf devops.dev.v00.60.12.000.tgz```
 
 4. Goto to the export import folder
 
@@ -113,18 +113,58 @@ Presumptive folder structure for R8X API Management CLI (mgmt_cli) Template base
 
 | Folder | Folder Purpose |
 |:---|:---|
-|/...{script_home_folder}/|the folder containing the script set, generally ```/var/log/__customer/devops[.dev]```|
-|./_api_subscripts[.wip]|folder for all scripts|
-|./_templates[.wip]|folder for all scripts|
-|./tools|folder for all scripts with additional tools not assumed on system|
-|./objects[.wip]|folder for objects operations focused scripts|
-|./objects[.wip]/csv_tools[.wip]|folder for objects operations for csv handling focused scripts|
-|./objects[.wip]/export_import[.wip]|folder for objects operations export, import, set, rename, and delete focused scripts|
-|./objects[.wip]/object_operations|folder for objects operations export, import, set, rename, and delete focused scripts|
-|./Policy_and_Layers[.wip]|folder for policy and layers operations focused scripts|
-|./Session_Cleanup[.wip]|folder for Session Cleanup operation focused scripts|
-|./tools.MDSM[.wip]|folder for Tools focused on MDSM operations scripts|
+|`/...{script_home_folder}/`|the folder containing the script set, generally ```/var/log/__customer/devops[.dev]```|
+|`./_api_subscripts[.wip]`|folder for all scripts|
+|`./_templates[.wip]`|folder for all scripts|
+|`./tools`|folder for all scripts with additional tools not assumed on system|
+|`./objects[.wip]`|folder for objects operations focused scripts|
+|`./objects[.wip]/csv_tools[.wip]`|folder for objects operations for csv handling focused scripts|
+|`./objects[.wip]/export_import[.wip]`|folder for objects operations export, import, set, rename, and delete focused scripts|
+|`./objects[.wip]/object_operations`|folder for objects operations export, import, set, rename, and delete focused scripts|
+|`./Policy_and_Layers[.wip]`|folder for policy and layers operations focused scripts|
+|`./Session_Cleanup[.wip]`|folder for Session Cleanup operation focused scripts|
+|`./tools.MDSM[.wip]`|folder for Tools focused on MDSM operations scripts|
 
 ### JSON REPOSITORY
 
-As of v00.60.08.000 the efforts are made to expidite the operations involving generations of CSV exports, but these are dependent on up-to-date json data from the management database.  With version v00.60.08.000 and later, additional controls are introducted to help create a "__json_objects_repository" folder with a repository of objects json data as files for fast JQ parsing in CSV exports.  If, during CSV export operation a required json repository file is not found, then the normal mgmg_cli call is made instead.  The "__json_objects_repository" folder is located in the normal results folder, but has CLI parameter controls for explicit setting of the json repository folder.
+As of v00.60.08.000 the efforts are made to expidite the operations involving generations of CSV exports, but these are dependent on up-to-date json data from the management database.  With version v00.60.08.000 and later, additional controls are introducted to help create a "`__json_objects_repository`" folder with a repository of objects json data as files for fast JQ parsing in CSV exports.  If, during CSV export operation a required json repository file is not found, then the normal mgmg_cli call is made instead.  The "__json_objects_repository" folder is located in the normal results folder, but has CLI parameter controls for explicit setting of the json repository folder.
+
+## TIPS AND TRICKS
+
+Adding this section regarding approach, especailly with respect to performance related limitations that are encountered on Multi-Domain Security Management (MDSM).
+
+### HOW TO DETERMINE THE OPERATIONAL --MAXOBJECTS VALUE
+
+Specifically for MDSM it may be necessary to tweak the execution CLI parameter for --MAXOBJECTS X, which for MDSM is set for 250 objects while for SMS is set for 500, the absolute maximum value for "limit" in a mgmt_cli show call.  The easiest way to check what is possible on the target MDSM Multi-Domain Server (MDS) host, is executing a few direct mgmt_cli commands looking for the first success value.  Starting at a limit value of 250 objects, work down in 100, 50, or 25 increments to find where there is a success output.
+
+Example, start at 250, check 150, then 125, 100 would have been next:
+
+```bash
+      [Expert@yourhostname:0]# mgmt_cli -r true -d "Global" show application-sites limit 250 offset 0 details-level "full" -f json --conn-timeout 600
+      {
+      "code" : "generic_error",
+      "message" : "Error 502. The Management API service is not available. Please check that the Management API server is up and running."
+      }
+
+      [Expert@yourhostname:0]# mgmt_cli -r true -d "Global" show application-sites limit 150 offset 0 details-level "full" -f json --conn-timeout 600
+      {
+      "code" : "generic_error",
+      "message" : "Error 502. The Management API service is not available. Please check that the Management API server is up and running."
+      }
+
+      [Expert@yourhostname:0]# mgmt_cli -r true -d "Global" show application-sites limit 125 offset 0 details-level "full" -f json --conn-timeout 600 | tail
+            "iso-8601" : "2022-02-25T15:32-0600"
+            },
+            "creator" : "System"
+      },
+      "read-only" : true
+      } ],
+      "from" : 1,
+      "to" : 125,
+      "total" : 10052
+      }
+      [Expert@yourhostname:0]#
+
+```
+
+Based on the above example, adding `--OVERRIDEMAXOBJECTS --MAXOBJECTS 125` to the command line execution parameters should ensure proper execution and completion; however, the execution increment will produce ome fun numbers in the files generated.  Using `--OVERRIDEMAXOBJECTS --MAXOBJECTS 100` may be better, but does require more execution cycles.

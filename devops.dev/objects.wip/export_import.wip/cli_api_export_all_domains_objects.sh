@@ -16,13 +16,13 @@
 # SCRIPT Export objects from all domains, object export to JSON (standard and full details), and CSV file for API CLI Operations
 #
 #
-ScriptVersion=00.60.11
+ScriptVersion=00.60.12
 ScriptRevision=000
-ScriptSubRevision=030
-ScriptDate=2022-06-24
-TemplateVersion=00.60.11
+ScriptSubRevision=050
+ScriptDate=2022-10-27
+TemplateVersion=00.60.12
 APISubscriptsLevel=010
-APISubscriptsVersion=00.60.11
+APISubscriptsVersion=00.60.12
 APISubscriptsRevision=000
 
 
@@ -44,7 +44,7 @@ ScriptName=cli_api_export_all_domains_objects
 export APIScriptFileNameRoot=cli_api_export_all_domains_objects
 export APIScriptShortName=export_all_domains_objects
 export APIScriptnohupName=${APIScriptShortName}
-export APIScriptDescription="Export objects from all domains, object export to JSON (standard and full details), and CSV file for API CLI Operations"
+export APIScriptDescription="Export Objects from all domains, object export to JSON (standard and full details), and CSV file for API CLI Operations"
 
 # =================================================================================================
 # =================================================================================================
@@ -378,7 +378,7 @@ export UseJSONJQ=true
 # ADDED 2020-02-07 -
 export UseJSONJQ16=true
 
-# MODIFIED 2021-11-09 -
+# MODIFIED 2022-10-27 -
 # R80           version 1.0
 # R80.10        version 1.1
 # R80.20.M1     version 1.2
@@ -390,6 +390,7 @@ export UseJSONJQ16=true
 # R81           version 1.7
 # R81 JHF 34    version 1.7.1
 # R81.10        version 1.8
+# R81.10 JHF 79 version 1.8.1
 # R81.20        version 1.9
 #
 # For common scripts minimum API version at 1.0 should suffice, otherwise get explicit

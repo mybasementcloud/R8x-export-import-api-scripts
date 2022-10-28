@@ -1,0 +1,15 @@
+{ "api_script_details" : {
+	"ScriptType" : {
+		"Language" : "bash",
+		"Extension" : "sh"
+		},
+	"ScriptDate" : "2022-10-27",
+	"ScriptVersion" : "00.60.12",
+	"ScriptRevision" : "000",
+	"ScriptSubRevision" : "050",
+	"TemplateVersion" : "00.60.12",
+	"APISubScriptsLevel" : "010",
+	"APISubScriptsVersion" : "00.60.12",
+	"APISubScriptsRevision" : "000"
+	}
+}

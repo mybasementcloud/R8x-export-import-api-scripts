@@ -1,10 +1,10 @@
 { "file_meta_info" : {
-	"fileversion" : "0.60.11",
+	"fileversion" : "0.60.12",
 	"filerevision" : "000",
-	"filesubrevision" : "030",
-	"filedate" : "2022-06-24",
-	"fileinformationlevel" : "010",
-	"filelayout" : "010"
+	"filesubrevision" : "050",
+	"filedate" : "2022-10-27",
+	"fileinformationlevel" : "000",
+	"filelayout" : "000"
 }, 
 "default_csv_export_elements" : [ {
 	"name" : "common",

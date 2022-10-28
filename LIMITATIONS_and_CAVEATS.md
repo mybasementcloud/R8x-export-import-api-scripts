@@ -1,6 +1,6 @@
 # LIMITATIONS and CAVEATS
 
-## UPDATED:  2022-06-25
+## UPDATED:  2022-10-27
 
 This document outlines limitations and caveats to the implementation of R8X API export, import, set-update, and delete scripts utilizing bash mgmt_cli commands.
 
@@ -28,7 +28,7 @@ This is a best effort development operation and benefitting of financial incenti
 
 R81.20 EA Public T437 - This release has provided some issues with changes under the hood of Gaia and also some challenges in changes to the API version 1.9 handling of objects on import via mgmt_cli.
 
-- Service objects may fail to import if the values for aggressive aging set use of default timeout, but the column for timeout does not have a zero value, which might be exported because the database includes that issue.  FIXED:  release v00.60.11.000, now create multiple export files depending on the object type parameters.
+- Service objects may fail to import if the values for aggressive aging set use of default timeout, but the column for timeout does not have a zero value, which might be exported because the database includes that issue.  FIXED:  release v00.60.12.000, now create multiple export files depending on the object type parameters.
 - User and User Template objects import has some issues that still need investigation
 
 ## LIMITATIONS and CAVEATS Authentication
@@ -52,6 +52,8 @@ Using R81+ api command provides the option to enable/disable throtting (`api on|
 v00.60.08.055 :  To allow for users wanting to accelerate operation on MDSM, the command line options --OVERRIDEMAXOBJECTS and --MAXOBJECTS {value} were added to allow tweaking the max object limit to obtain a faster execution.
 
 v00.06.08.075 :  Attempting to see how the mgmt_cli parameter --conn-timeout {value|180 default} seconds can improve operations, by adding to key mgmt_cli operations and setting value to 600 seconds.  Also added command line parameters to allow external configuration of that value.  Based on testing with MDSM MDS with 2 domains, operational levels using 250 object limit were achieved for "application-site" objects, which proved most impactful.
+
+v00.60.12.000 :  Added additional output on error to try to determine the cause of the failure in both mgmt_cli and JQ query calls, since MDSM is still having issues with > 125 limit of objects, failing with error 502.
 
 ## LIMITATIONS and CAVEATS by Smart-1 Cloud (MaaS and EPMaaS)
 
@@ -109,7 +111,7 @@ Currently RADIUS server object and RADIUS servers group object types do not exis
 
 ### Network Feed Objects
 
-- This object has an option to configure any number of custom-header names and values and the current scripting (v00.60.11) harvests the first five (5) of these value pairs.  If more are required, either editing and expanding the number to cover the needed additional values is required.
+- This object has an option to configure any number of custom-header names and values and the current scripting (v00.60.12) harvests the first five (5) of these value pairs.  If more are required, either editing and expanding the number to cover the needed additional values is required.
 
 ### Interoperable Device Objects
 
