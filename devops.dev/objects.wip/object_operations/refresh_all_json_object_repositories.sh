@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# (C) 2016-2022 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
+# (C) 2016-2023 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR
 # DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE
@@ -14,13 +14,13 @@
 #
 #
 ScriptVersion=00.60.12
-ScriptRevision=000
-ScriptSubRevision=050
-ScriptDate=2022-10-27
+ScriptRevision=100
+ScriptSubRevision=275
+ScriptDate=2023-01-10
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
-APISubscriptsRevision=000
+APISubscriptsRevision=100
 
 
 #
@@ -168,6 +168,8 @@ echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 # -------------------------------------------------------------------------------------------------
 
 
+# MODIFIED 2023-01-06:01 -
+
 export test_script_work_folder=../export_import.wip
 
 if [ -r "cli_api_export_objects.sh" ] ; then
@@ -193,7 +195,7 @@ else
     popd >> ${cexlogfilepath}
 fi
 
-echo `${cexdtzs}`${cexdtzsep} 'test_script_work_folder = '"${test_script_work_folder}" | tee -a -i ${logfilepath}
+echo `${cexdtzs}`${cexdtzsep} 'test_script_work_folder = '"${test_script_work_folder}" | tee -a -i ${cexlogfilepath}
 echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 
 
@@ -246,26 +248,32 @@ export TESTOPSARRAY+=("cli_api_export_objects.sh -v -r --NOWAIT --RESULTS --form
 #export TESTOPSARRAY+=("cli_api_export_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --NSO --CSVERR -t 'rename-to-new-name'")
 #export TESTOPSARRAY+=("cli_api_export_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO -t 'name-for-delete'")
 
+#export TESTOPSARRAY+=("cli_api_export_objects.sh --domain-System-Data -v -r --NOWAIT --RESULTS --format json --KEEPCSVWIP --SO")
+#export TESTOPSARRAY+=("cli_api_export_objects_to_csv.sh --domain-System-Data -r -v --NOWAIT --RESULTS --JSONREPO --SO --10-TAGS --CSVALL")
+#export TESTOPSARRAY+=("cli_api_export_special_objects_to_csv.sh --domain-System-Data -r -v --NOWAIT --RESULTS --JSONREPO --KEEPCSVWIP --SO --10-TAGS --CSVALL")
+
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${logfilepath}
+# MODIFIED 2023-01-06:01 -
+
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 echo `${cexdtzs}`${cexdtzsep} '--------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} These test will be executed: | tee -a -i ${logfilepath}
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${logfilepath}
+echo `${cexdtzs}`${cexdtzsep} These test will be executed: | tee -a -i ${cexlogfilepath}
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 
 for cjlocalop in "${TESTOPSARRAY[@]}" ; do
     
-    #echo `${cexdtzs}`${cexdtzsep} "${cjlocalop}, ${cjlocalop//\'/}" | tee -a -i ${logfilepath}
-    echo `${cexdtzs}`${cexdtzsep} "${cjlocalop}" | tee -a -i ${logfilepath}
+    #echo `${cexdtzs}`${cexdtzsep} "${cjlocalop}, ${cjlocalop//\'/}" | tee -a -i ${cexlogfilepath}
+    echo `${cexdtzs}`${cexdtzsep} "${cjlocalop}" | tee -a -i ${cexlogfilepath}
     
 done
 
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${logfilepath}
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 echo `${cexdtzs}`${cexdtzsep} '--------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
-echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${logfilepath}
+echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 
 
 # -------------------------------------------------------------------------------------------------
@@ -280,6 +288,19 @@ echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-01-10:01 - 
+
+# Collect this scripts calling parameters into a variable
+
+export cexdCLIParms=
+
+for cexdparm in "$@"
+do
+    export cexdCLIParms="${cexdCLIParms} \"${cexdparm//\"/\\\"}\""
+    #"
+done
+cexdparm=
 
 
 echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
@@ -316,7 +337,9 @@ for clocalop in "${TESTOPSARRAY[@]}" ; do
     echo `${cexdtzs}`${cexdtzsep} '--------------------------------------------------------------------------------' | tee -a -i ${cexlogfilepath}
     echo `${cexdtzs}`${cexdtzsep} | tee -a -i ${cexlogfilepath}
     
-    . ${cexcommand} "$@"
+    #. ${cexcommand} "$@"
+    . ${cexcommand} ${cexdCLIParms}
+    #bash -li ${cexcommand} ${cexdCLIParms}
     errorreturn=$?
     
     popd >>  ${cexlogfilepath}

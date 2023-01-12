@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# (C) 2016-2022 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
+# (C) 2016-2023 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
 # DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
@@ -17,13 +17,13 @@
 #
 #
 ScriptVersion=00.60.12
-ScriptRevision=000
-ScriptSubRevision=050
-ScriptDate=2022-10-27
+ScriptRevision=100
+ScriptSubRevision=275
+ScriptDate=2023-01-10
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
-APISubscriptsRevision=000
+APISubscriptsRevision=100
 
 #
 
@@ -368,6 +368,9 @@ dumpcliparmparseresults () {
     
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_websslport' "${CLIparm_websslport}" >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_mgmt' "${CLIparm_mgmt}" >> ${dumpcliparmslogfilepath}
+    # ADDED 2023-01-10 -
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_domain_System_Data' "${CLIparm_domain_System_Data}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_domain_Global' "${CLIparm_domain_Global}" >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_domain' "${CLIparm_domain}" >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_sessionidfile' "${CLIparm_sessionidfile}" >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_sessiontimeout' "${CLIparm_sessiontimeout}" >> ${dumpcliparmslogfilepath}
@@ -421,6 +424,11 @@ dumpcliparmparseresults () {
     echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_UseDevOpsResults' "${CLIparm_UseDevOpsResults}" >> ${dumpcliparmslogfilepath}
     printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_resultspath' "${CLIparm_resultspath}" >> ${dumpcliparmslogfilepath}
+    
+    # ADDED 2022-12-08 -
+    echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'ExportCritPerfImpactObjects' "${ExportCritPerfImpactObjects}" >> ${dumpcliparmslogfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CLIparm_EXCPIObjectsEnabled' "${CLIparm_EXCPIObjectsEnabled}" >> ${dumpcliparmslogfilepath}
     
     # ADDED 2022-02-15 -
     echo `${dtzs}`${dtzsep} >> ${dumpcliparmslogfilepath}
@@ -616,7 +624,7 @@ doshowhelp () {
     echo -n '|[--MaaS]|[--context <web_api|gaia_api|{MaaSGUID}/web_api>]'
     echo -n '|[-P <web ssl port>]'
     echo -n '|[-m <server_IP>]'
-    echo -n '|[-d <domain>]'
+    echo -n '|[-d <domain>|--dSD|--dG]'
     echo -n '|[-s <session_file_filepath>]|[--session-timeout <session_time_out>]'
     echo -n '|[--conn-timeout <connection_time_out>]'
     
@@ -792,6 +800,12 @@ doshowhelp () {
     echo '                             --DEVOPSRESULTSPATH <results_path> |'
     echo '                             --DEVOPSRESULTSPATH=<results_path> |'
     
+    if ${script_use_export} ; then
+        echo ' Critical Performance Impact (CPI) objects handling'
+        echo '  Override CPI objects skip  --DO-CPI | --Override-Critical-Performance-Impact'
+        echo '  Skip CPI objects           --NO-CPI | --NO-Critical-Performance-Impact'
+    fi
+    
     echo '  Use JSON repository(*)     --JSONREPO'
     echo '  DO NOT Use JSON repository --NOJSONREPO'
     if ${script_use_export} ; then
@@ -909,6 +923,7 @@ doshowhelp () {
     echo '   with session file "/var/tmp/id.txt" and dump results to default RESULTS location.'
     echo
     echo '   ]# '${ScriptName}' -v --NOWAIT -P 4434 -m 192.168.1.1 -d "System Data" -s "/var/tmp/id.txt" --RESULTS'
+    echo '   ]# '${ScriptName}' -v --NOWAIT -P 4434 -m 192.168.1.1 --domain-System-Data -s "/var/tmp/id.txt" --RESULTS'
     echo
     echo ' Autenticate with username and password to Management server 192.168.1.1 on Web SSL port 4434'
     echo '   to domain fooville with session file "/var/tmp/id.txt" and log to "/var/tmp/script_dump" folder.'
@@ -961,6 +976,10 @@ doshowhelp () {
         echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --10-TAGS --CSVERR --CSVALL'
         echo
         echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --10-TAGS --CSVERR'
+        echo
+        echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --NSO --10-TAGS --CSVERR --DO-CPI'
+        echo
+        echo ' ]# '${ScriptName}' -v -r --NOWAIT --RESULTS --OSO --10-TAGS --CSVALL --DO-CPI'
         echo
         echo ' Example of export for delete via CSV operation'
         echo
@@ -1265,6 +1284,16 @@ ProcessCommandLineParametersAndSetValues () {
                     CLIparm_mgmt="$2"
                     shift
                     ;;
+                # ADDED 2023-01-10 -
+                --domain-System-Data | --dSD | --dsd )
+                    CLIparm_domain_System_Data=true
+                    CLIparm_domain="System Data"
+                    ;;
+                # ADDED 2023-01-10 -
+                --domain-Global | --dG | --dg )
+                    CLIparm_domain_Global=true
+                    CLIparm_domain="Global"
+                    ;;
                 -d | --domain )
                     CLIparm_domain="$2"
                     CLIparm_domain=${CLIparm_domain//\"}
@@ -1329,6 +1358,15 @@ ProcessCommandLineParametersAndSetValues () {
                 # 
                 --DEVOPSRESULTS | --RESULTS )
                     CLIparm_UseDevOpsResults=true
+                    ;;
+                # ADDED 2022-12-08 -
+                --DO-CPI | --Override-Critical-Performance-Impact )
+                    CLIparm_EXCPIObjectsEnabled=true
+                    ExportCritPerfImpactObjects=true
+                    ;;
+                --NO-CPI | --NO-Critical-Performance-Impact )
+                    CLIparm_EXCPIObjectsEnabled=false
+                    ExportCritPerfImpactObjects=false
                     ;;
                 --JSONREPO )
                     CLIparm_UseJSONRepo=true
@@ -1584,6 +1622,11 @@ ProcessCommandLineParametersAndSetValues () {
     
     export CLIparm_websslport=${CLIparm_websslport}
     export CLIparm_mgmt=${CLIparm_mgmt}
+    
+    # ADDED 2023-01-10 -
+    export CLIparm_domain_System_Data=${CLIparm_domain_System_Data}
+    export CLIparm_domain_Global=${CLIparm_domain_Global}
+    
     export CLIparm_domain=${CLIparm_domain}
     
     export CLIparm_sessionidfile=${CLIparm_sessionidfile}
@@ -1797,6 +1840,10 @@ ProcessCommandLineParametersAndSetValues () {
     export CLIparm_UseDevOpsResults=${CLIparm_UseDevOpsResults}
     export UseDevOpsResults=${CLIparm_UseDevOpsResults}
     export CLIparm_resultspath=${CLIparm_resultspath}
+    
+    # ADDED 2022-12-08 -
+    export CLIparm_EXCPIObjectsEnabled=${CLIparm_EXCPIObjectsEnabled}
+    export ExportCritPerfImpactObjects=${CLIparm_EXCPIObjectsEnabled}
     
     # MODIFIED 2022-02-15 -
     export CLIparm_UseJSONRepo=${CLIparm_UseJSONRepo}
@@ -2042,6 +2089,8 @@ ProcessCommandLineParametersAndSetValues () {
 # --MaaS | --maas | --MAAS
 # --context <web_api|gaia_api|{MaaSGUID}/web_api> | --context=<web_api|gaia_api|{MaaSGUID}/web_api> 
 # -m <server_IP> | --management <server_IP> | -m=<server_IP> | --management=<server_IP>
+# --domain-System-Data | --dSD | --dsd
+# --domain-Global | --dG | --dg
 # -d <domain> | --domain <domain> | -d=<domain> | --domain=<domain>
 # -s <session_file_filepath> | --session-file <session_file_filepath> | -s=<session_file_filepath> | --session-file=<session_file_filepath>
 # --session-timeout <session_time_out[ 10-3600]
@@ -2080,7 +2129,12 @@ export CLIparm_MaaS=false
 export CLIparm_api_context=
 export CLIparm_use_api_context=false
 
+# ADDED 2023-01-10 -
+export CLIparm_domain_System_Data=false
+export CLIparm_domain_Global=false
+
 export CLIparm_domain=
+
 export CLIparm_sessionidfile=
 
 export CLIparm_sessiontimeout=
@@ -2143,6 +2197,9 @@ export CLIparm_NOHUPPATH=
 #
 # --DEVOPSRESULTS | --RESULTS
 # --DEVOPSRESULTSPATH <results_path> | --RESULTSPATH <results_path> | --DEVOPSRESULTSPATH=<results_path> | --RESULTSPATH=<results_path> 
+#
+# --DO-CPI | --Override-Critical-Performance-Impact
+# --NO-CPI | --NO-Critical-Performance-Impact
 #
 # --JSONREPO
 # --NOJSONREPO
@@ -2212,6 +2269,13 @@ export CLIparm_detailslevelstandard=true
 export UseDevOpsResults=false
 export CLIparm_UseDevOpsResults=${UseDevOpsResults}
 export CLIparm_resultspath=
+
+# ADDED 2022-12-08 -
+# Determine override of disabling export for critical performance impact objects
+# Object with Critical Performance Impact (OCPI)
+
+export CLIparm_EXCPIObjectsEnabled=false
+export ExportCritPerfImpactObjects=false
 
 # MODIFIED 2022-02-15 -
 # Determine utilization of json repository folder in devops.results subfolder or defined folder

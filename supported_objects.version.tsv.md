@@ -1,6 +1,6 @@
 # supported_objects.version.tsv - Overview
 
-## UPDATED:  2022-10-27
+## UPDATED:  2023-01-10
 
 ## Document Overview
 
@@ -44,6 +44,9 @@ The columns contents are as follows:
 
 - Recommended MDSM Limit :  
     This is the recommended limit value for the number of objects to process in a specific export operation when operating on an MDSM (Multi-Domain Security Management) MDS (Multil-Domain Server).  This value will be refined and may get more specific details, with values for MDSM specific object limits, since there are issues with large object in high volume queries due to imposed limitations in R81 and later (e.g. application-site object)
+
+- Critical Performance Impact (CPI) Object :
+    Is this object type a Critical Performance Impact (CPI) object, were export operation is extremely lengthy.  Example:  application-site object with 10,000+ Check Point provided native objects, with significant performance impact, especially on MDSM platform because each domain has this object.
 
 - Supports set-if-exists :  
     Does the object type support the error handling operation "set-if-exists" (true/false)?

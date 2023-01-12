@@ -1,6 +1,6 @@
 # LIMITATIONS and CAVEATS
 
-## UPDATED:  2022-10-27
+## UPDATED:  2023-01-10
 
 This document outlines limitations and caveats to the implementation of R8X API export, import, set-update, and delete scripts utilizing bash mgmt_cli commands.
 
@@ -8,9 +8,9 @@ This document outlines limitations and caveats to the implementation of R8X API 
 
 This is a work in progress and may update irregularly.
 
-The author is currently utilizing R81.10 with API version 1.8 and these limitations and caveats are based on current experience on this level of implementation for the R8X API.
+The author is currently utilizing R81.20 with API version 1.9 and these limitations and caveats are based on current experience on this level of implementation for the R8X API.
 
-Currently, R81.10 JHF OT 61 Take is implemented for testing
+Currently, R81.20 GA T627 JHF N/A Take is implemented for testing
 
 In some cases,
 
@@ -69,7 +69,7 @@ Basic function of tested without successful authentication, so more testing and 
 
 If the object does not provide a method to output a required key value during export, import may not provide that object's missing key value.  If possible, a subsequent additional step may address the issue.
 
-Currently RADIUS server object and RADIUS servers group object types do not exist, so details about RADIUS configuration for neither export, nor import are possible as of current implementation of API 1.7.
+v00.60.12.100 - Currently RADIUS server object and RADIUS servers group object types do not exist in API versions prior to R81.20 GA API version 1.9, so details about RADIUS configuration for neither export, nor import are possible as of current implementation of API 1.8.1 [R81.20 with JHF 79] and earlier.  Customers on version with API 1.9 and later have Radius Server and Radius Group objects.
 
 ### User Objects
 

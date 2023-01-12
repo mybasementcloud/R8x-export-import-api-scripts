@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# (C) 2016-2022 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
+# (C) 2016-2023 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
 # DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
@@ -17,13 +17,13 @@
 #
 #
 ScriptVersion=00.60.12
-ScriptRevision=000
-ScriptSubRevision=050
-ScriptDate=2022-10-27
+ScriptRevision=100
+ScriptSubRevision=275
+ScriptDate=2023-01-10
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
-APISubscriptsRevision=000
+APISubscriptsRevision=100
 
 
 #
@@ -1026,6 +1026,8 @@ BasicScriptSetupAPIScripts "$@"
 # --MaaS | --maas | --MAAS
 # --context <web_api|gaia_api|{MaaSGUID}/web_api> | --context=<web_api|gaia_api|{MaaSGUID}/web_api> 
 # -m <server_IP> | --management <server_IP> | -m=<server_IP> | --management=<server_IP>
+# --domain-System-Data | --dSD | --dsd
+# --domain-Global | --dG | --dg
 # -d <domain> | --domain <domain> | -d=<domain> | --domain=<domain>
 # -s <session_file_filepath> | --session-file <session_file_filepath> | -s=<session_file_filepath> | --session-file=<session_file_filepath>
 # --session-timeout <session_time_out[ 10-3600]
@@ -1064,7 +1066,12 @@ export CLIparm_MaaS=false
 export CLIparm_api_context=
 export CLIparm_use_api_context=false
 
+# ADDED 2023-01-10 -
+export CLIparm_domain_System_Data=false
+export CLIparm_domain_Global=false
+
 export CLIparm_domain=
+
 export CLIparm_sessionidfile=
 
 export CLIparm_sessiontimeout=
@@ -1127,6 +1134,9 @@ export CLIparm_NOHUPPATH=
 #
 # --DEVOPSRESULTS | --RESULTS
 # --DEVOPSRESULTSPATH <results_path> | --RESULTSPATH <results_path> | --DEVOPSRESULTSPATH=<results_path> | --RESULTSPATH=<results_path> 
+#
+# --DO-CPI | --Override-Critical-Performance-Impact
+# --NO-CPI | --NO-Critical-Performance-Impact
 #
 # --JSONREPO
 # --NOJSONREPO
@@ -1196,6 +1206,13 @@ export CLIparm_detailslevelstandard=true
 export UseDevOpsResults=false
 export CLIparm_UseDevOpsResults=${UseDevOpsResults}
 export CLIparm_resultspath=
+
+# ADDED 2022-12-08 -
+# Determine override of disabling export for critical performance impact objects
+# Object with Critical Performance Impact (OCPI)
+
+export CLIparm_EXCPIObjectsEnabled=false
+export ExportCritPerfImpactObjects=false
 
 # MODIFIED 2022-02-15 -
 # Determine utilization of json repository folder in devops.results subfolder or defined folder

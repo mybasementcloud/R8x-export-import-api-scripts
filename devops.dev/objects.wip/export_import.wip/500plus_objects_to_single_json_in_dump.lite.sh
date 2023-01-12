@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# (C) 2016-2022 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
+# (C) 2016-2023 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/R8x-export-import-api-scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
 # DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
@@ -17,13 +17,13 @@
 #
 #
 ScriptVersion=00.60.12
-ScriptRevision=000
-ScriptSubRevision=050
-ScriptDate=2022-10-27
+ScriptRevision=100
+ScriptSubRevision=275
+ScriptDate=2023-01-10
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
-APISubscriptsRevision=000
+APISubscriptsRevision=100
 
 
 #
@@ -162,14 +162,10 @@ ShowHelp () {
     echo '  dns-domains'
     echo '  security-zones'
     echo '  dynamic-objects'
-    echo '  application-sites'
-    echo '  application-site-categories'
-    echo '  application-site-groups'
     echo '  tags'
     echo '  simple-gateways'
     echo '  times'
     echo '  time-groups'
-    echo '  access-roles'
     echo '  opsec-applications'
     echo '  services-tcp'
     echo '  services-udp'
@@ -180,9 +176,13 @@ ShowHelp () {
     echo '  services-dce-rpc'
     echo '  services-rpc'
     echo '  service-groups'
+    echo '  application-sites'
+    echo '  application-site-categories'
+    echo '  application-site-groups'
     echo '  users'
     echo '  user-groups'
     echo '  user-templates'
+    echo '  access-roles'
     echo '  identity-tags'
     echo
     echo 'Valid details_level values:  full | standard'
@@ -266,21 +266,6 @@ case "${OPT}" in
         OBJECTSTYPE=${OBJECTSTYPE//\"}
         OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
-    'application-sites' )
-        OBJECTSTYPE=${OPT}
-        OBJECTSTYPE=${OBJECTSTYPE//\"}
-        OBJECTSTYPE=${OBJECTSTYPE//\'}
-        ;;
-    'application-site-categories' )
-        OBJECTSTYPE=${OPT}
-        OBJECTSTYPE=${OBJECTSTYPE//\"}
-        OBJECTSTYPE=${OBJECTSTYPE//\'}
-        ;;
-    'application-site-groups' )
-        OBJECTSTYPE=${OPT}
-        OBJECTSTYPE=${OBJECTSTYPE//\"}
-        OBJECTSTYPE=${OBJECTSTYPE//\'}
-        ;;
     tags )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
@@ -297,11 +282,6 @@ case "${OPT}" in
         OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'time-groups' )
-        OBJECTSTYPE=${OPT}
-        OBJECTSTYPE=${OBJECTSTYPE//\"}
-        OBJECTSTYPE=${OBJECTSTYPE//\'}
-        ;;
-    'access-roles' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
         OBJECTSTYPE=${OBJECTSTYPE//\'}
@@ -356,6 +336,21 @@ case "${OPT}" in
         OBJECTSTYPE=${OBJECTSTYPE//\"}
         OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
+    'application-sites' )
+        OBJECTSTYPE=${OPT}
+        OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
+        ;;
+    'application-site-categories' )
+        OBJECTSTYPE=${OPT}
+        OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
+        ;;
+    'application-site-groups' )
+        OBJECTSTYPE=${OPT}
+        OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
+        ;;
     'users' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
@@ -367,6 +362,11 @@ case "${OPT}" in
         OBJECTSTYPE=${OBJECTSTYPE//\'}
         ;;
     'user-templates' )
+        OBJECTSTYPE=${OPT}
+        OBJECTSTYPE=${OBJECTSTYPE//\"}
+        OBJECTSTYPE=${OBJECTSTYPE//\'}
+        ;;
+    'access-roles' )
         OBJECTSTYPE=${OPT}
         OBJECTSTYPE=${OBJECTSTYPE//\"}
         OBJECTSTYPE=${OBJECTSTYPE//\'}
