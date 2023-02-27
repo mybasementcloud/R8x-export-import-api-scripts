@@ -18,8 +18,8 @@
 #
 ScriptVersion=00.60.12
 ScriptRevision=100
-ScriptSubRevision=275
-ScriptDate=2023-01-10
+ScriptSubRevision=450
+ScriptDate=2023-02-26
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
@@ -304,8 +304,10 @@ export script_use_publish=true
 #
 # script_main_operation is used to identify elements needed in help and other action control
 #export script_main_operation='other|export|import|set-update|rename|delete|process'
+# script_target_specail_objects boolean is used to identify if the script is targetting special objects to control execution
 
 export script_main_operation='other'
+export script_target_special_objects=false
 
 export scriptpurposeexport=false
 export scriptpurposeimport=false

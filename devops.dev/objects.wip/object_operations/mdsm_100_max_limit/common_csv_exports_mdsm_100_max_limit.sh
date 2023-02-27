@@ -15,8 +15,8 @@
 #
 ScriptVersion=00.60.12
 ScriptRevision=100
-ScriptSubRevision=275
-ScriptDate=2023-01-10
+ScriptSubRevision=450
+ScriptDate=2023-02-26
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
@@ -135,15 +135,23 @@ else
 fi
 
 if [ -r ${dot_enviroinfo_fqpn} ] ; then
-    getdtzs=`cat ${dot_enviroinfo_fqpn} | jq -r ."script_ui_config"."cexdtzs"`
+    getdtzs=`cat ${dot_enviroinfo_fqpn} | jq -r ."script_ui_config"."dtzs"`
     readdtzs=${getdtzs}
-    if [ x"${readdtzs}" != x"" ] ; then
+    if [ "${readdtzs}" == null ] ; then
+        export cexdtzs=${cexdtzs}
+    elif [ x"${readdtzs}" != x"" ] ; then
         export cexdtzs=${readdtzs}
+    else
+        export cexdtzs=${cexdtzs}
     fi
-    getdtzsep=`cat ${dot_enviroinfo_fqpn} | jq -r ."script_ui_config"."cexdtzsep"`
+    getdtzsep=`cat ${dot_enviroinfo_fqpn} | jq -r ."script_ui_config"."dtzsep"`
     readdtzsep=${getdtzsep}
-    if [ x"${readdtzsep}" != x"" ] ; then
+    if [ "${readdtzsep}" == null ] ; then
+        export cexdtzsep=${cexdtzsep}
+    elif [ x"${readdtzsep}" != x"" ] ; then
         export cexdtzsep=${readdtzsep}
+    else
+        export cexdtzs=${cexdtzs}
     fi
 fi
 

@@ -2,8 +2,8 @@
 	"filetype" : "environmentment_info.api_scripts",
 	"fileversion" : "07.00.00",
 	"filerevision" : "000",
-	"filesubrevision" : "275",
-	"filedate" : "2023-01-10",
+	"filesubrevision" : "450",
+	"filedate" : "2023-02-26",
 	"fileinformationlevel" : "000",
 	"MinCMDTemplateVersion" : "07.00.00"
 	}, 
@@ -20,7 +20,7 @@
 		"Language" : "Windows_CMD",
 		"Extension" : "CMD"
 		},
-	"ScriptDate" : "2023-01-10",
+	"ScriptDate" : "2023-02-26",
 	"ScriptVersion" : "07.00.00",
 	"ScriptRevision" : "000",
 	"ScriptSubRevision" : "000",
@@ -32,10 +32,10 @@
 		"Language" : "bash",
 		"Extension" : "sh"
 		},
-	"ScriptDate" : "2023-01-10",
+	"ScriptDate" : "2023-02-26",
 	"ScriptVersion" : "00.60.12",
 	"ScriptRevision" : "100",
-	"ScriptSubRevision" : "275",
+	"ScriptSubRevision" : "425",
 	"ScriptTweak" : "000",
 	"TemplateVersion" : "00.60.12",
 	"APISubScriptsLevel" : "010",

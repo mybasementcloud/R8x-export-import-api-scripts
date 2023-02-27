@@ -18,8 +18,8 @@
 #
 ScriptVersion=00.60.12
 ScriptRevision=100
-ScriptSubRevision=275
-ScriptDate=2023-01-10
+ScriptSubRevision=450
+ScriptDate=2023-02-26
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
@@ -303,8 +303,10 @@ export script_use_publish=false
 #
 # script_main_operation is used to identify elements needed in help and other action control
 #export script_main_operation='other|export|import|set-update|rename|delete|process'
+# script_target_specail_objects boolean is used to identify if the script is targetting special objects to control execution
 
 export script_main_operation='export'
+export script_target_special_objects=false
 
 export scriptpurposeexport=false
 export scriptpurposeimport=false
@@ -674,7 +676,7 @@ export DefaultAPIObjectLimitMDSMSlowObjects=${SlowObjectAPIObjectLimitMDSMSlow}
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2022-05-04 -
+# MODIFIED 2023-02-24:01 -
 
 # Configure basic information for formation of file path for action handler scripts
 #
@@ -692,8 +694,14 @@ export APIScriptActionFilePrefix=cli_api_actions
 export APIScriptJSONActionFilename=${APIScriptActionFilePrefix}.'export_objects_to_json'.sh
 #export APIScriptJSONActionFilename=${APIScriptActionFilePrefix}'_actions_'${APIScriptVersion}.sh
 
+export APIScriptJSONSpecialActionFilename=${APIScriptActionFilePrefix}.'export_special_objects_to_json'.sh
+#export APIScriptJSONSpecialActionFilename=${APIScriptActionFilePrefix}'_actions_'${APIScriptVersion}.sh
+
 export APIScriptCSVActionFilename=${APIScriptActionFilePrefix}.'export_objects_to_csv'.sh
 #export APIScriptCSVActionFilename=${APIScriptActionFilePrefix}'_actions_to_csv_'${APIScriptVersion}.sh
+
+export APIScriptCSVSpecialActionFilename=${APIScriptActionFilePrefix}.'export_special_objects_to_csv'.sh
+#export APIScriptCSVSpecialActionFilename=${APIScriptActionFilePrefix}'_actions_to_csv_'${APIScriptVersion}.sh
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2607,8 +2615,7 @@ CheckExportActionHandlerScripts () {
 # MainExportDumpOperations - Execute Main Dump operations - json Standard, json Full, CSV
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+# MODIFIED 2023-02-24:01
 
 MainExportDumpOperations () {
     #
@@ -2619,7 +2626,7 @@ MainExportDumpOperations () {
     # Start executing Main Dump operations - json Standard, json Full, CSV
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    # MODIFIED 2023-02-24:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
     if ${script_dump_json} ; then
@@ -2681,14 +2688,105 @@ MainExportDumpOperations () {
     fi
     
     #
-    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-21
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-24:01
     
     echo
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-10-21
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-02-24:01
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# MainExportSpecialObjectDumpOperations - Execute Main Dump operations for Special Objects - json Standard, json Full, CSV
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-24:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+MainExportSpecialObjectDumpOperations () {
+    #
+    # Execute Main Dump operations for Special Objects - json Standard, json Full, CSV
+    #
+    
+    # -------------------------------------------------------------------------------------------------
+    # Start executing Main Dump operations for Special Objects - json Standard, json Full, CSV
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2023-02-24:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+    #
+    
+    if ${script_dump_json} ; then
+        # Script supports json output for results
+        
+        export primarytargetoutputformat=${FileExtJSON}
+        
+        if ${CLIparm_formatjson} ; then
+            # CLI parameters enabled or did not disable json output for results
+            if ${script_dump_standard} ; then
+                # Script supports json standard output for results
+                export APICLIdetaillvl=standard
+                if ${CLIparm_detailslevelstandard} ; then
+                    # CLI parameters enabled or did not disable json standard output for results
+                    
+                    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Now dumping details-level '${APICLIdetaillvl}' details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Calling Action File : '${APIScriptJSONSpecialActionFile} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                    
+                    . ${APIScriptJSONSpecialActionFile} "$@"
+                fi
+            fi
+            
+            if ${script_dump_full} ; then
+                # Script supports json full output for results
+                export APICLIdetaillvl=full
+                if ${CLIparm_detailslevelfull} ; then
+                    # CLI parameters enabled or did not disable json full output for results
+                    
+                    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Now dumping details-level '${APICLIdetaillvl}' details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Calling Action File : '${APIScriptJSONSpecialActionFile} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+                    
+                    . ${APIScriptJSONSpecialActionFile} "$@"
+                fi
+            fi
+        fi
+        
+    fi
+    
+    if ${script_dump_csv} ; then
+        # Script supports csv output for results
+        
+        export primarytargetoutputformat=${FileExtCSV}
+        
+        export APICLIdetaillvl=full
+        
+        if ${CLIparm_formatcsv} ; then
+            # CLI parameters enabled or did not disable csv output for results
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Now dumping details-level '${APICLIdetaillvl}' details to '${primarytargetoutputformat} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Calling Action File : '${APIScriptCSVSpecialActionFile} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            
+            . ${APIScriptCSVSpecialActionFile} "$@"
+        fi
+    fi
+    
+    #
+    # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-24:01
+    
+    echo
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-02-24:01
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------

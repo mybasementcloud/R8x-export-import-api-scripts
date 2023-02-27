@@ -1,10 +1,10 @@
 # File and Folder Purpose and Utilization
 
-## UPDATED:  2023-01-10
+## UPDATED:  2023-02-26
 
 Updated to reflect changes to version, folder structure, and filenames.
 
-### Version v00.60.12.100:275 2023-01-10
+### Version v00.60.12.100:450 2023-02-26
 
 The value of ${version} for this document is one of the following:
 
@@ -70,6 +70,16 @@ Files:
 
 - `devops_version.${version.revision}.version`  :  Version reference file for this version and revision of the scripts - empty file
 - `${version.revision}.${subrevision}.wip.${DATE-TIME-GROUP[YYYY-MM-DD-HHmmZZZ]}.info`  :  Version reference file with version, revision, subrevision, and Date-Time-Group - empty file
+
+#### Script Files
+
+The following scripts are in the root of the folder ./devops.dev and will execute a minimu export for import on the local managemnet server (SMS).  Other scripts for more detailed operations and testing are located under the ```./devops[.dev]/objects[.wip]/object_operations``` folder.
+
+Script Files:
+
+- `_minimum_exports.sh`  :  Execute the author's bare minimum export operations to enable import for SMS, Critical Performance Impact (CPI) objects, like all application-sites are not exported.
+- `_minimum_exports_with_some_do_cpi.sh`  :  Execute the author's bare minimum export operations to enable import for SMS, with some commands utilizing the CLI parameter to execute with Critical Performance Impact (CPI) objects.
+- `_minimum_system_data_exports_with_some_do_cpi.sh`  :  Execute the author's standard export operations using domain "System Data" for SMS, with some commands utilizing the CLI parameter to execute with Critical Performance Impact (CPI) objects.
 
 #### Environmental Control Files for Operational Script Execution (json)
 

@@ -1,4 +1,4 @@
-Version Implemented	CLI Parameter Type	Purpose/Meaning	CLI Parameter(s)	Export	Import	Set-Update	Rename	Delete	CLI Sub-Parameter(s)	Options	Default Option/Action	Environmental Parameter(s)	Description	Notes - Last Updated 2023-01-10
+Version Implemented	CLI Parameter Type	Purpose/Meaning	CLI Parameter(s)	Export	Import	Set-Update	Rename	Delete	CLI Sub-Parameter(s)	Options	Default Option/Action	Environmental Parameter(s)	Description	Notes - Last Updated - 2023-02-26
 00.00.00.000	Standard	x	x	true	true	true	true	true	-	-	OFF	-	x	-
 00.00.00.000	Standard	Show Help	-? | --help	true	true	true	true	true	N/A	N/A	OFF	-	Show Help Information	-
 00.00.00.000	Standard	Verbose mode	-v | --verbose	true	true	true	true	true	N/A	N/A	OFF	VERBOSEMODE {true|false}	Show Verbose Details in Logging and Display	-

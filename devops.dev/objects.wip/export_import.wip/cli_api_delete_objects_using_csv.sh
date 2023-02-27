@@ -18,8 +18,8 @@
 #
 ScriptVersion=00.60.12
 ScriptRevision=100
-ScriptSubRevision=275
-ScriptDate=2023-01-10
+ScriptSubRevision=450
+ScriptDate=2023-02-26
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
@@ -303,8 +303,10 @@ export script_use_publish=true
 #
 # script_main_operation is used to identify elements needed in help and other action control
 #export script_main_operation='other|export|import|set-update|rename|delete|process'
+# script_target_specail_objects boolean is used to identify if the script is targetting special objects to control execution
 
 export script_main_operation='delete'
+export script_target_special_objects=false
 
 export scriptpurposeexport=false
 export scriptpurposeimport=false
@@ -674,7 +676,7 @@ export DefaultAPIObjectLimitMDSMSlowObjects=${SlowObjectAPIObjectLimitMDSMSlow}
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2022-05-04 -
+# MODIFIED 2023-02-24:01 -
 
 # Configure basic information for formation of file path for action handler scripts
 #
@@ -692,8 +694,14 @@ export APIScriptActionFilePrefix=cli_api_actions
 export APIScriptJSONActionFilename=${APIScriptActionFilePrefix}.'export_objects_to_json'.sh
 #export APIScriptJSONActionFilename=${APIScriptActionFilePrefix}'_actions_'${APIScriptVersion}.sh
 
+export APIScriptJSONSpecialActionFilename=${APIScriptActionFilePrefix}.'export_special_objects_to_json'.sh
+#export APIScriptJSONSpecialActionFilename=${APIScriptActionFilePrefix}'_actions_'${APIScriptVersion}.sh
+
 export APIScriptCSVActionFilename=${APIScriptActionFilePrefix}.'export_objects_to_csv'.sh
 #export APIScriptCSVActionFilename=${APIScriptActionFilePrefix}'_actions_to_csv_'${APIScriptVersion}.sh
+
+export APIScriptCSVSpecialActionFilename=${APIScriptActionFilePrefix}.'export_special_objects_to_csv'.sh
+#export APIScriptCSVSpecialActionFilename=${APIScriptActionFilePrefix}'_actions_to_csv_'${APIScriptVersion}.sh
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3193,11 +3201,11 @@ export scriptactiondescriptor='Delete using CSV'
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-23
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# handle simple objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+# Handle Simple Objects
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
 
 
 echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
@@ -3216,9 +3224,9 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# Standard Simple objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  Standard Simple objects
+# +-------------------------------------------------------------------------------------------------
 
 #export APICLIobjecttype='<object_type_singular>'
 #export APICLIobjectstype='<object_type_plural>'
@@ -3261,29 +3269,34 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 #CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 # Script Type Objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} 'Script Type Objects' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
-# -------------------------------------------------------------------------------------------------
-# SmartTasks
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  SmartTasks
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=smart-task
 export APICLIobjectstype=smart-tasks
@@ -3326,9 +3339,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# Repository Scripts
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  Repository Scripts
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=repository-script
 export APICLIobjectstype=repository-scripts
@@ -3371,48 +3388,249 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Compliance
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+# Compliance Objects
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} 'Compliance Objects' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 # Data Center Objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} 'Data Center Objects' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Data Center Objectsö' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# ADDED 2023-01-30 -
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  Data Center Servers
+# +-------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=data-center-server
+export APICLIobjectstype=data-center-servers
+export APIobjectminversion=1.1
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=false
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+case "${CurrentAPIVersion}" in
+    1.1 | 1.2 | 1.3 | 1.4 | 1.5 )
+        export APICLIobjecttype=data-center
+        export APICLIobjectstype=data-centers
+        
+        export APIobjectdoexport=true
+        export APIobjectdoexportJSON=true
+        export APIobjectdoexportCSV=false
+        export APIobjectdoimport=false
+        export APIobjectdorename=false
+        export APIobjectdoupdate=false
+        export APIobjectdodelete=false
+        
+        export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+        
+        CheckAPIVersionAndExecuteOperation
+        ;;
+    1 | 1.0 )
+        export APICLIobjecttype=data-center
+        export APICLIobjectstype=data-centers
+        
+        export APIobjectdoexport=false
+        export APIobjectdoexportJSON=false
+        export APIobjectdoexportCSV=false
+        export APIobjectdoimport=false
+        export APIobjectdorename=false
+        export APIobjectdoupdate=false
+        export APIobjectdodelete=false
+        
+        export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+        
+        #CheckAPIVersionAndExecuteOperation
+        ;;
+    # Anything unknown is recorded for later
+    * )
+        export APICLIobjecttype=data-center-server
+        export APICLIobjectstype=data-center-servers
+        
+        export APIobjectdoexport=true
+        export APIobjectdoexportJSON=true
+        export APIobjectdoexportCSV=true
+        export APIobjectdoimport=true
+        export APIobjectdorename=true
+        export APIobjectdoupdate=true
+        export APIobjectdodelete=true
+        
+        export APICLIexportnameaddon=
+        
+        CheckAPIVersionAndExecuteOperation
+        ;;
+esac
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  Data Center Object
+# +-------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=data-center-object
+export APICLIobjectstype=data-center-objects
+export APIobjectminversion=1.4
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=false
+export APIobjectdoimport=false
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  Data Center Query Object
+# +-------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=data-center-query
+export APICLIobjectstype=data-center-queries
+export APIobjectminversion=1.7
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=false
+export APIobjectdoimport=false
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
@@ -3511,39 +3729,34 @@ echo `${dtzs}`${dtzsep} '-------------------------------------------------------
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Users
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
 
 
-# ADDED 2021-01-31 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+# Users Objects
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} 'Users' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2021-01-31
-
-
-# MODIFIED 2022-09-15 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# access-roles
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  access-role objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=access-role
 export APICLIobjectstype=access-roles
@@ -3585,16 +3798,14 @@ export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-09-15
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# user-groups
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  user-group objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=user-group
 export APICLIobjectstype=user-groups
@@ -3637,14 +3848,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------------------------------
-# user-templates
-# -------------------------------------------------------------------------------------------------
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  user-template objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=user-template
 export APICLIobjectstype=user-templates
@@ -3687,14 +3897,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------------------------------
-# users
-# -------------------------------------------------------------------------------------------------
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  user objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=user
 export APICLIobjectstype=users
@@ -3737,14 +3946,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
-# ADDED 2020-08-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------------------------------
-# identity-tags
-# -------------------------------------------------------------------------------------------------
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  identity-tag objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=identity-tag
 export APICLIobjectstype=identity-tags
@@ -3791,29 +3999,132 @@ CheckAPIVersionAndExecuteOperation
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-08-19
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Gateways & Clusters
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+# Gateways & Clusters Objects
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} 'Gateways & Clusters' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
-# -------------------------------------------------------------------------------------------------
-# lsm-clusters objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  simple-cluster objects
+# +-------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=simple-cluster
+export APICLIobjectstype=simple-clusters
+export APIobjectminversion=1.6
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  simple-gateway objects
+# +-------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=simple-gateway
+export APICLIobjectstype=simple-gateways
+export APIobjectminversion=1.1
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  lsm-clusters objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=lsm-cluster
 export APICLIobjectstype=lsm-clusters
@@ -3856,9 +4167,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# lsm-gateways objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  lsm-gateways objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=lsm-gateway
 export APICLIobjectstype=lsm-gateways
@@ -3901,29 +4216,34 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Servers
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+# Servers Objects
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} 'Servers' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Servers Objects' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
-# -------------------------------------------------------------------------------------------------
-# tacacs-groups objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  tacacs-groups objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=tacacs-group
 export APICLIobjectstype=tacacs-groups
@@ -3966,9 +4286,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# tacacs-server objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  tacacs-server objects
+# +-------------------------------------------------------------------------------------------------
 
 # MODIFIED 2022-06-17 -
 
@@ -4013,7 +4337,7 @@ export APICLIexportnameaddon=TACACS_only
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 # MODIFIED 2022-06-17 -
 
@@ -4058,7 +4382,7 @@ export APICLIexportnameaddon=TACACSplus_only
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=tacacs-server
 export APICLIobjectstype=tacacs-servers
@@ -4101,8 +4425,12 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# radius-server objects
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  radius-server objects
 # -------------------------------------------------------------------------------------------------
 
 # MODIFIED 2022-12-08 -
@@ -4148,9 +4476,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# radius-groups objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  radius-groups objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=radius-group
 export APICLIobjectstype=radius-groups
@@ -4193,9 +4525,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# smtp-servers objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  smtp-servers objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=smtp-server
 export APICLIobjectstype=smtp-servers
@@ -4238,7 +4574,7 @@ export APICLIexportnameaddon=no_authentication
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=smtp-server
 export APICLIobjectstype=smtp-servers
@@ -4281,7 +4617,7 @@ export APICLIexportnameaddon=with_authentication
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=smtp-server
 export APICLIobjectstype=smtp-servers
@@ -4324,7 +4660,7 @@ export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=smtp-server
 export APICLIobjectstype=smtp-servers
@@ -4367,29 +4703,34 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 # Network Objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} 'Network Objects' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
-# -------------------------------------------------------------------------------------------------
-# network-feeds objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  network-feeds objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=network-feed
 export APICLIobjectstype=network-feeds
@@ -4432,9 +4773,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# interoperable-devices objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  interoperable-devices objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=interoperable-device
 export APICLIobjectstype=interoperable-devices
@@ -4477,9 +4822,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# group-with-exclusion objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  group-with-exclusion objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=group-with-exclusion
 export APICLIobjectstype=groups-with-exclusion
@@ -4522,9 +4871,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# group objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  group objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
@@ -4567,9 +4920,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# host objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  host objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
@@ -4612,9 +4969,164 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# network objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  host objects - NO NAT Details
+# +-------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=host
+export APICLIobjectstype=hosts
+export APIobjectminversion=1.1
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=true
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=NO_NAT
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  host without NAT objects - separates the full host object set without NAT from those with NAT
+# +-------------------------------------------------------------------------------------------------
+
+# ADDED 2023-02-24 -
+
+export APICLIobjecttype=host
+export APICLIobjectstype=hosts
+export APIobjectminversion=1.1
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=true
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key='."nat-settings"."auto-rule"'
+export APIobjectspecificselector00value=false
+export APICLIexportnameaddon='without_NAT'
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  host with NAT objects - separates the full host object set with NAT from those without NAT
+# +-------------------------------------------------------------------------------------------------
+
+# ADDED 2023-02-24 -
+
+export APICLIobjecttype=host
+export APICLIobjectstype=hosts
+export APIobjectminversion=1.1
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=true
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key='."nat-settings"."auto-rule"'
+export APIobjectspecificselector00value=true
+export APICLIexportnameaddon='with_NAT'
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  network objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=network
 export APICLIobjectstype=networks
@@ -4657,9 +5169,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# wildcard objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  wildcard objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=wildcard
 export APICLIobjectstype=wildcards
@@ -4702,9 +5218,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# address-range objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  address-range objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=address-range
 export APICLIobjectstype=address-ranges
@@ -4747,9 +5267,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# multicast-address-ranges objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  multicast-address-ranges objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=multicast-address-range
 export APICLIobjectstype=multicast-address-ranges
@@ -4792,9 +5316,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# dns-domain objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  dns-domain objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=dns-domain
 export APICLIobjectstype=dns-domains
@@ -4837,9 +5365,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# security-zones objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  security-zone objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=security-zone
 export APICLIobjectstype=security-zones
@@ -4882,9 +5414,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# dynamic-objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  dynamic-object objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=dynamic-object
 export APICLIobjectstype=dynamic-objects
@@ -4927,99 +5463,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# simple-clusters
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=simple-cluster
-export APICLIobjectstype=simple-clusters
-export APIobjectminversion=1.6
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# simple-gateways
-# -------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=simple-gateway
-export APICLIobjectstype=simple-gateways
-export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
-CheckAPIVersionAndExecuteOperation
-
-
-# -------------------------------------------------------------------------------------------------
-# checkpoint-hosts
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  checkpoint-hosts objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=checkpoint-hosts
 export APICLIobjectstype=checkpoint-hosts
@@ -5062,9 +5512,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# time_groups
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  time-group objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
@@ -5107,9 +5561,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# times
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  time objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=time
 export APICLIobjectstype=times
@@ -5152,9 +5610,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# opsec-applications
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  opsec-application objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=opsec-application
 export APICLIobjectstype=opsec-applications
@@ -5197,9 +5659,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# lsv-profile objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  lsv-profile objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=lsv-profile
 export APICLIobjectstype=lsv-profiles
@@ -5242,9 +5708,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# gsn-handover-group objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  gsn-handover-group objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=gsn-handover-group
 export APICLIobjectstype=gsn-handover-groups
@@ -5287,9 +5757,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# access-point-name objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  access-point-name objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=access-point-names
 export APICLIobjectstype=access-point-names
@@ -5332,32 +5806,34 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Service & Applications
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+# Service & Applications Objects
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} 'Service & Applications' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
-# ADDED 2017-07-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# service-groups objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  service-groups objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
@@ -5400,9 +5876,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# services-tcp objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  services-tcp objects
+# +-------------------------------------------------------------------------------------------------
 
 # MODIFIED 2022-06-17 -
 #
@@ -5448,7 +5928,7 @@ export APICLIexportnameaddon=using_default_timout
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 # MODIFIED 2022-06-17 -
 #
@@ -5494,7 +5974,7 @@ export APICLIexportnameaddon=not_using_default_timout
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 # MODIFIED 2022-07-07 -
 #
@@ -5540,9 +6020,13 @@ export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# services-udp objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  services-udp objects
+# +-------------------------------------------------------------------------------------------------
 
 # MODIFIED 2022-06-17 -
 #
@@ -5588,7 +6072,7 @@ export APICLIexportnameaddon=using_default_timout
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 # MODIFIED 2022-06-17 -
 #
@@ -5634,7 +6118,7 @@ export APICLIexportnameaddon=not_using_default_timout
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 # MODIFIED 2022-07-07 -
 #
@@ -5680,9 +6164,13 @@ export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# services-icmp objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  services-icmp objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=service-icmp
 export APICLIobjectstype=services-icmp
@@ -5725,9 +6213,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# services-icmp6 objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  services-icmp6 objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=service-icmp6
 export APICLIobjectstype=services-icmp6
@@ -5770,9 +6262,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# services-sctp objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  services-sctp objects
+# +-------------------------------------------------------------------------------------------------
 
 # MODIFIED 2022-06-17 -
 #
@@ -5818,7 +6314,7 @@ export APICLIexportnameaddon=using_default_timout
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 # MODIFIED 2022-06-17 -
 #
@@ -5864,7 +6360,7 @@ export APICLIexportnameaddon=not_using_default_timout
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 # MODIFIED 2022-07-07 -
 #
@@ -5910,9 +6406,13 @@ export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# services-other objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  services-other objects
+# +-------------------------------------------------------------------------------------------------
 
 # MODIFIED 2022-06-17 -
 #
@@ -5958,7 +6458,7 @@ export APICLIexportnameaddon=using_default_timout
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 # MODIFIED 2022-06-17 -
 #
@@ -6004,7 +6504,7 @@ export APICLIexportnameaddon=not_using_default_timout
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 # MODIFIED 2022-07-07 -
 #
@@ -6050,9 +6550,13 @@ export APICLIexportnameaddon=REFERENCE_NO_IMPORT
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# services-dce-rpc objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  services-dce-rpc objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=service-dce-rpc
 export APICLIobjectstype=services-dce-rpc
@@ -6095,9 +6599,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# services-rpc objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  services-rpc objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
@@ -6140,13 +6648,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2017-08-28
-# ADDED 2021-01-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-# -------------------------------------------------------------------------------------------------
-# services-gtp objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  services-gtp objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=service-gtp
 export APICLIobjectstype=services-gtp
@@ -6189,13 +6697,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2021-01-19
-# MODIFIED 2020-10-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-# -------------------------------------------------------------------------------------------------
-# service-citrix-tcp objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  service-citrix-tcp objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=service-citrix-tcp
 export APICLIobjectstype=services-citrix-tcp
@@ -6238,9 +6746,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# service-compound-tcp objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  service-compound-tcp objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=service-compound-tcp
 export APICLIobjectstype=services-compound-tcp
@@ -6283,14 +6795,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2020-10-02
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------------------------------
-# application-site-groups objects
-# -------------------------------------------------------------------------------------------------
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  application-site-groups objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=application-site-group
 export APICLIobjectstype=application-site-groups
@@ -6332,16 +6843,14 @@ export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# application-site-categories objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  application-site-categories objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=application-site-category
 export APICLIobjectstype=application-site-categories
@@ -6383,16 +6892,26 @@ export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2017-10-27
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2017-10-27 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  application-sites objects
+# +-------------------------------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------------------------------
-# application-sites objects
-# -------------------------------------------------------------------------------------------------
+export AugmentExportedFields=false
+
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export AugmentExportedFields=true
+elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+    export AugmentExportedFields=true
+elif ${OnlySystemObjects} ; then
+    export AugmentExportedFields=true
+else
+    export AugmentExportedFields=false
+fi
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
@@ -6435,32 +6954,34 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Updatable Objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+# Updatable Object Objects
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} 'Updatable Objects' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
-# ADDED 2022-06-16 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# -------------------------------------------------------------------------------------------------
-# updatable-objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  updatable-objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=updatable-object
 export APICLIobjectstype=updatable-objects
@@ -6475,8 +6996,8 @@ export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
 export APIobjectdoexportCSV=true
 export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
+export APIobjectdorename=false
+export APIobjectdoupdate=false
 export APIobjectdodelete=true
 
 export APIobjectusesdetailslevel=true
@@ -6502,33 +7023,133 @@ export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/- ADDED 2022-06-16
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  updatable-objects - Reference information
+# +-------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=updatable-object
+export APICLIobjectstype=updatable-objects
+export APIobjectminversion=1.3
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=false
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=false
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# Manage & Settings
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  updatable-objects-repository-content - Reference information
+# +-------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=updatable-objects-repository-content
+export APICLIobjectstype=updatable-objects-repository-content
+export APIobjectminversion=1.3
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=false
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=false
+export APIobjectcanignoreerror=false
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=false
+export APIobjecttypehasuid=false
+export APIobjecttypehasdomain=false
+export APIobjecttypehastags=false
+export APIobjecttypehasmeta=false
+export APIobjecttypeimportname=false
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+# Manage & Settings Objects
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} 'Manage & Settings Objects' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
-# -------------------------------------------------------------------------------------------------
-# trusted-client objects
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  trusted-client objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=trusted-client
 export APICLIobjectstype=trusted-clients
@@ -6571,9 +7192,13 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# tags
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Simple Object :  tag objects
+# +-------------------------------------------------------------------------------------------------
 
 export APICLIobjecttype=tag
 export APICLIobjectstype=tags
@@ -6616,15 +7241,145 @@ export APICLIexportnameaddon=
 CheckAPIVersionAndExecuteOperation
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# no more simple objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+# Azure Active Directory Objects
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Azure Active Directory Objects' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+# VPN Objects
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'VPN Objects' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+# HTTPS Inspection Objects
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'HTTPS Inspection Objects' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+# Multi-Domain Objects
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Multi-Domain Objects' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+# Provisioning LSM Objects
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Provisioining LSM Objects' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '*------------------------------------------------------------------------------------------------*' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+
+
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+# No more Simple Objects
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
 
 
 # MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -6647,11 +7402,11 @@ echo `${dtzs}`${dtzsep} '-------------------------------------------------------
 echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# handle Special objects and properties
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+# Handle Special Objects and Properties
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
 
 
 # ADDED 2022-07-07 -
@@ -6733,32 +7488,7 @@ SpecialObjectsCheckAPIVersionAndExecuteOperation () {
         
         echo `${dtzs}`${dtzsep} 'Special Objects DO NOT support DELETE operation, so done here...' >> ${logfilepath}
         
-        # MODIFIED 2022-09-14 -
-        
-        #if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
-            ## This object does not have limits to check and probably does not have more than one object entry
-            #export WorkAPIObjectLimit=1
-            #echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit set to '${WorkAPIObjectLimit}' because this object is singular and special' | tee -a -i ${logfilepath}
-        #else
-            #export WorkAPIObjectLimit=${MaxAPIObjectLimit}
-            #if [ -z "${domainnamenospace}" ] ; then
-                ## an empty ${domainnamenospace} indicates that we are not working towards an MDSM
-                #export WorkAPIObjectLimit=${APIobjectrecommendedlimit}
-            #else
-                ## an empty ${domainnamenospace} indicates that we are working towards an MDSM
-                #export WorkAPIObjectLimit=${APIobjectrecommendedlimitMDSM}
-            #fi
-            
-            #echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
-            
-            #if ${OverrideMaxObjects} ; then
-                #echo `${dtzs}`${dtzsep} 'Override Maximum Objects with OverrideMaxObjectsNumber :  '${OverrideMaxObjectsNumber}' objects value' | tee -a -i ${logfilepath}
-                #export WorkAPIObjectLimit=${OverrideMaxObjectsNumber}
-            #fi
-            
-        #fi
-        
-        #DeleteSimpleObjects
+        DeleteSimpleObjects
         
         #echo `${dtzs}`${dtzsep} 'SpecialObjectsCheckAPIVersionAndExecuteOperation call to SpecialExportRAWObjectToCSV procedure returned :  '${errorreturn} >> ${logfilepath}
         
@@ -6843,11 +7573,11 @@ SpecialObjectsCheckAPIVersionAndExecuteOperation () {
 # -------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# global-properties - export object
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Special Object : global-properties - export object
+# +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-01-06 -
+# MODIFIED 2023-02-26:01 -
 
 export APICLIobjecttype=global-properties
 export APICLIobjectstype=global-properties
@@ -6960,11 +7690,11 @@ case "${domaintarget}" in
 esac
 
 
-# -------------------------------------------------------------------------------------------------
-# policy-settings - export object
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Special Object : policy-settings - export object
+# +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-01-05 -
+# MODIFIED 2023-02-26 -
 
 export APICLIobjecttype=policy-settings
 export APICLIobjectstype=policy-settings
@@ -7044,11 +7774,11 @@ case "${domaintarget}" in
 esac
 
 
-# -------------------------------------------------------------------------------------------------
-# api-settings - export object
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Special Object : api-settings - export object
+# +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-01-05 -
+# MODIFIED 2023-02-26 -
 
 export APICLIobjecttype=api-settings
 export APICLIobjectstype=api-settings
@@ -7127,18 +7857,18 @@ esac
 # -------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# No more Special objects and properties
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+# No more Special Objects and Properties
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
 
 
 # MODIFIED 2022-07-07 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - Special objects and properties - '${scriptactiondescriptor}' Completed!' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep}${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - Special objects and properties - '${scriptactiondescriptor}' Completed!' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 #
@@ -7154,26 +7884,11 @@ echo `${dtzs}`${dtzsep} '-------------------------------------------------------
 echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
 # Simple Object via Generic-Objects Handler
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-
-# MODIFIED 2023-01-06:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - Simple Object via Generic-Objects - '${scriptactiondescriptor}' Starting!' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-01-06:01
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
 
 
 CheckAPIKeepAlive
@@ -7193,7 +7908,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # START :  Simple Object via Generic-Objects Handling Procedures
 # -------------------------------------------------------------------------------------------------
 
-# ADDED 2023-01-06 -
+# ADDED 2022-12-14 -
 
 
 # -------------------------------------------------------------------------------------------------
@@ -7228,11 +7943,11 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# Specific Complex OBJECT : application-sites
-# Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
-# Reference Details and initial object
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Specific Simple OBJECT : application-sites
+# | Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+# | Reference Details and initial object
+# +-------------------------------------------------------------------------------------------------
 
 export AugmentExportedFields=false
 
@@ -7296,173 +8011,25 @@ export APIobjectspecificselector00key=
 export APIobjectspecificselector00value=
 export APICLIexportnameaddon=
 
-if ! ${AugmentExportedFields} ; then
-    export APICLIexportnameaddon=
-else
-    export APICLIexportnameaddon=FOR_REFERENCE_ONLY
-fi
-
-#
-# APICLICSVsortparms can change due to the nature of the object
-#
-export APICLICSVsortparms='-f -t , -k 1,1'
-
-export CSVFileHeader=
-if ! ${AugmentExportedFields} ; then
-    export CSVFileHeader='"primary-category"'
-    # The risk key is not imported
-    #export CSVFileHeader=${CSVFileHeader}',"risk"'
-else
-    export CSVFileHeader='"application-id","primary-category"'
-    # The risk key is not imported
-    export CSVFileHeader=${CSVFileHeader}',"risk"'
-fi
-export CSVFileHeader=${CSVFileHeader}',"urls-defined-as-regular-expression"'
-if ${AugmentExportedFields} ; then
-    # user-defined can't be imported so while shown, it adds no value for normal operations
-    export CSVFileHeader=${CSVFileHeader}',"user-defined"'
-fi
-export CSVFileHeader=${CSVFileHeader}',"url-list.0"'
-# The next elements are more complex elements, but required for import add operation
-if ${AugmentExportedFields} ; then
-    export CSVFileHeader=${CSVFileHeader}',"url-list.1"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.2"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.3"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.4"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.5"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.6"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.7"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.8"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.9"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.10"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.11"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.12"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.13"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.14"'
-fi
-export CSVFileHeader=${CSVFileHeader}',"additional-categories.0"'
-if ${AugmentExportedFields} ; then
-    # The next elements are more complex elements, but NOT required for import add operation
-    export CSVFileHeader=${CSVFileHeader}',"additional-categories.1"'
-    export CSVFileHeader=${CSVFileHeader}',"additional-categories.2"'
-    export CSVFileHeader=${CSVFileHeader}',"additional-categories.3"'
-    export CSVFileHeader=${CSVFileHeader}',"additional-categories.4"'
-fi
-export CSVFileHeader=${CSVFileHeader}',"application-signature"'
-export CSVFileHeader=${CSVFileHeader}',"description"'
-#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
-#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
-#export CSVFileHeader=${CSVFileHeader}',"icon"'
-
-export CSVJQparms=
-if ! ${AugmentExportedFields} ; then
-    export CSVJQparms='.["primary-category"]'
-    # The risk key is not imported
-    #export CSVJQparms=${CSVJQparms}', .["risk"]'
-else
-    export CSVJQparms='.["application-id"], .["primary-category"]'
-    # The risk key is not imported
-    export CSVJQparms=${CSVJQparms}', .["risk"]'
-fi
-export CSVJQparms=${CSVJQparms}', .["urls-defined-as-regular-expression"]'
-if ${AugmentExportedFields} ; then
-    # user-defined can't be imported so while shown, it adds no value for normal operations
-    export CSVJQparms=${CSVJQparms}', .["user-defined"]'
-fi
-export CSVJQparms=${CSVJQparms}', .["url-list"][0]'
-# The next elements are more complex elements, but required for import add operation
-if ${AugmentExportedFields} ; then
-    export CSVJQparms=${CSVJQparms}', .["url-list"][1]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][2]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][3]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][4]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][5]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][6]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][7]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][8]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][9]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][10]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][11]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][12]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][13]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][14]'
-fi
-export CSVJQparms=${CSVJQparms}', .["additional-categories"][0]'
-if ${AugmentExportedFields} ; then
-    # The next elements are more complex elements, but NOT required for import add operation
-    export CSVJQparms=${CSVJQparms}', .["additional-categories"][1]'
-    export CSVJQparms=${CSVJQparms}', .["additional-categories"][2]'
-    export CSVJQparms=${CSVJQparms}', .["additional-categories"][3]'
-    export CSVJQparms=${CSVJQparms}', .["additional-categories"][4]'
-fi
-export CSVJQparms=${CSVJQparms}', .["application-signature"]'
-export CSVJQparms=${CSVJQparms}', .["description"]'
-#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
-#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
-#export CSVJQparms=${CSVJQparms}', .["icon"]'
+#SimpleObjectsJSONViaGenericObjectsHandler
 
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
+
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+# No more Simple Object via Generic-Objects Handler objects
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+
 
 # MODIFIED 2022-12-14:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-objectstotal_generic_objects=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
-export number_generic_objects="${objectstotal_generic_objects}"
-export number_of_objects=${number_generic_objects}
-
-if [ ${number_of_objects} -le 0 ] ; then
-    # No hosts found
-    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'No '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" to generate '${APIobjectspecifickey}' from!' | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-else
-    # hosts found
-    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'Check '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" with [ '${number_of_objects}' ] objects to generate '${APIobjectspecifickey}'!' | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    
-    #ComplexObjectsCSVViaGenericObjectsHandler
-fi
-
-#case "${TypeOfExport}" in
-    ## a "Standard" export operation
-    #'standard' )
-        #objectstotal_generic_objects=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
-        #export number_generic_objects="${objectstotal_generic_objects}"
-        #export number_of_objects=${number_generic_objects}
-        
-        #if [ ${number_of_objects} -le 0 ] ; then
-            ## No hosts found
-            #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            #echo `${dtzs}`${dtzsep} 'No '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" to generate '${APIobjectspecifickey}' from!' | tee -a -i ${logfilepath}
-            #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        #else
-            ## hosts found
-            #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            #echo `${dtzs}`${dtzsep} 'Check '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" with [ '${number_of_objects}' ] objects to generate '${APIobjectspecifickey}'!' | tee -a -i ${logfilepath}
-            #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            
-            #ComplexObjectsCSVViaGenericObjectsHandler
-        #fi
-        
-        #;;
-    ## a "name-only" export operation
-    ##'name-only' )
-    ## a "name-and-uid" export operation
-    ##'name-and-uid' )
-    ## a "uid-only" export operation
-    ##'uid-only' )
-    ## a "rename-to-new-nam" export operation
-    ##'rename-to-new-name' )
-    ## Anything unknown is handled as "standard"
-    #* )
-        #echo `${dtzs}`${dtzsep} 'Skipping '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" "'"${APICLIexportnameaddon}"'" for export type '${TypeOfExport}'!...' | tee -a -i ${logfilepath}
-        #;;
-#esac
-
-echo `${dtzs}`${dtzsep} '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep}${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - Simple Object via Generic-Objects Handler - '${scriptactiondescriptor}' Completed!' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 #
@@ -7471,25 +8038,786 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+
+
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+# Handle Complex Objects
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+
+
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+
+# MODIFIED 2021-02-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - complex objects - '${scriptactiondescriptor}' Starting!' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-23
 
 
 # -------------------------------------------------------------------------------------------------
-# Specific Complex OBJECT : application-sites - url-list
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-12-14:01 - 
 
-export APIGenObjectTypes=generic-objects
-export APIGenObjectClassField=class-name
-export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
-export APIGenObjectClassShort="appfw.CpmiUserApplication"
-export APIGenObjectField=uid
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# START :  Common Complex Object Handling Procedures
+# -------------------------------------------------------------------------------------------------
 
-export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
-export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
-export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site-url-list
-export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites-url-lists
-export APIGenObjCSVobjecttype=${APIGenObjobjecttype}
+
+# -------------------------------------------------------------------------------------------------
+# Operational repeated proceedure - DeleteComplexObjects -Delete Complex Objects
+# -------------------------------------------------------------------------------------------------
+
+# The Operational repeated proceedure - Delete Complex Objects is the meat of the script's
+# complex objects releated repeated actions.
+#
+# For this script the ${APICLIobjecttype} items are deleted.
+
+# MODIFIED 2023-02-26:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+DeleteComplexObjects () {
+    #
+    # Delete Complex Objects
+    
+    errorreturn=0
+    
+    echo `${dtzs}`${dtzsep} '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-' | tee -a -i ${logfilepath}
+    
+    if ! ${APIobjectdodelete} ; then
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Object '${APICLIcomplexobjectstype}' does NOT support DELETE!  APIobjectdoexport = '${APIobjectdoexport} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Skipping!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-' | tee -a -i ${logfilepath}
+        
+        return 0
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    CheckAPIKeepAlive
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    GetAPIVersion=$(mgmt_cli show api-versions -f json -s ${APICLIsessionfile} | ${JQ} '.["current-version"]' -r)
+    export CheckAPIVersion=${GetAPIVersion}
+    
+    if [ ${CheckAPIVersion} = null ] ; then
+        # show api-versions does not exist in version 1.0, so it fails and returns null
+        CurrentAPIVersion=1.0
+    else
+        CurrentAPIVersion=${CheckAPIVersion}
+    fi
+    
+    export addversion2keepalive=false
+    if [ $(expr ${CurrentAPIVersion} '<=' 1.5) ] ; then
+        # API is version that requires --version ${CurrentAPIVersion} extension
+        export addversion2keepalive=true
+    else
+        # API is version that requires --version ${CurrentAPIVersion} extension
+        export addversion2keepalive=false
+    fi
+    
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'For Objects Type : '${APICLIcomplexobjectstype}' Required minimum API version = ( '${APIobjectminversion}' )' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Logged in management server API version = ( '${CurrentAPIVersion}' ) Check version = ( '${CheckAPIVersion}' )' | tee -a -i ${logfilepath}
+    
+    errorreturn=0
+    
+    if [ $(expr ${APIobjectminversion} '<=' ${CurrentAPIVersion}) -eq 1 ] ; then
+        # API is sufficient version
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        
+        export APICLIfilename=${APICLIcomplexobjectstype}
+        if [ x"${APICLIexportnameaddon}" != x"" ] ; then
+            export APICLIfilename=${APICLIfilename}'_'${APICLIexportnameaddon}
+        fi
+        export APICLIfilename=${APICLIfilename}'_'${APICLIdetaillvl}'_csv'${APICLICSVfileexportsuffix}
+        
+        #export APICLIImportCSVfile=${APICLICSVImportpathbase}/${APICLICSVobjecttype}'_'${APICLIdetaillvl}'_csv'${APICLICSVfileexportsuffix}
+        export APICLIImportCSVfile=${APICLICSVImportpathbase}/${APICLIfilename}
+        
+        export OutputPath=${APICLIpathexport}/${APICLIfileexportpre}'set_'${APICLICSVobjecttype}'_results.'${APICLIfileexportext}
+        
+        if [ ! -r ${APICLIImportCSVfile} ] ; then
+            # no CSV file for this type of object
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'CSV file for object '${APICLIcomplexobjectstype}' missing : '${APICLIImportCSVfile} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Skipping!' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            return 0
+        fi
+        
+        export MgmtCLI_Base_OpParms='-f json -s '${APICLIsessionfile}' --conn-timeout '${APICLIconntimeout}
+        export MgmtCLI_IgnoreErr_OpParms='ignore-warnings true ignore-errors true --ignore-errors true'
+        
+        export MgmtCLI_Set_OpParms="${MgmtCLI_IgnoreErr_OpParms} ${MgmtCLI_Base_OpParms}"
+        
+        echo `${dtzs}`${dtzsep} 'Set and Update '${APICLIcomplexobjectstype}' '${APICLICSVobjecttype}' from CSV File : "'${APICLIImportCSVfile}'"' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  mgmt_cli parameters : "'${MgmtCLI_Set_OpParms}'"' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  and dump to "'${OutputPath}'"' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        
+        mgmt_cli delete ${APICLIobjecttype} --batch ${APICLIImportCSVfile} ${MgmtCLI_Set_OpParms} > ${OutputPath}
+        errorreturn=$?
+        
+        echo `${dtzs}`${dtzsep}
+        tail ${OutputPath}
+        echo `${dtzs}`${dtzsep}
+        
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Publish '${APICLIobjecttype}' object changes!  This could take a while...' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        
+        . ${mgmt_cli_API_operations_handler} PUBLISH "$@"
+        errorreturn=$?
+        
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} "Done with Setting ${APICLIobjecttype} using CSV File : ${APICLIImportCSVfile}"
+        
+        if ! ${NOWAIT} ; then
+            read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
+        fi
+        
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        
+    else
+        # API is not of a sufficient version to operate on for this object
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Current API Version ( '${CurrentAPIVersion}' ) does not meet minimum API version expected requirement ( '${APIobjectminversion}' )' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '! skipping object '${APICLIcomplexobjectstype}'!' | tee -a -i ${logfilepath}
+    fi
+    
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Handle Error in operation
+        if ${ABORTONERROR} ; then
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in DeleteComplexObjects procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            read -t ${WAITTIME} -n 1 -p "Any key to EXIT script due to error ${errorreturn}.  Automatic EXIT after ${WAITTIME} seconds : " anykey
+            echo
+            
+            if ${CLIparm_NOHUP} ; then
+                # Cleanup Potential file indicating script is active for nohup mode
+                if [ -r ${script2nohupactive} ] ; then
+                    rm ${script2nohupactive} >> ${logfilepath} 2>&1
+                fi
+            fi
+            
+            export dtgs_script_finish=`date -u +%F-%T-%Z`
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error Return Result     : '"${errorreturn}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Results in directory    : '"${APICLIpathbase}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'JSON objects Repository : '"${JSONRepopathroot}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Log output in file      : '"${logfilepath}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Script execution START  :'"${dtgs_script_start}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Script execution FINISH :'"${dtgs_script_finish}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo
+            
+            exit ${errorreturn}
+        else
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in DeleteComplexObjects procedure, but continueing' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            #return ${errorreturn}
+        fi
+    fi
+    
+    echo `${dtzs}`${dtzsep} 'DeleteComplexObjects procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-' | tee -a -i ${logfilepath}
+    
+    return ${errorreturn}
+}
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-26:01
+
+
+# -------------------------------------------------------------------------------------------------
+# END :  Common Complex Object Handling Procedures
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+# Generic Complex Objects Type Handler
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+
+
+CheckAPIKeepAlive
+
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Generic Complex Objects Type Handler' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# START :  Generic Complex Object Member Handling Procedures
+# -------------------------------------------------------------------------------------------------
+
+# ADDED 2021-01-18 -
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# END :  Generic Complex Object Member Handling Procedures
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Generic OBJECT Members : Group Members
+# +-------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=group
+export APICLIobjectstype=groups
+export APICLIcomplexobjecttype=group-member
+export APICLIcomplexobjectstype=group-members
+export APIobjectminversion=1.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=true
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Generic OBJECT Members : Time Group Members
+# +-------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=time-group
+export APICLIobjectstype=time-groups
+export APICLIcomplexobjecttype=time-group-member
+export APICLIcomplexobjectstype=time-group-members
+export APIobjectminversion=1.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Generic OBJECT Members : TACACS Group Members
+# +-------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=tacacs-group
+export APICLIobjectstype=tacacs-groups
+export APICLIcomplexobjecttype=tacacs-group-member
+export APICLIcomplexobjectstype=tacacs-group-members
+export APIobjectminversion=1.7
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Generic OBJECT Members : RADIUS Group Members
+# +-------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=radius-group
+export APICLIobjectstype=radius-groups
+export APICLIcomplexobjecttype=radius-group-member
+export APICLIcomplexobjectstype=radius-group-members
+export APIobjectminversion=1.9
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Generic OBJECT Members : Service Group Members
+# +-------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=service-group
+export APICLIobjectstype=service-groups
+export APICLIcomplexobjecttype=service-group-member
+export APICLIcomplexobjectstype=service-group-members
+export APIobjectminversion=1.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=true
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Generic OBJECT Members : Application Site Group Members
+# +-------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=application-site-group
+export APICLIobjectstype=application-site-groups
+export APICLIcomplexobjecttype=application-site-group-member
+export APICLIcomplexobjectstype=application-site-group-members
+export APIobjectminversion=1.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=true
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+DeleteComplexObjects
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Generic OBJECT Members : User-Group Group Members
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2021-01-18 -
+export APICLIobjecttype=user-group
+export APICLIobjectstype=user-groups
+export APICLIcomplexobjecttype=user-group-member
+export APICLIcomplexobjectstype=user-group-members
+export APIobjectminversion=1.6.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=true
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+DeleteComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+# Specific Complex OBJECT : host interfaces
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+
+
+CheckAPIKeepAlive
+
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Specific Complex OBJECT : host interfaces' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+
+# -------------------------------------------------------------------------------------------------
+# Specific Complex OBJECT : host interfaces
+# -------------------------------------------------------------------------------------------------
+
+export APICLIobjecttype=host
+export APICLIobjectstype=hosts
+export APICLIcomplexobjecttype=host-interface
+export APICLIcomplexobjectstype=host-interfaces
+export APIobjectminversion=1.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=true
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+DeleteComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+# Specific Complex OBJECT : Advanced Handler - Object Specific Key arrays
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+
+
+CheckAPIKeepAlive
+
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Specific Complex OBJECT : Advanced Handler - Object Specific Keys with Value arrays' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# START :  Specific Complex OBJECT - Object Specific Keys with Value arrays Handling Procedures
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-24:01 -
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# END :  Specific Complex OBJECT - Object Specific Keys with Value arrays Handling Procedures
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : application-sites
+# | - Reference Details
+# +-------------------------------------------------------------------------------------------------
+
+export AugmentExportedFields=false
+
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export AugmentExportedFields=true
+elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+    export AugmentExportedFields=true
+elif ${OnlySystemObjects} ; then
+    export AugmentExportedFields=true
+else
+    export AugmentExportedFields=false
+fi
+
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APIobjectminversion=1.1
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=true
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : application-sites - url-list
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
@@ -7533,97 +8861,19 @@ export APICLIexportnameaddon=
 
 export APIobjectspecifickey='"url-list"'
 
-
-#
-# APICLICSVsortparms can change due to the nature of the object
-#
-export APICLICSVsortparms='-f -t , -k 1,1'
-
-export CSVFileHeader=
-export CSVFileHeader=${CSVFileHeader}'"name","url-list.add"'
-#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
-#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
-#export CSVFileHeader=${CSVFileHeader}',"icon"'
-
-export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}'.["name"], .["url-list"][${j}]'
-export CSVJQparms=${CSVJQparms}'.["name"]'
-#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
-#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
-#export CSVJQparms=${CSVJQparms}', .["icon"]'
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2022-12-14:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-case "${TypeOfExport}" in
-    # a "Standard" export operation
-    'standard' )
-        objectstotal_generic_objects=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
-        export number_generic_objects="${objectstotal_generic_objects}"
-        export number_of_objects=${number_generic_objects}
-        
-        if [ ${number_of_objects} -le 0 ] ; then
-            # No hosts found
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'No '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" to generate '${APIobjectspecifickey}' from!' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        else
-            # hosts found
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Check '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" with [ '${number_of_objects}' ] objects to generate '${APIobjectspecifickey}'!' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            
-            #ComplexObjectsCSVViaGenericObjectsHandler
-        fi
-        
-        ;;
-    # a "name-only" export operation
-    #'name-only' )
-    # a "name-and-uid" export operation
-    #'name-and-uid' )
-    # a "uid-only" export operation
-    #'uid-only' )
-    # a "rename-to-new-nam" export operation
-    #'rename-to-new-name' )
-    # Anything unknown is handled as "standard"
-    * )
-        echo `${dtzs}`${dtzsep} 'Skipping '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" "'"${APICLIexportnameaddon}"'" for export type '${TypeOfExport}'!...' | tee -a -i ${logfilepath}
-
-        ;;
-esac
-
-echo `${dtzs}`${dtzsep} '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-12-14:01
+DeleteComplexObjects
 
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# Specific Complex OBJECT : application-sites - application-signature
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : application-sites - application-signature
+# +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-12-14:01 - 
+# MODIFIED 2023-02-26:01 - 
 # Review of this application-sites objects element for application-signature resulted in a removal of this object, because a singular entry
-
-#export APIGenObjectTypes=generic-objects
-#export APIGenObjectClassField=class-name
-#export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
-#export APIGenObjectClassShort="appfw.CpmiUserApplication"
-#export APIGenObjectField=uid
-
-#export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
-#export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
-#export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site-application-signature
-#export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites-application-signatures
-#export APIGenObjCSVobjecttype=${APIGenObjobjecttype}
 
 #export APICLIobjecttype=application-site
 #export APICLIobjectstype=application-sites
@@ -7667,94 +8917,18 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 #export APIobjectspecifickey='"application-signature"'
 
-##
-## APICLICSVsortparms can change due to the nature of the object
-##
-#export APICLICSVsortparms='-f -t , -k 1,1'
-
-#export CSVFileHeader=
-#export CSVFileHeader=${CSVFileHeader}'"name","application-signature"'
-##export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
-##export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
-##export CSVFileHeader=${CSVFileHeader}',"icon"'
-
-#export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}'.["name"], .["application-signature"]'
-##export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
-##export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
-##export CSVJQparms=${CSVJQparms}', .["icon"]'
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2022-12-14:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-#case "${TypeOfExport}" in
-    ## a "Standard" export operation
-    #'standard' )
-        #objectstotal_generic_objects=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
-        #export number_generic_objects="${objectstotal_generic_objects}"
-        #export number_of_objects=${number_generic_objects}
-        
-        #if [ ${number_of_objects} -le 0 ] ; then
-            ## No hosts found
-            #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            #echo `${dtzs}`${dtzsep} 'No '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" to generate '${APIobjectspecifickey}' from!' | tee -a -i ${logfilepath}
-            #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        #else
-            ## hosts found
-            #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            #echo `${dtzs}`${dtzsep} 'Check '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" with [ '${number_of_objects}' ] objects to generate '${APIobjectspecifickey}'!' | tee -a -i ${logfilepath}
-            #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            
-            #ComplexObjectsCSVViaGenericObjectsHandler
-        #fi
-        
-        #;;
-    ## a "name-only" export operation
-    ##'name-only' )
-    ## a "name-and-uid" export operation
-    ##'name-and-uid' )
-    ## a "uid-only" export operation
-    ##'uid-only' )
-    ## a "rename-to-new-nam" export operation
-    ##'rename-to-new-name' )
-    ## Anything unknown is handled as "standard"
-    #* )
-        #echo `${dtzs}`${dtzsep} 'Skipping '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" "'"${APICLIexportnameaddon}"'" for export type '${TypeOfExport}'!...' | tee -a -i ${logfilepath}
-
-        #;;
-#esac
-
-#echo `${dtzs}`${dtzsep} '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
-#echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-12-14:01
+#DeleteComplexObjects
 
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# Specific Complex OBJECT : application-sites - additional-categories
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : application-sites - additional-categories
+# +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-12-14:01 - 
-
-export APIGenObjectTypes=generic-objects
-export APIGenObjectClassField=class-name
-export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
-export APIGenObjectClassShort="appfw.CpmiUserApplication"
-export APIGenObjectField=uid
-
-export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
-export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
-export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site-additional-category
-export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites-additional-categories
-export APIGenObjCSVobjecttype=${APIGenObjobjecttype}
+# MODIFIED 2023-02-26:01 - 
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
@@ -7798,159 +8972,1165 @@ export APICLIexportnameaddon=
 
 export APIobjectspecifickey='"additional-categories"'
 
-#
-# APICLICSVsortparms can change due to the nature of the object
-#
-export APICLICSVsortparms='-f -t , -k 1,1'
+DeleteComplexObjects
 
-export CSVFileHeader=
-export CSVFileHeader=${CSVFileHeader}'"name","additional-categories.add"'
-#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
-#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
-#export CSVFileHeader=${CSVFileHeader}',"icon"'
-
-export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}'.["name"], .["additional-categories"][${j}]'
-export CSVJQparms=${CSVJQparms}'.["name"]'
-#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
-#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
-#export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 # -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-12-14:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+# Specific Complex OBJECT : users authentications
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+
+
+CheckAPIKeepAlive
+
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Specific Complex OBJECT : users authentications' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# START :  Specific Complex OBJECT : users authentications Handling Procedures
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-25:01 -
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# END :  Specific Complex OBJECT : users authentications Handling Procedures
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : user authentications
+# | - Reference Information
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+
+export APICLIobjecttype=user
+export APICLIobjectstype=users
+export APIobjectminversion=1.6.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : user authentications :  check point passwords
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+
+export APICLIobjecttype=user
+export APICLIobjectstype=users
+export APICLIcomplexobjecttype='user-with-auth-checkpointpassword'
+export APICLIcomplexobjectstype='users-with-auth-checkpointpassword'
+export APIobjectminversion=1.6.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APICLIexportcriteria01key='authentication-method'
+export APICLIexportcriteria01value='check point password'
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : user authentications :  os passwords
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+
+export APICLIobjecttype=user
+export APICLIobjectstype=users
+export APICLIcomplexobjecttype='user-with-auth-ospassword'
+export APICLIcomplexobjectstype='users-with-auth-ospassword'
+export APIobjectminversion=1.6.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APICLIexportcriteria01key='authentication-method'
+export APICLIexportcriteria01value='os password'
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : user authentications :  securid
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+
+export APICLIobjecttype=user
+export APICLIobjectstype=users
+export APICLIcomplexobjecttype='user-with-auth-securid'
+export APICLIcomplexobjectstype='users-with-auth-securid'
+export APIobjectminversion=1.6.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APICLIexportcriteria01key='authentication-method'
+export APICLIexportcriteria01value='securid'
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : user authentications :  radius
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+
+export APICLIobjecttype=user
+export APICLIobjectstype=users
+export APICLIcomplexobjecttype='user-with-auth-radius'
+export APICLIcomplexobjectstype='users-with-auth-radius'
+export APIobjectminversion=1.6.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APICLIexportcriteria01key='authentication-method'
+export APICLIexportcriteria01value='radius'
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : user authentications :  tacacs
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+
+export APICLIobjecttype=user
+export APICLIobjectstype=users
+export APICLIcomplexobjecttype='user-with-auth-tacacs'
+export APICLIcomplexobjectstype='users-with-auth-tacacs'
+export APIobjectminversion=1.6.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APICLIexportcriteria01key='authentication-method'
+export APICLIexportcriteria01value='tacacs'
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : user authentications :  undefined
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+
+export APICLIobjecttype=user
+export APICLIobjectstype=users
+export APICLIcomplexobjecttype='user-with-auth-undefined'
+export APICLIcomplexobjectstype='users-with-auth-undefined'
+export APIobjectminversion=1.6.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APICLIexportcriteria01key='authentication-method'
+export APICLIexportcriteria01value='undefined'
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : user-template user authentications :  check point passwords
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+export APICLIcomplexobjecttype='user-template-with-auth-checkpointpassword'
+export APICLIcomplexobjectstype='user-templates-with-auth-checkpointpassword'
+export APIobjectminversion=1.6.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APICLIexportcriteria01key='authentication-method'
+export APICLIexportcriteria01value='check point password'
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : user-template user authentications :  os passwords
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+export APICLIcomplexobjecttype='user-template-with-auth-ospassword'
+export APICLIcomplexobjectstype='user-templates-with-auth-ospassword'
+export APIobjectminversion=1.6.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APICLIexportcriteria01key='authentication-method'
+export APICLIexportcriteria01value='os password'
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : user-template user authentications :  securid
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+export APICLIcomplexobjecttype='user-template-with-auth-securid'
+export APICLIcomplexobjectstype='user-templates-with-auth-securid'
+export APIobjectminversion=1.6.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APICLIexportcriteria01key='authentication-method'
+export APICLIexportcriteria01value='securid'
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : user-template user authentications :  radius
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+export APICLIcomplexobjecttype='user-template-with-auth-radius'
+export APICLIcomplexobjectstype='user-templates-with-auth-radius'
+export APIobjectminversion=1.6.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : user-template user authentications :  tacacs
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+export APICLIcomplexobjecttype='user-template-with-auth-tacacs'
+export APICLIcomplexobjectstype='user-templates-with-auth-tacacs'
+export APIobjectminversion=1.6.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APICLIexportcriteria01key='authentication-method'
+export APICLIexportcriteria01value='tacacs'
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : user-template user authentications :  undefined
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+export APICLIcomplexobjecttype='user-template-with-auth-undefined'
+export APICLIcomplexobjectstype='user-templates-with-auth-undefined'
+export APIobjectminversion=1.6.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APICLIexportcriteria01key='authentication-method'
+export APICLIexportcriteria01value='undefined'
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : user-template user expiration :  non-global expiration
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+
+export APICLIobjecttype=user-template
+export APICLIobjectstype=user-templates
+export APICLIcomplexobjecttype='user-template-with-non-global-expiration'
+export APICLIcomplexobjectstype='user-templates-with-non-global-expiration'
+export APIobjectminversion=1.6.1
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=false
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjectCSVexportWIP=false
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APICLIexportcriteria01key='expiration-by-global-properties'
+export APICLIexportcriteria01value=false
+
+DeleteComplexObjects
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+# !------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+# No more Specific Complex Objects
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+
+
+# MODIFIED 2021-02-24 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-case "${TypeOfExport}" in
-    # a "Standard" export operation
-    'standard' )
-        objectstotal_generic_objects=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
-        export number_generic_objects="${objectstotal_generic_objects}"
-        export number_of_objects=${number_generic_objects}
-        
-        if [ ${number_of_objects} -le 0 ] ; then
-            # No hosts found
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'No '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" to generate '${APIobjectspecifickey}' from!' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        else
-            # hosts found
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Check '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" with [ '${number_of_objects}' ] objects to generate '${APIobjectspecifickey}'!' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            
-            #ComplexObjectsCSVViaGenericObjectsHandler
-        fi
-        
-        ;;
-    # a "name-only" export operation
-    #'name-only' )
-    # a "name-and-uid" export operation
-    #'name-and-uid' )
-    # a "uid-only" export operation
-    #'uid-only' )
-    # a "rename-to-new-nam" export operation
-    #'rename-to-new-name' )
-    # Anything unknown is handled as "standard"
-    * )
-        echo `${dtzs}`${dtzsep} 'Skipping '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" "'"${APICLIexportnameaddon}"'" for export type '${TypeOfExport}'!...' | tee -a -i ${logfilepath}
-
-        ;;
-esac
-
-echo `${dtzs}`${dtzsep} '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - Specific Complex Objects - '${scriptactiondescriptor}' Completed!' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-12-14:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-24
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# No more Object via Generic-Objects Handler objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+# Complex Object via Generic-Objects Handlers
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 
+
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 
 # MODIFIED 2023-01-06:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - Simple Object via Generic-Objects - '${scriptactiondescriptor}' Completed!' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - Complex Object via Generic-Objects Handlers - '${scriptactiondescriptor}' Starting!' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 #
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-01-06:01
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+CheckAPIKeepAlive
 
-
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# handle complex objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-
-# MODIFIED 2021-02-23 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - complex objects - '${scriptactiondescriptor}' Starting!' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Complex Object via Generic-Objects Handlers' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-23
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : custom application-sites-from-generic-objects
+# |  - Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+# |  - Reference Details and initial object
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+
+export AugmentExportedFields=false
+
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export AugmentExportedFields=true
+elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+    export AugmentExportedFields=true
+elif ${OnlySystemObjects} ; then
+    export AugmentExportedFields=true
+else
+    export AugmentExportedFields=false
+fi
+
+export APIGenObjectTypes=generic-objects
+export APIGenObjectClassField=class-name
+export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+export APIGenObjectClassShort="appfw.CpmiUserApplication"
+export APIGenObjectField=uid
+
+export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
+export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
+export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site
+export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites
+export APIGenObjCSVobjecttype=${APIGenObjobjecttype}
+export APIGenObjobjectkey=name
+
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLIcomplexobjecttype=custom-application-site-from-generic-object
+export APICLIcomplexobjectstype=custom-application-sites-from-generic-objects
+export APIobjectminversion=1.1
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=true
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+if ! ${AugmentExportedFields} ; then
+    export APICLIexportnameaddon=
+else
+    export APICLIexportnameaddon=FOR_REFERENCE_ONLY
+fi
+
+DeleteComplexObjects
 
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 
-#
-# Currently all complex objects are created from simple objects, so nothing left to remove
-echo `${dtzs}`${dtzsep}${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' Currently JSON export does not require complex object handling!' | tee -a -i ${logfilepath}
-#
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : custom application-sites - url-lists from generic object
+# |  - Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+
+export APIGenObjectTypes=generic-objects
+export APIGenObjectClassField=class-name
+export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+export APIGenObjectClassShort="appfw.CpmiUserApplication"
+export APIGenObjectField=uid
+
+export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
+export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
+export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site-url-list
+export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites-url-lists
+export APIGenObjCSVobjecttype=${APIGenObjobjecttype}
+export APIGenObjobjectkey=name
+
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLIcomplexobjecttype=custom-application-site-url-list-from-generic-object
+export APICLIcomplexobjectstype=custom-application-sites-url-lists-from-generic-objects
+export APIobjectminversion=1.1
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=true
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectspecifickey='"url-list"'
+
+# MODIFIED 2023-02-26:01 - 
+
+export AugmentExportedFields=false
+
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export AugmentExportedFields=true
+elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+    export AugmentExportedFields=true
+elif ${OnlySystemObjects} ; then
+    export AugmentExportedFields=true
+else
+    export AugmentExportedFields=false
+fi
+
+export APIGenObjectTypes=generic-objects
+export APIGenObjectClassField=class-name
+export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+export APIGenObjectClassShort="appfw.CpmiUserApplication"
+export APIGenObjectField=uid
+
+export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
+export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
+export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site
+export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites
+export APIGenObjCSVobjecttype=${APIGenObjobjecttype}
+export APIGenObjobjectkey=name
+
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLIcomplexobjecttype=custom-application-site-from-generic-object
+export APICLIcomplexobjectstype=custom-application-sites-from-generic-objects
+export APIobjectminversion=1.1
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=true
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+DeleteComplexObjects
 
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : custom application-sites - application-signatures from generic object
+# |  - Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-26:01 - 
+# Review of this application-sites objects element for application-signature resulted in a removal of this object, because a singular entry
+
+#export APIGenObjectTypes=generic-objects
+#export APIGenObjectClassField=class-name
+#export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+#export APIGenObjectClassShort="appfw.CpmiUserApplication"
+#export APIGenObjectField=uid
+
+#export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
+#export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
+#export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site-application-signature
+#export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites-application-signatures
+#export APIGenObjCSVobjecttype=${APIGenObjobjecttype}
+#export APIGenObjobjectkey=name
+
+#export APICLIobjecttype=application-site
+#export APICLIobjectstype=application-sites
+#export APICLIcomplexobjecttype=custom-application-site-signature-from-generic-object
+#export APICLIcomplexobjectstype=custom-application-sites-signatures-from-generic-objects
+#export APIobjectminversion=1.1
+#export APICLICSVobjecttype=${APICLIobjectstype}
+#export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+#export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+#export APIobjectexportisCPI=true
+
+#export APIobjectdoexport=true
+#export APIobjectdoexportJSON=false
+#export APIobjectdoexportCSV=true
+#export APIobjectdoimport=true
+#export APIobjectdorename=false
+#export APIobjectdoupdate=false
+#export APIobjectdodelete=false
+
+#export APIobjectusesdetailslevel=true
+#export APIobjectcanignorewarning=true
+#export APIobjectcanignoreerror=true
+#export APIobjectcansetifexists=false
+#export APIobjectderefgrpmem=false
+#export APIobjecttypehasname=true
+#export APIobjecttypehasuid=true
+#export APIobjecttypehasdomain=true
+#export APIobjecttypehastags=true
+#export APIobjecttypehasmeta=true
+#export APIobjecttypeimportname=true
+
+#export APIobjectCSVFileHeaderAbsoluteBase=false
+#export APIobjectCSVJQparmsAbsoluteBase=false
+
+#export APIobjectCSVexportWIP=false
+
+#export APIobjectspecificselector00key=
+#export APIobjectspecificselector00value=
+#export APICLIexportnameaddon=
+
+#export APIobjectspecifickey='"application-signature"'
+
+#DeleteComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : custom application-sites - additional-categories from generic object
+# |  - Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+# +-------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-02-24:01 - 
+
+export APIGenObjectTypes=generic-objects
+export APIGenObjectClassField=class-name
+export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+export APIGenObjectClassShort="appfw.CpmiUserApplication"
+export APIGenObjectField=uid
+
+export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
+export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
+export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site-additional-category
+export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites-additional-categories
+export APIGenObjCSVobjecttype=${APIGenObjobjecttype}
+export APIGenObjobjectkey=name
+
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLIcomplexobjecttype=custom-application-site-additional-category-from-generic-object
+export APICLIcomplexobjectstype=custom-application-sites-additional-categories-from-generic-objects
+export APIobjectminversion=1.1
+export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectexportisCPI=true
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectspecifickey='"additional-categories"'
+
+DeleteComplexObjects
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+# No more Complex Objects via Generic-Objects Array Handler objects
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep}${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - Complex Objects via Generic-Objects Array Handler - '${scriptactiondescriptor}' Completed!' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+
+
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+
+
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+# No more Object via Generic-Objects Handlers objects
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
+
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - Complex Object via Generic-Objects Handlers - '${scriptactiondescriptor}' Completed!' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+
+
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 # No more complex objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 
 
-# MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2021-02-24 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - complex objects - '${scriptactiondescriptor}' Completed!' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} ${APICLIdetaillvl}' '${scriptformattext}' '${scriptactiontext}' - complex objects handlers - '${scriptactiondescriptor}' Completed!' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-10-21
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-02-24
+
+
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 # No more objects
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# *------------------------------------------------------------------------------------------------*
+# *------------------------------------------------------------------------------------------------*
 
 
 # MODIFIED 2021-10-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
