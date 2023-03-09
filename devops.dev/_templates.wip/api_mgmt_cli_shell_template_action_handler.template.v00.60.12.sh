@@ -13,13 +13,13 @@
 #
 # -#- Start Making Changes Here -#- 
 #
-# SCRIPT API action handler template
+# SCRIPT Object dump to CSV action operations for API CLI Operations
 #
 #
 ScriptVersion=00.60.12
 ScriptRevision=100
-ScriptSubRevision=450
-ScriptDate=2023-02-26
+ScriptSubRevision=500
+ScriptDate=2023-03-08
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
@@ -33,25 +33,28 @@ export APIActionScriptTemplateVersion=v${TemplateVersion}
 export APIActionsScriptVersionX=v${ScriptVersion//./x}
 export APIActionScriptTemplateVersionX=v${TemplateVersion//./x}
 
-ActionScriptName=api_mgmt_cli_shell_template_action_handler.template.${APISubscriptsRevision}.v${ScriptVersion}
+ActionScriptName=api_mgmt_cli_shell_template_action_handler.template
 export APIActionScriptFileNameRoot=api_mgmt_cli_shell_template_action_handler.template
-export APIActionScriptShortName=api_mgmt_cli_shell_template_action_handler
+export APIActionScriptShortName=api_mgmt_cli_shell_template_action_handler.template
 export APIActionScriptnohupName=${APIActionScriptShortName}
-export APIActionScriptDescription="API action handler template"
+export APIActionScriptDescription="Special Object Export to CSV action operations for API CLI Operations"
 
 # =================================================================================================
 # =================================================================================================
-# START action script:  X
+# START:  Export objects to csv
 # =================================================================================================
 
 
-if ${APISCRIPTVERBOSE} ; then
-    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'ActionScriptName:  '${ActionScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${logfilepath}
-else
-    echo `${dtzs}`${dtzsep} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'ActionScriptName:  '${ActionScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} >> ${logfilepath}
-fi
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Action Script Name:  '${ActionScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Action Script original call name :  '$0 | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Action Script initial parameters :  '"$@" | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
 # =================================================================================================
@@ -90,9 +93,117 @@ fi
 # Handle important basics
 # -------------------------------------------------------------------------------------------------
 
+
+export actionstemplogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_temp_'${DATEDTGS}.log
+
+
+# =================================================================================================
+# START:  Local Proceedures
+# =================================================================================================
+
+
 # -------------------------------------------------------------------------------------------------
-# 
+# SetupTempLogFile - Setup Temporary Log File and clear any debris
 # -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-11-17 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+SetupTempLogFile () {
+    #
+    # SetupTempLogFile - Setup Temporary Log File and clear any debris
+    #
+    
+    if [ -z "$1" ]; then
+        # No explicit name passed for action
+        export actionstemplogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_temp_'${DATEDTGS}.log
+    else
+        # explicit name passed for action
+        export actionstemplogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_temp_'$1'_'${DATEDTGS}.log
+    fi
+    
+    if [ -w ${actionstemplogfilepath} ] ; then
+        rm ${actionstemplogfilepath} >> ${logfilepath} 2>&1
+    fi
+    
+    touch ${actionstemplogfilepath}
+    
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-17
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# HandleShowTempLogFile - Handle Showing of Temporary Log File based on verbose setting
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-09-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+HandleShowTempLogFile () {
+    #
+    # HandleShowTempLogFile - Handle Showing of Temporary Log File based on verbose setting
+    #
+    
+    if ${APISCRIPTVERBOSE} ; then
+        # verbose mode so show the logged results and copy to normal log file
+        cat ${actionstemplogfilepath} | tee -a -i ${logfilepath}
+    else
+        # NOT verbose mode so push logged results to normal log file
+        cat ${actionstemplogfilepath} >> ${logfilepath}
+    fi
+    
+    rm ${actionstemplogfilepath} >> ${logfilepath} 2>&1
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-10
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ForceShowTempLogFile - Handle Showing of Temporary Log File based forced display
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-09-10 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+ForceShowTempLogFile () {
+    #
+    # ForceShowTempLogFile - Handle Showing of Temporary Log File based forced display
+    #
+    
+    cat ${actionstemplogfilepath} | tee -a -i ${logfilepath}
+    
+    rm ${actionstemplogfilepath} >> ${logfilepath} 2>&1
+    
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-10
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# =================================================================================================
+# END:  Local Proceedures
+# =================================================================================================
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
 
 
 # -------------------------------------------------------------------------------------------------
@@ -123,20 +234,45 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
 
 # -------------------------------------------------------------------------------------------------
 # 
 # -------------------------------------------------------------------------------------------------
 
 
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
 
 # -------------------------------------------------------------------------------------------------
 # 
 # -------------------------------------------------------------------------------------------------
 
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# =================================================================================================
+# Action Script Completed
+# =================================================================================================
+
+
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Action Script Completed :  '${ActionScriptName} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
+
 return 0
+
 
 # =================================================================================================
 # END action script:  X

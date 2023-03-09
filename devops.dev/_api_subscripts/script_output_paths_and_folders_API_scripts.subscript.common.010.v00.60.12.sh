@@ -18,8 +18,8 @@
 #
 ScriptVersion=00.60.12
 ScriptRevision=100
-ScriptSubRevision=450
-ScriptDate=2023-02-26
+ScriptSubRevision=500
+ScriptDate=2023-03-08
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
@@ -45,13 +45,16 @@ export APISubScriptDescription="Configure Script Output Paths and Fodlers for AP
 # =================================================================================================
 
 
-if ${SCRIPTVERBOSE} ; then
-    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'APISubScriptName:  '${APISubScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${logfilepath}
-else
-    echo `${dtzs}`${dtzsep} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'APISubScriptName:  '${APISubScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} >> ${logfilepath}
-fi
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'APISubScript Name:  '${APISubScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'APISubScript original call name :  '$0 | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'APISubScript initial parameters :  '"$@" | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
 # =================================================================================================
@@ -132,7 +135,7 @@ export subscriptstemplogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_t
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-11-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 SetupTempLogFile () {
@@ -149,7 +152,8 @@ SetupTempLogFile () {
     fi
     
     if [ -w ${subscriptstemplogfilepath} ] ; then
-        rm ${subscriptstemplogfilepath} >> ${logfilepath} 2>&1
+        echo -n `${dtzs}`${dtzsep} >> ${logfilepath}
+        rm -v ${subscriptstemplogfilepath} >> ${logfilepath} 2>&1
     fi
     
     touch ${subscriptstemplogfilepath}
@@ -158,7 +162,7 @@ SetupTempLogFile () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-19
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ - MODIFIED 2023-03-07:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -170,7 +174,7 @@ SetupTempLogFile () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-11-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 HandleShowTempLogFile () {
@@ -186,12 +190,13 @@ HandleShowTempLogFile () {
         cat ${subscriptstemplogfilepath} >> ${logfilepath}
     fi
     
-    rm ${subscriptstemplogfilepath} >> ${logfilepath} 2>&1
+    echo -n `${dtzs}`${dtzsep} >> ${logfilepath}
+    rm -v ${subscriptstemplogfilepath} >> ${logfilepath} 2>&1
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-19
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ - MODIFIED 2023-03-07:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -203,7 +208,7 @@ HandleShowTempLogFile () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-11-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ForceShowTempLogFile () {
@@ -213,13 +218,14 @@ ForceShowTempLogFile () {
     
     cat ${subscriptstemplogfilepath} | tee -a -i ${logfilepath}
     
-    rm ${subscriptstemplogfilepath} >> ${logfilepath} 2>&1
+    echo -n `${dtzs}`${dtzsep} >> ${logfilepath}
+    rm -v ${subscriptstemplogfilepath} >> ${logfilepath} 2>&1
     
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-19
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ -  MODIFIED 2023-03-07:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -231,7 +237,7 @@ ForceShowTempLogFile () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-11-09 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 localrootscriptconfiguration () {
@@ -264,16 +270,15 @@ localrootscriptconfiguration () {
     export customerdevopstestpathroot=${customerpathroot}/devops.dev.test
     export customerdevopsresultspathroot=${customerpathroot}/devops.results
     
-    if [ -z ${script_json_repo_folder} ] ; then
-        export script_json_repo_folder="__json_objects_repository"
-    fi
+    export script_json_repo_folder="__json_objects_repository"
+    
     export customerjsonrepofolderroot=${customerdevopsresultspathroot}/${script_json_repo_folder}
     
     return 0
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2021-11-09
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -285,13 +290,17 @@ localrootscriptconfiguration () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2021-11-09 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 HandleRootScriptConfiguration () {
     #
     # Root Script Configuration
     #
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'HandleRootScriptConfiguration' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # START: Root Script Configuration
@@ -301,11 +310,7 @@ HandleRootScriptConfiguration () {
         # Found the Root Script Configuration File in the folder for scripts
         # So let's call that script to configure what we need
         
-        if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} 'Root Script Config in scripts folder :  '${scriptspathroot}/${rootscriptconfigfile} | tee -a -i ${logfilepath}
-        else
-            echo `${dtzs}`${dtzsep} 'Root Script Config in scripts folder :  '${scriptspathroot}/${rootscriptconfigfile} >> ${logfilepath}
-        fi
+        echo `${dtzs}`${dtzsep} 'Root Script Config in scripts folder :  '${scriptspathroot}/${rootscriptconfigfile} | tee -a -i ${logfilepath}
         
         . ${scriptspathroot}/${rootscriptconfigfile} "$@"
         errorreturn=$?
@@ -313,11 +318,7 @@ HandleRootScriptConfiguration () {
         # Found the Root Script Configuration File in the folder above the executiong script
         # So let's call that script to configure what we need
         
-        if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} 'Root Script Config in folder above :  ../'${rootscriptconfigfile} | tee -a -i ${logfilepath}
-        else
-            echo `${dtzs}`${dtzsep} 'Root Script Config in folder above :  ../'${rootscriptconfigfile} >> ${logfilepath}
-        fi
+        echo `${dtzs}`${dtzsep} 'Root Script Config in folder above :  ../'${rootscriptconfigfile} | tee -a -i ${logfilepath}
         
         . ../${rootscriptconfigfile} "$@"
         errorreturn=$?
@@ -325,11 +326,7 @@ HandleRootScriptConfiguration () {
         # Found the Root Script Configuration File in the folder above the executiong script
         # So let's call that script to configure what we need
         
-        if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} 'Root Script Config in folder above :  ../../'${rootscriptconfigfile} | tee -a -i ${logfilepath}
-        else
-            echo `${dtzs}`${dtzsep} 'Root Script Config in folder above :  ../../'${rootscriptconfigfile} >> ${logfilepath}
-        fi
+        echo `${dtzs}`${dtzsep} 'Root Script Config in folder above :  ../../'${rootscriptconfigfile} | tee -a -i ${logfilepath}
         
         . ../../${rootscriptconfigfile} "$@"
         errorreturn=$?
@@ -337,11 +334,7 @@ HandleRootScriptConfiguration () {
         # Found the Root Script Configuration File in the folder with the executiong script
         # So let's call that script to configure what we need
         
-        if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} 'Root Script Config in current folder :  '${rootscriptconfigfile} | tee -a -i ${logfilepath}
-        else
-            echo `${dtzs}`${dtzsep} 'Root Script Config in current folder :  '${rootscriptconfigfile} >> ${logfilepath}
-        fi
+        echo `${dtzs}`${dtzsep} 'Root Script Config in current folder :  '${rootscriptconfigfile} | tee -a -i ${logfilepath}
         
         . ${rootscriptconfigfile} "$@"
         errorreturn=$?
@@ -349,11 +342,7 @@ HandleRootScriptConfiguration () {
         # Did not the Root Script Configuration File
         # So let's call local configuration
         
-        if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} 'Root Script Config NOT found, using local procedure!' | tee -a -i ${logfilepath}
-        else
-            echo `${dtzs}`${dtzsep} 'Root Script Config NOT found, using local procedure!' >> ${logfilepath}
-        fi
+        echo `${dtzs}`${dtzsep} 'Root Script Config NOT found, using local procedure!' | tee -a -i ${logfilepath}
         
         localrootscriptconfiguration "$@"
         errorreturn=$?
@@ -365,43 +354,23 @@ HandleRootScriptConfiguration () {
     
     if [ x"${customerdevopspathroot}" == x"" ] ; then
         export customerdevopspathroot=${customerpathroot}/devops
-        if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} 'Root Script Config missing parameter:  customerdevopspathroot='${customerdevopspathroot} | tee -a -i ${logfilepath}
-        else
-            echo `${dtzs}`${dtzsep} 'Root Script Config missing parameter:  customerdevopspathroot='${customerdevopspathroot} >> ${logfilepath}
-        fi
+        echo `${dtzs}`${dtzsep} 'Root Script Config missing parameter:  customerdevopspathroot='${customerdevopspathroot} | tee -a -i ${logfilepath}
     fi
     if [ x"${customerdevopsdevpathroot}" == x"" ] ; then
         export customerdevopsdevpathroot=${customerpathroot}/devops.dev
-        if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} 'Root Script Config missing parameter:  customerdevopsdevpathroot='${customerdevopsdevpathroot} | tee -a -i ${logfilepath}
-        else
-            echo `${dtzs}`${dtzsep} 'Root Script Config missing parameter:  customerdevopsdevpathroot='${customerdevopsdevpathroot} >> ${logfilepath}
-        fi
+        echo `${dtzs}`${dtzsep} 'Root Script Config missing parameter:  customerdevopsdevpathroot='${customerdevopsdevpathroot} | tee -a -i ${logfilepath}
     fi
     if [ x"${customerdevopsresultspathroot}" == x"" ] ; then
         export customerdevopsresultspathroot=${customerpathroot}/devops.results
-        if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} 'Root Script Config missing parameter:  customerdevopsresultspathroot='${customerdevopsresultspathroot} | tee -a -i ${logfilepath}
-        else
-            echo `${dtzs}`${dtzsep} 'Root Script Config missing parameter:  customerdevopsresultspathroot='${customerdevopsresultspathroot} >> ${logfilepath}
-        fi
+        echo `${dtzs}`${dtzsep} 'Root Script Config missing parameter:  customerdevopsresultspathroot='${customerdevopsresultspathroot} | tee -a -i ${logfilepath}
     fi
     if [ x"${script_json_repo_folder}" == x"" ] ; then
         export script_json_repo_folder="__json_objects_repository"
-        if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} 'Script missing parameter:  script_json_repo_folder='${script_json_repo_folder} | tee -a -i ${logfilepath}
-        else
-            echo `${dtzs}`${dtzsep} 'Script missing parameter:  script_json_repo_folder='${script_json_repo_folder} >> ${logfilepath}
-        fi
+        echo `${dtzs}`${dtzsep} 'Script missing parameter:  script_json_repo_folder='${script_json_repo_folder} | tee -a -i ${logfilepath}
     fi
     if [ x"${customerjsonrepofolderroot}" == x"" ] ; then
         export customerjsonrepofolderroot=${customerdevopsresultspathroot}/${script_json_repo_folder}
-        if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} 'Root Script Config missing parameter:  customerjsonrepofolderroot='${customerjsonrepofolderroot} | tee -a -i ${logfilepath}
-        else
-            echo `${dtzs}`${dtzsep} 'Root Script Config missing parameter:  customerjsonrepofolderroot='${customerjsonrepofolderroot} >> ${logfilepath}
-        fi
+        echo `${dtzs}`${dtzsep} 'Root Script Config missing parameter:  customerjsonrepofolderroot='${customerjsonrepofolderroot} | tee -a -i ${logfilepath}
     fi
     
     # -------------------------------------------------------------------------------------------------
@@ -412,7 +381,7 @@ HandleRootScriptConfiguration () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2021-11-09
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ - MODIFIED 2023-03-07:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -424,13 +393,17 @@ HandleRootScriptConfiguration () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-11-26 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 HandleLaunchInHomeFolder () {
     #
     # Handle if folder where this was launched is the $HOME Folder
     #
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'HandleLaunchInHomeFolder' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     
     export expandedpath=$(cd ${startpathroot} ; pwd)
     export startpathroot=${expandedpath}
@@ -453,11 +426,11 @@ HandleLaunchInHomeFolder () {
         #not where we're expecting to be, since ${outputpathroot} is missing here
         #maybe this hasn't been run here yet.
         #OK, so make the expected folder and set permissions we need
-        mkdir -p -v ${outputpathroot} >> ${logfilepath} 2>&1
-        chmod 775 ${outputpathroot} >> ${logfilepath} 2>&1
+        echo -n `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1 ; mkdir -p -v ${outputpathroot} >> ${logfilepath} 2>&1
+        echo -n `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1 ; chmod 775 ${outputpathroot} >> ${logfilepath} 2>&1 ; echo `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1
     else
         #set permissions we need
-        chmod 775 ${outputpathroot} >> ${logfilepath} 2>&1
+        echo -n `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1 ; chmod 775 ${outputpathroot} >> ${logfilepath} 2>&1 ; echo `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1
     fi
     
     #Now that outputroot is not in /home/ let's work on where we are working from
@@ -471,7 +444,7 @@ HandleLaunchInHomeFolder () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-11-26
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -491,11 +464,18 @@ ShowFinalOutputAndLogPaths () {
     # repeated procedure description
     #
     
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
     #----------------------------------------------------------------------------------------
     # Output and Log file and folder Information
     #----------------------------------------------------------------------------------------
     
     if ${APISCRIPTVERBOSE} ; then
+        echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'ShowFinalOutputAndLogPaths' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         # Verbose mode ON
         
         # Single Line entries
@@ -544,6 +524,8 @@ ShowFinalOutputAndLogPaths () {
         printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "dumppathroot" ${dumppathroot} | tee -a -i ${logfilepath}
         printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "changelogpathroot" ${changelogpathroot} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
         if ! ${NOWAIT} ; then
             read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
@@ -551,6 +533,11 @@ ShowFinalOutputAndLogPaths () {
         fi
         
     else
+        echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'ShowFinalOutputAndLogPaths' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
         # Verbose mode OFF
         
         # Single Line entries
@@ -598,7 +585,9 @@ ShowFinalOutputAndLogPaths () {
         printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "customerworkpathroot" ${customerworkpathroot} >> ${logfilepath}
         printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "dumppathroot" ${dumppathroot} >> ${logfilepath}
         printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "changelogpathroot" ${changelogpathroot} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
     fi
     
     return 0
@@ -618,9 +607,13 @@ ShowFinalOutputAndLogPaths () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-11-16 -
+# MODIFIED 2023-03-08:01 -
 
 ConfigureRootPath () {
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'ConfigureRootPath' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     
     # ---------------------------------------------------------
     # Create the base path and directory structure for output
@@ -725,12 +718,12 @@ ConfigureRootPath () {
     echo `${dtzs}`${dtzsep} '${APICLIpathroot} = '${APICLIpathroot} >> ${logfilepath}
     
     if [ ! -r ${APICLIpathroot} ] ; then
-        mkdir -p -v ${APICLIpathroot} >> ${logfilepath} 2>&1
-        chmod 775 ${APICLIpathroot} >> ${logfilepath} 2>&1
+        echo -n `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1 ; mkdir -p -v ${APICLIpathroot} >> ${logfilepath} 2>&1
+        echo -n `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1 ; chmod 775 ${APICLIpathroot} >> ${logfilepath} 2>&1 ; echo `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1
     else
-        chmod 775 ${APICLIpathroot} >> ${logfilepath} 2>&1
+        echo -n `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1 ; chmod 775 ${APICLIpathroot} >> ${logfilepath} 2>&1 ; echo `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1
     fi
-        
+    
     if ${OutputDTGSSubfolder} ; then
         # Use subfolder based on date-time group
         # this shifts the base output folder down a level
@@ -758,10 +751,10 @@ ConfigureRootPath () {
     echo `${dtzs}`${dtzsep} '${APICLIpathbase} = '${APICLIpathbase} >> ${logfilepath}
     
     if [ ! -r ${APICLIpathbase} ] ; then
-        mkdir -p -v ${APICLIpathbase} >> ${logfilepath} 2>&1
-        chmod 775 ${APICLIpathbase} >> ${logfilepath} 2>&1
+        echo -n `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1 ; mkdir -p -v ${APICLIpathbase} >> ${logfilepath} 2>&1
+        echo -n `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1 ; chmod 775 ${APICLIpathbase} >> ${logfilepath} 2>&1 ; echo `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1
     else
-        chmod 775 ${APICLIpathbase} >> ${logfilepath} 2>&1
+        echo -n `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1 ; chmod 775 ${APICLIpathbase} >> ${logfilepath} 2>&1 ; echo `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1
     fi
     
     if ${script_use_json_repo} ; then
@@ -794,10 +787,10 @@ ConfigureRootPath () {
         echo `${dtzs}`${dtzsep} '${JSONRepopathroot} = '${JSONRepopathroot} >> ${logfilepath}
         
         if [ ! -r ${JSONRepopathroot} ] ; then
-            mkdir -p -v ${JSONRepopathroot} >> ${logfilepath} 2>&1
-            chmod 775 ${JSONRepopathroot} >> ${logfilepath} 2>&1
+            echo -n `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1 ; mkdir -p -v ${JSONRepopathroot} >> ${logfilepath} 2>&1
+            echo -n `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1 ; chmod 775 ${JSONRepopathroot} >> ${logfilepath} 2>&1 ; echo `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1
         else
-            chmod 775 ${JSONRepopathroot} >> ${logfilepath} 2>&1
+            echo -n `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1 ; chmod 775 ${JSONRepopathroot} >> ${logfilepath} 2>&1 ; echo `${dtzs}`${dtzsep} >> ${logfilepath} 2>&1
         fi
         
         export JSONRepopathbase=${JSONRepopathroot}
@@ -816,7 +809,7 @@ ConfigureRootPath () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-11-16 -
+# MODIFIED 2023-03-07:01 -
 
 ConfigureLogPath () {
     
@@ -850,8 +843,9 @@ ConfigureLogPath () {
         if [ -w ${logfilepath} ]; then
             # Move content from working log file to final log file
             #mv ${logfilepath} ${logfilepathfinal} >> ${logfilepathfinal} 2>&1
+            #echo -n `${dtzs}`${dtzsep} >> ${logfilepathfinal} 2>&1 ; cat ${logfilepath} >> ${logfilepathfinal} 2>&1
             cat ${logfilepath} >> ${logfilepathfinal} 2>&1
-            rm ${logfilepath} >> ${logfilepathfinal} 2>&1
+            echo -n `${dtzs}`${dtzsep} >> ${logfilepathfinal} 2>&1 ; rm -v ${logfilepath} >> ${logfilepathfinal} 2>&1
         fi
         
         # And then set the logfilepath value to the final one
@@ -887,6 +881,10 @@ HandleScriptInNOHUPModeLogging () {
     #
     # Configure additional logging and clean-up for script in NOHUP mode
     #
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'HandleScriptInNOHUPModeLogging' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
     #----------------------------------------------------------------------------------------
     # Handle clean-up file creation for nohup operation
     #----------------------------------------------------------------------------------------
@@ -1085,6 +1083,10 @@ HandleScriptInNOHUPModeLogging () {
 
 ConfigureOtherCLIParameterPaths () {
     
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'ConfigureOtherCLIParameterPaths' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
     # ---------------------------------------------------------
     # Setup other paths we may need - but these should not create folders (yet)
     # Configure other path and folder values based on CLI parameters
@@ -1108,6 +1110,9 @@ ConfigureOtherCLIParameterPaths () {
     else
         export APICLICSVExportpathbase=${APICLIpathbase}
     fi
+    printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "APICLIpathbase" ${APICLIpathbase} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "CLIparm_exportpath" ${CLIparm_exportpath} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "APICLICSVExportpathbase" ${APICLICSVExportpathbase} >> ${logfilepath}
     
     export APICLICSVImportpathbase=
     if ${script_use_import} ; then
@@ -1117,6 +1122,9 @@ ConfigureOtherCLIParameterPaths () {
             export APICLICSVImportpathbase=./import.csv
         fi
     fi
+    printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "script_use_import" ${script_use_import} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "CLIparm_importpath" ${CLIparm_importpath} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "APICLICSVImportpathbase" ${APICLICSVImportpathbase} >> ${logfilepath}
     
     export APICLICSVDeletepathbase=
     if ${script_use_delete} ; then
@@ -1126,6 +1134,9 @@ ConfigureOtherCLIParameterPaths () {
             export APICLICSVDeletepathbase=./delete.csv
         fi
     fi
+    printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "script_use_delete" ${script_use_delete} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "CLIparm_deletepath" ${CLIparm_deletepath} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "APICLICSVDeletepathbase" ${APICLICSVDeletepathbase} >> ${logfilepath}
     
     export APICLICSVcsvpath=
     if ${script_use_csvfile} ; then
@@ -1135,6 +1146,12 @@ ConfigureOtherCLIParameterPaths () {
             export APICLICSVcsvpath=./data.csv
         fi
     fi
+    printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "script_use_csvfile" ${script_use_csvfile} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "CLIparm_csvpath" ${CLIparm_csvpath} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}""%-35s = %s\n" "APICLICSVcsvpath" ${APICLICSVcsvpath} >> ${logfilepath}
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
     return 0
 }
 
@@ -1264,13 +1281,14 @@ ExecuteScriptOutputPathsforAPIScripts "$@"
 # =================================================================================================
 
 
-if ${APISCRIPTVERBOSE} ; then
-    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'API Subscript Completed :  '${APISubScriptName} | tee -a -i ${logfilepath}
-else
-    echo `${dtzs}`${dtzsep} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'API Subscript Completed :  '${APISubScriptName} >> ${logfilepath}
-fi
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'API Subscript Completed :  '${APISubScriptName} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
 return 0

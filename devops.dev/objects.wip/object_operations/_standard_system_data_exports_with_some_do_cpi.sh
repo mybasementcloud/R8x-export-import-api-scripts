@@ -15,8 +15,8 @@
 #
 ScriptVersion=00.60.12
 ScriptRevision=100
-ScriptSubRevision=450
-ScriptDate=2023-02-26
+ScriptSubRevision=500
+ScriptDate=2023-03-08
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
@@ -256,9 +256,9 @@ export TESTOPSARRAY=()
 #export TESTOPSARRAY+=("cli_api_export_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO --NSO --CSVERR -t 'rename-to-new-name' --DO-CPI")
 #export TESTOPSARRAY+=("cli_api_export_objects_to_csv.sh -r -v --NOWAIT --RESULTS --JSONREPO -t 'name-for-delete' --DO-CPI")
 
-export TESTOPSARRAY+=("cli_api_export_objects.sh --domain-System-Data -v -r --NOWAIT --RESULTS --format json --KEEPCSVWIP --SO --DO-CPI")
-export TESTOPSARRAY+=("cli_api_export_objects_to_csv.sh --domain-System-Data -r -v --NOWAIT --RESULTS --JSONREPO --SO --10-TAGS --CSVALL")
-export TESTOPSARRAY+=("cli_api_export_special_objects_to_csv.sh --domain-System-Data -r -v --NOWAIT --RESULTS --JSONREPO --KEEPCSVWIP --SO --10-TAGS --CSVALL --DO-CPI")
+export TESTOPSARRAY+=("cli_api_export_objects.sh --domain-System-Data -v -r --NOWAIT --RESULTS --format all --KEEPCSVWIP --SO --10-TAGS --CSVALL")
+export TESTOPSARRAY+=("cli_api_export_objects_to_csv.sh --domain-System-Data -r -v --NOWAIT --RESULTS --JSONREPO --SO --10-TAGS --CSVERR")
+export TESTOPSARRAY+=("cli_api_export_special_objects_to_csv.sh --domain-System-Data -r -v --NOWAIT --RESULTS --JSONREPO --KEEPCSVWIP --SO --10-TAGS --CSVERR")
 
 
 # -------------------------------------------------------------------------------------------------

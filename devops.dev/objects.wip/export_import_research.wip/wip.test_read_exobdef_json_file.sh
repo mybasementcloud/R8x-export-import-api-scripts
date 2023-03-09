@@ -18,8 +18,8 @@
 #
 ScriptVersion=00.60.12
 ScriptRevision=100
-ScriptSubRevision=450
-ScriptDate=2023-02-26
+ScriptSubRevision=500
+ScriptDate=2023-03-08
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
@@ -126,12 +126,20 @@ fi
 
 
 # -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # Announce what we are starting here...
 # -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
+echo `${dtzs}`${dtzsep} '_______________________________________________________________________________' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} 'Script original call name :  '$0 | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Script initial parameters :  '"$@" | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 # -------------------------------------------------------------------------------------------------

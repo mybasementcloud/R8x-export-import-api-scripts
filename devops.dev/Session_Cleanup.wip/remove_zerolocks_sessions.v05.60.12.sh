@@ -16,10 +16,10 @@
 # SCRIPT for BASH to remove zero locks sessions
 #
 #
-ScriptVersion=05.60.12
+ScriptVersion=00.60.12
 ScriptRevision=100
-ScriptSubRevision=450
-ScriptDate=2023-02-26
+ScriptSubRevision=500
+ScriptDate=2023-03-08
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
@@ -126,12 +126,20 @@ fi
 
 
 # -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # Announce what we are starting here...
 # -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
+echo `${dtzs}`${dtzsep} '_______________________________________________________________________________' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} 'Script:  '${ScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} 'Script original call name :  '$0 | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Script initial parameters :  '"$@" | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 # -------------------------------------------------------------------------------------------------
@@ -147,7 +155,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # GetScriptSourceFolder - Get the actual source folder for the running script
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-05-05 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 GetScriptSourceFolder () {
@@ -156,6 +164,11 @@ GetScriptSourceFolder () {
     #
     
     echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'GetScriptSourceFolder procedure Starting...' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    #printf "`${dtzs}`${dtzsep}"'variable :  %-20s = %s\n' 'X' "${X}" >> ${logfilepath}
+    #printf "`${dtzs}`${dtzsep}"'variable :  %-20s = %s\n' 'X' "${X}" | tee -a -i ${logfilepath}
     
     SOURCE="${BASH_SOURCE[0]}"
     while [ -h "${SOURCE}" ]; do # resolve ${SOURCE} until the file is no longer a symlink
@@ -170,38 +183,39 @@ GetScriptSourceFolder () {
         fi
     done
     
-    echo `${dtzs}`${dtzsep} "SOURCE is '${SOURCE}'" | tee -a -i ${logfilepath}
-    
     RDIR="$( dirname "${SOURCE}" )"
     DIR="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
     if [ "${DIR}" != "${RDIR}" ]; then
         echo `${dtzs}`${dtzsep} "DIR '${RDIR}' resolves to '${DIR}'" >> ${logfilepath}
     fi
-    echo `${dtzs}`${dtzsep} "DIR is '${DIR}'" >> ${logfilepath}
     
     export ScriptSourceFolder=${DIR}
     
-    echo `${dtzs}`${dtzsep} "ScriptSourceFolder is '${ScriptSourceFolder}'" | tee -a -i ${logfilepath}
-    
+    printf "`${dtzs}`${dtzsep}"'variable :  %-20s = %s\n' 'SOURCE' "${SOURCE}" | tee -a -i ${logfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-20s = %s\n' 'DIR' "${DIR}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-20s = %s\n' 'ScriptSourceFolder' "${ScriptSourceFolder}" | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    return 0
+    echo `${dtzs}`${dtzsep} 'GetScriptSourceFolder procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    return ${errorreturn}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-05-05
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ - MODIFIED 2023-03-07:01
 
 
-# MODIFIED 2022-05-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
 
 # We need the Script's actual source folder to find subscripts
 #
 GetScriptSourceFolder
 
 
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-05-05
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # ADDED 2018-11-20 -
@@ -429,29 +443,30 @@ export WAITTIME=15
 # Configure location for api subscripts
 # -------------------------------------------------------------------------------------------------
 
-# ADDED 2021-11-09 - MODIFIED 2022-05-04 -
+# ADDED 2021-11-09 - MODIFIED 2023-03-07:01 -
 #
 # Presumptive folder structure for R8X API Management CLI (mgmt_cli) Template based scripts
 #
 # <script_home_folder> is the folder containing the script set, generally /var/log/__customer/devops|devops.dev|devops.dev.test
 # [.wip] named folders are for development operations
 #
-# ...<script_home_folder>/_api_subscripts                       ## _api_subscripts folder for all scripts
-# ...<script_home_folder>/_templates[.wip]                      ## _templates[.wip] folder for all scripts
-# ...<script_home_folder>/tools                                 ## tools folder for all scripts with additional tools not assumed on system
-# ...<script_home_folder>/objects[.wip]                         ## objects[.wip] folder for objects operations focused scripts
-# ...<script_home_folder>/objects[.wip]/csv_tools[.wip]         ## csv_tools[.wip] folder for objects operations for csv handling focused scripts
-# ...<script_home_folder>/objects[.wip]/export_import[.wip]     ## export_import[.wip] folder for objects operations export, import, set, rename, and delete focused scripts
-# ...<script_home_folder>/objects[.wip]/object_operations       ## object_operations folder for objects operations and testing scripts
-# ...<script_home_folder>/Policy_and_Layers[.wip]               ## Policy_and_Layers[.wip] folder for policy and layers operations focused scripts
-# ...<script_home_folder>/Session_Cleanup[.wip]                 ## Session_Cleanup[.wip] folder for Session Cleanup operation focused scripts
-# ...<script_home_folder>/tools.MDSM[.wip]                      ## tools.MDSM[.wip] folder for Tools focused on MDSM operations scripts
+# ...<script_home_folder>/_api_subscripts                             ## _api_subscripts folder for all scripts
+# ...<script_home_folder>/_templates[.wip]                            ## _templates[.wip] folder for all scripts
+# ...<script_home_folder>/tools                                       ## tools folder for all scripts with additional tools not assumed on system
+# ...<script_home_folder>/objects[.wip]                               ## objects[.wip] folder for objects operations focused scripts
+# ...<script_home_folder>/objects[.wip]/csv_tools[.wip]               ## csv_tools[.wip] folder for objects operations for csv handling focused scripts
+# ...<script_home_folder>/objects[.wip]/export_import[.wip]           ## export_import[.wip] folder for objects operations export, import, set, rename, and delete focused scripts
+# ...<script_home_folder>/objects[.wip]/export_import_research[.wip]  ## export_import_research[.wip] folder for objects operations research focused scripts
+# ...<script_home_folder>/objects[.wip]/object_operations             ## object_operations folder for objects operations and testing scripts
+# ...<script_home_folder>/Policy_and_Layers[.wip]                     ## Policy_and_Layers[.wip] folder for policy and layers operations focused scripts
+# ...<script_home_folder>/Session_Cleanup[.wip]                       ## Session_Cleanup[.wip] folder for Session Cleanup operation focused scripts
+# ...<script_home_folder>/tools.MDSM[.wip]                            ## tools.MDSM[.wip] folder for Tools focused on MDSM operations scripts
 #
 #
 # api_subscripts_default_root is defined with the assumption that scripts are running in a subfolder of the <script_home_folder> folder
 
 
-# MODIFIED 2021-11-09 -
+# MODIFIED 2023-03-07:01 -
 # Configure basic location for api subscripts
 export api_subscripts_default_root=..
 export api_subscripts_default_folder=_api_subscripts
@@ -463,6 +478,7 @@ export api_subscripts_checkfile=api_subscripts_version.${APISubscriptsLevel}.v${
 if [ -r "${api_subscripts_default_root}/${api_subscripts_default_folder}/${api_subscripts_checkfile}" ]; then
     # OK, found the api subscripts in the default root
     export api_subscripts_root=${api_subscripts_default_root}
+    echo -n `${dtzs}`${dtzsep}' ' >> ${logfilepath}
     pushd ${api_subscripts_root} >> ${logfilepath}
     errorreturn=$?
     
@@ -477,10 +493,12 @@ if [ -r "${api_subscripts_default_root}/${api_subscripts_default_folder}/${api_s
     fi
     
     # Return to the script operations folder
+    echo -n `${dtzs}`${dtzsep}' ' >> ${logfilepath}
     popd >> ${logfilepath}
 elif [ -r "./${api_subscripts_default_folder}/${api_subscripts_checkfile}" ]; then
     # OK, didn't find the api subscripts in the default root, instead found them in the working folder
     export api_subscripts_root=.
+    echo -n `${dtzs}`${dtzsep}' ' >> ${logfilepath}
     pushd ${api_subscripts_root} >> ${logfilepath}
     errorreturn=$?
     
@@ -499,6 +517,7 @@ elif [ -r "./${api_subscripts_default_folder}/${api_subscripts_checkfile}" ]; th
 elif [ -r "../../${api_subscripts_default_folder}/${api_subscripts_checkfile}" ]; then
     # OK, didn't find the api subscripts in the default root, or in the working folder, but they were two (2) levels up
     export api_subscripts_root=../..
+    echo -n `${dtzs}`${dtzsep}' ' >> ${logfilepath}
     pushd ${api_subscripts_root} >> ${logfilepath}
     errorreturn=$?
     
@@ -513,6 +532,7 @@ elif [ -r "../../${api_subscripts_default_folder}/${api_subscripts_checkfile}" ]
     fi
     
     # Return to the script operations folder
+    echo -n `${dtzs}`${dtzsep}' ' >> ${logfilepath}
     popd >> ${logfilepath}
 else
     # OK, didn't find the api subscripts where we expect to find them, so this is bad!
@@ -664,7 +684,7 @@ export templogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_temp_'${DAT
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-11-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 SetupTempLogFile () {
@@ -680,6 +700,7 @@ SetupTempLogFile () {
         export templogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_temp_'$1'_'${DATEDTGS}.log
     fi
     
+    echo -n `${dtzs}`${dtzsep}' ' >> ${logfilepath}
     rm ${templogfilepath} >> ${logfilepath} 2>&1
     
     touch ${templogfilepath}
@@ -688,7 +709,7 @@ SetupTempLogFile () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-19
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ - MODIFIED 2023-03-07:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -700,7 +721,7 @@ SetupTempLogFile () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-11-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 HandleShowTempLogFile () {
@@ -716,12 +737,13 @@ HandleShowTempLogFile () {
         cat ${templogfilepath} >> ${logfilepath}
     fi
     
+    echo -n `${dtzs}`${dtzsep}' ' >> ${logfilepath}
     rm ${templogfilepath} >> ${logfilepath} 2>&1
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-19
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ - MODIFIED 2023-03-07:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -733,7 +755,7 @@ HandleShowTempLogFile () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-11-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ForceShowTempLogFile () {
@@ -743,47 +765,18 @@ ForceShowTempLogFile () {
     
     cat ${templogfilepath} | tee -a -i ${logfilepath}
     
+    echo -n `${dtzs}`${dtzsep}' ' >> ${logfilepath}
     rm ${templogfilepath} >> ${logfilepath} 2>&1
     
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-19
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ - MODIFIED 2023-03-07:01
 
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
-
-
-# REMOVED 2020-11-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# Moved to mgmt_cli_api_operations.subscript.common.${APISubscriptsLevel}.v${APISubscriptsVersion}.sh script
-#
-#CheckStatusOfAPI
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ REMOVED 2020-11-16
-# MOVED 2022-05-04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-#GetScriptSourceFolder
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MOVED 2022-05-04
-# REMOVED 2020-11-16 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# Moved to basic_script_setup_API_scripts.subscript.common.${APISubscriptsLevel}.v${APISubscriptsVersion}.sh script
-#
-#ConfigureJQLocation
-#GaiaWebSSLPortCheck
-#ScriptAPIVersionCheck
-#CheckAPIScriptVerboseOutput
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ REMOVED 2020-11-16
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2171,11 +2164,39 @@ ScriptOutputPathsforAPIScripts "$@"
 # =================================================================================================
 
 
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-08:01 - 
+
+# -------------------------------------------------------------------------------------------------
+# mgmt_cli keep alive configuration parameters
+# -------------------------------------------------------------------------------------------------
+
+#
+# mgmtclikeepalivelast       : Very First or Last time CheckAPIKeepAlive was checked, using ${SECONDS}
+# mgmtclikeepalivenow        : Current time for check versus last, using ${SECONDS}
+# mgmtclikeepaliveelapsed    : The calculated seconds between the current check and last time CheckAPIKeepAlive was checked
+# mgmtclikeepaliveinterval   : Interval between executions of CheckAPIKeepAlive desired, with default at 60 seconds
+#
+# Need to add CLI configuration parameter for this value ${mgmtclikeepaliveinterval} in the future to tweak
+#
+
+export mgmtclikeepalivelast=${SECONDS}
+export mgmtclikeepalivenow=
+export mgmtclikeepaliveelapsed=
+export mgmtclikeepaliveinterval=60
+
+
+# -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # Check API Keep Alive Status - CheckAPIKeepAlive
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-11:02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-08:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Check API Keep Alive Status.
@@ -2187,35 +2208,75 @@ CheckAPIKeepAlive () {
     
     errorreturn=0
     
-    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    # -------------------------------------------------------------------------------------------------
     
-    tempworklogfile=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.keepalivecheck.log
+    # MODIFIED 2023-03-08:01 - 
     
-    if ${LoggedIntoMgmtCli} ; then
-        #echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check : ... ' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+    #export mgmtclikeepalivelast=${SECONDS}
+    #export mgmtclikeepalivenow=
+    #export mgmtclikeepaliveinterval=60
+    #export mgmtclikeepaliveelapsed=
+    
+    export mgmtclikeepalivenow=${SECONDS}
+    export mgmtclikeepaliveelapsed=$(( ${mgmtclikeepalivenow} - ${mgmtclikeepalivelast} ))
+    
+    echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  last = '${mgmtclikeepalivelast}' current = '${mgmtclikeepalivenow}' elapsed = '${mgmtclikeepaliveelapsed} >> ${logfilepath}
+    
+    if [[ ${mgmtclikeepaliveelapsed} -gt ${mgmtclikeepaliveinterval} ]] ; then
+        # Last check for keep alive was longer ago than the ${mgmtclikeepaliveinterval} so do the check
         
-        if ${addversion2keepalive} ; then
-            #mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
-            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} > ${tempworklogfile} 2>&1
-            export errorreturn=$?
+        # -------------------------------------------------------------------------------------------------
+        
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        
+        tempworklogfile=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.keepalivecheck.log
+        
+        if ${LoggedIntoMgmtCli} ; then
+            #echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  Elapsed seoconds since last check = '${mgmtclikeepaliveelapsed}', which is greater than the interval = '${mgmtclikeepaliveinterval} >> ${tempworklogfile}
+            echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${tempworklogfile}
+            
+            echo -n `${dtzs}`${dtzsep}' ' > ${tempworklogfile}
+            if ${addversion2keepalive} ; then
+                #mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+                mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${tempworklogfile} 2>&1
+                export errorreturn=$?
+            else
+                #mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+                mgmt_cli keepalive -s ${APICLIsessionfile} >> ${tempworklogfile} 2>&1
+                export errorreturn=$?
+            fi
+            
+            echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${tempworklogfile}
+            
+            cat ${tempworklogfile} >> ${logfilepath}
+            
+            echo `${dtzs}`${dtzsep}' Remove temporary log file:  "'${tempworklogfile}'"' >> ${logfilepath}
+            echo -n `${dtzs}`${dtzsep}' ' >> ${logfilepath}
+            rm -v ${tempworklogfile} >> ${logfilepath} 2>&1
+            
+            echo `${dtzs}`${dtzsep} 'Keep Alive Check errorreturn = [ '${errorreturn}' ]' | tee -a -i ${logfilepath}
+            
+            if [ ${errorreturn} != 0 ] ; then
+                # Something went wrong, terminate
+                echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
+                
+                export LoggedIntoMgmtCli=false
+                
+                . ${mgmt_cli_API_operations_handler} LOGIN "$@"
+                LOGINEXITCODE=$?
+                
+                if [ ${LOGINEXITCODE} != 0 ] ; then
+                    exit ${LOGINEXITCODE}
+                else
+                    export LoggedIntoMgmtCli=true
+                    export errorreturn=0
+                fi
+            fi
         else
-            #mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
-            mgmt_cli keepalive -s ${APICLIsessionfile} > ${tempworklogfile} 2>&1
-            export errorreturn=$?
-        fi
-        
-        cat ${tempworklogfile} >> ${logfilepath}
-        rm ${tempworklogfile} >> ${logfilepath} 2>&1
-        
-        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Keep Alive Check errorreturn = [ '${errorreturn}' ]' | tee -a -i ${logfilepath}
-        
-        if [ ${errorreturn} != 0 ] ; then
-            # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
+            # Uhhh what, this check should only happen if logged in
+            echo `${dtzs}`${dtzsep} ' Executing mgmt_cli login instead of mgmt_cli keepalive check ?!?...  ' | tee -a -i ${logfilepath}
             
             export LoggedIntoMgmtCli=false
             
@@ -2229,30 +2290,23 @@ CheckAPIKeepAlive () {
                 export errorreturn=0
             fi
         fi
+        
+        echo `${dtzs}`${dtzsep} 'Keep Alive Check completed!' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        
+        # -------------------------------------------------------------------------------------------------
+        
     else
-        # Uhhh what, this check should only happen if logged in
-        echo `${dtzs}`${dtzsep} ' Executing mgmt_cli login instead of mgmt_cli keepalive check ?!?...  ' | tee -a -i ${logfilepath}
-        
-        export LoggedIntoMgmtCli=false
-        
-        . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-        LOGINEXITCODE=$?
-        
-        if [ ${LOGINEXITCODE} != 0 ] ; then
-            exit ${LOGINEXITCODE}
-        else
-            export LoggedIntoMgmtCli=true
-            export errorreturn=0
-        fi
+        # Last check for keep alive was more recent than the ${mgmtclikeepaliveinterval} so skip this one
+        echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  Elapsed seoconds since last check = '${mgmtclikeepaliveelapsed}', which is within the interval = '${mgmtclikeepaliveinterval} >> ${logfilepath}
     fi
+    export mgmtclikeepalivelast=${SECONDS}
     
-    echo `${dtzs}`${dtzsep} 'Keep Alive Check completed!' >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-06-11:02
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ - MODIFIED 2023-03-08:01
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------

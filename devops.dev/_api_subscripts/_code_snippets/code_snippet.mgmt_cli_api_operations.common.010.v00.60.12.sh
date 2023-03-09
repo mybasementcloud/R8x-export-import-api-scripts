@@ -18,8 +18,8 @@
 #
 ScriptVersion=00.60.12
 ScriptRevision=100
-ScriptSubRevision=450
-ScriptDate=2023-02-26
+ScriptSubRevision=500
+ScriptDate=2023-03-08
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
@@ -95,11 +95,39 @@ export mgmt_cli_API_operations_handler_file=mgmt_cli_api_operations.subscript.co
 # =================================================================================================
 
 
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-08:01 - 
+
+# -------------------------------------------------------------------------------------------------
+# mgmt_cli keep alive configuration parameters
+# -------------------------------------------------------------------------------------------------
+
+#
+# mgmtclikeepalivelast       : Very First or Last time CheckAPIKeepAlive was checked, using ${SECONDS}
+# mgmtclikeepalivenow        : Current time for check versus last, using ${SECONDS}
+# mgmtclikeepaliveelapsed    : The calculated seconds between the current check and last time CheckAPIKeepAlive was checked
+# mgmtclikeepaliveinterval   : Interval between executions of CheckAPIKeepAlive desired, with default at 60 seconds
+#
+# Need to add CLI configuration parameter for this value ${mgmtclikeepaliveinterval} in the future to tweak
+#
+
+export mgmtclikeepalivelast=${SECONDS}
+export mgmtclikeepalivenow=
+export mgmtclikeepaliveelapsed=
+export mgmtclikeepaliveinterval=60
+
+
+# -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # Check API Keep Alive Status - CheckAPIKeepAlive
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-11:02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-08:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Check API Keep Alive Status.
@@ -111,35 +139,75 @@ CheckAPIKeepAlive () {
     
     errorreturn=0
     
-    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    # -------------------------------------------------------------------------------------------------
     
-    tempworklogfile=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.keepalivecheck.log
+    # MODIFIED 2023-03-08:01 - 
     
-    if ${LoggedIntoMgmtCli} ; then
-        #echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check : ... ' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+    #export mgmtclikeepalivelast=${SECONDS}
+    #export mgmtclikeepalivenow=
+    #export mgmtclikeepaliveinterval=60
+    #export mgmtclikeepaliveelapsed=
+    
+    export mgmtclikeepalivenow=${SECONDS}
+    export mgmtclikeepaliveelapsed=$(( ${mgmtclikeepalivenow} - ${mgmtclikeepalivelast} ))
+    
+    echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  last = '${mgmtclikeepalivelast}' current = '${mgmtclikeepalivenow}' elapsed = '${mgmtclikeepaliveelapsed} >> ${logfilepath}
+    
+    if [[ ${mgmtclikeepaliveelapsed} -gt ${mgmtclikeepaliveinterval} ]] ; then
+        # Last check for keep alive was longer ago than the ${mgmtclikeepaliveinterval} so do the check
         
-        if ${addversion2keepalive} ; then
-            #mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
-            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} > ${tempworklogfile} 2>&1
-            export errorreturn=$?
+        # -------------------------------------------------------------------------------------------------
+        
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        
+        tempworklogfile=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.keepalivecheck.log
+        
+        if ${LoggedIntoMgmtCli} ; then
+            #echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  Elapsed seoconds since last check = '${mgmtclikeepaliveelapsed}', which is greater than the interval = '${mgmtclikeepaliveinterval} >> ${tempworklogfile}
+            echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${tempworklogfile}
+            
+            echo -n `${dtzs}`${dtzsep}' ' > ${tempworklogfile}
+            if ${addversion2keepalive} ; then
+                #mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+                mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${tempworklogfile} 2>&1
+                export errorreturn=$?
+            else
+                #mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+                mgmt_cli keepalive -s ${APICLIsessionfile} >> ${tempworklogfile} 2>&1
+                export errorreturn=$?
+            fi
+            
+            echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${tempworklogfile}
+            
+            cat ${tempworklogfile} >> ${logfilepath}
+            
+            echo `${dtzs}`${dtzsep}' Remove temporary log file:  "'${tempworklogfile}'"' >> ${logfilepath}
+            echo -n `${dtzs}`${dtzsep}' ' >> ${logfilepath}
+            rm -v ${tempworklogfile} >> ${logfilepath} 2>&1
+            
+            echo `${dtzs}`${dtzsep} 'Keep Alive Check errorreturn = [ '${errorreturn}' ]' | tee -a -i ${logfilepath}
+            
+            if [ ${errorreturn} != 0 ] ; then
+                # Something went wrong, terminate
+                echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
+                
+                export LoggedIntoMgmtCli=false
+                
+                . ${mgmt_cli_API_operations_handler} LOGIN "$@"
+                LOGINEXITCODE=$?
+                
+                if [ ${LOGINEXITCODE} != 0 ] ; then
+                    exit ${LOGINEXITCODE}
+                else
+                    export LoggedIntoMgmtCli=true
+                    export errorreturn=0
+                fi
+            fi
         else
-            #mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
-            mgmt_cli keepalive -s ${APICLIsessionfile} > ${tempworklogfile} 2>&1
-            export errorreturn=$?
-        fi
-        
-        cat ${tempworklogfile} >> ${logfilepath}
-        rm ${tempworklogfile} >> ${logfilepath} 2>&1
-        
-        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Keep Alive Check errorreturn = [ '${errorreturn}' ]' | tee -a -i ${logfilepath}
-        
-        if [ ${errorreturn} != 0 ] ; then
-            # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
+            # Uhhh what, this check should only happen if logged in
+            echo `${dtzs}`${dtzsep} ' Executing mgmt_cli login instead of mgmt_cli keepalive check ?!?...  ' | tee -a -i ${logfilepath}
             
             export LoggedIntoMgmtCli=false
             
@@ -153,30 +221,23 @@ CheckAPIKeepAlive () {
                 export errorreturn=0
             fi
         fi
+        
+        echo `${dtzs}`${dtzsep} 'Keep Alive Check completed!' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        
+        # -------------------------------------------------------------------------------------------------
+        
     else
-        # Uhhh what, this check should only happen if logged in
-        echo `${dtzs}`${dtzsep} ' Executing mgmt_cli login instead of mgmt_cli keepalive check ?!?...  ' | tee -a -i ${logfilepath}
-        
-        export LoggedIntoMgmtCli=false
-        
-        . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-        LOGINEXITCODE=$?
-        
-        if [ ${LOGINEXITCODE} != 0 ] ; then
-            exit ${LOGINEXITCODE}
-        else
-            export LoggedIntoMgmtCli=true
-            export errorreturn=0
-        fi
+        # Last check for keep alive was more recent than the ${mgmtclikeepaliveinterval} so skip this one
+        echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  Elapsed seoconds since last check = '${mgmtclikeepaliveelapsed}', which is within the interval = '${mgmtclikeepaliveinterval} >> ${logfilepath}
     fi
+    export mgmtclikeepalivelast=${SECONDS}
     
-    echo `${dtzs}`${dtzsep} 'Keep Alive Check completed!' >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-06-11:02
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ - MODIFIED 2023-03-08:01
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------

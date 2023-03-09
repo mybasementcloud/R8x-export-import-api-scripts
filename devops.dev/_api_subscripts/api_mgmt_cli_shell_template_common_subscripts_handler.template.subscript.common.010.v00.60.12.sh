@@ -18,8 +18,8 @@
 #
 ScriptVersion=00.60.12
 ScriptRevision=100
-ScriptSubRevision=450
-ScriptDate=2023-02-26
+ScriptSubRevision=500
+ScriptDate=2023-03-08
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
@@ -46,13 +46,16 @@ export APISubScriptDescription="Description"
 # =================================================================================================
 
 
-if ${SCRIPTVERBOSE} ; then
-    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'APISubScriptName:  '${APISubScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${logfilepath}
-else
-    echo `${dtzs}`${dtzsep} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'APISubScriptName:  '${APISubScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} >> ${logfilepath}
-fi
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'APISubScript Name:  '${APISubScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'APISubScript original call name :  '$0 | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'APISubScript initial parameters :  '"$@" | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
 # =================================================================================================
@@ -133,7 +136,7 @@ export subscriptstemplogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_t
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-11-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 SetupTempLogFile () {
@@ -150,7 +153,8 @@ SetupTempLogFile () {
     fi
     
     if [ -w ${subscriptstemplogfilepath} ] ; then
-        rm ${subscriptstemplogfilepath} >> ${logfilepath} 2>&1
+        echo -n `${dtzs}`${dtzsep} >> ${logfilepath}
+        rm -v ${subscriptstemplogfilepath} >> ${logfilepath} 2>&1
     fi
     
     touch ${subscriptstemplogfilepath}
@@ -159,7 +163,7 @@ SetupTempLogFile () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-19
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ - MODIFIED 2023-03-07:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -171,7 +175,7 @@ SetupTempLogFile () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-11-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 HandleShowTempLogFile () {
@@ -187,12 +191,13 @@ HandleShowTempLogFile () {
         cat ${subscriptstemplogfilepath} >> ${logfilepath}
     fi
     
-    rm ${subscriptstemplogfilepath} >> ${logfilepath} 2>&1
+    echo -n `${dtzs}`${dtzsep} >> ${logfilepath}
+    rm -v ${subscriptstemplogfilepath} >> ${logfilepath} 2>&1
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-19
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ - MODIFIED 2023-03-07:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -204,7 +209,7 @@ HandleShowTempLogFile () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2020-11-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ForceShowTempLogFile () {
@@ -214,13 +219,14 @@ ForceShowTempLogFile () {
     
     cat ${subscriptstemplogfilepath} | tee -a -i ${logfilepath}
     
-    rm ${subscriptstemplogfilepath} >> ${logfilepath} 2>&1
+    echo -n `${dtzs}`${dtzsep} >> ${logfilepath}
+    rm -v ${subscriptstemplogfilepath} >> ${logfilepath} 2>&1
     
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-11-19
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ -  MODIFIED 2023-03-07:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -281,13 +287,14 @@ procedure_name () {
 # =================================================================================================
 
 
-if ${APISCRIPTVERBOSE} ; then
-    echo | tee -a -i ${logfilepath}
-    echo 'API Subscript Completed :  '${APISubScriptName} | tee -a -i ${logfilepath}
-else
-    echo >> ${logfilepath}
-    echo 'API Subscript Completed :  '${APISubScriptName} >> ${logfilepath}
-fi
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'API Subscript Completed :  '${APISubScriptName} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
 return 0

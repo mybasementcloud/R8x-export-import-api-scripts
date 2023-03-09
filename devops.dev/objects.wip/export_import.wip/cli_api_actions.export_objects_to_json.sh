@@ -18,8 +18,8 @@
 #
 ScriptVersion=00.60.12
 ScriptRevision=100
-ScriptSubRevision=450
-ScriptDate=2023-02-26
+ScriptSubRevision=500
+ScriptDate=2023-03-08
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
@@ -45,13 +45,16 @@ export APIActionScriptDescription="Object Export to JSON action operations for A
 # =================================================================================================
 
 
-if ${APISCRIPTVERBOSE} ; then
-    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'ActionScriptName:  '${ActionScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${logfilepath}
-else
-    echo `${dtzs}`${dtzsep} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'ActionScriptName:  '${ActionScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} >> ${logfilepath}
-fi
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Action Script Name:  '${ActionScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Action Script original call name :  '$0 | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Action Script initial parameters :  '"$@" | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
 # =================================================================================================
@@ -91,11 +94,13 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 
+export actionstemplogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_temp_'${DATEDTGS}.log
+
+
 # =================================================================================================
 # START:  Local Proceedures
 # =================================================================================================
 
-export actionstemplogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_temp_'${DATEDTGS}.log
 
 # -------------------------------------------------------------------------------------------------
 # SetupTempLogFile - Setup Temporary Log File and clear any debris
@@ -190,11 +195,33 @@ ForceShowTempLogFile () {
 # -------------------------------------------------------------------------------------------------
 
 
+# MODIFIED 2023-03-08:01 - 
+
+# -------------------------------------------------------------------------------------------------
+# mgmt_cli keep alive configuration parameters
+# -------------------------------------------------------------------------------------------------
+
+#
+# mgmtclikeepalivelast       : Very First or Last time CheckAPIKeepAlive was checked, using ${SECONDS}
+# mgmtclikeepalivenow        : Current time for check versus last, using ${SECONDS}
+# mgmtclikeepaliveelapsed    : The calculated seconds between the current check and last time CheckAPIKeepAlive was checked
+# mgmtclikeepaliveinterval   : Interval between executions of CheckAPIKeepAlive desired, with default at 60 seconds
+#
+# Need to add CLI configuration parameter for this value ${mgmtclikeepaliveinterval} in the future to tweak
+#
+
+export mgmtclikeepalivelast=${SECONDS}
+export mgmtclikeepalivenow=
+export mgmtclikeepaliveelapsed=
+export mgmtclikeepaliveinterval=60
+
+
+# -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # Check API Keep Alive Status - CheckAPIKeepAlive
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-11:02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-08:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Check API Keep Alive Status.
@@ -206,35 +233,75 @@ CheckAPIKeepAlive () {
     
     errorreturn=0
     
-    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    # -------------------------------------------------------------------------------------------------
     
-    tempworklogfile=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.keepalivecheck.log
+    # MODIFIED 2023-03-08:01 - 
     
-    if ${LoggedIntoMgmtCli} ; then
-        #echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check : ... ' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+    #export mgmtclikeepalivelast=${SECONDS}
+    #export mgmtclikeepalivenow=
+    #export mgmtclikeepaliveinterval=60
+    #export mgmtclikeepaliveelapsed=
+    
+    export mgmtclikeepalivenow=${SECONDS}
+    export mgmtclikeepaliveelapsed=$(( ${mgmtclikeepalivenow} - ${mgmtclikeepalivelast} ))
+    
+    echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  last = '${mgmtclikeepalivelast}' current = '${mgmtclikeepalivenow}' elapsed = '${mgmtclikeepaliveelapsed} >> ${logfilepath}
+    
+    if [[ ${mgmtclikeepaliveelapsed} -gt ${mgmtclikeepaliveinterval} ]] ; then
+        # Last check for keep alive was longer ago than the ${mgmtclikeepaliveinterval} so do the check
         
-        if ${addversion2keepalive} ; then
-            #mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
-            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} > ${tempworklogfile} 2>&1
-            export errorreturn=$?
+        # -------------------------------------------------------------------------------------------------
+        
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        
+        tempworklogfile=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.keepalivecheck.log
+        
+        if ${LoggedIntoMgmtCli} ; then
+            #echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  Elapsed seoconds since last check = '${mgmtclikeepaliveelapsed}', which is greater than the interval = '${mgmtclikeepaliveinterval} >> ${tempworklogfile}
+            echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${tempworklogfile}
+            
+            echo -n `${dtzs}`${dtzsep}' ' > ${tempworklogfile}
+            if ${addversion2keepalive} ; then
+                #mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+                mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${tempworklogfile} 2>&1
+                export errorreturn=$?
+            else
+                #mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+                mgmt_cli keepalive -s ${APICLIsessionfile} >> ${tempworklogfile} 2>&1
+                export errorreturn=$?
+            fi
+            
+            echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${tempworklogfile}
+            
+            cat ${tempworklogfile} >> ${logfilepath}
+            
+            echo `${dtzs}`${dtzsep}' Remove temporary log file:  "'${tempworklogfile}'"' >> ${logfilepath}
+            echo -n `${dtzs}`${dtzsep}' ' >> ${logfilepath}
+            rm -v ${tempworklogfile} >> ${logfilepath} 2>&1
+            
+            echo `${dtzs}`${dtzsep} 'Keep Alive Check errorreturn = [ '${errorreturn}' ]' | tee -a -i ${logfilepath}
+            
+            if [ ${errorreturn} != 0 ] ; then
+                # Something went wrong, terminate
+                echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
+                
+                export LoggedIntoMgmtCli=false
+                
+                . ${mgmt_cli_API_operations_handler} LOGIN "$@"
+                LOGINEXITCODE=$?
+                
+                if [ ${LOGINEXITCODE} != 0 ] ; then
+                    exit ${LOGINEXITCODE}
+                else
+                    export LoggedIntoMgmtCli=true
+                    export errorreturn=0
+                fi
+            fi
         else
-            #mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
-            mgmt_cli keepalive -s ${APICLIsessionfile} > ${tempworklogfile} 2>&1
-            export errorreturn=$?
-        fi
-        
-        cat ${tempworklogfile} >> ${logfilepath}
-        rm ${tempworklogfile} >> ${logfilepath} 2>&1
-        
-        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Keep Alive Check errorreturn = [ '${errorreturn}' ]' | tee -a -i ${logfilepath}
-        
-        if [ ${errorreturn} != 0 ] ; then
-            # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
+            # Uhhh what, this check should only happen if logged in
+            echo `${dtzs}`${dtzsep} ' Executing mgmt_cli login instead of mgmt_cli keepalive check ?!?...  ' | tee -a -i ${logfilepath}
             
             export LoggedIntoMgmtCli=false
             
@@ -248,30 +315,23 @@ CheckAPIKeepAlive () {
                 export errorreturn=0
             fi
         fi
+        
+        echo `${dtzs}`${dtzsep} 'Keep Alive Check completed!' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        
+        # -------------------------------------------------------------------------------------------------
+        
     else
-        # Uhhh what, this check should only happen if logged in
-        echo `${dtzs}`${dtzsep} ' Executing mgmt_cli login instead of mgmt_cli keepalive check ?!?...  ' | tee -a -i ${logfilepath}
-        
-        export LoggedIntoMgmtCli=false
-        
-        . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-        LOGINEXITCODE=$?
-        
-        if [ ${LOGINEXITCODE} != 0 ] ; then
-            exit ${LOGINEXITCODE}
-        else
-            export LoggedIntoMgmtCli=true
-            export errorreturn=0
-        fi
+        # Last check for keep alive was more recent than the ${mgmtclikeepaliveinterval} so skip this one
+        echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  Elapsed seoconds since last check = '${mgmtclikeepaliveelapsed}', which is within the interval = '${mgmtclikeepaliveinterval} >> ${logfilepath}
     fi
+    export mgmtclikeepalivelast=${SECONDS}
     
-    echo `${dtzs}`${dtzsep} 'Keep Alive Check completed!' >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-06-11:02
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ - MODIFIED 2023-03-08:01
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -306,11 +366,352 @@ export DefaultAPIObjectLimitMDSM=${RecommendedAPIObjectLimitMDSM}
 export DefaultAPIObjectLimitMDSMSlowObjects=${SlowObjectAPIObjectLimitMDSMSlow}
 
 
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# =================================================================================================
+# -------------------------------------------------------------------------------------------------
+# START : Execution Common Initial File and Path Location Handlers
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CommonInitialFileAndPathLocationHandlerFirst
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-06:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The CommonInitialFileAndPathLocationHandlerFirst is EXPLAIN.
+#
+
+CommonInitialFileAndPathLocationHandlerFirst () {
+    
+    # ------------------------------------------------------------------------
+    #
+    # SANITY CHECK FOR ${templogfilepath} and associated log file or HARD EXIT
+    #
+    
+    if [ x"${templogfilepath}" = x"" ] ; then
+        # Missing temporary log file path value
+        echo `${dtzs}`${dtzsep}
+        echo `${dtzs}`${dtzsep} '!!!! ERROR - missing value for ${templogfilepath} ! - EXITING !!!!'
+        exit 253
+    fi
+    if [ ! -r ${templogfilepath} ] ; then
+        # Unable to write to temporary log file path
+        echo `${dtzs}`${dtzsep}
+        echo `${dtzs}`${dtzsep} '!!!! ERROR - Unable to write to temporary log file path : "'${templogfilepath}'" ! - EXITING !!!!'
+        exit 252
+    fi
+    
+    # ------------------------------------------------------------------------
+    
+    # ------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-07:01 -
+    #
+    
+    #printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'X' "${X}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'MinAPIObjectLimit' "${MinAPIObjectLimit}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'MaxAPIObjectLimit' "${MaxAPIObjectLimit}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'RecommendedAPIObjectLimitMDSM' "${RecommendedAPIObjectLimitMDSM}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'DefaultAPIObjectLimit' "${DefaultAPIObjectLimit}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'DefaultAPIObjectLimitMDSM' "${DefaultAPIObjectLimitMDSM}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'domainnamenospace' "${domainnamenospace}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'CLIparm_NODOMAINFOLDERS' "${CLIparm_NODOMAINFOLDERS}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'primarytargetoutputformat' "${primarytargetoutputformat}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLICSVExportpathbase' "${APICLICSVExportpathbase}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIpathexport' "${APICLIpathexport}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathroot' "${JSONRepopathroot}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathbase' "${JSONRepopathbase}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+    
+    # ------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:02 -
+    #
+    
+    echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'Current APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'Current JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+    
+    if ! ${CLIparm_NODOMAINFOLDERS} ; then
+        # adding domain name to path for MDM operations
+        if [ ! -z "${domainnamenospace}" ] ; then
+            # Handle adding domain name to path for MDM operations
+            export APICLIpathexport=${APICLICSVExportpathbase}/${domainnamenospace}
+            
+            echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
+            echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+            
+            if [ ! -r ${APICLIpathexport} ] ; then
+                echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+                mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>&1
+            fi
+            
+            export JSONRepopathbase=${JSONRepopathroot}/${domainnamenospace}
+            
+            echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to JSON repository path for MDM operations' >> ${templogfilepath}
+            echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+            
+            if [ ! -r ${JSONRepopathbase} ] ; then
+                echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+                mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>&1
+            fi
+        else
+            # Domain name is empty so not adding
+            export APICLIpathexport=${APICLICSVExportpathbase}
+            
+            echo `${dtzs}`${dtzsep} 'Handle empty domain name to path for MDM operations, so NO CHANGE' >> ${templogfilepath}
+            echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+            
+            if [ ! -r ${APICLIpathexport} ] ; then
+                echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+                mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>&1
+            fi
+            
+            export JSONRepopathbase=${JSONRepopathroot}
+            
+            echo `${dtzs}`${dtzsep} 'Handle empty domain name to JSON repository path for MDM operations, so NO CHANGE' >> ${templogfilepath}
+            echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+            
+            if [ ! -r ${JSONRepopathbase} ] ; then
+                echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+                mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>&1
+            fi
+        fi
+    else
+        # NOT adding domain name to path for MDM operations
+        export APICLIpathexport=${APICLICSVExportpathbase}
+        
+        echo `${dtzs}`${dtzsep} 'NOT adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
+        echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+        
+        if [ ! -r ${APICLIpathexport} ] ; then
+            echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+            mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>&1
+        fi
+        
+        export JSONRepopathbase=${JSONRepopathroot}
+        
+        echo `${dtzs}`${dtzsep} 'NOT adding domain name = ['"${domainnamenospace}"'] to JSON repository path for MDM operations' >> ${templogfilepath}
+        echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+        
+        if [ ! -r ${JSONRepopathbase} ] ; then
+            echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+            mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>&1
+        fi
+    fi
+    
+    echo `${dtzs}`${dtzsep} 'Final APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'Final JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+    
+    # ------------------------------------------------------------------------
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CommonInitialFileAndPathLocationHandlerLast
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-06:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The CommonInitialFileAndPathLocationHandlerLast is EXPLAIN.
+#
+
+CommonInitialFileAndPathLocationHandlerLast () {
+    
+    # ------------------------------------------------------------------------
+    #
+    # SANITY CHECK FOR ${templogfilepath} and associated log file or HARD EXIT
+    #
+    
+    if [ x"${templogfilepath}" = x"" ] ; then
+        # Missing temporary log file path value
+        echo `${dtzs}`${dtzsep}
+        echo `${dtzs}`${dtzsep} '!!!! ERROR - missing value for ${templogfilepath} ! - EXITING !!!!'
+        exit 253
+    fi
+    if [ ! -r ${templogfilepath} ] ; then
+        # Unable to write to temporary log file path
+        echo `${dtzs}`${dtzsep}
+        echo `${dtzs}`${dtzsep} '!!!! ERROR - Unable to write to temporary log file path : "'${templogfilepath}'" ! - EXITING !!!!'
+        exit 252
+    fi
+    
+    # ------------------------------------------------------------------------
+    
+    # ------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:02 -
+    #
+    
+    if [ x"${primarytargetoutputformat}" = x"${FileExtJSON}" ] ; then
+        # for JSON provide the detail level
+        
+        export APICLIpathexport=${APICLIpathexport}/${APICLIdetaillvl}
+        
+        if [ ! -r ${APICLIpathexport} ] ; then
+            echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+            mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>&1
+        fi
+        
+        export APICLIJSONpathexportwip=
+        if ${script_uses_wip_json} ; then
+            # script uses work-in-progress (wip) folder for json
+            
+            export APICLIJSONpathexportwip=${APICLIpathexport}/wip
+            
+            if [ ! -r ${APICLIJSONpathexportwip} ] ; then
+                echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+                mkdir -p -v ${APICLIJSONpathexportwip} >> ${templogfilepath} 2>&1
+            fi
+        fi
+    else
+        export APICLIJSONpathexportwip=
+    fi
+    
+    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'After handling json target' >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'APICLIJSONpathexportwip = '${APICLIJSONpathexportwip} >> ${templogfilepath}
+    
+    # ------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:02 -
+    #
+    
+    if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
+        # for CSV handle specifics, like wip
+        
+        export APICLICSVpathexportwip=
+        if ${script_uses_wip} ; then
+            # script uses work-in-progress (wip) folder for csv
+            
+            export APICLICSVpathexportwip=${APICLIpathexport}/wip
+            
+            if [ ! -r ${APICLICSVpathexportwip} ] ; then
+                echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+                mkdir -p -v ${APICLICSVpathexportwip} >> ${templogfilepath} 2>&1
+            fi
+        fi
+    else
+        export APICLICSVpathexportwip=
+    fi
+    
+    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'After handling csv target' >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'APICLICSVpathexportwip = '${APICLICSVpathexportwip} >> ${templogfilepath}
+    
+    # ------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:02 -
+    #
+    
+    export APICLIfileexportpost='_'${APICLIdetaillvl}'_'${APICLIfileexportsuffix}
+    
+    export APICLICSVheaderfilesuffix=header
+    
+    export APICLICSVfileexportpost='_'${APICLIdetaillvl}'_'${APICLICSVfileexportsuffix}
+    
+    export APICLIJSONheaderfilesuffix=header
+    export APICLIJSONfooterfilesuffix=footer
+    
+    export APICLIJSONfileexportpost='_'${APICLIdetaillvl}'_'${APICLIJSONfileexportsuffix}
+    
+    # In export operations, we do not utilize the details level of other than "standard" export types, so either "full" or "standard"
+    export JSONRepoDetailname=${APICLIdetaillvl}
+    case ${APICLIdetaillvl} in
+        'full' )
+            export JSONRepoDetailname=${APICLIdetaillvl}
+            ;;
+        'standard' )
+            export JSONRepoDetailname=${APICLIdetaillvl}
+            ;;
+        * )
+            export JSONRepoDetailname='full'
+            ;;
+    esac
+    
+    export JSONRepofilepost='_'${JSONRepoDetailname}'_'${JSONRepofilesuffix}
+    
+    #printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'X' "${X}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'Setup other file and path variables' >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIfileexportpost' "${APICLIfileexportpost}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLICSVheaderfilesuffix' "${APICLICSVheaderfilesuffix}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLICSVfileexportpost' "${APICLICSVfileexportpostX}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIJSONheaderfilesuffix' "${APICLIJSONheaderfilesuffix}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIJSONfooterfilesuffix' "${APICLIJSONfooterfilesuffix}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIJSONfileexportpost' "${APICLIJSONfileexportpost}" >> ${templogfilepath}
+    
+    # ------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:02 -
+    #
+    
+    #printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'X' "${X}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'Working operations file and path variables' >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'primarytargetoutputformat' "${primarytargetoutputformat}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIpathexport' "${APICLIpathexport}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathroot' "${JSONRepopathroot}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathbase' "${JSONRepopathbase}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------'  >>  ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+    
+    # ------------------------------------------------------------------------
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# END : Execution Common Initial File and Path Location Handlers
+# -------------------------------------------------------------------------------------------------
+# =================================================================================================
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
 # =================================================================================================
 # Start executing Main operations
 # =================================================================================================
 
-# MODIFIED 2021-10-22 -
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Configure working paths for export and dump
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-06:02 -
 #
 
 # ------------------------------------------------------------------------
@@ -320,107 +721,25 @@ export DefaultAPIObjectLimitMDSMSlowObjects=${SlowObjectAPIObjectLimitMDSMSlow}
 export templogfilepath=/var/tmp/templog_${ScriptName}.`date +%Y%m%d-%H%M%S%Z`.log
 echo `${dtzs}`${dtzsep} > ${templogfilepath}
 
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------'  >>  ${templogfilepath}
+echo `${dtzs}`${dtzsep} >> ${templogfilepath}
 echo `${dtzs}`${dtzsep} 'Configure working paths for export and dump' >> ${templogfilepath}
 echo `${dtzs}`${dtzsep} >> ${templogfilepath}
 
 # ------------------------------------------------------------------------
 
-# MODIFIED 2021-10-24 -
-#
-
-#printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'X' "${X}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'MinAPIObjectLimit' "${MinAPIObjectLimit}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'MaxAPIObjectLimit' "${MaxAPIObjectLimit}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'RecommendedAPIObjectLimitMDSM' "${RecommendedAPIObjectLimitMDSM}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'DefaultAPIObjectLimit' "${DefaultAPIObjectLimit}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'DefaultAPIObjectLimitMDSM' "${DefaultAPIObjectLimitMDSM}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'domainnamenospace' "${domainnamenospace}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'CLIparm_NODOMAINFOLDERS' "${CLIparm_NODOMAINFOLDERS}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'primarytargetoutputformat' "${primarytargetoutputformat}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLICSVExportpathbase' "${APICLICSVExportpathbase}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIpathexport' "${APICLIpathexport}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathroot' "${JSONRepopathroot}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathbase' "${JSONRepopathbase}" >> ${templogfilepath}
-
-# ------------------------------------------------------------------------
-
-# MODIFIED 2022-05-02:02 -
-
-echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'Current APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'Current JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
-
-if ! ${CLIparm_NODOMAINFOLDERS} ; then
-    # adding domain name to path for MDM operations
-    if [ ! -z "${domainnamenospace}" ] ; then
-        # Handle adding domain name to path for MDM operations
-        export APICLIpathexport=${APICLICSVExportpathbase}/${domainnamenospace}
-        
-        echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
-        echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
-        
-        if [ ! -r ${APICLIpathexport} ] ; then
-            mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>> ${templogfilepath}
-        fi
-        
-        export JSONRepopathbase=${JSONRepopathroot}/${domainnamenospace}
-        
-        echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to JSON repository path for MDM operations' >> ${templogfilepath}
-        echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
-        
-        if [ ! -r ${JSONRepopathbase} ] ; then
-            mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>> ${templogfilepath}
-        fi
-    else
-        # Domain name is empty so not adding
-        export APICLIpathexport=${APICLICSVExportpathbase}
-        
-        echo `${dtzs}`${dtzsep} 'Handle empty domain name to path for MDM operations, so NO CHANGE' >> ${templogfilepath}
-        echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
-        
-        if [ ! -r ${APICLIpathexport} ] ; then
-            mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>> ${templogfilepath}
-        fi
-        
-        export JSONRepopathbase=${JSONRepopathroot}
-        
-        echo `${dtzs}`${dtzsep} 'Handle empty domain name to JSON repository path for MDM operations, so NO CHANGE' >> ${templogfilepath}
-        echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
-        
-        if [ ! -r ${JSONRepopathbase} ] ; then
-            mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>> ${templogfilepath}
-        fi
-    fi
-else
-    # NOT adding domain name to path for MDM operations
-    export APICLIpathexport=${APICLICSVExportpathbase}
-    
-    echo `${dtzs}`${dtzsep} 'NOT adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
-    echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
-    
-    if [ ! -r ${APICLIpathexport} ] ; then
-        mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>> ${templogfilepath}
-    fi
-    
-    export JSONRepopathbase=${JSONRepopathroot}
-    
-    echo `${dtzs}`${dtzsep} 'NOT adding domain name = ['"${domainnamenospace}"'] to JSON repository path for MDM operations' >> ${templogfilepath}
-    echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
-    
-    if [ ! -r ${JSONRepopathbase} ] ; then
-        mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>> ${templogfilepath}
-    fi
-fi
-
-echo `${dtzs}`${dtzsep} 'Final APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'Final JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+CommonInitialFileAndPathLocationHandlerFirst
 
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
-# This section is specific to scripts that ARE action handlers
+
+
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# START:  This section is specific to scripts that ARE action handlers
 # ------------------------------------------------------------------------
 
-# MODIFIED 2021-10-22 -
+# MODIFIED 2023-03-06:02 -
 #
 
 # primary operation is export to primarytargetoutputformat
@@ -430,148 +749,57 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${templogfilepath}
 echo `${dtzs}`${dtzsep} 'Export to '${primarytargetoutputformat}' Starting!' | tee -a -i ${templogfilepath}
 
 if [ ! -r ${APICLIpathexport} ] ; then
-    mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>> ${templogfilepath}
+    echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+    mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>&1
 fi
 
 echo `${dtzs}`${dtzsep} >> ${templogfilepath}
 echo `${dtzs}`${dtzsep} 'After Evaluation of script type' >> ${templogfilepath}
 echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
 
+
+# ------------------------------------------------------------------------
+# END:  This section is specific to scripts that ARE action handlers
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
 
-# MODIFIED 2021-10-22 -
+
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+
+CommonInitialFileAndPathLocationHandlerLast
+
+# ------------------------------------------------------------------------
+
+# MODIFIED 2023-03-06:02 -
 #
 
-if [ x"${primarytargetoutputformat}" = x"${FileExtJSON}" ] ; then
-    # for JSON provide the detail level
-    
-    export APICLIpathexport=${APICLIpathexport}/${APICLIdetaillvl}
-    
-    if [ ! -r ${APICLIpathexport} ] ; then
-        mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>> ${templogfilepath}
-    fi
-    
-    export APICLIJSONpathexportwip=
-    if ${script_uses_wip_json} ; then
-        # script uses work-in-progress (wip) folder for json
-        
-        export APICLIJSONpathexportwip=${APICLIpathexport}/wip
-        
-        if [ ! -r ${APICLIJSONpathexportwip} ] ; then
-            mkdir -p -v ${APICLIJSONpathexportwip} >> ${templogfilepath} 2>> ${templogfilepath}
-        fi
-    fi
-else
-    export APICLIJSONpathexportwip=
-fi
+echo `${dtzs}`${dtzsep} 'Import temporary log file from "'${templogfilepath}'"' >> ${templogfilepath}
 
-echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'After handling json target' >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'APICLIJSONpathexportwip = '${APICLIJSONpathexportwip} >> ${templogfilepath}
+echo `${dtzs}`${dtzsep} >> ${logfilepath}
 
-# ------------------------------------------------------------------------
-
-# MODIFIED 2021-10-22 -
-#
-
-if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
-    # for CSV handle specifics, like wip
-    
-    export APICLICSVpathexportwip=
-    if ${script_uses_wip} ; then
-        # script uses work-in-progress (wip) folder for csv
-        
-        export APICLICSVpathexportwip=${APICLIpathexport}/wip
-        
-        if [ ! -r ${APICLICSVpathexportwip} ] ; then
-            mkdir -p -v ${APICLICSVpathexportwip} >> ${templogfilepath} 2>> ${templogfilepath}
-        fi
-    fi
-else
-    export APICLICSVpathexportwip=
-fi
-
-echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'After handling csv target' >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'APICLICSVpathexportwip = '${APICLICSVpathexportwip} >> ${templogfilepath}
-
-# ------------------------------------------------------------------------
-
-# MODIFIED 2021-10-25 -
-#
-
-export APICLIfileexportpost='_'${APICLIdetaillvl}'_'${APICLIfileexportsuffix}
-
-export APICLICSVheaderfilesuffix=header
-
-export APICLICSVfileexportpost='_'${APICLIdetaillvl}'_'${APICLICSVfileexportsuffix}
-
-export APICLIJSONheaderfilesuffix=header
-export APICLIJSONfooterfilesuffix=footer
-
-export APICLIJSONfileexportpost='_'${APICLIdetaillvl}'_'${APICLIJSONfileexportsuffix}
-
-# In export operations, we do not utilize the details level of other than "standard" export types, so either "full" or "standard"
-export JSONRepoDetailname=${APICLIdetaillvl}
-case ${APICLIdetaillvl} in
-    'full' )
-        export JSONRepoDetailname=${APICLIdetaillvl}
-        ;;
-    'standard' )
-        export JSONRepoDetailname=${APICLIdetaillvl}
-        ;;
-    * )
-        export JSONRepoDetailname='full'
-        ;;
-esac
-
-export JSONRepofilepost='_'${JSONRepoDetailname}'_'${JSONRepofilesuffix}
-
-#printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'X' "${X}" >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'Setup other file and path variables' >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIfileexportpost' "${APICLIfileexportpost}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLICSVheaderfilesuffix' "${APICLICSVheaderfilesuffix}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLICSVfileexportpost' "${APICLICSVfileexportpostX}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIJSONheaderfilesuffix' "${APICLIJSONheaderfilesuffix}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIJSONfooterfilesuffix' "${APICLIJSONfooterfilesuffix}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIJSONfileexportpost' "${APICLIJSONfileexportpost}" >> ${templogfilepath}
-
-# ------------------------------------------------------------------------
-
-# MODIFIED 2021-10-22 -
-#
-
-echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-
+##echo -n `${dtzs}`${dtzsep}' ' >> ${logfilepath}
 cat ${templogfilepath} >> ${logfilepath} 2>&1
+
+echo -n `${dtzs}`${dtzsep}' ' >> ${logfilepath}
 rm -v ${templogfilepath} >> ${logfilepath} 2>&1
 
-# ------------------------------------------------------------------------
-
-# MODIFIED 2021-10-24 -
-#
-
-#printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'X' "${X}" >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'Working operations file and path variables' >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'MinAPIObjectLimit' "${MinAPIObjectLimit}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'MaxAPIObjectLimit' "${MaxAPIObjectLimit}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'RecommendedAPIObjectLimitMDSM' "${RecommendedAPIObjectLimitMDSM}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'DefaultAPIObjectLimit' "${DefaultAPIObjectLimit}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'DefaultAPIObjectLimitMDSM' "${DefaultAPIObjectLimitMDSM}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'primarytargetoutputformat' "${primarytargetoutputformat}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIpathexport' "${APICLIpathexport}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathroot' "${JSONRepopathroot}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathbase' "${JSONRepopathbase}" >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+echo `${dtzs}`${dtzsep} >> ${logfilepath}
 
 # ------------------------------------------------------------------------
 
-# ------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Configure working paths for export and dump - Completed
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
 
 # MODIFIED 2021-10-22 -
 #
@@ -586,6 +814,66 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # =================================================================================================
 # -------------------------------------------------------------------------------------------------
 # START : Main Operational repeated proceedures - Export Objects to JSON
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# SetupExportObjectsToJSONandRepository
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-03:01\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The SetupExportObjectsToJSONandRepository is the setup actions for the script's json export repeated actions.
+#
+
+SetupExportObjectsToJSONandRepository () {
+    
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Objects Type :  '${APICLIobjectstype}'  Number of Objects :  '${number_of_objects} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'X' "${X}" >> ${logfilepath}
+    #
+    
+    ConfigureWorkAPIObjectLimit
+    
+    # Build the object type specific output file
+    
+    # MODIFIED 2023-03-03:01 -
+    
+    # Configure the JSON Repository File information
+    
+    # In export operations, we do not utilize the details level of other than "standard" export types, so either "full" or "standard"
+    export JSONRepoDetailname=${APICLIdetaillvl}
+    case ${APICLIdetaillvl} in
+        'full' )
+            export JSONRepoDetailname=${APICLIdetaillvl}
+            ;;
+        'standard' )
+            export JSONRepoDetailname=${APICLIdetaillvl}
+            ;;
+        * )
+            export JSONRepoDetailname='full'
+            ;;
+    esac
+    
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoDetailname' "${JSONRepoDetailname}" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    ConfigureJSONRepoFileNamesAndPaths
+    
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-03:01
+
+
+# -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 
@@ -643,7 +931,7 @@ ConfigureMgmtCLIOperationalParametersExport () {
         echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'APIobjectusesdetailslevel' ' : ' >> ${logfilepath} ; echo ${APIobjectusesdetailslevel} >> ${logfilepath}
         echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'MgmtCLI_Show_OpParms' ' : ' >> ${logfilepath} ; echo ${MgmtCLI_Show_OpParms} >> ${logfilepath}
         echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Procedure ConfigureMgmtCLIOperationalParametersExport completed!  errorreturn = '${errorreturn} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Procedure ConfigureMgmtCLIOperationalParametersExport completed!  errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
         echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
     fi
     
@@ -652,6 +940,822 @@ ConfigureMgmtCLIOperationalParametersExport () {
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-06-12:01
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ClearObjectDefinitionData
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-08:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ClearObjectDefinitionData clear the data associated with objects to zero and start clean.
+#
+
+ClearObjectDefinitionData () {
+    
+    #
+    # Maximum Object defined
+    #
+    
+    # +-------------------------------------------------------------------------------------------------
+    # | Complex Object : Specific Complex OBJECT : 
+    # |  - Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+    # |  - Reference Details and initial object
+    # +-------------------------------------------------------------------------------------------------
+    
+    #export APICLIobjecttype=<object_type_singular>
+    #export APICLIobjectstype=<object_type_plural>
+    #export APICLIcomplexobjecttype=<complex_object_type_singular>
+    #export APICLIcomplexobjectstype=<complex_object_type_plural>
+    #export APIobjectminversion=<object_type_api_version>|example:  1.1
+    #export APIobjectexportisCPI=false|true
+    
+    #export APIGenObjectTypes=<Generic-Object-Type>|example:  generic-objects
+    #export APIGenObjectClassField=<Generic-Object-ClassField>|example:  class-name
+    #export APIGenObjectClass=<Generic-Object-Class>|example:  "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+    #export APIGenObjectClassShort=<Generic-Object-Class-Short>|example:  "appfw.CpmiUserApplication"
+    #export APIGenObjectField=<Generic-Object-Key-Field>|example:  uid
+    
+    #export APIGenObjobjecttype=<Generic-Object-Type>|example:  appfw_CpmiUserApplication_application-site
+    #export APIGenObjobjectstype=<Generic-Objects-Type-plural>|example:  appfw_CpmiUserApplication_application-sites
+    #export APIGenObjcomplexobjecttype=<Generic-Complex-Object-Type>|example:  appfw_CpmiUserApplication_application-site
+    #export APIGenObjcomplexobjectstype=<Generic-Complex-Objects-Type-plural>|example:  appfw_CpmiUserApplication_application-sites
+    #export APIGenObjobjectkey=name
+    #export APIGenObjobjectkeydetailslevel=standard
+    
+    #export APIobjectspecifickey='url-list'
+    
+    #export APIobjectspecificselector00key=
+    #export APIobjectspecificselector00value=
+    #export APICLIexportnameaddon=
+    
+    #export APICLIexportcriteria01key=
+    #export APICLIexportcriteria01value=
+    
+    #export APIobjectjsonrepofileobject=${APICLIcomplexobjectstype}
+    #export APICLICSVobjecttype=${APICLIobjectstype}
+    #export APIGenObjjsonrepofileobject=${APIGenObjobjectstype}
+    #export APIGenObjcomplexjsonrepofileobject=${APIGenObjcomplexobjectstype}
+    #export APIGenObjCSVobjecttype=${APIGenObjobjectstype}
+    #export APIGenObjcomplexCSVobjecttype=${APIGenObjcomplexobjectstype}
+    #
+    #export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+    #export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+    
+    #export APIobjectdoexport=true
+    #export APIobjectdoexportJSON=true
+    #export APIobjectdoexportCSV=true
+    #export APIobjectdoimport=true
+    #export APIobjectdorename=true
+    #export APIobjectdoupdate=true
+    #export APIobjectdodelete=true
+    
+    #export APIobjectusesdetailslevel=true
+    #export APIobjectcanignorewarning=true
+    #export APIobjectcanignoreerror=true
+    #export APIobjectcansetifexists=false
+    #export APIobjectderefgrpmem=false
+    #export APIobjecttypehasname=true
+    #export APIobjecttypehasuid=true
+    #export APIobjecttypehasdomain=true
+    #export APIobjecttypehastags=true
+    #export APIobjecttypehasmeta=true
+    #export APIobjecttypeimportname=true
+    
+    #export APIobjectCSVFileHeaderAbsoluteBase=false
+    #export APIobjectCSVJQparmsAbsoluteBase=false
+    
+    #export APIobjectCSVexportWIP=false
+    
+    #export AugmentExportedFields=false
+    
+    #if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+        #export AugmentExportedFields=true
+    #elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+        #export AugmentExportedFields=true
+    #elif ${OnlySystemObjects} ; then
+        #export AugmentExportedFields=true
+    #else
+        #export AugmentExportedFields=false
+    #fi
+    
+    #if ! ${AugmentExportedFields} ; then
+        #export APICLIexportnameaddon=
+    #else
+        #export APICLIexportnameaddon=FOR_REFERENCE_ONLY
+    #fi
+    
+    ##
+    ## APICLICSVsortparms can change due to the nature of the object
+    ##
+    #export APICLICSVsortparms='-f -t , -k 1,1'
+    
+    #export CSVFileHeader=
+    #if ! ${AugmentExportedFields} ; then
+        #export CSVFileHeader='"primary-category"'
+        ## The risk key is not imported
+        ##export CSVFileHeader=${CSVFileHeader}',"risk"'
+    #else
+        #export CSVFileHeader='"application-id","primary-category"'
+        ## The risk key is not imported
+        ##export CSVFileHeader=${CSVFileHeader}',"risk"'
+    #fi
+    ##export CSVFileHeader=
+    ##export CSVFileHeader='"key","key"'
+    ##export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+    ##export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
+    ##export CSVFileHeader=${CSVFileHeader}',"icon"'
+    
+    #export CSVJQparms=
+    #if ! ${AugmentExportedFields} ; then
+        #export CSVJQparms='.["primary-category"]'
+        ## The risk key is not imported
+        ##export CSVJQparms=${CSVJQparms}', .["risk"]'
+    #else
+        #export CSVJQparms='.["application-id"], .["primary-category"]'
+        ## The risk key is not imported
+        #export CSVJQparms=${CSVJQparms}', .["risk"]'
+    #fi
+    ##export CSVJQparms=
+    ##export CSVJQparms='.["value"], .["value"]'
+    ##export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+    ##export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
+    ##export CSVJQparms=${CSVJQparms}', .["icon"]'
+    
+    # +-------------------------------------------------------------------------------------------------
+    # +-------------------------------------------------------------------------------------------------
+    
+    export APICLIobjecttype=
+    export APICLIobjectstype=
+    export APICLIcomplexobjecttype=
+    export APICLIcomplexobjectstype=
+    export APIobjectminversion=
+    export APIobjectexportisCPI=
+    
+    export APIGenObjectTypes=
+    export APIGenObjectClassField=
+    export APIGenObjectClass=
+    export APIGenObjectClassShort=
+    export APIGenObjectField=
+    
+    export APIGenObjobjecttype=
+    export APIGenObjobjectstype=
+    export APIGenObjcomplexobjecttype=
+    export APIGenObjcomplexobjectstype=
+    export APIGenObjjsonrepofileobject=
+    export APIGenObjcomplexjsonrepofileobject=
+    export APIGenObjCSVobjecttype=
+    export APIGenObjcomplexCSVobjecttype=
+    export APIGenObjobjectkey=
+    export APIGenObjobjectkeydetailslevel=
+    
+    export APIobjectspecifickey=
+    
+    export APIobjectspecificselector00key=
+    export APIobjectspecificselector00value=
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcriteria01key=
+    export APICLIexportcriteria01value=
+    
+    export APIobjectjsonrepofileobject=
+    export APICLICSVobjecttype=
+    export APIobjectrecommendedlimit=
+    export APIobjectrecommendedlimitMDSM=
+    
+    export APIobjectdoexport=
+    export APIobjectdoexportJSON=
+    export APIobjectdoexportCSV=
+    export APIobjectdoimport=
+    export APIobjectdorename=
+    export APIobjectdoupdate=
+    export APIobjectdodelete=
+    
+    export APIobjectusesdetailslevel=
+    export APIobjectcanignorewarning=
+    export APIobjectcanignoreerror=
+    export APIobjectcansetifexists=
+    export APIobjectderefgrpmem=
+    export APIobjecttypehasname=
+    export APIobjecttypehasuid=
+    export APIobjecttypehasdomain=
+    export APIobjecttypehastags=
+    export APIobjecttypehasmeta=
+    export APIobjecttypeimportname=
+    
+    export APIobjectCSVFileHeaderAbsoluteBase=
+    export APIobjectCSVJQparmsAbsoluteBase=
+    
+    export APIobjectCSVexportWIP=
+    
+    export AugmentExportedFields=
+    
+    export CSVFileHeader=
+    export CSVJQparms=
+    
+    # +-------------------------------------------------------------------------------------------------
+    # +-------------------------------------------------------------------------------------------------
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-08:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# DumpObjectDefinitionData
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-08:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The DumpObjectDefinitionData dump the content of the current object definition data to terminal and/or log.
+#
+
+DumpObjectDefinitionData () {
+    
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    
+    if ${APISCRIPTVERBOSE} ; then
+        echo `${dtzs}`${dtzsep} 'Object Definition Data details - show and log' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        
+        # +-------------------------------------------------------------------------------------------------
+        # +-------------------------------------------------------------------------------------------------
+        
+        #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'AAA' "${AAA}" | tee -a -i ${logfilepath}
+        #
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIobjecttype' "${APICLIobjecttype}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIobjectstype' "${APICLIobjectstype}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIcomplexobjecttype' "${APICLIcomplexobjecttype}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIcomplexobjectstype' "${APICLIcomplexobjectstype}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectminversion' "${APIobjectminversion}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectexportisCPI' "${APIobjectexportisCPI}" | tee -a -i ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectTypes' "${APIGenObjectTypes}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectClassField' "${APIGenObjectClassField}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectClass' "${APIGenObjectClass}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectClassShort' "${APIGenObjectClassShort}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectField' "${APIGenObjectField}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjecttype' "${APIGenObjobjecttype}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjectstype' "${APIGenObjobjectstype}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexobjecttype' "${APIGenObjcomplexobjecttype}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexobjectstype' "${APIGenObjcomplexobjectstype}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjjsonrepofileobject' "${APIGenObjjsonrepofileobject}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexjsonrepofileobject' "${APIGenObjcomplexjsonrepofileobject}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjCSVobjecttype' "${APIGenObjCSVobjecttype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexCSVobjecttype' "${APIGenObjcomplexCSVobjecttype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjectkey' "${APIGenObjobjectkey}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjectkeydetailslevel' "${APIGenObjobjectkeydetailslevel}" | tee -a -i ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectspecifickey' "${APIobjectspecifickey}" | tee -a -i ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectspecificselector00key' "${APIobjectspecificselector00key}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectspecificselector00value' "${APIobjectspecificselector00value}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIexportnameaddon' "${APICLIexportnameaddon}" | tee -a -i ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIexportcriteria01key' "${APICLIexportcriteria01key}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIexportcriteria01value' "${APICLIexportcriteria01value}" | tee -a -i ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectjsonrepofileobject' "${APIobjectjsonrepofileobject}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVobjecttype' "${APICLICSVobjecttype}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectrecommendedlimit' "${APIobjectrecommendedlimit}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectrecommendedlimitMDSM' "${APIobjectrecommendedlimitMDSM}" | tee -a -i ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoexport' "${APIobjectdoexport}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoexportJSON' "${APIobjectdoexportJSON}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoexportCSV' "${APIobjectdoexportCSV}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoimport' "${APIobjectdoimport}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdorename' "${APIobjectdorename}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoupdate' "${APIobjectdoupdate}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdodelete' "${APIobjectdodelete}" | tee -a -i ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectusesdetailslevel' "${APIobjectusesdetailslevel}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectcanignorewarning' "${APIobjectcanignorewarning}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectcanignoreerror' "${APIobjectcanignoreerror}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectcansetifexists' "${APIobjectcansetifexists}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectderefgrpmem' "${APIobjectderefgrpmem}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehasname' "${APIobjecttypehasname}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehasuid' "${APIobjecttypehasuid}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehasdomain' "${APIobjecttypehasdomain}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehastags' "${APIobjecttypehastags}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehasmeta' "${APIobjecttypehasmeta}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypeimportname' "${APIobjecttypeimportname}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectCSVFileHeaderAbsoluteBase' "${APIobjectCSVFileHeaderAbsoluteBase}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectCSVJQparmsAbsoluteBase' "${APIobjectCSVJQparmsAbsoluteBase}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectCSVexportWIP' "${APIobjectCSVexportWIP}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'AugmentExportedFields' "${AugmentExportedFields}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVFileHeader' "${CSVFileHeader}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVJQparms' "${CSVJQparms}" >> ${logfilepath}
+        
+        # +-------------------------------------------------------------------------------------------------
+        # +-------------------------------------------------------------------------------------------------
+        
+    else
+        echo `${dtzs}`${dtzsep} 'Object Definition Data details - dump to log' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        
+        # +-------------------------------------------------------------------------------------------------
+        # +-------------------------------------------------------------------------------------------------
+        
+        #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'AAA' "${AAA}" >> ${logfilepath}
+        #
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIobjecttype' "${APICLIobjecttype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIobjectstype' "${APICLIobjectstype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIcomplexobjecttype' "${APICLIcomplexobjecttype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIcomplexobjectstype' "${APICLIcomplexobjectstype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectminversion' "${APIobjectminversion}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectexportisCPI' "${APIobjectexportisCPI}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectTypes' "${APIGenObjectTypes}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectClassField' "${APIGenObjectClassField}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectClass' "${APIGenObjectClass}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectClassShort' "${APIGenObjectClassShort}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectField' "${APIGenObjectField}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjecttype' "${APIGenObjobjecttype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjectstype' "${APIGenObjobjectstype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexobjecttype' "${APIGenObjcomplexobjecttype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexobjectstype' "${APIGenObjcomplexobjectstype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjjsonrepofileobject' "${APIGenObjjsonrepofileobject}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexjsonrepofileobject' "${APIGenObjcomplexjsonrepofileobject}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjCSVobjecttype' "${APIGenObjCSVobjecttype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexCSVobjecttype' "${APIGenObjcomplexCSVobjecttype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjectkey' "${APIGenObjobjectkey}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjectkeydetailslevel' "${APIGenObjobjectkeydetailslevel}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectspecifickey' "${APIobjectspecifickey}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectspecificselector00key' "${APIobjectspecificselector00key}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectspecificselector00value' "${APIobjectspecificselector00value}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIexportnameaddon' "${APICLIexportnameaddon}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIexportcriteria01key' "${APICLIexportcriteria01key}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIexportcriteria01value' "${APICLIexportcriteria01value}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectjsonrepofileobject' "${APIobjectjsonrepofileobject}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVobjecttype' "${APICLICSVobjecttype}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectrecommendedlimit' "${APIobjectrecommendedlimit}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectrecommendedlimitMDSM' "${APIobjectrecommendedlimitMDSM}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoexport' "${APIobjectdoexport}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoexportJSON' "${APIobjectdoexportJSON}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoexportCSV' "${APIobjectdoexportCSV}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoimport' "${APIobjectdoimport}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdorename' "${APIobjectdorename}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoupdate' "${APIobjectdoupdate}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdodelete' "${APIobjectdodelete}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectusesdetailslevel' "${APIobjectusesdetailslevel}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectcanignorewarning' "${APIobjectcanignorewarning}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectcanignoreerror' "${APIobjectcanignoreerror}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectcansetifexists' "${APIobjectcansetifexists}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectderefgrpmem' "${APIobjectderefgrpmem}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehasname' "${APIobjecttypehasname}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehasuid' "${APIobjecttypehasuid}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehasdomain' "${APIobjecttypehasdomain}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehastags' "${APIobjecttypehastags}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehasmeta' "${APIobjecttypehasmeta}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypeimportname' "${APIobjecttypeimportname}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectCSVFileHeaderAbsoluteBase' "${APIobjectCSVFileHeaderAbsoluteBase}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectCSVJQparmsAbsoluteBase' "${APIobjectCSVJQparmsAbsoluteBase}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectCSVexportWIP' "${APIobjectCSVexportWIP}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'AugmentExportedFields' "${AugmentExportedFields}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVFileHeader' "${CSVFileHeader}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVJQparms' "${CSVJQparms}" >> ${logfilepath}
+        
+        # +-------------------------------------------------------------------------------------------------
+        # +-------------------------------------------------------------------------------------------------
+        
+    fi
+    
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-08:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ConfigureWorkAPIObjectLimit
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-03:02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ConfigureWorkAPIObjectLimit handles the stanard configuration of the ${WorkAPIObjectLimit} value.
+#
+
+ConfigureWorkAPIObjectLimit () {
+    
+    # MODIFIED 2023-03-03:02 -
+    
+    if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
+        # This object does not have limits to check and probably does not have more than one object entry
+        export WorkAPIObjectLimit=1
+        echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit set to '${WorkAPIObjectLimit}' because this object is singular and special' | tee -a -i ${logfilepath}
+    else
+        export WorkAPIObjectLimit=${MaxAPIObjectLimit}
+        if [ -z "${domainnamenospace}" ] ; then
+            # an empty ${domainnamenospace} indicates that we are not working towards an MDSM
+            export WorkAPIObjectLimit=${APIobjectrecommendedlimit}
+        else
+            # an empty ${domainnamenospace} indicates that we are working towards an MDSM
+            export WorkAPIObjectLimit=${APIobjectrecommendedlimitMDSM}
+        fi
+        
+        echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
+        
+        if ${OverrideMaxObjects} ; then
+            echo `${dtzs}`${dtzsep} 'Override Maximum Objects with OverrideMaxObjectsNumber :  '${OverrideMaxObjectsNumber}' objects value' | tee -a -i ${logfilepath}
+            export WorkAPIObjectLimit=${OverrideMaxObjectsNumber}
+        fi
+        
+        echo `${dtzs}`${dtzsep} 'Final WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
+    fi
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectrecommendedlimit' "${APIobjectrecommendedlimit}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectrecommendedlimitMDSM' "${APIobjectrecommendedlimitMDSM}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'WorkAPIObjectLimit' "${WorkAPIObjectLimit}" >> ${logfilepath}
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-03:02
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ConfigureCSVFileNamesForExport
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ConfigureCSVFileNamesForExport Configures the CSV File name for Export operations.
+#
+
+ConfigureCSVFileNamesForExport () {
+    
+    # MODIFIED 2023-03-04:01 -
+    
+    if [ x"${APICLICSVobjecttype}" != x"" ] ; then
+        export APICLICSVfilename=${APICLICSVobjecttype}
+    elif [ x"${APICLIcomplexobjectstype}" != x"" ] ; then
+        export APICLICSVfilename=${APICLIcomplexobjectstype}
+    else
+        export APICLICSVfilename=${APICLIobjectstype}
+    fi
+    if [ x"${APICLIexportnameaddon}" != x"" ] ; then
+        export APICLICSVfilename=${APICLICSVfilename}'_'${APICLIexportnameaddon}
+    fi
+    export APICLICSVfilename=${APICLICSVfilename}'_'${APICLIdetaillvl}'_csv'${APICLICSVfileexportsuffix}
+    export APICLICSVfile=${APICLIpathexport}/${APICLICSVfilename}
+    export APICLICSVfilewip=${APICLICSVpathexportwip}/${APICLICSVfilename}
+    export APICLICSVfileheader=${APICLICSVfilewip}.${APICLICSVheaderfilesuffix}
+    export APICLICSVfiledata=${APICLICSVfilewip}.data
+    export APICLICSVfilesort=${APICLICSVfilewip}.sort
+    export APICLICSVfiledatalast=${APICLICSVfilewip}.datalast
+    export APICLICSVfileoriginal=${APICLICSVfilewip}.original
+    
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVpathexportwip' "${APICLICSVpathexportwip}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIexportnameaddon' "${APICLIexportnameaddon}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIdetaillvl' "${APICLIdetaillvl}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfileexportsuffix' "${APICLICSVfileexportsuffix}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIpathexport' "${APICLIpathexport}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfilename' "${APICLICSVfilename}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfile' "${APICLICSVfile}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVpathexportwip' "${APICLICSVpathexportwip}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfilewip' "${APICLICSVfilewip}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVheaderfilesuffix' "${APICLICSVheaderfilesuffix}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfileheader' "${APICLICSVfileheader}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfiledata' "${APICLICSVfiledata}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfilesort' "${APICLICSVfilesort}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfiledatalast' "${APICLICSVfiledatalast}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfileoriginal' "${APICLICSVfileoriginal}" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ConfigureJSONRepoFileNamesAndPaths
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ConfigureJSONRepoFileNamesAndPaths sets up the file name and paths to the JSON Repository.
+#
+
+ConfigureJSONRepoFileNamesAndPaths () {
+    
+    echo `${dtzs}`${dtzsep} 'Using the following details level for the JSON Repository = '${JSONRepoDetailname} >> ${logfilepath}
+    
+    # Configure the JSON Repository File information
+    
+    # In export operations, we do not utilize the details level of other than "standard" export types, so either "full" or "standard"
+    export JSONRepoDetailname=${APICLIdetaillvl}
+    case ${APICLIdetaillvl} in
+        'full' )
+            export JSONRepoDetailname=${APICLIdetaillvl}
+            ;;
+        'standard' )
+            export JSONRepoDetailname=${APICLIdetaillvl}
+            ;;
+        * )
+            export JSONRepoDetailname='full'
+            ;;
+    esac
+    
+    if ${NoSystemObjects} ; then
+        if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
+            # In CSV export operations, we do not utilize the ${APICLIdetaillvl}.NoSystemObjects to ensure we harvest from the repository
+            export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}
+        else
+            export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}.NoSystemObjects
+        fi
+    elif ${OnlySystemObjects} ; then
+        if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
+            # In CSV export operations, we do not utilize the ${APICLIdetaillvl}.OnlySystemObjects to ensure we harvest from the repository
+            export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}
+        else
+            export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}.OnlySystemObjects
+        fi
+    else
+        export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}
+    fi
+    
+    export JSONRepofilepost='_'${JSONRepoDetailname}'_'${JSONRepofilesuffix}
+    
+    # MODIFIED 2023-03-04:01 -
+    
+    if [ x"${APIobjectjsonrepofileobject}" != x"" ] ; then
+        export JSONRepofilename=${APIobjectjsonrepofileobject}
+    else
+        export JSONRepofilename=${APICLIobjectstype}
+    fi
+    if [ x"${APICLIexportnameaddon}" != x"" ] ; then
+        # We need to check if we can actually use the ${APICLIexportnameaddon}
+        if [ -r "${JSONRepopathworking}/${JSONRepofilepre}${JSONRepofilename}'_'${APICLIexportnameaddon}${JSONRepofilepost}" ] ; then
+            # the JSON repository actually contains the file with the ${APICLIexportnameaddon}, so use it
+            export JSONRepofilename=${JSONRepofilename}'_'${APICLIexportnameaddon}
+        else
+            # the JSON repository does not contain the file with the ${APICLIexportnameaddon}, so use the basic value
+            export JSONRepofilename=${JSONRepofilename}
+        fi
+    fi
+    
+    export JSONRepoFile=${JSONRepopathworking}/${JSONRepofilepre}${JSONRepofilename}${JSONRepofilepost}
+    
+    export APICLIJSONfilelast=${APICLICSVpathexportwip}/${APICLICSVfilename}'_json_last'${APICLIJSONfileexportsuffix}
+    
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectjsonrepofileobject' "${APIobjectjsonrepofileobject}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIobjectstype' "${APICLIobjectstype}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoDetailname' "${JSONRepoDetailname}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepopathbase' "${JSONRepopathbase}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoDetailname' "${JSONRepoDetailname}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepopathworking' "${JSONRepopathworking}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepofilepre' "${JSONRepofilepre}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepofilename' "${JSONRepofilename}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepofilepost' "${JSONRepofilepost}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepopathworking' "${JSONRepopathworking}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoFile' "${JSONRepoFile}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIJSONfilelast' "${APICLIJSONfilelast}" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ConfigureComplexObjectJSONRepoFileNamesAndPaths
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ConfigureComplexObjectJSONRepoFileNamesAndPaths sets up the file name and paths to the JSON Repository for a  Complex Object.
+#
+
+ConfigureComplexObjectJSONRepoFileNamesAndPaths () {
+    
+    # First configure the default plumbing for a JSON Repository File and Path
+    
+    ConfigureJSONRepoFileNamesAndPaths
+    
+    # MODIFIED 2023-03-04:01 -
+    
+    if [ x"${APIobjectjsonrepofileobject}" != x"" ] ; then
+        export JSONRepoComplexObjectfilename=${APIobjectjsonrepofileobject}
+    elif [ x"${APICLIcomplexobjectstype}" != x"" ] ; then
+        export JSONRepoComplexObjectfilename=${APICLIcomplexobjectstype}
+    else
+        export JSONRepofilename=${APICLIobjectstype}
+    fi
+    if [ x"${APICLIexportnameaddon}" != x"" ] ; then
+        # We need to check if we can actually use the ${APICLIexportnameaddon}
+        if [ -r "${JSONRepopathworking}/${JSONRepofilepre}${JSONRepoComplexObjectfilename}'_'${APICLIexportnameaddon}${JSONRepofilepost}" ] ; then
+            # the JSON repository actually contains the file with the ${APICLIexportnameaddon}, so use it
+            export JSONRepoComplexObjectfilename=${JSONRepoComplexObjectfilename}'_'${APICLIexportnameaddon}
+        else
+            # the JSON repository does not contain the file with the ${APICLIexportnameaddon}, so use the basic value
+            export JSONRepoComplexObjectfilename=${JSONRepoComplexObjectfilename}
+        fi
+    fi
+    
+    export JSONRepoComplexObjectFile=${JSONRepopathworking}/${JSONRepofilepre}${JSONRepoComplexObjectfilename}${JSONRepofilepost}
+    
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectjsonrepofileobject' "${APIobjectjsonrepofileobject}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIcomplexobjectstype' "${APICLIcomplexobjectstype}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoComplexObjectfilename' "${JSONRepoComplexObjectfilename}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoComplexObjectFile' "${JSONRepoComplexObjectFile}" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ConfigureGenericObjectJSONRepoFileNamesAndPaths
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ConfigureGenericObjectJSONRepoFileNamesAndPaths sets up the file name and paths to the JSON Repository for a Generic API Object.
+#
+
+ConfigureGenericObjectJSONRepoFileNamesAndPaths () {
+    
+    # First configure the default plumbing for a JSON Repository File and Path
+    
+    ConfigureJSONRepoFileNamesAndPaths
+    
+    # MODIFIED 2023-03-04:01 -
+    
+    if [ x"${APIGenObjjsonrepofileobject}" != x"" ] ; then
+        export JSONRepoAPIGenObjectfilename=${APIGenObjjsonrepofileobject}
+    elif [ x"${APIGenObjobjectstype}" != x"" ] ; then
+        export JSONRepoAPIGenObjectfilename=${APIGenObjobjectstype}
+    else
+        export JSONRepoAPIGenObjectfilename=${APICLIobjectstype}
+    fi
+    if [ x"${APICLIexportnameaddon}" != x"" ] ; then
+        # We need to check if we can actually use the ${APICLIexportnameaddon}
+        if [ -r "${JSONRepopathworking}/${JSONRepofilepre}${JSONRepoAPIGenObjectfilename}'_'${APICLIexportnameaddon}${JSONRepofilepost}" ] ; then
+            # the JSON repository actually contains the file with the ${APICLIexportnameaddon}, so use it
+            export JSONRepoAPIGenObjectfilename=${JSONRepoAPIGenObjectfilename}'_'${APICLIexportnameaddon}
+        else
+            # the JSON repository does not contain the file with the ${APICLIexportnameaddon}, so use the basic value
+            export JSONRepoAPIGenObjectfilename=${JSONRepoAPIGenObjectfilename}
+        fi
+    fi
+    
+    export JSONRepoAPIGenObjectFile=${JSONRepopathworking}/${JSONRepofilepre}${JSONRepoAPIGenObjectfilename}${JSONRepofilepost}
+    
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjjsonrepofileobject' "${APIGenObjjsonrepofileobject}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjectstype' "${APIGenObjobjectstype}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoAPIGenObjectfilename' "${JSONRepoAPIGenObjectfilename}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoAPIGenObjectFile' "${JSONRepoAPIGenObjectFile}" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ConfigureGenericComplexObjectJSONRepoFileNamesAndPaths
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ConfigureGenericComplexObjectJSONRepoFileNamesAndPaths sets up the file name and paths to the JSON Repository for a Generic API Complex Object.
+#
+
+ConfigureGenericComplexObjectJSONRepoFileNamesAndPaths () {
+    
+    # First configure the default plumbing for a JSON Repository File and Path
+    
+    ConfigureJSONRepoFileNamesAndPaths
+    
+    # MODIFIED 2023-03-04:01 -
+    
+    if [ x"${APIGenObjcomplexjsonrepofileobject}" != x"" ] ; then
+        export JSONRepoAPIGenComplexObjectfilename=${APIGenObjcomplexjsonrepofileobject}
+    elif [ x"${APIGenObjcomplexobjectstype}" != x"" ] ; then
+        export JSONRepoAPIGenComplexObjectfilename=${APIGenObjcomplexobjectstype}
+    elif [ x"${APIGenObjobjectstype}" != x"" ] ; then
+        export JSONRepoAPIGenComplexObjectfilename=${APIGenObjobjectstype}
+    else
+        export JSONRepoAPIGenComplexObjectfilename=${APICLIobjectstype}
+    fi
+    if [ x"${APICLIexportnameaddon}" != x"" ] ; then
+        # We need to check if we can actually use the ${APICLIexportnameaddon}
+        if [ -r "${JSONRepopathworking}/${JSONRepofilepre}${JSONRepoAPIGenComplexObjectfilename}'_'${APICLIexportnameaddon}${JSONRepofilepost}" ] ; then
+            # the JSON repository actually contains the file with the ${APICLIexportnameaddon}, so use it
+            export JSONRepoAPIGenComplexObjectfilename=${JSONRepoAPIGenComplexObjectfilename}'_'${APICLIexportnameaddon}
+        else
+            # the JSON repository does not contain the file with the ${APICLIexportnameaddon}, so use the basic value
+            export JSONRepoAPIGenComplexObjectfilename=${JSONRepoAPIGenComplexObjectfilename}
+        fi
+    fi
+    
+    export JSONRepoAPIGenComplexObjectFile=${JSONRepopathworking}/${JSONRepofilepre}${JSONRepoAPIGenComplexObjectfilename}${JSONRepofilepost}
+    
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexjsonrepofileobject' "${APIGenObjcomplexjsonrepofileobject}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexobjectstype' "${APIGenObjcomplexobjectstype}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjectstype' "${APIGenObjobjectstype}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoAPIGenComplexObjectfilename' "${JSONRepoAPIGenComplexObjectfilename}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoAPIGenComplexObjectFile' "${JSONRepoAPIGenComplexObjectFile}" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
+
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -838,7 +1942,7 @@ ConfigureObjectQuerySelector () {
         fi
     fi
     
-    echo `${dtzs}`${dtzsep} '    - Object Query Selector = ['${objectqueryselector}']' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    Object Query Selector in []s is ['${objectqueryselector}']' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} >> ${logfilepath}
     
@@ -928,7 +2032,7 @@ CommonJSONRepositoryUpdateHander () {
         
     fi
     
-    echo `${dtzs}`${dtzsep} 'CommonJSONRepositoryUpdateHander procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CommonJSONRepositoryUpdateHander procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
@@ -1113,7 +2217,7 @@ CommonSlurpJSONFilesIntoSingleFile () {
     fi
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'CommonSlurpJSONFilesIntoSingleFile procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CommonSlurpJSONFilesIntoSingleFile procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     return ${errorreturn}
@@ -1251,7 +2355,7 @@ PrepareToSlurpJSONFiles () {
     fi
     
     echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'Procedure PrepareToSlurpJSONFiles completed!  errorreturn = '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Procedure PrepareToSlurpJSONFiles completed!  errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
     
     return ${errorreturn}
@@ -1259,6 +2363,758 @@ PrepareToSlurpJSONFiles () {
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-02-24:02
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# DetermineIfDoMgmtCLIQuery
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-07:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# DetermineIfDoMgmtCLIQuery executes check if executing export using mgmt_cli command.
+#
+
+DetermineIfDoMgmtCLIQuery () {
+    #
+    # Expected configured key input values
+    #
+    # ${script_use_json_repo}
+    # ${UseJSONRepo}
+    # ${objectstoshow}
+    # ${APICLIobjectstype}
+    # ${JSONRepoObjectsTotal}
+    # ${JSONRepoFile}
+    #
+    # Output values:
+    #
+    # ${domgmtcliquery}
+    # ${errorreturn}
+    #
+    
+    export errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    export domgmtcliquery=false
+    
+    # MODIFIED 2023-03-06:01 -
+    
+    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQuery procedure Starting...' | tee -a -i ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'objectstoshow' "${objectstoshow}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoObjectsTotal' "${JSONRepoObjectsTotal}" >> ${logfilepath}
+    
+    if ! ${script_use_json_repo} ; then
+        # Script use of JSON Repository is denied
+        echo `${dtzs}`${dtzsep} 'Script use of JSON Repository file "'${JSONRepoFile}'" is DENIED by script!' | tee -a -i ${logfilepath}
+        export domgmtcliquery=true
+    elif ${UseJSONRepo} ; then
+        # Use of JSON Repository Enabled
+        echo `${dtzs}`${dtzsep} 'Check use of JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+        
+        if ${NoSystemObjects} ; then
+            CompareObjectsTotalEqual=false
+        elif ${OnlySystemObjects} ; then
+            CompareObjectsTotalEqual=false
+        else
+            CompareObjectsTotalEqual=true
+        fi
+        
+        if ${CompareObjectsTotalEqual} ; then
+            if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
+                # JSON Repository has the same number of objects as the management database
+                export domgmtcliquery=false
+            else
+                # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                export domgmtcliquery=true
+                echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
+            fi
+        else
+            if [[ ${JSONRepoObjectsTotal} -gt 0 ]] ; then
+                # JSON Repository has content
+                if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
+                    # JSON Repository has the same number of objects as the management database
+                    export domgmtcliquery=false
+                else
+                    # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                    export domgmtcliquery=true
+                    echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
+                fi
+            else
+                # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                export domgmtcliquery=true
+            fi
+        fi
+    else
+        # Use of JSON Repository Disabled
+        echo `${dtzs}`${dtzsep} 'Script use of JSON Repository file "'${JSONRepoFile}'" is DENIED by operation!' | tee -a -i ${logfilepath}
+        export domgmtcliquery=true
+    fi
+    
+    if ${domgmtcliquery} ; then
+        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation, shift to mgmt_cli query.' | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} 'Using JSON Repository for [ '${objectstoshow}' : '${JSONRepoObjectsTotal}' ] of '${APICLIobjectstype}' objects for operation' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} ' -- In file "'${JSONRepoFile}'"' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQuery result domgmtcliquery [ '${domgmtcliquery}' ], procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# DetermineIfDoMgmtCLIQueryComplexObject
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-07:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# DetermineIfDoMgmtCLIQueryComplexObject executes check if executing export using mgmt_cli command.
+#
+
+DetermineIfDoMgmtCLIQueryComplexObject () {
+    #
+    # Expected configured key input values
+    #
+    # ${script_use_json_repo}
+    # ${UseJSONRepo}
+    # ${objectstoshowcomplexobject}
+    # ${APICLIcomplexobjectstype}
+    # ${JSONRepoComplexObjectsTotal}
+    # ${JSONRepoComplexObjectFile}
+    #
+    # Output values:
+    #
+    # ${domgmtcliquerycomplexobject}
+    # ${errorreturn}
+    #
+    
+    export errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    export domgmtcliquerycomplexobject=false
+    
+    # MODIFIED 2023-03-06:01 -
+    
+    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQueryComplexObject procedure Starting...' | tee -a -i ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'objectstoshowcomplexobject' "${objectstoshowcomplexobject}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoComplexObjectsTotal' "${JSONRepoComplexObjectsTotal}" >> ${logfilepath}
+    
+    if ! ${script_use_json_repo} ; then
+        # Script use of JSON Repository is denied
+        echo `${dtzs}`${dtzsep} 'Script use of Complex Object JSON Repository file "'${JSONRepoComplexObjectFile}'" is DENIED by script!' | tee -a -i ${logfilepath}
+        export domgmtcliquerycomplexobject=true
+    elif ${UseJSONRepo} ; then
+        # Use of JSON Repository Enabled
+        echo `${dtzs}`${dtzsep} 'Check use of Complex Object JSON Repository file "'${JSONRepoComplexObjectFile}'" for operation.' | tee -a -i ${logfilepath}
+        
+        if ${NoSystemObjects} ; then
+            CompareObjectsTotalEqual=false
+        elif ${OnlySystemObjects} ; then
+            CompareObjectsTotalEqual=false
+        else
+            CompareObjectsTotalEqual=true
+        fi
+        
+        if ${CompareObjectsTotalEqual} ; then
+            if [[ ${objectstoshowcomplexobject} -eq ${JSONRepoComplexObjectsTotal} ]] ; then
+                # JSON Repository has the same number of objects as the management database
+                export domgmtcliquerycomplexobject=false
+            else
+                # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                export domgmtcliquerycomplexobject=true
+                echo `${dtzs}`${dtzsep} 'Object count of '${APICLIcomplexobjectstype}' objects [ '${objectstoshowcomplexobject}' ] does not match count of [ '${JSONRepoComplexObjectsTotal}' ] in Complex Object JSON Repository file!' | tee -a -i ${logfilepath}
+            fi
+        else
+            if [[ ${JSONRepoComplexObjectsTotal} -gt 0 ]] ; then
+                # JSON Repository has content
+                if [[ ${objectstoshowcomplexobject} -eq ${JSONRepoComplexObjectsTotal} ]] ; then
+                    # JSON Repository has the same number of objects as the management database
+                    export domgmtcliquerycomplexobject=false
+                else
+                    # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                    export domgmtcliquerycomplexobject=true
+                    echo `${dtzs}`${dtzsep} 'Object count of '${APICLIcomplexobjectstype}' objects [ '${objectstoshowcomplexobject}' ] does not match count of [ '${JSONRepoComplexObjectsTotal}' ] in Complex Object JSON Repository file!' | tee -a -i ${logfilepath}
+                fi
+            else
+                # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                export domgmtcliquerycomplexobject=true
+            fi
+        fi
+    else
+        # Use of JSON Repository Disabled
+        echo `${dtzs}`${dtzsep} 'Script use of Complex Object JSON Repository file "'${JSONRepoComplexObjectFile}'" is DENIED by operation!' | tee -a -i ${logfilepath}
+        export domgmtcliquerycomplexobject=true
+    fi
+    
+    if ${domgmtcliquerycomplexobject} ; then
+        echo `${dtzs}`${dtzsep} 'NOT Using Complex Object JSON Repository file "'${JSONRepoComplexObjectFile}'" for operation, shift to mgmt_cli query.' | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} 'Using JSON Repository for [ '${objectstoshowcomplexobject}' : '${JSONRepoComplexObjectsTotal}' ] of '${APICLIcomplexobjectstype}' objects for operation' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} ' -- In file "'${JSONRepoComplexObjectFile}'"' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQueryComplexObject result domgmtcliquerycomplexobject [ '${domgmtcliquerycomplexobject}' ], procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# DetermineIfDoMgmtCLIQueryGenericObject
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-07:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# DetermineIfDoMgmtCLIQueryGenericObject executes check if executing export using mgmt_cli command.
+#
+
+DetermineIfDoMgmtCLIQueryGenericObject () {
+    #
+    # Expected configured key input values
+    #
+    # ${script_use_json_repo}
+    # ${UseJSONRepo}
+    # ${objectstoshowgenericobject}
+    # ${APIGenObjobjectstype}
+    # ${JSONRepoAPIGenObjectsTotal}
+    # ${JSONRepoAPIGenObjectFile}
+    #
+    # Output values:
+    #
+    # ${domgmtcliquerygenericobject}
+    # ${errorreturn}
+    #
+    
+    export errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    export domgmtcliquerygenericobject=false
+    
+    # MODIFIED 2023-03-06:01 -
+    
+    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQueryGenericObject procedure Starting...' | tee -a -i ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'objectstoshowgenericobject' "${objectstoshowgenericobject}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoAPIGenObjectsTotal' "${JSONRepoAPIGenObjectsTotal}" >> ${logfilepath}
+    
+    if ! ${script_use_json_repo} ; then
+        # Script use of JSON Repository is denied
+        echo `${dtzs}`${dtzsep} 'Script use of Generic Object JSON Repository file "'${JSONRepoAPIGenObjectFile}'" is DENIED by script!' | tee -a -i ${logfilepath}
+        export domgmtcliquerygenericobject=true
+    elif ${UseJSONRepo} ; then
+        # Use of JSON Repository Enabled
+        echo `${dtzs}`${dtzsep} 'Check use of Generic Object JSON Repository file "'${JSONRepoAPIGenObjectFile}'" for operation.' | tee -a -i ${logfilepath}
+        
+        if ${NoSystemObjects} ; then
+            CompareObjectsTotalEqual=false
+        elif ${OnlySystemObjects} ; then
+            CompareObjectsTotalEqual=false
+        else
+            CompareObjectsTotalEqual=true
+        fi
+        
+        if ${CompareObjectsTotalEqual} ; then
+            if [[ ${objectstoshowgenericobject} -eq ${JSONRepoAPIGenObjectsTotal} ]] ; then
+                # JSON Repository has the same number of objects as the management database
+                export domgmtcliquerygenericobject=false
+            else
+                # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                export domgmtcliquerygenericobject=true
+                echo `${dtzs}`${dtzsep} 'Object count of '${APIGenObjobjectstype}' objects [ '${objectstoshowgenericobject}' ] does not match count of [ '${JSONRepoAPIGenObjectsTotal}' ] in Generic Object JSON Repository file!' | tee -a -i ${logfilepath}
+            fi
+        else
+            if [[ ${JSONRepoAPIGenObjectsTotal} -gt 0 ]] ; then
+                # JSON Repository has content
+                if [[ ${objectstoshowgenericobject} -eq ${JSONRepoAPIGenObjectsTotal} ]] ; then
+                    # JSON Repository has the same number of objects as the management database
+                    export domgmtcliquerygenericobject=false
+                else
+                    # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                    export domgmtcliquerygenericobject=true
+                    echo `${dtzs}`${dtzsep} 'Object count of '${APIGenObjobjectstype}' objects [ '${objectstoshowgenericobject}' ] does not match count of [ '${JSONRepoAPIGenObjectsTotal}' ] in Generic Object JSON Repository file!' | tee -a -i ${logfilepath}
+                fi
+            else
+                # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                export domgmtcliquerygenericobject=true
+            fi
+        fi
+    else
+        # Use of JSON Repository Disabled
+        echo `${dtzs}`${dtzsep} 'Script use of Generic Object JSON Repository file "'${JSONRepoAPIGenObjectFile}'" is DENIED by operation!' | tee -a -i ${logfilepath}
+        export domgmtcliquerygenericobject=true
+    fi
+    
+    if ${domgmtcliquerygenericobject} ; then
+        echo `${dtzs}`${dtzsep} 'NOT Using Generic Object JSON Repository file "'${JSONRepoAPIGenObjectFile}'" for operation, shift to mgmt_cli query.' | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} 'Using JSON Repository for [ '${objectstoshowgenericobject}' : '${JSONRepoAPIGenObjectsTotal}' ] of '${APIGenObjobjectstype}' objects for operation' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} ' -- In file "'${JSONRepoAPIGenObjectFile}'"' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQueryGenericObject result domgmtcliquerygenericobject [ '${domgmtcliquerygenericobject}' ], procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# DetermineIfDoMgmtCLIQueryGenericComplexObject
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-07:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# DetermineIfDoMgmtCLIQueryGenericComplexObject executes check if executing export using mgmt_cli command.
+#
+
+DetermineIfDoMgmtCLIQueryGenericComplexObject () {
+    #
+    # Expected configured key input values
+    #
+    # ${script_use_json_repo}
+    # ${UseJSONRepo}
+    # ${objectstoshowgenericcomplexobject}
+    # ${APIGenObjcomplexobjectstype}
+    # ${JSONRepoAPIGenComplexObjectsTotal}
+    # ${JSONRepoAPIGenComplexObjectFile}
+    #
+    # Output values:
+    #
+    # ${domgmtcliquerygenericcomplexobject}
+    # ${errorreturn}
+    #
+    
+    export errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    export domgmtcliquerygenericcomplexobject=false
+    
+    # MODIFIED 2023-03-06:01 -
+    
+    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQueryGenericComplexObject procedure Starting...' | tee -a -i ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'objectstoshowgenericcomplexobject' "${objectstoshowgenericcomplexobject}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoAPIGenComplexObjectsTotal' "${JSONRepoAPIGenComplexObjectsTotal}" >> ${logfilepath}
+    
+    if ! ${script_use_json_repo} ; then
+        # Script use of JSON Repository is denied
+        echo `${dtzs}`${dtzsep} 'Script use of Generic Object JSON Repository file "'${JSONRepoAPIGenComplexObjectFile}'" is DENIED by script!' | tee -a -i ${logfilepath}
+        export domgmtcliquerygenericcomplexobject=true
+    elif ${UseJSONRepo} ; then
+        # Use of JSON Repository Enabled
+        echo `${dtzs}`${dtzsep} 'Check use of Generic Object JSON Repository file "'${JSONRepoAPIGenComplexObjectFile}'" for operation.' | tee -a -i ${logfilepath}
+        
+        if ${NoSystemObjects} ; then
+            CompareObjectsTotalEqual=false
+        elif ${OnlySystemObjects} ; then
+            CompareObjectsTotalEqual=false
+        else
+            CompareObjectsTotalEqual=true
+        fi
+        
+        if ${CompareObjectsTotalEqual} ; then
+            if [[ ${objectstoshowgenericcomplexobject} -eq ${JSONRepoAPIGenComplexObjectsTotal} ]] ; then
+                # JSON Repository has the same number of objects as the management database
+                export domgmtcliquerygenericcomplexobject=false
+            else
+                # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                export domgmtcliquerygenericcomplexobject=true
+                echo `${dtzs}`${dtzsep} 'Object count of '${APIGenObjcomplexobjectstype}' objects [ '${objectstoshowgenericcomplexobject}' ] does not match count of [ '${JSONRepoAPIGenComplexObjectsTotal}' ] in Generic Object JSON Repository file!' | tee -a -i ${logfilepath}
+            fi
+        else
+            if [[ ${JSONRepoAPIGenComplexObjectsTotal} -gt 0 ]] ; then
+                # JSON Repository has content
+                if [[ ${objectstoshowgenericcomplexobject} -eq ${JSONRepoAPIGenComplexObjectsTotal} ]] ; then
+                    # JSON Repository has the same number of objects as the management database
+                    export domgmtcliquerygenericcomplexobject=false
+                else
+                    # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                    export domgmtcliquerygenericcomplexobject=true
+                    echo `${dtzs}`${dtzsep} 'Object count of '${APIGenObjcomplexobjectstype}' objects [ '${objectstoshowgenericcomplexobject}' ] does not match count of [ '${JSONRepoAPIGenComplexObjectsTotal}' ] in Generic Object JSON Repository file!' | tee -a -i ${logfilepath}
+                fi
+            else
+                # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                export domgmtcliquerygenericcomplexobject=true
+            fi
+        fi
+    else
+        # Use of JSON Repository Disabled
+        echo `${dtzs}`${dtzsep} 'Script use of Generic Object JSON Repository file "'${JSONRepoAPIGenComplexObjectFile}'" is DENIED by operation!' | tee -a -i ${logfilepath}
+        export domgmtcliquerygenericcomplexobject=true
+    fi
+    
+    if ${domgmtcliquerygenericcomplexobject} ; then
+        echo `${dtzs}`${dtzsep} 'NOT Using Generic Object JSON Repository file "'${JSONRepoAPIGenComplexObjectFile}'" for operation, shift to mgmt_cli query.' | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} 'Using JSON Repository for [ '${objectstoshowgenericcomplexobject}' : '${JSONRepoAPIGenComplexObjectsTotal}' ] of '${APIGenObjcomplexobjectstype}' objects for operation' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} ' -- In file "'${JSONRepoAPIGenComplexObjectFile}'"' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQueryGenericComplexObject result domgmtcliquerygenericcomplexobject [ '${domgmtcliquerygenericcomplexobject}' ], procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CheckJSONRepoFileObjectTotal
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-06:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# CheckJSONRepoFileObjectTotal executes a check of the total number of objects for that type using standard object JSON Repository File.
+#
+
+CheckJSONRepoFileObjectTotal () {
+    #
+    
+    export errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:01 -
+    
+    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileObjectTotal procedure Starting...' >> ${logfilepath}
+    
+    if [ -r ${JSONRepoFile} ] ; then
+        # JSON Repository File for the target object exists, lets check for the number objects
+        
+        export JSONRepoObjectsTotal=0
+        
+        if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
+            # Handle objects that are singularities, like the special objects - api-settings, policy-settings, global-properties, etc.
+            export checkJSONRepoTotal=1
+        else
+            export checkJSONRepoTotal=`cat ${JSONRepoFile} | ${JQ} ".total"`
+        fi
+        
+        export JSONRepoObjectsTotal=${checkJSONRepoTotal}
+        echo `${dtzs}`${dtzsep} 'JSONRepoObjectsTotal = [ '${JSONRepoObjectsTotal}' ]' >> ${logfilepath}
+        
+        if [ x"${JSONRepoObjectsTotal}" == x"" ] ; then
+            # There are null objects, so skip
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was NULL' | tee -a -i ${logfilepath}
+            export JSONRepoObjectsTotal=0
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        elif [[ ${JSONRepoObjectsTotal} -lt 1 ]] ; then
+            # no objects of this type
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was < 1 [ '${JSONRepoObjectsTotal}' ] (so zero)' | tee -a -i ${logfilepath}
+            export JSONRepoObjectsTotal=0
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        else
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        fi
+    else
+        # JSON Repository File for the target object DOES NOT exists
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, fail -r check' | tee -a -i ${logfilepath}
+        export JSONRepoObjectsTotal=0
+        echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'JSONRepoObjectsTotal = [ '${JSONRepoObjectsTotal}' ]' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileObjectTotal procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CheckJSONRepoFileComplexObjectTotal
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-06:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# CheckJSONRepoFileComplexObjectTotal executes a check of the total number of objects for that type using Complex Object JSON Repository file.
+#
+
+CheckJSONRepoFileComplexObjectTotal () {
+    #
+    
+    export errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:01 -
+    
+    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileComplexObjectTotal procedure Starting...' >> ${logfilepath}
+    
+    if [ -r ${JSONRepoComplexObjectFile} ] ; then
+        # Complex Object JSON Repository file for the target object exists, lets check for the number objects
+        
+        export JSONRepoComplexObjectsTotal=0
+        
+        if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
+            # Handle objects that are singularities, like the special objects - api-settings, policy-settings, global-properties, etc.
+            export checkJSONRepoComplexObjectsTotal=1
+        else
+            export checkJSONRepoComplexObjectsTotal=`cat ${JSONRepoComplexObjectFile} | ${JQ} ".total"`
+        fi
+        
+        export JSONRepoComplexObjectsTotal=${checkJSONRepoComplexObjectsTotal}
+        echo `${dtzs}`${dtzsep} 'JSONRepoComplexObjectsTotal = [ '${JSONRepoComplexObjectsTotal}' ]' >> ${logfilepath}
+        
+        if [ x"${JSONRepoComplexObjectsTotal}" == x"" ] ; then
+            # There are null objects, so skip
+            export JSONRepoComplexObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoComplexObjectFile}'" IS NOT readable, value returned was NULL' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoComplexObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        elif [[ ${JSONRepoComplexObjectsTotal} -lt 1 ]] ; then
+            # no objects of this type
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoComplexObjectFile}'" IS NOT readable, value returned was < 1 [ '${JSONRepoComplexObjectsTotal}' ] (so zero)' | tee -a -i ${logfilepath}
+            export JSONRepoComplexObjectsTotal=0
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoComplexObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        else
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoComplexObjectFile}'" exists,' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoComplexObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        fi
+    else
+        # Complex Object JSON Repository file for the target object DOES NOT exists
+        export JSONRepoComplexObjectsTotal=0
+        echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoComplexObjectFile}'" IS NOT readable, fail -r check' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoComplexObjectsTotal}' ].' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'JSONRepoComplexObjectsTotal = [ '${JSONRepoComplexObjectsTotal}' ]' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileComplexObjectTotal procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CheckJSONRepoFileAPIGenericObjectTotal
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-06:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# CheckJSONRepoFileAPIGenericObjectTotal executes a check of the total number of objects for that type using API Generic Object JSON Repository file.
+#
+
+CheckJSONRepoFileAPIGenericObjectTotal () {
+    #
+    
+    export errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:01 -
+    
+    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileAPIGenericObjectTotal procedure Starting...' >> ${logfilepath}
+    
+    if [ -r ${JSONRepoAPIGenObjectFile} ] ; then
+        # Complex Object JSON Repository file for the target object exists, lets check for the number objects
+        
+        export JSONRepoAPIGenObjectsTotal=0
+        
+        if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
+            # Handle objects that are singularities, like the special objects - api-settings, policy-settings, global-properties, etc.
+            export checkJSONRepoAPIGenObjectsTotal=1
+        else
+            export checkJSONRepoAPIGenObjectsTotal=`cat ${JSONRepoAPIGenObjectFile} | ${JQ} ".total"`
+        fi
+        
+        export JSONRepoAPIGenObjectsTotal=${checkJSONRepoAPIGenObjectsTotal}
+        echo `${dtzs}`${dtzsep} 'JSONRepoAPIGenObjectsTotal = [ '${JSONRepoAPIGenObjectsTotal}' ]' >> ${logfilepath}
+        
+        if [ x"${JSONRepoAPIGenObjectsTotal}" == x"" ] ; then
+            # There are null objects, so skip
+            export JSONRepoAPIGenObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoAPIGenObjectFile}'" IS NOT readable, value returned was NULL' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoAPIGenObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        elif [[ ${JSONRepoAPIGenObjectsTotal} -lt 1 ]] ; then
+            # no objects of this type
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoAPIGenObjectFile}'" IS NOT readable, value returned was < 1 [ '${JSONRepoAPIGenObjectsTotal}' ] (so zero)' | tee -a -i ${logfilepath}
+            export JSONRepoAPIGenObjectsTotal=0
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoAPIGenObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        else
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoAPIGenObjectFile}'" exists,' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoAPIGenObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        fi
+    else
+        # Complex Object JSON Repository file for the target object DOES NOT exists
+        export JSONRepoAPIGenObjectsTotal=0
+        echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoAPIGenObjectFile}'" IS NOT readable, fail -r check' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoAPIGenObjectsTotal}' ].' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'JSONRepoAPIGenObjectsTotal = [ '${JSONRepoAPIGenObjectsTotal}' ]' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileAPIGenericObjectTotal procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CheckJSONRepoFileAPIGenericComplexObjectTotal
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-06:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# CheckJSONRepoFileAPIGenericComplexObjectTotal executes a check of the total number of objects for that type using API Generic Complex Object JSON Repository file.
+#
+
+CheckJSONRepoFileAPIGenericComplexObjectTotal () {
+    #
+    
+    export errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:01 -
+    
+    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileAPIGenericComplexObjectTotal procedure Starting...' >> ${logfilepath}
+    
+    if [ -r ${JSONRepoAPIGenComplexObjectFile} ] ; then
+        # Complex Object JSON Repository file for the target object exists, lets check for the number objects
+        
+        export JSONRepoAPIGenComplexObjectsTotal=0
+        
+        if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
+            # Handle objects that are singularities, like the special objects - api-settings, policy-settings, global-properties, etc.
+            export checkJSONRepoAPIGenComplexObjectsTotal=1
+        else
+            export checkJSONRepoAPIGenComplexObjectsTotal=`cat ${JSONRepoAPIGenComplexObjectFile} | ${JQ} ".total"`
+        fi
+        
+        export JSONRepoAPIGenComplexObjectsTotal=${checkJSONRepoAPIGenComplexObjectsTotal}
+        echo `${dtzs}`${dtzsep} 'JSONRepoAPIGenComplexObjectsTotal = [ '${JSONRepoAPIGenComplexObjectsTotal}' ]' >> ${logfilepath}
+        
+        if [ x"${JSONRepoAPIGenComplexObjectsTotal}" == x"" ] ; then
+            # There are null objects, so skip
+            export JSONRepoAPIGenComplexObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoAPIGenComplexObjectFile}'" IS NOT readable, value returned was NULL' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoAPIGenComplexObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        elif [[ ${JSONRepoAPIGenComplexObjectsTotal} -lt 1 ]] ; then
+            # no objects of this type
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoAPIGenComplexObjectFile}'" IS NOT readable, value returned was < 1 [ '${JSONRepoAPIGenComplexObjectsTotal}' ] (so zero)' | tee -a -i ${logfilepath}
+            export JSONRepoAPIGenComplexObjectsTotal=0
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoAPIGenComplexObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        else
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoAPIGenComplexObjectFile}'" exists,' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoAPIGenComplexObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        fi
+    else
+        # Complex Object JSON Repository file for the target object DOES NOT exists
+        export JSONRepoAPIGenComplexObjectsTotal=0
+        echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoAPIGenComplexObjectFile}'" IS NOT readable, fail -r check' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoAPIGenComplexObjectsTotal}' ].' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'JSONRepoAPIGenComplexObjectsTotal = [ '${JSONRepoAPIGenComplexObjectsTotal}' ]' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileAPIGenericComplexObjectTotal procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
+
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -1369,7 +3225,7 @@ ExportObjectToJSONStandard () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'ExportObjectToJSONStandard : Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'ExportObjectToJSONStandard : Problem during mgmt_cli operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} '  File contents with potential error from '${APICLIJSONfilelast}' : ' >> ${logfilepath}
             echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
             echo >> ${logfilepath}
@@ -1396,7 +3252,7 @@ ExportObjectToJSONStandard () {
             
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'ExportObjectToJSONStandard : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'ExportObjectToJSONStandard : Problem during mgmt_cli JQ Query! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} '  File contents (last 10 lines) with potential error from '${APICLIfileexport}' : ' >> ${logfilepath}
                 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
                 echo >> ${logfilepath}
@@ -1417,7 +3273,7 @@ ExportObjectToJSONStandard () {
             
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'ExportObjectToJSONStandard : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'ExportObjectToJSONStandard : Problem during mgmt_cli JQ Query! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} '  File contents (last 10 lines) with potential error from '${APICLIfileexport}' : ' >> ${logfilepath}
                 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
                 echo >> ${logfilepath}
@@ -1438,7 +3294,7 @@ ExportObjectToJSONStandard () {
             
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'ExportObjectToJSONStandard : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'ExportObjectToJSONStandard : Problem during mgmt_cli JQ Query! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} '  File contents (last 10 lines) with potential error from '${APICLIfileexport}' : ' >> ${logfilepath}
                 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
                 echo >> ${logfilepath}
@@ -1461,7 +3317,7 @@ ExportObjectToJSONStandard () {
             
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'ExportObjectToJSONStandard : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'ExportObjectToJSONStandard : Problem during mgmt_cli JQ Query! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} '  File contents (last 10 lines) with potential error from '${APICLIfileexport}' : ' >> ${logfilepath}
                 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
                 echo >> ${logfilepath}
@@ -1532,7 +3388,7 @@ ExportObjectToJSONStandard () {
         echo `${dtzs}`${dtzsep} >>  ${logfilepath}
     fi
     
-    echo `${dtzs}`${dtzsep} 'ExportObjectToJSONStandard procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'ExportObjectToJSONStandard procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
@@ -1549,7 +3405,7 @@ ExportObjectToJSONStandard () {
 # Main Operational repeated proceedure - ExportRAWObjectToJSON
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-23:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The Main Operational Procedure is the meat of the script's repeated actions.
@@ -1560,6 +3416,10 @@ ExportRAWObjectToJSON () {
     #
     # Export Objects to raw JSON
     #
+    
+    export Workingfilename=
+    export APICLIfileexport=
+    export APICLIJSONfilelast=
     
     errorreturn=0
     
@@ -1601,9 +3461,15 @@ ExportRAWObjectToJSON () {
     
     echo `${dtzs}`${dtzsep} 'Start Processing '${APICLIobjecttype}':' | tee -a -i ${logfilepath}
     
-    objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+    # -------------------------------------------------------------------------------------------------
     
-    objectstoshow=${objectstotal}
+    DumpObjectDefinitionData
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    export objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+    
+    export objectstoshow=${objectstotal}
     
     # -------------------------------------------------------------------------------------------------
     
@@ -1612,35 +3478,23 @@ ExportRAWObjectToJSON () {
     if [ ${objectstoshow} = null ] ; then
         echo `${dtzs}`${dtzsep} 'Found NO '${APICLIobjecttype}' objects.  No objects found!  Skipping!...' | tee -a -i ${logfilepath}
     elif [ ${objectstoshow} -le 0 ] ; then
-        echo `${dtzs}`${dtzsep} 'Found '${objectstoshow}' '${APICLIobjecttype}' objects.  No objects found!  Skipping!...' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Found [ '${objectstoshow}' ] '${APICLIobjecttype}' objects.  No objects found!  Skipping!...' | tee -a -i ${logfilepath}
     else
-        # MODIFIED 2023-02-23:01 -
         
-        if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
-            # This object does not have limits to check and probably does not have more than one object entry
-            export WorkAPIObjectLimit=1
-            echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit set to '${WorkAPIObjectLimit}' because this object is singular and special' | tee -a -i ${logfilepath}
-        else
-            export WorkAPIObjectLimit=${MaxAPIObjectLimit}
-            if [ -z "${domainnamenospace}" ] ; then
-                # an empty ${domainnamenospace} indicates that we are not working towards an MDSM
-                export WorkAPIObjectLimit=${APIobjectrecommendedlimit}
-            else
-                # an empty ${domainnamenospace} indicates that we are working towards an MDSM
-                export WorkAPIObjectLimit=${APIobjectrecommendedlimitMDSM}
-            fi
-            
-            echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
-            
-            if ${OverrideMaxObjects} ; then
-                echo `${dtzs}`${dtzsep} 'Override Maximum Objects with OverrideMaxObjectsNumber :  '${OverrideMaxObjectsNumber}' objects value' | tee -a -i ${logfilepath}
-                export WorkAPIObjectLimit=${OverrideMaxObjectsNumber}
-            fi
-            
-            echo `${dtzs}`${dtzsep} 'Final WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Found [ '${objectstoshow}' ] '${APICLIobjecttype}' objects.  Processing...' | tee -a -i ${logfilepath}
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        errorreturn=0
+        
+        SetupExportObjectsToJSONandRepository
+        errorreturn=$?
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Problem found in procedure SetupExportObjectsToJSONandRepository! error returned = '${errorreturn} | tee -a -i ${logfilepath}
+            return ${errorreturn}
         fi
-        
-        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
         # -------------------------------------------------------------------------------------------------
         # Configure object selection query selector
@@ -1674,7 +3528,13 @@ ExportRAWObjectToJSON () {
             fi
         fi
         
-        export APICLIfilename=${APICLIobjectstype}
+        # MODIFIED 2023-03-03:02 -
+        
+        if [ x"${APIobjectjsonrepofileobject}" != x"" ] ; then
+            export APICLIfilename=${APIobjectjsonrepofileobject}
+        else
+            export APICLIfilename=${APICLIobjectstype}
+        fi
         if [ x"${APICLIexportnameaddon}" != x"" ] ; then
             export APICLIfilename=${APICLIfilename}'_'${APICLIexportnameaddon}
         fi
@@ -1683,19 +3543,24 @@ ExportRAWObjectToJSON () {
         export APICLIfileexport=${APICLIpathexport}/${APICLIfileexportpre}${Workingfilename}${APICLIfileexportpost}
         export APICLIJSONfilelast=${Slurpworkfolder}/${APICLIfileexportpre}${Workingfilename}'_last'${APICLIJSONfileexportpost}
         
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'Workingfilename' "${Workingfilename}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIfileexport' "${APICLIfileexport}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIJSONfilelast' "${APICLIJSONfilelast}" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        
         # This object does not have limits to check and probably does not have more than one object entry
         
         ExportObjectToJSONStandard
         
     fi
     
-    echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'ExportRAWObjectToJSON procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-02-23:01
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-03-04:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1786,11 +3651,11 @@ CheckAPIVersionAndExecuteOperation () {
         ExportRAWObjectToJSON
         errorreturn=$?
         
-        echo `${dtzs}`${dtzsep} 'CheckAPIVersionAndExecuteOperation call to ExportObjectsToCSVviaJQ procedure returned :  '${errorreturn} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'CheckAPIVersionAndExecuteOperation call to ExportObjectsToCSVviaJQ procedure returned :  !{ '${errorreturn}' }!' >> ${logfilepath}
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         fi
         
@@ -1807,7 +3672,7 @@ CheckAPIVersionAndExecuteOperation () {
         # Handle Error in operation
         if ${ABORTONERROR} ; then
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             read -t ${WAITTIME} -n 1 -p "Any key to EXIT script due to error ${errorreturn}.  Automatic EXIT after ${WAITTIME} seconds : " anykey
             echo
@@ -1837,13 +3702,13 @@ CheckAPIVersionAndExecuteOperation () {
             exit ${errorreturn}
         else
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CheckAPIVersionAndExecuteOperation procedure, but continueing' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CheckAPIVersionAndExecuteOperation procedure, but continueing' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             #return ${errorreturn}
         fi
     fi
     
-    echo `${dtzs}`${dtzsep} 'CheckAPIVersionAndExecuteOperation procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CheckAPIVersionAndExecuteOperation procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-' | tee -a -i ${logfilepath}
     
     return ${errorreturn}
@@ -1908,14 +3773,24 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Simple Object :  Standard Simple objects
 # +-------------------------------------------------------------------------------------------------
 
+#ClearObjectDefinitionData
+
 #export APICLIobjecttype='<object_type_singular>'
 #export APICLIobjectstype='<object_type_plural>'
 #export APIobjectminversion='<object_type_api_version>'
+#export APIobjectexportisCPI=false
+
+#export APIobjectspecifickey=
+
+#export APIobjectspecificselector00key=
+#export APIobjectspecificselector00value=
+#export APICLIexportnameaddon=
+
+#export APIobjectjsonrepofileobject=${APICLIobjectstype}
 #export APICLICSVobjecttype=${APICLIobjectstype}
+
 #export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 #export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-#export APIobjectexportisCPI=false
 
 #export APIobjectdoexport=true
 #export APIobjectdoexportJSON=true
@@ -1941,10 +3816,6 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 #export APIobjectCSVJQparmsAbsoluteBase=false
 
 #export APIobjectCSVexportWIP=false
-
-#export APIobjectspecificselector00key=
-#export APIobjectspecificselector00value=
-#export APICLIexportnameaddon=
 
 #CheckAPIVersionAndExecuteOperation
 
@@ -1978,14 +3849,24 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Simple Object :  tag objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=tag
 export APICLIobjectstype=tags
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2012,10 +3893,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -2027,14 +3904,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  trusted-client objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=trusted-client
 export APICLIobjectstype=trusted-clients
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2060,10 +3947,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -2097,14 +3980,24 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Simple Object :  host objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2131,10 +4024,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -2146,14 +4035,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  host objects - NO NAT Details
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=NO_NAT
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=false
@@ -2180,10 +4079,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=NO_NAT
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -2195,19 +4090,27 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  host without NAT objects - separates the full host object set without NAT from those with NAT
 # +-------------------------------------------------------------------------------------------------
 
-# ADDED 2023-02-24 -
+ClearObjectDefinitionData
 
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key='."nat-settings"."auto-rule"'
+export APIobjectspecificselector00value=false
+export APICLIexportnameaddon='without_NAT'
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 
-export APIobjectexportisCPI=false
-
 export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
+export APIobjectdoexportJSON=false
 export APIobjectdoexportCSV=true
 export APIobjectdoimport=true
 export APIobjectdorename=true
@@ -2230,10 +4133,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key='."nat-settings"."auto-rule"'
-export APIobjectspecificselector00value=false
-export APICLIexportnameaddon='without_NAT'
 
 CheckAPIVersionAndExecuteOperation
 
@@ -2246,19 +4145,27 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  host with NAT objects - separates the full host object set with NAT from those without NAT
 # +-------------------------------------------------------------------------------------------------
 
-# ADDED 2023-02-24 -
+ClearObjectDefinitionData
 
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key='."nat-settings"."auto-rule"'
+export APIobjectspecificselector00value=true
+export APICLIexportnameaddon='with_NAT'
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 
-export APIobjectexportisCPI=false
-
 export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
+export APIobjectdoexportJSON=false
 export APIobjectdoexportCSV=true
 export APIobjectdoimport=true
 export APIobjectdorename=true
@@ -2281,10 +4188,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key='."nat-settings"."auto-rule"'
-export APIobjectspecificselector00value=true
-export APICLIexportnameaddon='with_NAT'
 
 CheckAPIVersionAndExecuteOperation
 
@@ -2297,14 +4200,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  network objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=network
 export APICLIobjectstype=networks
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2331,10 +4244,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -2346,14 +4255,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  wildcard objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=wildcard
 export APICLIobjectstype=wildcards
 export APIobjectminversion=1.2
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2380,10 +4299,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -2395,14 +4310,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  group objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2429,10 +4354,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -2444,14 +4365,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  group-with-exclusion objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=group-with-exclusion
 export APICLIobjectstype=groups-with-exclusion
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2477,10 +4408,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -2493,14 +4420,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  address-range objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=address-range
 export APICLIobjectstype=address-ranges
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2526,10 +4463,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -2542,14 +4475,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  multicast-address-ranges objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=multicast-address-range
 export APICLIobjectstype=multicast-address-ranges
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2576,10 +4519,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -2591,14 +4530,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  dns-domain objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=dns-domain
 export APICLIobjectstype=dns-domains
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2624,10 +4573,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -2640,14 +4585,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  security-zone objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=security-zone
 export APICLIobjectstype=security-zones
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2673,10 +4628,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -2689,14 +4640,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  dynamic-object objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=dynamic-object
 export APICLIobjectstype=dynamic-objects
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2723,10 +4684,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -2738,14 +4695,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  checkpoint-hosts objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=checkpoint-hosts
 export APICLIobjectstype=checkpoint-hosts
 export APIobjectminversion=1.6.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2772,10 +4739,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -2787,14 +4750,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  time objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=time
 export APICLIobjectstype=times
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2820,10 +4793,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -2836,14 +4805,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  time-group objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2869,10 +4848,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -2885,14 +4860,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  lsv-profile objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=lsv-profile
 export APICLIobjectstype=lsv-profiles
 export APIobjectminversion=1.6
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2919,10 +4904,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -2934,14 +4915,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  gsn-handover-group objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=gsn-handover-group
 export APICLIobjectstype=gsn-handover-groups
 export APIobjectminversion=1.6.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2968,10 +4959,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -2983,14 +4970,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  access-point-name objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=access-point-names
 export APICLIobjectstype=access-point-names
 export APIobjectminversion=1.6.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -3016,10 +5013,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -3032,14 +5025,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  network-feeds objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=network-feed
 export APICLIobjectstype=network-feeds
 export APIobjectminversion=1.9
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -3065,10 +5068,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -3081,14 +5080,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  interoperable-devices objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=interoperable-device
 export APICLIobjectstype=interoperable-devices
 export APIobjectminversion=1.9
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -3114,10 +5123,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -3151,104 +5156,24 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Simple Object :  tacacs-server objects
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-17 -
+ClearObjectDefinitionData
 
 export APICLIobjecttype=tacacs-server
 export APICLIobjectstype=tacacs-servers
 export APIobjectminversion=1.7
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
 export APIobjectexportisCPI=false
 
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
+export APIobjectspecifickey=
 
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
 
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key='."server-type"'
-export APIobjectspecificselector00value="TACACS"
-export APICLIexportnameaddon=TACACS_only
-
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-# MODIFIED 2022-06-17 -
-
-export APICLIobjecttype=tacacs-server
-export APICLIobjectstype=tacacs-servers
-export APIobjectminversion=1.7
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key='."server-type"'
-export APIobjectspecificselector00value="TACACS_PLUS_"
-export APICLIexportnameaddon=TACACSplus_only
-
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=tacacs-server
-export APICLIobjectstype=tacacs-servers
-export APIobjectminversion=1.7
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -3275,9 +5200,103 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=tacacs-server
+export APICLIobjectstype=tacacs-servers
+export APIobjectminversion=1.7
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key='."server-type"'
+export APIobjectspecificselector00value="TACACS"
+export APICLIexportnameaddon=TACACS_only
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=tacacs-server
+export APICLIobjectstype=tacacs-servers
+export APIobjectminversion=1.7
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key='."server-type"'
+export APIobjectspecificselector00value="TACACS_PLUS_"
+export APICLIexportnameaddon=TACACSplus_only
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
 
 CheckAPIVersionAndExecuteOperation
 
@@ -3290,14 +5309,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  tacacs-groups objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=tacacs-group
 export APICLIobjectstype=tacacs-groups
 export APIobjectminversion=1.7
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -3323,10 +5352,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -3344,11 +5369,19 @@ CheckAPIVersionAndExecuteOperation
 export APICLIobjecttype=radius-server
 export APICLIobjectstype=radius-servers
 export APIobjectminversion=1.9
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -3374,10 +5407,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -3390,14 +5419,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  radius-groups objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=radius-group
 export APICLIobjectstype=radius-groups
 export APIobjectminversion=1.9
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -3423,10 +5462,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -3439,14 +5474,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  opsec-application objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=opsec-application
 export APICLIobjectstype=opsec-applications
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -3472,10 +5517,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -3488,143 +5529,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  smtp-servers objects
 # +-------------------------------------------------------------------------------------------------
 
-export APICLIobjecttype=smtp-server
-export APICLIobjectstype=smtp-servers
-export APIobjectminversion=1.9
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key='."authentication"'
-export APIobjectspecificselector00value=false
-export APICLIexportnameaddon=no_authentication
-
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
+ClearObjectDefinitionData
 
 export APICLIobjecttype=smtp-server
 export APICLIobjectstype=smtp-servers
 export APIobjectminversion=1.9
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
 export APIobjectexportisCPI=false
 
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key='."authentication"'
-export APIobjectspecificselector00value=true
-export APICLIexportnameaddon=with_authentication
-
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=smtp-server
-export APICLIobjectstype=smtp-servers
-export APIobjectminversion=1.9
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=false
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=false
-export APIobjectdorename=false
-export APIobjectdoupdate=false
-export APIobjectdodelete=false
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
+export APIobjectspecifickey=
 
 export APIobjectspecificselector00key=
 export APIobjectspecificselector00value=
-export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+export APICLIexportnameaddon=
 
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=smtp-server
-export APICLIobjectstype=smtp-servers
-export APIobjectminversion=1.9
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -3650,10 +5572,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 case "${TypeOfExport}" in
     # a "Standard" export operation
@@ -3681,6 +5599,157 @@ case "${TypeOfExport}" in
         export APIobjectdoexportCSV=false
         ;;
 esac
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=smtp-server
+export APICLIobjectstype=smtp-servers
+export APIobjectminversion=1.9
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=false
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=smtp-server
+export APICLIobjectstype=smtp-servers
+export APIobjectminversion=1.9
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key='."authentication"'
+export APIobjectspecificselector00value=false
+export APICLIexportnameaddon=no_authentication
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=smtp-server
+export APICLIobjectstype=smtp-servers
+export APIobjectminversion=1.9
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key='."authentication"'
+export APIobjectspecificselector00value=true
+export APICLIexportnameaddon=with_authentication
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
 
 CheckAPIVersionAndExecuteOperation
 
@@ -3714,14 +5783,24 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Simple Object :  simple-gateway objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=simple-gateway
 export APICLIobjectstype=simple-gateways
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -3747,10 +5826,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -3763,14 +5838,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  simple-cluster objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=simple-cluster
 export APICLIobjectstype=simple-clusters
 export APIobjectminversion=1.6
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -3796,10 +5881,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -3812,14 +5893,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  lsm-gateways objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=lsm-gateway
 export APICLIobjectstype=lsm-gateways
 export APIobjectminversion=1.8
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -3846,23 +5937,29 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=lsm-gateway
 export APICLIobjectstype=lsm-gateways
 export APIobjectminversion=1.8
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=false
@@ -3889,10 +5986,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=REFERENCE_NO_IMPORT
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -3904,14 +5997,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  lsm-clusters objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=lsm-cluster
 export APICLIobjectstype=lsm-clusters
 export APIobjectminversion=1.8
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -3937,10 +6040,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -3974,155 +6073,24 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Simple Object :  services-tcp objects
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-17 -
-#
+ClearObjectDefinitionData
 
 export APICLIobjecttype=service-tcp
 export APICLIobjectstype=services-tcp
 export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
 export APIobjectexportisCPI=false
 
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
-export APIobjectspecificselector00value=true
-export APICLIexportnameaddon=using_default_timout
-
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-# MODIFIED 2022-06-17 -
-#
-
-export APICLIobjecttype=service-tcp
-export APICLIobjectstype=services-tcp
-export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
-export APIobjectspecificselector00value=false
-export APICLIexportnameaddon=not_using_default_timout
-
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-# MODIFIED 2022-09-15 -
-#
-
-export APICLIobjecttype=service-tcp
-export APICLIobjectstype=services-tcp
-export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=false
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=false
-export APIobjectdorename=false
-export APIobjectdoupdate=false
-export APIobjectdodelete=false
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
+export APIobjectspecifickey=
 
 export APIobjectspecificselector00key=
 export APIobjectspecificselector00value=
-export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+export APICLIexportnameaddon=
 
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-# MODIFIED 2022-09-15 -
-#
-
-export APICLIobjecttype=service-tcp
-export APICLIobjectstype=services-tcp
-export APIobjectminversion=1.1
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -4148,10 +6116,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 case "${TypeOfExport}" in
     # a "Standard" export operation
@@ -4179,6 +6143,153 @@ case "${TypeOfExport}" in
         export APIobjectdoexportCSV=false
         ;;
 esac
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=service-tcp
+export APICLIobjectstype=services-tcp
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=false
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=service-tcp
+export APICLIobjectstype=services-tcp
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APICLIexportnameaddon=using_default_timout
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=service-tcp
+export APICLIobjectstype=services-tcp
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APICLIexportnameaddon=not_using_default_timout
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
 
 CheckAPIVersionAndExecuteOperation
 
@@ -4191,155 +6302,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  services-udp objects
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-17 -
-#
+ClearObjectDefinitionData
 
 export APICLIobjecttype=service-udp
 export APICLIobjectstype=services-udp
 export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
 export APIobjectexportisCPI=false
 
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
-export APIobjectspecificselector00value=true
-export APICLIexportnameaddon=using_default_timout
-
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-# MODIFIED 2022-06-17 -
-#
-
-export APICLIobjecttype=service-udp
-export APICLIobjectstype=services-udp
-export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
-export APIobjectspecificselector00value=false
-export APICLIexportnameaddon=not_using_default_timout
-
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-# MODIFIED 2022-09-15 -
-#
-
-export APICLIobjecttype=service-udp
-export APICLIobjectstype=services-udp
-export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=false
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=false
-export APIobjectdorename=false
-export APIobjectdoupdate=false
-export APIobjectdodelete=false
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
+export APIobjectspecifickey=
 
 export APIobjectspecificselector00key=
 export APIobjectspecificselector00value=
-export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+export APICLIexportnameaddon=
 
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-# MODIFIED 2022-09-15 -
-#
-
-export APICLIobjecttype=service-udp
-export APICLIobjectstype=services-udp
-export APIobjectminversion=1.1
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -4365,10 +6345,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 case "${TypeOfExport}" in
     # a "Standard" export operation
@@ -4396,6 +6372,153 @@ case "${TypeOfExport}" in
         export APIobjectdoexportCSV=false
         ;;
 esac
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=service-udp
+export APICLIobjectstype=services-udp
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=false
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=service-udp
+export APICLIobjectstype=services-udp
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APICLIexportnameaddon=using_default_timout
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=service-udp
+export APICLIobjectstype=services-udp
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APICLIexportnameaddon=not_using_default_timout
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
 
 CheckAPIVersionAndExecuteOperation
 
@@ -4408,14 +6531,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  services-icmp objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=service-icmp
 export APICLIobjectstype=services-icmp
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -4441,10 +6574,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -4457,14 +6586,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  services-icmp6 objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=service-icmp6
 export APICLIobjectstype=services-icmp6
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -4490,10 +6629,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -4506,155 +6641,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  services-sctp objects
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-17 -
-#
+ClearObjectDefinitionData
 
 export APICLIobjecttype=service-sctp
 export APICLIobjectstype=services-sctp
 export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
 export APIobjectexportisCPI=false
 
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
-export APIobjectspecificselector00value=true
-export APICLIexportnameaddon=using_default_timout
-
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-# MODIFIED 2022-06-17 -
-#
-
-export APICLIobjecttype=service-sctp
-export APICLIobjectstype=services-sctp
-export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
-export APIobjectspecificselector00value=false
-export APICLIexportnameaddon=not_using_default_timout
-
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-# MODIFIED 2022-09-15 -
-#
-
-export APICLIobjecttype=service-sctp
-export APICLIobjectstype=services-sctp
-export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=false
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=false
-export APIobjectdorename=false
-export APIobjectdoupdate=false
-export APIobjectdodelete=false
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
+export APIobjectspecifickey=
 
 export APIobjectspecificselector00key=
 export APIobjectspecificselector00value=
-export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+export APICLIexportnameaddon=
 
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-# MODIFIED 2022-09-15 -
-#
-
-export APICLIobjecttype=service-sctp
-export APICLIobjectstype=services-sctp
-export APIobjectminversion=1.1
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -4680,10 +6684,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 case "${TypeOfExport}" in
     # a "Standard" export operation
@@ -4711,6 +6711,153 @@ case "${TypeOfExport}" in
         export APIobjectdoexportCSV=false
         ;;
 esac
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=service-sctp
+export APICLIobjectstype=services-sctp
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=false
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=service-sctp
+export APICLIobjectstype=services-sctp
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APICLIexportnameaddon=using_default_timout
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=service-sctp
+export APICLIobjectstype=services-sctp
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APICLIexportnameaddon=not_using_default_timout
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
 
 CheckAPIVersionAndExecuteOperation
 
@@ -4723,155 +6870,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  services-other objects
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-17 -
-#
+ClearObjectDefinitionData
 
 export APICLIobjecttype=service-other
 export APICLIobjectstype=services-other
 export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
 export APIobjectexportisCPI=false
 
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
-export APIobjectspecificselector00value=true
-export APICLIexportnameaddon=using_default_timout
-
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-# MODIFIED 2022-06-17 -
-#
-
-export APICLIobjecttype=service-other
-export APICLIobjectstype=services-other
-export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
-export APIobjectspecificselector00value=false
-export APICLIexportnameaddon=not_using_default_timout
-
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-# MODIFIED 2022-09-15 -
-#
-
-export APICLIobjecttype=service-other
-export APICLIobjectstype=services-other
-export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=false
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=false
-export APIobjectdorename=false
-export APIobjectdoupdate=false
-export APIobjectdodelete=false
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
+export APIobjectspecifickey=
 
 export APIobjectspecificselector00key=
 export APIobjectspecificselector00value=
-export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+export APICLIexportnameaddon=
 
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-# MODIFIED 2022-09-15 -
-#
-
-export APICLIobjecttype=service-other
-export APICLIobjectstype=services-other
-export APIobjectminversion=1.1
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -4897,10 +6913,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 case "${TypeOfExport}" in
     # a "Standard" export operation
@@ -4933,6 +6945,153 @@ CheckAPIVersionAndExecuteOperation
 
 
 # +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=service-other
+export APICLIobjectstype=services-other
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=false
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=service-other
+export APICLIobjectstype=services-other
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=true
+export APICLIexportnameaddon=using_default_timout
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=service-other
+export APICLIobjectstype=services-other
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key='."aggressive-aging"."use-default-timeout"'
+export APIobjectspecificselector00value=false
+export APICLIexportnameaddon=not_using_default_timout
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
 # +-------------------------------------------------------------------------------------------------
 
 
@@ -4940,14 +7099,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  services-dce-rpc objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=service-dce-rpc
 export APICLIobjectstype=services-dce-rpc
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -4973,10 +7142,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -4989,14 +7154,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  services-rpc objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=service-rpc
 export APICLIobjectstype=services-rpc
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -5022,10 +7197,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -5038,14 +7209,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  services-gtp objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=service-gtp
 export APICLIobjectstype=services-gtp
 export APIobjectminversion=1.7
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -5071,10 +7252,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -5087,14 +7264,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  service-citrix-tcp objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=service-citrix-tcp
 export APICLIobjectstype=services-citrix-tcp
 export APIobjectminversion=1.6.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -5120,10 +7307,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -5136,14 +7319,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  service-compound-tcp objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=service-compound-tcp
 export APICLIobjectstype=services-compound-tcp
 export APIobjectminversion=1.6.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -5170,10 +7363,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -5185,14 +7374,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  service-groups objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -5219,10 +7418,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -5233,6 +7428,50 @@ CheckAPIVersionAndExecuteOperation
 # +-------------------------------------------------------------------------------------------------
 # | Simple Object :  application-sites objects
 # +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=true
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
 
 export AugmentExportedFields=false
 
@@ -5246,44 +7485,6 @@ else
     export AugmentExportedFields=false
 fi
 
-export APICLIobjecttype=application-site
-export APICLIobjectstype=application-sites
-export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=true
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -5295,14 +7496,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  application-site-categories objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=application-site-category
 export APICLIobjectstype=application-site-categories
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -5328,10 +7539,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -5344,14 +7551,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  application-site-groups objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=application-site-group
 export APICLIobjectstype=application-site-groups
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -5377,10 +7594,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -5414,14 +7627,24 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Simple Object :  user objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=user
 export APICLIobjectstype=users
 export APIobjectminversion=1.6.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -5448,22 +7671,29 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
+
 # +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
 
 export APICLIobjecttype=user
 export APICLIobjectstype=users
 export APIobjectminversion=1.6.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=false
@@ -5490,10 +7720,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=REFERENCE_NO_IMPORT
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -5505,14 +7731,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  user-group objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=user-group
 export APICLIobjectstype=user-groups
 export APIobjectminversion=1.6.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -5539,10 +7775,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -5554,14 +7786,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  user-template objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=user-template
 export APICLIobjectstype=user-templates
 export APIobjectminversion=1.6.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -5588,23 +7830,29 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=user-template
 export APICLIobjectstype=user-templates
 export APIobjectminversion=1.6.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=false
@@ -5631,10 +7879,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=REFERENCE_NO_IMPORT
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -5646,14 +7890,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  access-role objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=access-role
 export APICLIobjectstype=access-roles
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -5679,10 +7933,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -5695,14 +7945,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  identity-tag objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=identity-tag
 export APICLIobjectstype=identity-tags
 export APIobjectminversion=1.6.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -5728,10 +7988,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -5765,14 +8021,24 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Simple Object :  updatable-objects
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=updatable-object
 export APICLIobjectstype=updatable-objects
 export APIobjectminversion=1.3
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -5799,10 +8065,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -5814,14 +8076,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  updatable-objects - Reference information
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=updatable-object
 export APICLIobjectstype=updatable-objects
 export APIobjectminversion=1.3
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=false
@@ -5848,10 +8120,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=REFERENCE_NO_IMPORT
-
 CheckAPIVersionAndExecuteOperation
 
 
@@ -5863,57 +8131,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  updatable-objects-repository-content - Reference information
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=updatable-objects-repository-content
 export APICLIobjectstype=updatable-objects-repository-content
 export APIobjectminversion=1.3
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
 export APIobjectexportisCPI=false
 
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=false
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=false
-export APIobjectdorename=false
-export APIobjectdoupdate=false
-export APIobjectdodelete=false
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=false
-export APIobjectcanignoreerror=false
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=false
-export APIobjecttypehasuid=false
-export APIobjecttypehasdomain=false
-export APIobjecttypehastags=false
-export APIobjecttypehasmeta=false
-export APIobjecttypeimportname=false
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
+export APIobjectspecifickey=
 
 export APIobjectspecificselector00key=
 export APIobjectspecificselector00value=
-export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+export APICLIexportnameaddon=
 
-CheckAPIVersionAndExecuteOperation
-
-
-# +-------------------------------------------------------------------------------------------------
-
-export APICLIobjecttype=updatable-objects-repository-content
-export APICLIobjectstype=updatable-objects-repository-content
-export APIobjectminversion=1.3
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -5940,9 +8175,54 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
+CheckAPIVersionAndExecuteOperation
+
+
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=updatable-objects-repository-content
+export APICLIobjectstype=updatable-objects-repository-content
+export APIobjectminversion=1.3
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
 export APIobjectspecificselector00key=
 export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
+export APICLIexportnameaddon=REFERENCE_NO_IMPORT
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=false
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=false
+export APIobjectcanignoreerror=false
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=false
+export APIobjecttypehasuid=false
+export APIobjecttypehasdomain=false
+export APIobjecttypehastags=false
+export APIobjecttypehasmeta=false
+export APIobjecttypeimportname=false
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
 
 CheckAPIVersionAndExecuteOperation
 
@@ -5976,14 +8256,24 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Simple Object :  SmartTasks
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=smart-task
 export APICLIobjectstype=smart-tasks
 export APIobjectminversion=1.6
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -6009,10 +8299,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -6025,14 +8311,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  Repository Scripts
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=repository-script
 export APICLIobjectstype=repository-scripts
 export APIobjectminversion=1.9
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -6058,10 +8354,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -6122,14 +8414,24 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Simple Object :  Data Center Servers
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=data-center-server
 export APICLIobjectstype=data-center-servers
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -6155,10 +8457,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 case "${CurrentAPIVersion}" in
     1.1 | 1.2 | 1.3 | 1.4 | 1.5 )
@@ -6217,14 +8515,24 @@ esac
 # | Simple Object :  Data Center Object
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=data-center-object
 export APICLIobjectstype=data-center-objects
 export APIobjectminversion=1.4
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -6250,10 +8558,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -6266,14 +8570,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  Data Center Query Object
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=data-center-query
 export APICLIobjectstype=data-center-queries
 export APIobjectminversion=1.7
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -6299,10 +8613,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 CheckAPIVersionAndExecuteOperation
 
@@ -6539,7 +8849,7 @@ ExportSpecialObjectToJSONWithoutLimitsAndDetailLevel () {
     
     if [ ${errorreturn} != 0 ] ; then
         # Something went wrong, terminate
-        echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToJSON : Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToJSON : Problem during mgmt_cli operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} '  File contents with potential error from '${APICLIJSONfilelast}' : ' >> ${logfilepath}
         echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
         echo >> ${logfilepath}
@@ -6630,7 +8940,7 @@ ExportSpecialObjectToJSONWithoutLimitsAndDetailLevel () {
         echo `${dtzs}`${dtzsep} >>  ${logfilepath}
     fi
     
-    echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToJSONWithoutLimitsAndDetailLevel procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToJSONWithoutLimitsAndDetailLevel procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
@@ -6748,7 +9058,7 @@ ExportSpecialObjectToJSONStandard () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToJSON : Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToJSON : Problem during mgmt_cli operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} '  File contents with potential error from '${APICLIJSONfilelast}' : ' >> ${logfilepath}
             echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
             echo >> ${logfilepath}
@@ -6773,7 +9083,7 @@ ExportSpecialObjectToJSONStandard () {
             
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToJSON : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToJSON : Problem during mgmt_cli JQ Query! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} '  File contents (last 10 lines) with potential error from '${APICLIfileexport}' : ' >> ${logfilepath}
                 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
                 echo >> ${logfilepath}
@@ -6794,7 +9104,7 @@ ExportSpecialObjectToJSONStandard () {
             
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToJSON : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToJSON : Problem during mgmt_cli JQ Query! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} '  File contents (last 10 lines) with potential error from '${APICLIfileexport}' : ' >> ${logfilepath}
                 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
                 echo >> ${logfilepath}
@@ -6815,7 +9125,7 @@ ExportSpecialObjectToJSONStandard () {
             
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToJSON : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToJSON : Problem during mgmt_cli JQ Query! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} '  File contents (last 10 lines) with potential error from '${APICLIfileexport}' : ' >> ${logfilepath}
                 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
                 echo >> ${logfilepath}
@@ -6838,7 +9148,7 @@ ExportSpecialObjectToJSONStandard () {
             
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToJSON : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToJSON : Problem during mgmt_cli JQ Query! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} '  File contents (last 10 lines) with potential error from '${APICLIfileexport}' : ' >> ${logfilepath}
                 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
                 echo >> ${logfilepath}
@@ -6909,7 +9219,7 @@ ExportSpecialObjectToJSONStandard () {
         echo `${dtzs}`${dtzsep} >>  ${logfilepath}
     fi
     
-    echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToJSONStandard procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToJSONStandard procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
@@ -6926,7 +9236,7 @@ ExportSpecialObjectToJSONStandard () {
 # Main Operational repeated proceedure - SpecialExportRAWObjectToJSON
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-09-15:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The Main Operational Procedure is the meat of the script's repeated actions.
@@ -6937,6 +9247,10 @@ SpecialExportRAWObjectToJSON () {
     #
     # Export Objects to raw JSON
     #
+    
+    export Workingfilename=
+    export APICLIfileexport=
+    export APICLIJSONfilelast=
     
     errorreturn=0
     
@@ -6972,33 +9286,30 @@ SpecialExportRAWObjectToJSON () {
         fi
     fi
     
-    # MODIFIED 2022-09-14 -
+    # -------------------------------------------------------------------------------------------------
     
-    if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
-        # This object does not have limits to check and probably does not have more than one object entry
-        export WorkAPIObjectLimit=1
-        echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit set to '${WorkAPIObjectLimit}' because this object is singular and special' | tee -a -i ${logfilepath}
-    else
-        export WorkAPIObjectLimit=${MaxAPIObjectLimit}
-        if [ -z "${domainnamenospace}" ] ; then
-            # an empty ${domainnamenospace} indicates that we are not working towards an MDSM
-            export WorkAPIObjectLimit=${APIobjectrecommendedlimit}
-        else
-            # an empty ${domainnamenospace} indicates that we are working towards an MDSM
-            export WorkAPIObjectLimit=${APIobjectrecommendedlimitMDSM}
-        fi
-        
-        echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
-        
-        if ${OverrideMaxObjects} ; then
-            echo `${dtzs}`${dtzsep} 'Override Maximum Objects with OverrideMaxObjectsNumber :  '${OverrideMaxObjectsNumber}' objects value' | tee -a -i ${logfilepath}
-            export WorkAPIObjectLimit=${OverrideMaxObjectsNumber}
-        fi
-        
-        echo `${dtzs}`${dtzsep} 'Final WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
+    CheckAPIKeepAlive
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'Start Processing '${APICLIobjecttype}':' | tee -a -i ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    DumpObjectDefinitionData
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
+    SetupExportObjectsToJSONandRepository
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, terminate
+        echo `${dtzs}`${dtzsep} 'Problem found in procedure SetupExportObjectsToJSONandRepository! error returned = '${errorreturn} | tee -a -i ${logfilepath}
+        return ${errorreturn}
     fi
-    
-    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     # Configure object selection query selector
@@ -7032,18 +9343,16 @@ SpecialExportRAWObjectToJSON () {
         fi
     fi
     
-    export APICLIfilename=${APICLIobjectstype}
+    # MODIFIED 2023-03-03:02 -
+    
+    if [ x"${APIobjectjsonrepofileobject}" != x"" ] ; then
+        export APICLIfilename=${APIobjectjsonrepofileobject}
+    else
+        export APICLIfilename=${APICLIobjectstype}
+    fi
     if [ x"${APICLIexportnameaddon}" != x"" ] ; then
         export APICLIfilename=${APICLIfilename}'_'${APICLIexportnameaddon}
     fi
-    
-    # -------------------------------------------------------------------------------------------------
-    
-    CheckAPIKeepAlive
-    
-    # -------------------------------------------------------------------------------------------------
-    
-    echo `${dtzs}`${dtzsep} 'Start Processing '${APICLIobjecttype}':' | tee -a -i ${logfilepath}
     
     if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
         # This object does not have limits to check and probably does not have more than one object entry
@@ -7061,6 +9370,11 @@ SpecialExportRAWObjectToJSON () {
     export APICLIfileexport=${APICLIpathexport}/${APICLIfileexportpre}${Workingfilename}${APICLIfileexportpost}
     export APICLIJSONfilelast=${Slurpworkfolder}/${APICLIfileexportpre}${Workingfilename}'_last'${APICLIJSONfileexportpost}
     
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'Workingfilename' "${Workingfilename}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIfileexport' "${APICLIfileexport}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIJSONfilelast' "${APICLIJSONfilelast}" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
     errorreturn=0
     
     if [ ${objectstoshow} = null ] ; then
@@ -7071,28 +9385,31 @@ SpecialExportRAWObjectToJSON () {
     elif [ ${objectstoshow} -le 0 ] ; then
         # This object was queried for number of elements and returned zero (0) or lesss objects, so skipping
         
-        echo `${dtzs}`${dtzsep} 'Found '${objectstoshow}' '${APICLIobjecttype}' objects.  No objects found!  Skipping!...' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Found [ '${objectstoshow}' ] '${APICLIobjecttype}' objects.  No objects found!  Skipping!...' | tee -a -i ${logfilepath}
         
     elif [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
         # This object does not have limits to check and probably does not have more than one object entry
+        
+        echo `${dtzs}`${dtzsep} 'Found [ '${objectstoshow}' ] '${APICLIobjecttype}' objects.  Processing...' | tee -a -i ${logfilepath}
         
         ExportSpecialObjectToJSONWithoutLimitsAndDetailLevel
         
     else
         # This object has limits to check and probably has more than one object entry
         
+        echo `${dtzs}`${dtzsep} 'Found [ '${objectstoshow}' ] '${APICLIobjecttype}' objects.  Processing...' | tee -a -i ${logfilepath}
+        
         ExportSpecialObjectToJSONStandard
         
     fi
     
-    echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToJSON procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToJSON procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-09-15:01
-
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-03-04:01
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -7182,11 +9499,11 @@ SpecialObjectsCheckAPIVersionAndExecuteOperation () {
         SpecialExportRAWObjectToJSON
         errorreturn=$?
         
-        echo `${dtzs}`${dtzsep} 'SpecialObjectsCheckAPIVersionAndExecuteOperation call to SpecialExportRAWObjectToJSON procedure returned :  '${errorreturn} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'SpecialObjectsCheckAPIVersionAndExecuteOperation call to SpecialExportRAWObjectToJSON procedure returned :  !{ '${errorreturn}' }!' >> ${logfilepath}
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in SpecialObjectsCheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in SpecialObjectsCheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         fi
         
@@ -7203,7 +9520,7 @@ SpecialObjectsCheckAPIVersionAndExecuteOperation () {
         # Handle Error in operation
         if ${ABORTONERROR} ; then
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in SpecialObjectsCheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in SpecialObjectsCheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             read -t ${WAITTIME} -n 1 -p "Any key to EXIT script due to error ${errorreturn}.  Automatic EXIT after ${WAITTIME} seconds : " anykey
             echo
@@ -7233,12 +9550,12 @@ SpecialObjectsCheckAPIVersionAndExecuteOperation () {
             exit ${errorreturn}
         else
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in SpecialObjectsCheckAPIVersionAndExecuteOperation procedure, but continueing' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in SpecialObjectsCheckAPIVersionAndExecuteOperation procedure, but continueing' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             #return ${errorreturn}
         fi
     fi
-    echo `${dtzs}`${dtzsep} 'SpecialObjectsCheckAPIVersionAndExecuteOperation procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'SpecialObjectsCheckAPIVersionAndExecuteOperation procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-' | tee -a -i ${logfilepath}
     
     return ${errorreturn}
@@ -7273,11 +9590,18 @@ SpecialObjectsCheckAPIVersionAndExecuteOperation () {
 export APICLIobjecttype=global-properties
 export APICLIobjectstype=global-properties
 export APIobjectminversion=1.9
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
 export APIobjectrecommendedlimit=0
 export APIobjectrecommendedlimitMDSM=0
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -7303,10 +9627,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=true
 export APIobjectCSVJQparmsAbsoluteBase=true
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 
 #SpecialObjectsCheckAPIVersionAndExecuteOperation
@@ -7390,11 +9710,18 @@ esac
 export APICLIobjecttype=policy-settings
 export APICLIobjectstype=policy-settings
 export APIobjectminversion=1.8
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
 export APIobjectrecommendedlimit=0
 export APIobjectrecommendedlimitMDSM=0
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -7420,10 +9747,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=true
 export APIobjectCSVJQparmsAbsoluteBase=true
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 
 #SpecialObjectsCheckAPIVersionAndExecuteOperation
@@ -7474,11 +9797,18 @@ esac
 export APICLIobjecttype=api-settings
 export APICLIobjectstype=api-settings
 export APIobjectminversion=1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
 export APIobjectrecommendedlimit=0
 export APIobjectrecommendedlimitMDSM=0
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -7504,10 +9834,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=true
 export APIobjectCSVJQparmsAbsoluteBase=true
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 case "${domaintarget}" in
     'System Data' )
@@ -7566,6 +9892,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-07-07
 
 
+# -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
@@ -7756,7 +10083,7 @@ PrepareToSlurpJSONFilesGenericObjects () {
     fi
     
     echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'Procedure PrepareToSlurpJSONFilesGenericObjects completed!  errorreturn = '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Procedure PrepareToSlurpJSONFilesGenericObjects completed!  errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
     
     return ${errorreturn}
@@ -7773,7 +10100,7 @@ PrepareToSlurpJSONFilesGenericObjects () {
 # Operational proceedure - ExportObjectViaGenericObjectsToJSONStandard
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-23:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -7784,14 +10111,15 @@ ExportObjectViaGenericObjectsToJSONStandard () {
     #
     # Export Objects to raw JSON
     #
-    
+    # Expected configured key input values
+    #
+    # ${objectstoshow}
+    #
+    # Output values:
+    #
+    # ${errorreturn}
+    #
     errorreturn=0
-    
-    # Calling subroutine provides objectstotal and objectstoshow value
-    #objectstotal=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
-    
-    # MODIFIED 2023-02-23:01 -
-    #export objectstoshow=${objectstotal}
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Processing '${objectstoshow}' '${APIGenObjobjecttype}' objects in '${WorkAPIObjectLimit}' object chunks:' | tee -a -i ${logfilepath}
@@ -7799,38 +10127,25 @@ ExportObjectViaGenericObjectsToJSONStandard () {
     objectslefttoshow=${objectstoshow}
     currentoffset=0
     
+    objectstotalformatted=`printf "%05d" ${objectstoshow}`
+    WorkAPIObjectLimitformatted=`printf "%05d" ${WorkAPIObjectLimit}`
+    
     if [ ${objectstoshow} -gt ${WorkAPIObjectLimit} ] ; then
         export DoFileSlurp=true
-        if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} '  JSON File Slurp required...' | tee -a -i ${logfilepath}
-        else
-            echo `${dtzs}`${dtzsep} '  JSON File Slurp required...' >> ${logfilepath}
-        fi
+        echo `${dtzs}`${dtzsep} '  JSON File Slurp required... [ '${objectstotalformatted}' > '${WorkAPIObjectLimitformatted}' ]' | tee -a -i ${logfilepath}
     else
         export DoFileSlurp=false
-        if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} '  JSON File Slurp NOT required...' | tee -a -i ${logfilepath}
-        else
-            echo `${dtzs}`${dtzsep} '  JSON File Slurp NOT required...' >> ${logfilepath}
-        fi
+        echo `${dtzs}`${dtzsep} '  JSON File Slurp NOT required... [ '${objectstotalformatted}' <= '${WorkAPIObjectLimitformatted}' ]' | tee -a -i ${logfilepath}
     fi
-    
-    objectstotalformatted=`printf "%05d" ${objectstoshow}`
     
     while [ ${objectslefttoshow} -ge 1 ] ; do
         # we have objects to process
         
         nextoffset=`expr ${currentoffset} + ${WorkAPIObjectLimit}`
         
-        #if [ ${currentoffset} -gt 0 ] ; then
-        #    # Export file for the next ${WorkAPIObjectLimit} objects
-        #    export APICLIfileexport=${APICLIpathexport}/${APICLIfileexportpre}${APIGenObjobjectstype}'_'${currentoffset}'_'${APICLIfileexportpost}
-        #fi
-        
         currentoffsetformatted=`printf "%05d" ${currentoffset}`
         nextoffsetformatted=`printf "%05d" ${nextoffset}`
         
-        # 2017-11-20 Updating naming of files for multiple ${WorkAPIObjectLimit} chunks to clean-up name listing
         if [ ${objectstoshow} -gt ${WorkAPIObjectLimit} ] ; then
             # Export file for the next ${WorkAPIObjectLimit} objects
             export APICLIfilename=${APIGenObjobjectstype}
@@ -7838,10 +10153,8 @@ ExportObjectViaGenericObjectsToJSONStandard () {
                 export APICLIfilename=${APICLIfilename}'_'${APICLIexportnameaddon}
             fi
             
-            #export APICLIfilename=${APICLIfilename}'_'${currentoffset}'-'${nextoffset}'_of_'${objectstoshow}
             export Workingfilename=${APICLIfilename}'_'${currentoffsetformatted}'-'${nextoffsetformatted}'_of_'${objectstotalformatted}
             
-            #export APICLIfileexport=${APICLIpathexport}/${APICLIfileexportpre}${APIGenObjobjectstype}'_'${currentoffset}'_'${APICLIfileexportpost}
             export APICLIfileexport=${APICLIpathexport}/${APICLIfileexportpre}${Workingfilename}${APICLIfileexportpost}
             export APICLIJSONfilelast=${Slurpworkfolder}/${APICLIfileexportpre}${APICLIfilename}'_00000-'${objectstotalformatted}'_last'${APICLIJSONfileexportpost}
             
@@ -7873,7 +10186,7 @@ ExportObjectViaGenericObjectsToJSONStandard () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'ExportObjectViaGenericObjectsToJSONStandard : Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'ExportObjectViaGenericObjectsToJSONStandard : Problem during mgmt_cli operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} '  File contents with potential error from '${APICLIJSONfilelast}' : ' >> ${logfilepath}
             echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
             echo >> ${logfilepath}
@@ -7884,110 +10197,39 @@ ExportObjectViaGenericObjectsToJSONStandard () {
             return ${errorreturn}
         fi
         
-        # MODIFIED 2022-06-17
+        # MODIFIED 2023-03-04:01
         #
         
-        if ${NoSystemObjects} ; then
-            # Ignore System Objects
-            if ${APISCRIPTVERBOSE} ; then
-                echo `${dtzs}`${dtzsep} '      No System Objects.  Selector = '${objectqueryselector} | tee -a -i ${logfilepath}
-            fi
-            
+        if [ x"${objectqueryselector}" != x"" ] ; then
+            echo `${dtzs}`${dtzsep} '      Selected objects based on object type criteria, objectqueryselector = '${objectqueryselector} | tee -a -i ${logfilepath}
             cat ${APICLIJSONfilelast} | ${JQ} '.objects[] | '"${objectqueryselector}" > ${APICLIfileexport}
             errorreturn=$?
-            
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'ExportObjectViaGenericObjectsToJSONStandard : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
-                echo `${dtzs}`${dtzsep} '  File contents (last 10 lines) with potential error from '${APICLIfileexport}' : ' >> ${logfilepath}
-                echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-                echo >> ${logfilepath}
-                
-                tail ${APICLIfileexport} | tee -a -i ${logfilepath}
-                
-                echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-                return ${errorreturn}
-            fi
-        elif ${OnlySystemObjects} ; then
-            # Select only System Objects
-            if ${APISCRIPTVERBOSE} ; then
-                echo `${dtzs}`${dtzsep} '      Only System Objects.  Selector = '${objectqueryselector} | tee -a -i ${logfilepath}
-            fi
-            
-            cat ${APICLIJSONfilelast} | ${JQ} '.objects[] | '"${objectqueryselector}" > ${APICLIfileexport}
-            errorreturn=$?
-            
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'ExportObjectViaGenericObjectsToJSONStandard : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
-                echo `${dtzs}`${dtzsep} '  File contents (last 10 lines) with potential error from '${APICLIfileexport}' : ' >> ${logfilepath}
-                echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-                echo >> ${logfilepath}
-                
-                tail ${APICLIfileexport} | tee -a -i ${logfilepath}
-                
-                echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-                return ${errorreturn}
-            fi
-        elif [ x"${objectqueryselector}" != x"" ] ; then
-            # Don't forget to handle cases where object types need selection criteria handled
-            if ${APISCRIPTVERBOSE} ; then
-                echo `${dtzs}`${dtzsep} '      Selected objects based on object type criteria' | tee -a -i ${logfilepath}
-            fi
-            
-            cat ${APICLIJSONfilelast} | ${JQ} '.objects[] | '"${objectqueryselector}" > ${APICLIfileexport}
-            errorreturn=$?
-            
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'ExportObjectViaGenericObjectsToJSONStandard : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
-                echo `${dtzs}`${dtzsep} '  File contents (last 10 lines) with potential error from '${APICLIfileexport}' : ' >> ${logfilepath}
-                echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-                echo >> ${logfilepath}
-                
-                tail ${APICLIfileexport} | tee -a -i ${logfilepath}
-                
-                echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-                return ${errorreturn}
-            fi
         else
-            # Don't Ignore System Objects
-            if ${APISCRIPTVERBOSE} ; then
-                echo `${dtzs}`${dtzsep} '      All objects, including System Objects' | tee -a -i ${logfilepath}
-            fi
-            
-            # Processing the file through jq stripping the objects creates a problem file
-            cat ${APICLIJSONfilelast} | jq '.objects[]' > ${APICLIfileexport}
-            #cat ${APICLIJSONfilelast} > ${APICLIfileexport}
+            echo `${dtzs}`${dtzsep} '      All objects, including System Objects' | tee -a -i ${logfilepath}
+            cat ${APICLIJSONfilelast} | ${JQ} '.objects[]' > ${APICLIfileexport}
             errorreturn=$?
+        fi
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'ExportObjectViaGenericObjectsToJSONStandard : Problem during JQ Query of file "'${APICLIJSONfilelast}'"! error return = !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  File contents (last 10 lines) with potential error from '${APICLIfileexport}' : ' >> ${logfilepath}
+            echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            echo >> ${logfilepath}
             
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'ExportObjectViaGenericObjectsToJSONStandard : Problem during mgmt_cli JQ Query! error return = '${errorreturn} | tee -a -i ${logfilepath}
-                echo `${dtzs}`${dtzsep} '  File contents (last 10 lines) with potential error from '${APICLIfileexport}' : ' >> ${logfilepath}
-                echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-                echo >> ${logfilepath}
-                
-                tail ${APICLIfileexport} | tee -a -i ${logfilepath}
-                
-                echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-                return ${errorreturn}
-            fi
+            tail ${APICLIfileexport} | tee -a -i ${logfilepath}
+            
+            echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            return ${errorreturn}
         fi
         
         if ${DoFileSlurp} ; then
             if [ -s ${APICLIfileexport} ] ; then
                 # exported json file is not zero length, so process for slurp
                 echo `${dtzs}`${dtzsep} '      Dump to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
-                #cat ${APICLIfileexport} | jq '.objects[]' > ${Slurpworkfileexport}
                 cp -fv ${APICLIfileexport} ${Slurpworkfileexport} >> ${logfilepath} 2>&1
             else
                 # exported json file is zero length, so do not process file for slurp
-                if ${APISCRIPTVERBOSE} ; then
-                    echo `${dtzs}`${dtzsep} '      NOT dumping zero lenghth file to slurp work file '${Slurpworkfileexport} | tee -a -i ${logfilepath}
-                else
-                    echo `${dtzs}`${dtzsep} '      NOT dumping zero lenghth file to slurp work file '${Slurpworkfileexport} >> ${logfilepath}
-                fi
+                echo `${dtzs}`${dtzsep} '      NOT dumping zero lenghth file to slurp work file '${Slurpworkfileexport} >> ${logfilepath}
             fi
         fi
         
@@ -8034,13 +10276,13 @@ ExportObjectViaGenericObjectsToJSONStandard () {
         echo `${dtzs}`${dtzsep} >>  ${logfilepath}
     fi
     
-    echo `${dtzs}`${dtzsep} 'ExportObjectViaGenericObjectsToJSONStandard procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'ExportObjectViaGenericObjectsToJSONStandard procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-02-23:01
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-03-04:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -8051,7 +10293,7 @@ ExportObjectViaGenericObjectsToJSONStandard () {
 # Main Operational repeated proceedure - ExportRAWObjectViaGenericObjectsToJSON
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-23:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The Main Operational Procedure is the meat of the script's repeated actions.
@@ -8062,6 +10304,10 @@ ExportRAWObjectViaGenericObjectsToJSON () {
     #
     # Export Objects to raw JSON
     #
+    
+    export Workingfilename=
+    export APICLIfileexport=
+    export APICLIJSONfilelast=
     
     errorreturn=0
     
@@ -8103,9 +10349,14 @@ ExportRAWObjectViaGenericObjectsToJSON () {
     
     echo `${dtzs}`${dtzsep} 'Start Processing '${APIGenObjobjecttype}':' | tee -a -i ${logfilepath}
     
+    # -------------------------------------------------------------------------------------------------
+    
+    DumpObjectDefinitionData
+    
+    # -------------------------------------------------------------------------------------------------
+    
     objectstotal=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
     
-    # MODIFIED 2023-02-23:01 -
     export objectstoshow=${objectstotal}
     
     # -------------------------------------------------------------------------------------------------
@@ -8115,35 +10366,22 @@ ExportRAWObjectViaGenericObjectsToJSON () {
     if [ ${objectstoshow} = null ] ; then
         echo `${dtzs}`${dtzsep} 'Found NO '${APIGenObjobjecttype}' objects.  No objects found!  Skipping!...' | tee -a -i ${logfilepath}
     elif [ ${objectstoshow} -le 0 ] ; then
-        echo `${dtzs}`${dtzsep} 'Found '${objectstoshow}' '${APIGenObjobjecttype}' objects.  No objects found!  Skipping!...' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Found [ '${objectstoshow}' ] '${APIGenObjobjecttype}' objects.  No objects found!  Skipping!...' | tee -a -i ${logfilepath}
     else
-        # MODIFIED 2022-09-14 -
+        echo `${dtzs}`${dtzsep} 'Found [ '${objectstoshow}' ] '${APIGenObjobjecttype}' objects.  Processing...' | tee -a -i ${logfilepath}
         
-        if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
-            # This object does not have limits to check and probably does not have more than one object entry
-            export WorkAPIObjectLimit=1
-            echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit set to '${WorkAPIObjectLimit}' because this object is singular and special' | tee -a -i ${logfilepath}
-        else
-            export WorkAPIObjectLimit=${MaxAPIObjectLimit}
-            if [ -z "${domainnamenospace}" ] ; then
-                # an empty ${domainnamenospace} indicates that we are not working towards an MDSM
-                export WorkAPIObjectLimit=${APIobjectrecommendedlimit}
-            else
-                # an empty ${domainnamenospace} indicates that we are working towards an MDSM
-                export WorkAPIObjectLimit=${APIobjectrecommendedlimitMDSM}
-            fi
-            
-            echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
-            
-            if ${OverrideMaxObjects} ; then
-                echo `${dtzs}`${dtzsep} 'Override Maximum Objects with OverrideMaxObjectsNumber :  '${OverrideMaxObjectsNumber}' objects value' | tee -a -i ${logfilepath}
-                export WorkAPIObjectLimit=${OverrideMaxObjectsNumber}
-            fi
-            
-            echo `${dtzs}`${dtzsep} 'Final WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
+        # -------------------------------------------------------------------------------------------------
+        
+        errorreturn=0
+        
+        SetupExportObjectsToJSONandRepository
+        errorreturn=$?
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Problem found in procedure SetupExportObjectsToJSONandRepository! error returned = '${errorreturn} | tee -a -i ${logfilepath}
+            return ${errorreturn}
         fi
-        
-        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
         # -------------------------------------------------------------------------------------------------
         # Configure object selection query selector
@@ -8177,7 +10415,13 @@ ExportRAWObjectViaGenericObjectsToJSON () {
             fi
         fi
         
-        export APICLIfilename=${APIGenObjobjectstype}
+        # MODIFIED 2023-03-04:01 -
+        
+        if [ x"${APIGenObjjsonrepofileobject}" != x"" ] ; then
+            export APICLIfilename=${APIGenObjjsonrepofileobject}
+        else
+            export APICLIfilename=${APIGenObjobjectstype}
+        fi
         if [ x"${APICLIexportnameaddon}" != x"" ] ; then
             export APICLIfilename=${APICLIfilename}'_'${APICLIexportnameaddon}
         fi
@@ -8186,18 +10430,24 @@ ExportRAWObjectViaGenericObjectsToJSON () {
         export APICLIfileexport=${APICLIpathexport}/${APICLIfileexportpre}${Workingfilename}${APICLIfileexportpost}
         export APICLIJSONfilelast=${Slurpworkfolder}/${APICLIfileexportpre}${Workingfilename}'_last'${APICLIJSONfileexportpost}
         
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'Workingfilename' "${Workingfilename}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIfileexport' "${APICLIfileexport}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIJSONfilelast' "${APICLIJSONfilelast}" >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        
+        errorreturn=0
         
         ExportObjectViaGenericObjectsToJSONStandard
         
     fi
     
-    echo `${dtzs}`${dtzsep} 'ExportRAWObjectViaGenericObjectsToJSON procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'ExportRAWObjectViaGenericObjectsToJSON procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-02-23:01
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-03-04:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -8208,7 +10458,7 @@ ExportRAWObjectViaGenericObjectsToJSON () {
 # SimpleObjectsJSONViaGenericObjectsHandler proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-23:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-02:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 SimpleObjectsJSONViaGenericObjectsHandler () {
@@ -8272,37 +10522,31 @@ SimpleObjectsJSONViaGenericObjectsHandler () {
         export APICLIexportnameaddon=${APICLIexportnameaddon}
     fi
     
-    if ${ExportTypeIsStandard} ; then
-        #objectstotal_object=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
-        objectstotal_object=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
-        export number_object="${objectstotal_object}"
-        
-        if [ ${number_object} -le 0 ] ; then
-            # No groups found
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'No '${APICLIobjectstype}' to generate '${APICLIcomplexobjectstype}' members from!' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        else
-            ExportRAWObjectViaGenericObjectsToJSON
-            errorreturn=$?
-        fi
-        
-        if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} '  Done with Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        fi
-        
+    #objectstotal_object=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+    objectstotal_object=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+    export number_object="${objectstotal_object}"
+    
+    if [ ${number_object} -le 0 ] ; then
+        # No groups found
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'No '${APICLIobjectstype}' to generate '${APICLIcomplexobjectstype}' members from!' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     else
+        ExportRAWObjectViaGenericObjectsToJSON
+        errorreturn=$?
+    fi
+    
+    if ${APISCRIPTVERBOSE} ; then
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Not "standard" Export Type :  '${TypeOfExport}' so do not handle complex objects '${APICLIcomplexobjectstype}' for '${APICLIobjectstype}'!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  Done with Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     fi
     
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
     if [ ${errorreturn} != 0 ] ; then
         # Handle Error in operation
-        echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in SimpleObjectsJSONViaGenericObjectsHandler procedure' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in SimpleObjectsJSONViaGenericObjectsHandler procedure' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         if ${ABORTONERROR} ; then
             read -t ${WAITTIME} -n 1 -p "Any key to EXIT script due to error ${errorreturn}.  Automatic EXIT after ${WAITTIME} seconds : " anykey
@@ -8361,7 +10605,7 @@ SimpleObjectsJSONViaGenericObjectsHandler () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-23:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-02:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -8402,17 +10646,12 @@ SimpleObjectsJSONViaGenericObjectsHandler () {
 # | Reference Details and initial object
 # +-------------------------------------------------------------------------------------------------
 
-export AugmentExportedFields=false
+ClearObjectDefinitionData
 
-if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
-    export AugmentExportedFields=true
-elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
-    export AugmentExportedFields=true
-elif ${OnlySystemObjects} ; then
-    export AugmentExportedFields=true
-else
-    export AugmentExportedFields=false
-fi
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
 
 export APIGenObjectTypes=generic-objects
 export APIGenObjectClassField=class-name
@@ -8424,16 +10663,24 @@ export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
 export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
 export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site
 export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites
-export APIGenObjCSVobjecttype=${APIGenObjobjecttype}
+export APIGenObjobjectkey=name
+export APIGenObjobjectkeydetailslevel=standard
 
-export APICLIobjecttype=application-site
-export APICLIobjectstype=application-sites
-export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APIGenObjcomplexobjectstype}
+export APICLICSVobjecttype=${APIGenObjcomplexobjectstype}
+export APIGenObjjsonrepofileobject=${APIGenObjobjectstype}
+export APIGenObjcomplexjsonrepofileobject=${APIGenObjcomplexobjectstype}
+export APIGenObjCSVobjecttype=${APIGenObjobjectstype}
+export APIGenObjcomplexCSVobjecttype=${APIGenObjcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=true
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -8460,9 +10707,17 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
+export AugmentExportedFields=false
+
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export AugmentExportedFields=true
+elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+    export AugmentExportedFields=true
+elif ${OnlySystemObjects} ; then
+    export AugmentExportedFields=true
+else
+    export AugmentExportedFields=false
+fi
 
 SimpleObjectsJSONViaGenericObjectsHandler
 
@@ -8587,16 +10842,26 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Complex Object : Generic OBJECT Members : Group Members
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=group
 export APICLIobjectstype=groups
 export APICLIcomplexobjecttype=group-member
 export APICLIcomplexobjectstype=group-members
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -8622,10 +10887,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -8641,16 +10902,26 @@ export CSVFileHeader='"name","members.add"'
 # | Complex Object : Generic OBJECT Members : Time Group Members
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=time-group
 export APICLIobjectstype=time-groups
 export APICLIcomplexobjecttype=time-group-member
 export APICLIcomplexobjectstype=time-group-members
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -8676,10 +10947,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -8695,16 +10962,26 @@ export CSVFileHeader='"name","members.add"'
 # | Complex Object : Generic OBJECT Members : TACACS Group Members
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=tacacs-group
 export APICLIobjectstype=tacacs-groups
 export APICLIcomplexobjecttype=tacacs-group-member
 export APICLIcomplexobjectstype=tacacs-group-members
 export APIobjectminversion=1.7
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -8730,10 +11007,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -8749,16 +11022,26 @@ export CSVFileHeader='"name","members.add"'
 # | Complex Object : Generic OBJECT Members : RADIUS Group Members
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=radius-group
 export APICLIobjectstype=radius-groups
 export APICLIcomplexobjecttype=radius-group-member
 export APICLIcomplexobjectstype=radius-group-members
 export APIobjectminversion=1.9
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -8785,10 +11068,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
 #
 # APICLICSVsortparms can change due to the nature of the object
 #
@@ -8803,16 +11082,26 @@ export CSVFileHeader='"name","members.add"'
 # | Complex Object : Generic OBJECT Members : Service Group Members
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=service-group
 export APICLIobjectstype=service-groups
 export APICLIcomplexobjecttype=service-group-member
 export APICLIcomplexobjectstype=service-group-members
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -8838,10 +11127,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -8857,16 +11142,26 @@ export CSVFileHeader='"name","members.add"'
 # | Complex Object : Generic OBJECT Members : Application Site Group Members
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=application-site-group
 export APICLIobjectstype=application-site-groups
 export APICLIcomplexobjecttype=application-site-group-member
 export APICLIcomplexobjectstype=application-site-group-members
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -8892,10 +11187,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -8911,17 +11202,26 @@ export CSVFileHeader='"name","members.add"'
 # | Complex Object : Generic OBJECT Members : User-Group Group Members
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2021-01-18 -
+ClearObjectDefinitionData
+
 export APICLIobjecttype=user-group
 export APICLIobjectstype=user-groups
 export APICLIcomplexobjecttype=user-group-member
 export APICLIcomplexobjectstype=user-group-members
 export APIobjectminversion=1.6.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -8947,10 +11247,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -9031,18 +11327,26 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Complex Object : Specific Complex OBJECT : hosts with host interfaces
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-26:01 - 
+ClearObjectDefinitionData
 
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
 export APICLIcomplexobjecttype=host-interface
 export APICLIcomplexobjectstype=host-interfaces
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -9068,10 +11372,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 #GetHostInterfaces
 
@@ -9124,37 +11424,37 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 # +-------------------------------------------------------------------------------------------------
 # | Complex Object : Specific Complex OBJECT : application-sites
-# | - Reference Details
+# |  - Reference Details, APIobjectdoX set to "false" to disable
 # +-------------------------------------------------------------------------------------------------
 
-export AugmentExportedFields=false
-
-if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
-    export AugmentExportedFields=true
-elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
-    export AugmentExportedFields=true
-elif ${OnlySystemObjects} ; then
-    export AugmentExportedFields=true
-else
-    export AugmentExportedFields=false
-fi
+ClearObjectDefinitionData
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
+export APICLIcomplexobjecttype=application-sites
+export APICLIcomplexobjectstype=application-sites
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=true
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIcomplexobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 
-export APIobjectexportisCPI=true
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
+export APIobjectdoexport=false
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=false
+export APIobjectdoimport=false
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
 
 export APIobjectusesdetailslevel=true
 export APIobjectcanignorewarning=true
@@ -9173,9 +11473,17 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
+export AugmentExportedFields=false
+
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export AugmentExportedFields=true
+elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+    export AugmentExportedFields=true
+elif ${OnlySystemObjects} ; then
+    export AugmentExportedFields=true
+else
+    export AugmentExportedFields=false
+fi
 
 
 # +-------------------------------------------------------------------------------------------------
@@ -9186,18 +11494,26 @@ export APICLIexportnameaddon=
 # | Complex Object : Specific Complex OBJECT : application-sites - url-list
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-26:01 - 
+ClearObjectDefinitionData
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
-export APICLIcomplexobjecttype=application-site-url-list
-export APICLIcomplexobjectstype=application-sites-url-lists
+export APICLIcomplexobjecttype=application-site-element-url-list
+export APICLIcomplexobjectstype=application-sites-elements-url-lists
 export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectexportisCPI=true
+
+export APIobjectspecifickey='url-list'
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=true
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=false
@@ -9224,12 +11540,6 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
-export APIobjectspecifickey='"url-list"'
-
 #GetObjectSpecificKeyArrayValues
 
 
@@ -9241,19 +11551,26 @@ export APIobjectspecifickey='"url-list"'
 # | Complex Object : Specific Complex OBJECT : application-sites - application-signature
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-26:01 - 
-# Review of this application-sites objects element for application-signature resulted in a removal of this object, because a singular entry
+#ClearObjectDefinitionData
 
 #export APICLIobjecttype=application-site
 #export APICLIobjectstype=application-sites
-#export APICLIcomplexobjecttype=application-site-application-signature
-#export APICLIcomplexobjectstype=application-sites-application-signatures
+#export APICLIcomplexobjecttype=application-site-element-application-signature
+#export APICLIcomplexobjectstype=application-sites-elements-application-signatures
 #export APIobjectminversion=1.1
-#export APICLICSVobjecttype=${APICLIobjectstype}
+#export APIobjectexportisCPI=true
+
+#export APIobjectspecifickey='application-signature'
+
+#export APIobjectspecificselector00key=
+#export APIobjectspecificselector00value=
+#export APICLIexportnameaddon=
+
+#export APIobjectjsonrepofileobject=${APICLIobjectstype}
+#export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 #export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 #export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-#export APIobjectexportisCPI=true
 
 #export APIobjectdoexport=true
 #export APIobjectdoexportJSON=false
@@ -9280,12 +11597,6 @@ export APIobjectspecifickey='"url-list"'
 
 #export APIobjectCSVexportWIP=false
 
-#export APIobjectspecificselector00key=
-#export APIobjectspecificselector00value=
-#export APICLIexportnameaddon=
-
-#export APIobjectspecifickey='"application-signature"'
-
 #GetObjectSpecificKeyArrayValues
 
 
@@ -9297,18 +11608,26 @@ export APIobjectspecifickey='"url-list"'
 # | Complex Object : Specific Complex OBJECT : application-sites - additional-categories
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-26:01 - 
+ClearObjectDefinitionData
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
-export APICLIcomplexobjecttype=application-site-additional-category
-export APICLIcomplexobjectstype=application-sites-additional-categories
+export APICLIcomplexobjecttype=application-site-element-additional-category
+export APICLIcomplexobjectstype=application-sites-elements-additional-categories
 export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectexportisCPI=true
+
+export APIobjectspecifickey='additional-categories'
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=true
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=false
@@ -9334,12 +11653,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
-export APIobjectspecifickey='"additional-categories"'
 
 #GetObjectSpecificKeyArrayValues
 
@@ -9392,27 +11705,37 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 # +-------------------------------------------------------------------------------------------------
 # | Complex Object : Specific Complex OBJECT : user authentications
-# | - Reference Information
+# | - Reference Information, APIobjectdoX set to "false" to disable
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-26:01 - 
+ClearObjectDefinitionData
 
 export APICLIobjecttype=user
 export APICLIobjectstype=users
+export APICLIcomplexobjecttype=user-authentication
+export APICLIcomplexobjectstype=users-authentications
 export APIobjectminversion=1.6.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 
-export APIobjectexportisCPI=false
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
+export APIobjectdoexport=false
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=false
+export APIobjectdoimport=false
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
 
 export APIobjectusesdetailslevel=true
 export APIobjectcanignorewarning=true
@@ -9430,9 +11753,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
 
 
 objectstotal_users=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -9454,18 +11774,29 @@ else
     # | Complex Object : Specific Complex OBJECT : user authentications :  check point passwords
     # +-------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2023-02-26:01 - 
+    ClearObjectDefinitionData
     
     export APICLIobjecttype=user
     export APICLIobjectstype=users
     export APICLIcomplexobjecttype='user-with-auth-checkpointpassword'
     export APICLIcomplexobjectstype='users-with-auth-checkpointpassword'
     export APIobjectminversion=1.6.1
+    export APIobjectexportisCPI=false
+    
+    export APIobjectspecifickey=
+    
+    export APIobjectspecificselector00key=
+    export APIobjectspecificselector00value=
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcriteria01key='authentication-method'
+    export APICLIexportcriteria01value='check point password'
+    
+    export APIobjectjsonrepofileobject=${APICLIobjectstype}
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    
     export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
     export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-    
-    export APIobjectexportisCPI=false
     
     export APIobjectdoexport=true
     export APIobjectdoexportJSON=true
@@ -9481,13 +11812,16 @@ else
     export APIobjectcansetifexists=false
     export APIobjectderefgrpmem=false
     export APIobjecttypehasname=true
-    export APIobjectCSVexportWIP=false
-    export APIobjectspecificselector00key=
-    export APIobjectspecificselector00value=
-    export APICLIexportnameaddon=
+    export APIobjecttypehasuid=true
+    export APIobjecttypehasdomain=true
+    export APIobjecttypehastags=true
+    export APIobjecttypehasmeta=true
+    export APIobjecttypeimportname=true
     
-    export APICLIexportcriteria01key='authentication-method'
-    export APICLIexportcriteria01value='check point password'
+    export APIobjectCSVFileHeaderAbsoluteBase=false
+    export APIobjectCSVJQparmsAbsoluteBase=false
+    
+    export APIobjectCSVexportWIP=false
     
     #GetObjectElementCriteriaBased
     
@@ -9500,18 +11834,29 @@ else
     # | Complex Object : Specific Complex OBJECT : user authentications :  os passwords
     # +-------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2023-02-26:01 - 
+    ClearObjectDefinitionData
     
     export APICLIobjecttype=user
     export APICLIobjectstype=users
     export APICLIcomplexobjecttype='user-with-auth-ospassword'
     export APICLIcomplexobjectstype='users-with-auth-ospassword'
     export APIobjectminversion=1.6.1
+    export APIobjectexportisCPI=false
+    
+    export APIobjectspecifickey=
+    
+    export APIobjectspecificselector00key=
+    export APIobjectspecificselector00value=
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcriteria01key='authentication-method'
+    export APICLIexportcriteria01value='os password'
+    
+    export APIobjectjsonrepofileobject=${APICLIobjectstype}
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    
     export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
     export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-    
-    export APIobjectexportisCPI=false
     
     export APIobjectdoexport=true
     export APIobjectdoexportJSON=true
@@ -9527,13 +11872,16 @@ else
     export APIobjectcansetifexists=false
     export APIobjectderefgrpmem=false
     export APIobjecttypehasname=true
-    export APIobjectCSVexportWIP=false
-    export APIobjectspecificselector00key=
-    export APIobjectspecificselector00value=
-    export APICLIexportnameaddon=
+    export APIobjecttypehasuid=true
+    export APIobjecttypehasdomain=true
+    export APIobjecttypehastags=true
+    export APIobjecttypehasmeta=true
+    export APIobjecttypeimportname=true
     
-    export APICLIexportcriteria01key='authentication-method'
-    export APICLIexportcriteria01value='os password'
+    export APIobjectCSVFileHeaderAbsoluteBase=false
+    export APIobjectCSVJQparmsAbsoluteBase=false
+    
+    export APIobjectCSVexportWIP=false
     
     #GetObjectElementCriteriaBased
     
@@ -9545,18 +11893,29 @@ else
     # | Complex Object : Specific Complex OBJECT : user authentications :  securid
     # +-------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2023-02-26:01 - 
+    ClearObjectDefinitionData
     
     export APICLIobjecttype=user
     export APICLIobjectstype=users
     export APICLIcomplexobjecttype='user-with-auth-securid'
     export APICLIcomplexobjectstype='users-with-auth-securid'
     export APIobjectminversion=1.6.1
+    export APIobjectexportisCPI=false
+    
+    export APIobjectspecifickey=
+    
+    export APIobjectspecificselector00key=
+    export APIobjectspecificselector00value=
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcriteria01key='authentication-method'
+    export APICLIexportcriteria01value='securid'
+    
+    export APIobjectjsonrepofileobject=${APICLIobjectstype}
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    
     export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
     export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-    
-    export APIobjectexportisCPI=false
     
     export APIobjectdoexport=true
     export APIobjectdoexportJSON=true
@@ -9572,13 +11931,16 @@ else
     export APIobjectcansetifexists=false
     export APIobjectderefgrpmem=false
     export APIobjecttypehasname=true
-    export APIobjectCSVexportWIP=false
-    export APIobjectspecificselector00key=
-    export APIobjectspecificselector00value=
-    export APICLIexportnameaddon=
+    export APIobjecttypehasuid=true
+    export APIobjecttypehasdomain=true
+    export APIobjecttypehastags=true
+    export APIobjecttypehasmeta=true
+    export APIobjecttypeimportname=true
     
-    export APICLIexportcriteria01key='authentication-method'
-    export APICLIexportcriteria01value='securid'
+    export APIobjectCSVFileHeaderAbsoluteBase=false
+    export APIobjectCSVJQparmsAbsoluteBase=false
+    
+    export APIobjectCSVexportWIP=false
     
     #GetObjectElementCriteriaBased
     
@@ -9591,18 +11953,29 @@ else
     # | Complex Object : Specific Complex OBJECT : user authentications :  radius
     # +-------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2023-02-26:01 - 
+    ClearObjectDefinitionData
     
     export APICLIobjecttype=user
     export APICLIobjectstype=users
     export APICLIcomplexobjecttype='user-with-auth-radius'
     export APICLIcomplexobjectstype='users-with-auth-radius'
     export APIobjectminversion=1.6.1
+    export APIobjectexportisCPI=false
+    
+    export APIobjectspecifickey=
+    
+    export APIobjectspecificselector00key=
+    export APIobjectspecificselector00value=
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcriteria01key='authentication-method'
+    export APICLIexportcriteria01value='radius'
+    
+    export APIobjectjsonrepofileobject=${APICLIobjectstype}
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    
     export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
     export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-    
-    export APIobjectexportisCPI=false
     
     export APIobjectdoexport=true
     export APIobjectdoexportJSON=true
@@ -9618,13 +11991,16 @@ else
     export APIobjectcansetifexists=false
     export APIobjectderefgrpmem=false
     export APIobjecttypehasname=true
-    export APIobjectCSVexportWIP=false
-    export APIobjectspecificselector00key=
-    export APIobjectspecificselector00value=
-    export APICLIexportnameaddon=
+    export APIobjecttypehasuid=true
+    export APIobjecttypehasdomain=true
+    export APIobjecttypehastags=true
+    export APIobjecttypehasmeta=true
+    export APIobjecttypeimportname=true
     
-    export APICLIexportcriteria01key='authentication-method'
-    export APICLIexportcriteria01value='radius'
+    export APIobjectCSVFileHeaderAbsoluteBase=false
+    export APIobjectCSVJQparmsAbsoluteBase=false
+    
+    export APIobjectCSVexportWIP=false
     
     #GetObjectElementCriteriaBased
     
@@ -9637,18 +12013,29 @@ else
     # | Complex Object : Specific Complex OBJECT : user authentications :  tacacs
     # +-------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2023-02-26:01 - 
+    ClearObjectDefinitionData
     
     export APICLIobjecttype=user
     export APICLIobjectstype=users
     export APICLIcomplexobjecttype='user-with-auth-tacacs'
     export APICLIcomplexobjectstype='users-with-auth-tacacs'
     export APIobjectminversion=1.6.1
+    export APIobjectexportisCPI=false
+    
+    export APIobjectspecifickey=
+    
+    export APIobjectspecificselector00key=
+    export APIobjectspecificselector00value=
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcriteria01key='authentication-method'
+    export APICLIexportcriteria01value='tacacs'
+    
+    export APIobjectjsonrepofileobject=${APICLIobjectstype}
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    
     export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
     export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-    
-    export APIobjectexportisCPI=false
     
     export APIobjectdoexport=true
     export APIobjectdoexportJSON=true
@@ -9664,13 +12051,16 @@ else
     export APIobjectcansetifexists=false
     export APIobjectderefgrpmem=false
     export APIobjecttypehasname=true
-    export APIobjectCSVexportWIP=false
-    export APIobjectspecificselector00key=
-    export APIobjectspecificselector00value=
-    export APICLIexportnameaddon=
+    export APIobjecttypehasuid=true
+    export APIobjecttypehasdomain=true
+    export APIobjecttypehastags=true
+    export APIobjecttypehasmeta=true
+    export APIobjecttypeimportname=true
     
-    export APICLIexportcriteria01key='authentication-method'
-    export APICLIexportcriteria01value='tacacs'
+    export APIobjectCSVFileHeaderAbsoluteBase=false
+    export APIobjectCSVJQparmsAbsoluteBase=false
+    
+    export APIobjectCSVexportWIP=false
     
     #GetObjectElementCriteriaBased
     
@@ -9683,18 +12073,29 @@ else
     # | Complex Object : Specific Complex OBJECT : user authentications :  undefined
     # +-------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2023-02-26:01 - 
+    ClearObjectDefinitionData
     
     export APICLIobjecttype=user
     export APICLIobjectstype=users
     export APICLIcomplexobjecttype='user-with-auth-undefined'
     export APICLIcomplexobjectstype='users-with-auth-undefined'
     export APIobjectminversion=1.6.1
+    export APIobjectexportisCPI=false
+    
+    export APIobjectspecifickey=
+    
+    export APIobjectspecificselector00key=
+    export APIobjectspecificselector00value=
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcriteria01key='authentication-method'
+    export APICLIexportcriteria01value='undefined'
+    
+    export APIobjectjsonrepofileobject=${APICLIobjectstype}
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    
     export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
     export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-    
-    export APIobjectexportisCPI=false
     
     export APIobjectdoexport=true
     export APIobjectdoexportJSON=true
@@ -9710,13 +12111,16 @@ else
     export APIobjectcansetifexists=false
     export APIobjectderefgrpmem=false
     export APIobjecttypehasname=true
-    export APIobjectCSVexportWIP=false
-    export APIobjectspecificselector00key=
-    export APIobjectspecificselector00value=
-    export APICLIexportnameaddon=
+    export APIobjecttypehasuid=true
+    export APIobjecttypehasdomain=true
+    export APIobjecttypehastags=true
+    export APIobjecttypehasmeta=true
+    export APIobjecttypeimportname=true
     
-    export APICLIexportcriteria01key='authentication-method'
-    export APICLIexportcriteria01value='undefined'
+    export APIobjectCSVFileHeaderAbsoluteBase=false
+    export APIobjectCSVJQparmsAbsoluteBase=false
+    
+    export APIobjectCSVexportWIP=false
     
     #GetObjectElementCriteriaBased
     
@@ -9735,23 +12139,34 @@ fi
 # | Complex Object : Specific Complex OBJECT : user-template user authentications
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-26:01 - 
+ClearObjectDefinitionData
 
 export APICLIobjecttype=user-template
 export APICLIobjectstype=user-templates
+export APICLIcomplexobjecttype=user-template-authentication
+export APICLIcomplexobjectstype=users-templates-authentications
 export APIobjectminversion=1.6.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 
-export APIobjectexportisCPI=false
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
+export APIobjectdoexport=false
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=false
+export APIobjectdoimport=false
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
 
 export APIobjectusesdetailslevel=true
 export APIobjectcanignorewarning=true
@@ -9769,9 +12184,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
 
 
 objectstotal_user_templates=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -9793,18 +12205,29 @@ else
     # | Complex Object : Specific Complex OBJECT : user-template user authentications :  check point passwords
     # +-------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2023-02-26:01 - 
+    ClearObjectDefinitionData
     
     export APICLIobjecttype=user-template
     export APICLIobjectstype=user-templates
     export APICLIcomplexobjecttype='user-template-with-auth-checkpointpassword'
     export APICLIcomplexobjectstype='user-templates-with-auth-checkpointpassword'
     export APIobjectminversion=1.6.1
+    export APIobjectexportisCPI=false
+    
+    export APIobjectspecifickey=
+    
+    export APIobjectspecificselector00key=
+    export APIobjectspecificselector00value=
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcriteria01key='authentication-method'
+    export APICLIexportcriteria01value='check point password'
+    
+    export APIobjectjsonrepofileobject=${APICLIobjectstype}
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    
     export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
     export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-    
-    export APIobjectexportisCPI=false
     
     export APIobjectdoexport=true
     export APIobjectdoexportJSON=true
@@ -9820,13 +12243,13 @@ else
     export APIobjectcansetifexists=false
     export APIobjectderefgrpmem=false
     export APIobjecttypehasname=true
-    export APIobjectCSVexportWIP=false
-    export APIobjectspecificselector00key=
-    export APIobjectspecificselector00value=
-    export APICLIexportnameaddon=
+    export APIobjecttypehasuid=true
+    export APIobjecttypehasdomain=true
+    export APIobjecttypehastags=true
+    export APIobjecttypehasmeta=true
+    export APIobjecttypeimportname=true
     
-    export APICLIexportcriteria01key='authentication-method'
-    export APICLIexportcriteria01value='check point password'
+    export APIobjectCSVexportWIP=false
     
     #GetObjectElementCriteriaBased
     
@@ -9839,18 +12262,29 @@ else
     # | Complex Object : Specific Complex OBJECT : user-template user authentications :  os passwords
     # +-------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2023-02-26:01 - 
+    ClearObjectDefinitionData
     
     export APICLIobjecttype=user-template
     export APICLIobjectstype=user-templates
     export APICLIcomplexobjecttype='user-template-with-auth-ospassword'
     export APICLIcomplexobjectstype='user-templates-with-auth-ospassword'
     export APIobjectminversion=1.6.1
+    export APIobjectexportisCPI=false
+    
+    export APIobjectspecifickey=
+    
+    export APIobjectspecificselector00key=
+    export APIobjectspecificselector00value=
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcriteria01key='authentication-method'
+    export APICLIexportcriteria01value='os password'
+    
+    export APIobjectjsonrepofileobject=${APICLIobjectstype}
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    
     export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
     export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-    
-    export APIobjectexportisCPI=false
     
     export APIobjectdoexport=true
     export APIobjectdoexportJSON=true
@@ -9866,13 +12300,13 @@ else
     export APIobjectcansetifexists=false
     export APIobjectderefgrpmem=false
     export APIobjecttypehasname=true
-    export APIobjectCSVexportWIP=false
-    export APIobjectspecificselector00key=
-    export APIobjectspecificselector00value=
-    export APICLIexportnameaddon=
+    export APIobjecttypehasuid=true
+    export APIobjecttypehasdomain=true
+    export APIobjecttypehastags=true
+    export APIobjecttypehasmeta=true
+    export APIobjecttypeimportname=true
     
-    export APICLIexportcriteria01key='authentication-method'
-    export APICLIexportcriteria01value='os password'
+    export APIobjectCSVexportWIP=false
     
     #GetObjectElementCriteriaBased
     
@@ -9885,18 +12319,29 @@ else
     # | Complex Object : Specific Complex OBJECT : user-template user authentications :  securid
     # +-------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2023-02-26:01 - 
+    ClearObjectDefinitionData
     
     export APICLIobjecttype=user-template
     export APICLIobjectstype=user-templates
     export APICLIcomplexobjecttype='user-template-with-auth-securid'
     export APICLIcomplexobjectstype='user-templates-with-auth-securid'
     export APIobjectminversion=1.6.1
+    export APIobjectexportisCPI=false
+    
+    export APIobjectspecifickey=
+    
+    export APIobjectspecificselector00key=
+    export APIobjectspecificselector00value=
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcriteria01key='authentication-method'
+    export APICLIexportcriteria01value='securid'
+    
+    export APIobjectjsonrepofileobject=${APICLIobjectstype}
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    
     export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
     export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-    
-    export APIobjectexportisCPI=false
     
     export APIobjectdoexport=true
     export APIobjectdoexportJSON=true
@@ -9912,13 +12357,13 @@ else
     export APIobjectcansetifexists=false
     export APIobjectderefgrpmem=false
     export APIobjecttypehasname=true
-    export APIobjectCSVexportWIP=false
-    export APIobjectspecificselector00key=
-    export APIobjectspecificselector00value=
-    export APICLIexportnameaddon=
+    export APIobjecttypehasuid=true
+    export APIobjecttypehasdomain=true
+    export APIobjecttypehastags=true
+    export APIobjecttypehasmeta=true
+    export APIobjecttypeimportname=true
     
-    export APICLIexportcriteria01key='authentication-method'
-    export APICLIexportcriteria01value='securid'
+    export APIobjectCSVexportWIP=false
     
     #GetObjectElementCriteriaBased
     
@@ -9931,18 +12376,29 @@ else
     # | Complex Object : Specific Complex OBJECT : user-template user authentications :  radius
     # +-------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2023-02-26:01 - 
+    ClearObjectDefinitionData
     
     export APICLIobjecttype=user-template
     export APICLIobjectstype=user-templates
     export APICLIcomplexobjecttype='user-template-with-auth-radius'
     export APICLIcomplexobjectstype='user-templates-with-auth-radius'
     export APIobjectminversion=1.6.1
+    export APIobjectexportisCPI=false
+    
+    export APIobjectspecifickey=
+    
+    export APIobjectspecificselector00key=
+    export APIobjectspecificselector00value=
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcriteria01key='authentication-method'
+    export APICLIexportcriteria01value='radius'
+    
+    export APIobjectjsonrepofileobject=${APICLIobjectstype}
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    
     export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
     export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-    
-    export APIobjectexportisCPI=false
     
     export APIobjectdoexport=true
     export APIobjectdoexportJSON=true
@@ -9958,13 +12414,13 @@ else
     export APIobjectcansetifexists=false
     export APIobjectderefgrpmem=false
     export APIobjecttypehasname=true
-    export APIobjectCSVexportWIP=false
-    export APIobjectspecificselector00key=
-    export APIobjectspecificselector00value=
-    export APICLIexportnameaddon=
+    export APIobjecttypehasuid=true
+    export APIobjecttypehasdomain=true
+    export APIobjecttypehastags=true
+    export APIobjecttypehasmeta=true
+    export APIobjecttypeimportname=true
     
-    export APICLIexportcriteria01key='authentication-method'
-    export APICLIexportcriteria01value='radius'
+    export APIobjectCSVexportWIP=false
     
     #GetObjectElementCriteriaBased
     
@@ -9977,18 +12433,29 @@ else
     # | Complex Object : Specific Complex OBJECT : user-template user authentications :  tacacs
     # +-------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2023-02-26:01 - 
+    ClearObjectDefinitionData
     
     export APICLIobjecttype=user-template
     export APICLIobjectstype=user-templates
     export APICLIcomplexobjecttype='user-template-with-auth-tacacs'
     export APICLIcomplexobjectstype='user-templates-with-auth-tacacs'
     export APIobjectminversion=1.6.1
+    export APIobjectexportisCPI=false
+    
+    export APIobjectspecifickey=
+    
+    export APIobjectspecificselector00key=
+    export APIobjectspecificselector00value=
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcriteria01key='authentication-method'
+    export APICLIexportcriteria01value='tacacs'
+    
+    export APIobjectjsonrepofileobject=${APICLIobjectstype}
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    
     export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
     export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-    
-    export APIobjectexportisCPI=false
     
     export APIobjectdoexport=true
     export APIobjectdoexportJSON=true
@@ -10004,13 +12471,13 @@ else
     export APIobjectcansetifexists=false
     export APIobjectderefgrpmem=false
     export APIobjecttypehasname=true
-    export APIobjectCSVexportWIP=false
-    export APIobjectspecificselector00key=
-    export APIobjectspecificselector00value=
-    export APICLIexportnameaddon=
+    export APIobjecttypehasuid=true
+    export APIobjecttypehasdomain=true
+    export APIobjecttypehastags=true
+    export APIobjecttypehasmeta=true
+    export APIobjecttypeimportname=true
     
-    export APICLIexportcriteria01key='authentication-method'
-    export APICLIexportcriteria01value='tacacs'
+    export APIobjectCSVexportWIP=false
     
     #GetObjectElementCriteriaBased
     
@@ -10023,18 +12490,29 @@ else
     # | Complex Object : Specific Complex OBJECT : user-template user authentications :  undefined
     # +-------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2023-02-26:01 - 
+    ClearObjectDefinitionData
     
     export APICLIobjecttype=user-template
     export APICLIobjectstype=user-templates
     export APICLIcomplexobjecttype='user-template-with-auth-undefined'
     export APICLIcomplexobjectstype='user-templates-with-auth-undefined'
     export APIobjectminversion=1.6.1
+    export APIobjectexportisCPI=false
+    
+    export APIobjectspecifickey=
+    
+    export APIobjectspecificselector00key=
+    export APIobjectspecificselector00value=
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcriteria01key='authentication-method'
+    export APICLIexportcriteria01value='undefined'
+    
+    export APIobjectjsonrepofileobject=${APICLIobjectstype}
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    
     export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
     export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-    
-    export APIobjectexportisCPI=false
     
     export APIobjectdoexport=true
     export APIobjectdoexportJSON=true
@@ -10050,13 +12528,13 @@ else
     export APIobjectcansetifexists=false
     export APIobjectderefgrpmem=false
     export APIobjecttypehasname=true
-    export APIobjectCSVexportWIP=false
-    export APIobjectspecificselector00key=
-    export APIobjectspecificselector00value=
-    export APICLIexportnameaddon=
+    export APIobjecttypehasuid=true
+    export APIobjecttypehasdomain=true
+    export APIobjecttypehastags=true
+    export APIobjecttypehasmeta=true
+    export APIobjecttypeimportname=true
     
-    export APICLIexportcriteria01key='authentication-method'
-    export APICLIexportcriteria01value='undefined'
+    export APIobjectCSVexportWIP=false
     
     #GetObjectElementCriteriaBased
     
@@ -10075,23 +12553,34 @@ fi
 # | Complex Object : Specific Complex OBJECT : user-template user expiration
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-26:01 - 
+ClearObjectDefinitionData
 
 export APICLIobjecttype=user-template
 export APICLIobjectstype=user-templates
+export APICLIcomplexobjecttype=user-template-user-expiration
+export APICLIcomplexobjectstype=users-templates-users-expirations
 export APIobjectminversion=1.6.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 
-export APIobjectexportisCPI=false
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
+export APIobjectdoexport=false
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=false
+export APIobjectdoimport=false
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
 
 export APIobjectusesdetailslevel=true
 export APIobjectcanignorewarning=true
@@ -10109,9 +12598,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
 
 
 objectstotal_user_templates=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -10133,18 +12619,29 @@ else
     # | Complex Object : Specific Complex OBJECT : user-template user expiration :  non-global expiration
     # +-------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2023-02-26:01 - 
+    ClearObjectDefinitionData
     
     export APICLIobjecttype=user-template
     export APICLIobjectstype=user-templates
     export APICLIcomplexobjecttype='user-template-with-non-global-expiration'
     export APICLIcomplexobjectstype='user-templates-with-non-global-expiration'
     export APIobjectminversion=1.6.1
+    export APIobjectexportisCPI=false
+    
+    export APIobjectspecifickey=
+    
+    export APIobjectspecificselector00key=
+    export APIobjectspecificselector00value=
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcriteria01key='expiration-by-global-properties'
+    export APICLIexportcriteria01value=false
+    
+    export APIobjectjsonrepofileobject=${APICLIobjectstype}
     export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+    
     export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
     export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-    
-    export APIobjectexportisCPI=false
     
     export APIobjectdoexport=true
     export APIobjectdoexportJSON=true
@@ -10160,13 +12657,13 @@ else
     export APIobjectcansetifexists=false
     export APIobjectderefgrpmem=false
     export APIobjecttypehasname=true
-    export APIobjectCSVexportWIP=false
-    export APIobjectspecificselector00key=
-    export APIobjectspecificselector00value=
-    export APICLIexportnameaddon=
+    export APIobjecttypehasuid=true
+    export APIobjecttypehasdomain=true
+    export APIobjecttypehastags=true
+    export APIobjecttypehasmeta=true
+    export APIobjecttypeimportname=true
     
-    export APICLIexportcriteria01key='expiration-by-global-properties'
-    export APICLIexportcriteria01value=false
+    export APIobjectCSVexportWIP=false
     
     #GetObjectElementCriteriaBased
     
@@ -10391,7 +12888,7 @@ PrepareToSlurpJSONFilesComplexObjectsFromGenericObjectsArray () {
     fi
     
     echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'Procedure PrepareToSlurpJSONFilesComplexObjectsFromGenericObjectsArray completed!  errorreturn = '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Procedure PrepareToSlurpJSONFilesComplexObjectsFromGenericObjectsArray completed!  errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
     
     return ${errorreturn}
@@ -10452,7 +12949,7 @@ DumpArrayOfGenericObjectsKeyFieldValues () {
 # Operational proceedure - Populate_GENERICOBJECTSKEYFIELDARRAY
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-23:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-02:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -10471,27 +12968,18 @@ Populate_GENERICOBJECTSKEYFIELDARRAY () {
     
     # -------------------------------------------------------------------------------------------------
     
-    if ${NoSystemObjects} ; then
-        # Ignore System Objects
-        GENERIC_OBJECT_NAME_STRING="`cat ${APICLIJSONfilelast} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .'${workingkey}' | @sh' -r`"
-    elif ${OnlySystemObjects} ; then
-        # Ignore System Objects
-        GENERIC_OBJECT_NAME_STRING="`cat ${APICLIJSONfilelast} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .'${workingkey}' | @sh' -r`"
-    elif ${CreatorIsNotSystem} ; then
-        # Ignore System Objects
-        GENERIC_OBJECT_NAME_STRING="`cat ${APICLIJSONfilelast} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .'${workingkey}' | @sh' -r`"
-    elif ${CreatorIsSystem} ; then
-        # Ignore System Objects
-        GENERIC_OBJECT_NAME_STRING="`cat ${APICLIJSONfilelast} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .'${workingkey}' | @sh' -r`"
+    if [ x"${objectqueryselector}" != x"" ] ; then
+        # ${objectqueryselector} is not empty
+        GENERIC_OBJECT_NAME_STRING="`cat ${APICLIJSONfilelast} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .'"${APIGenObjobjectkey}"' | @sh' -r`"
     else
-        # Don't Ignore System Objects
-        GENERIC_OBJECT_NAME_STRING="`cat ${APICLIJSONfilelast} | ${JQ} '.objects[].'${workingkey}' | @sh' -r`"
+        # ${objectqueryselector} is empty
+        GENERIC_OBJECT_NAME_STRING="`cat ${APICLIJSONfilelast} | ${JQ} '.objects[].'"${APIGenObjobjectkey}"' | @sh' -r`"
     fi
     
     # break the string into an array - each element of the array is a line in the original string
     # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
     
-    echo -n `${dtzs}`${dtzsep} '    Read Generic Objects '${workingkey}' into array:  ' | tee -a -i ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '    Read Generic Objects '"${APIGenObjobjectkey}"' into array:  ' | tee -a -i ${logfilepath}
     while read -r line; do
         if [ "${line}" == '' ]; then
             # ${line} value is nul, so skip adding to array
@@ -10549,7 +13037,7 @@ Populate_GENERICOBJECTSKEYFIELDARRAY () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-02-23:01
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-03-02:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -10560,7 +13048,7 @@ Populate_GENERICOBJECTSKEYFIELDARRAY () {
 # Operational proceedure - UseGENERICOBJECTSKEYFIELDARRAYtoShowTargetObject
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-23:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-02:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -10583,20 +13071,20 @@ UseGENERICOBJECTSKEYFIELDARRAYtoShowTargetObject () {
             #echo ',' >> ${APICLIfileexport}
         #fi
         
-        echo `${dtzs}`${dtzsep} 'Processing '${APICLIobjecttype}' with name [ '${objectnametoevaluate}' ]' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Processing '${APICLIobjecttype}' with '"${APIGenObjobjectkey}"' [ '${objectnametoevaluate}' ]' | tee -a -i ${logfilepath}
         
         if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjecttype}' name "'${objectnametoevaluate}'" '${MgmtCLI_Show_OpParms}' \>> '${APICLIfileexport} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjecttype}' '"${APIGenObjobjectkey}"' "'${objectnametoevaluate}'" '${MgmtCLI_Show_OpParms}' \>> '${APICLIfileexport} | tee -a -i ${logfilepath}
         else
-            echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjecttype}' name "'${objectnametoevaluate}'" '${MgmtCLI_Show_OpParms}' \>> '${APICLIfileexport} >> ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjecttype}' '"${APIGenObjobjectkey}"' "'${objectnametoevaluate}'" '${MgmtCLI_Show_OpParms}' \>> '${APICLIfileexport} >> ${logfilepath}
         fi
         
-        mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" ${MgmtCLI_Show_OpParms} >> ${APICLIfileexport}
+        mgmt_cli show ${APICLIobjecttype} ${APIGenObjobjectkey} "${objectnametoevaluate}" ${MgmtCLI_Show_OpParms} >> ${APICLIfileexport}
         errorreturn=$?
         
         if [ ${errorreturn} != 0 ] ; then
             # Handle Error in operation
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in mgmt_cli call for ExportComplexObjectViaGenericObjectsArrayToJSONStandard procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in mgmt_cli call for ExportComplexObjectViaGenericObjectsArrayToJSONStandard procedure' | tee -a -i ${logfilepath}
             
             if ${APISCRIPTVERBOSE} ; then
                 echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APIGenObjobjecttype}' -- RETURNING!!' | tee -a -i ${logfilepath}
@@ -10616,7 +13104,7 @@ UseGENERICOBJECTSKEYFIELDARRAYtoShowTargetObject () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-02-23:01
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-03-02:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -10773,7 +13261,7 @@ ExportComplexObjectViaGenericObjectsArrayToJSONStandard () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'ExportComplexObjectViaGenericObjectsArrayToJSONStandard : Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'ExportComplexObjectViaGenericObjectsArrayToJSONStandard : Problem during mgmt_cli operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} '  File contents with potential error from '${APICLIJSONfilelast}' : ' >> ${logfilepath}
             echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
             echo >> ${logfilepath}
@@ -10804,7 +13292,7 @@ ExportComplexObjectViaGenericObjectsArrayToJSONStandard () {
             
             if [ ${errorreturn} != 0 ] ; then
                 # Handle Error in operation
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in DumpArrayOfGenericObjectsKeyFieldValues procedure' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in DumpArrayOfGenericObjectsKeyFieldValues procedure' | tee -a -i ${logfilepath}
                 
                 if ${APISCRIPTVERBOSE} ; then
                     echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APIGenObjobjecttype}' -- RETURNING!!' | tee -a -i ${logfilepath}
@@ -10884,7 +13372,7 @@ ExportComplexObjectViaGenericObjectsArrayToJSONStandard () {
         echo `${dtzs}`${dtzsep} >>  ${logfilepath}
     fi
     
-    echo `${dtzs}`${dtzsep} 'ExportComplexObjectViaGenericObjectsArrayToJSONStandard procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'ExportComplexObjectViaGenericObjectsArrayToJSONStandard procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
@@ -11040,7 +13528,7 @@ ExportComplexObjectViaGenericObjectsArrayToJSON () {
         
     fi
     
-    echo `${dtzs}`${dtzsep} 'ExportComplexObjectViaGenericObjectsArrayToJSON procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'ExportComplexObjectViaGenericObjectsArrayToJSON procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
@@ -11057,7 +13545,7 @@ ExportComplexObjectViaGenericObjectsArrayToJSON () {
 # ComplexObjectsJSONViaGenericObjectsArrayHandler proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-23:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-02:02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ComplexObjectsJSONViaGenericObjectsArrayHandler () {
@@ -11090,7 +13578,7 @@ ComplexObjectsJSONViaGenericObjectsArrayHandler () {
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    # MODIFIED 2022-09-16:01 -
+    # MODIFIED 2023-03-02:01 -
     # Account for whether the original object definition is for REFERENCE, NO IMPORT already
     
     if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
@@ -11121,37 +13609,31 @@ ComplexObjectsJSONViaGenericObjectsArrayHandler () {
         export APICLIexportnameaddon=${APICLIexportnameaddon}
     fi
     
-    if ${ExportTypeIsStandard} ; then
-        #objectstotal_object=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
-        objectstotal_object=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
-        export number_object="${objectstotal_object}"
-        
-        if [ ${number_object} -le 0 ] ; then
-            # No groups found
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'No '${APICLIobjectstype}' to generate '${APICLIcomplexobjectstype}' members from!' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        else
-            ExportComplexObjectViaGenericObjectsArrayToJSON
-            errorreturn=$?
-        fi
-        
-        if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} '  Done with Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        fi
-        
+    #objectstotal_object=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+    objectstotal_object=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+    export number_object="${objectstotal_object}"
+    
+    if [ ${number_object} -le 0 ] ; then
+        # No groups found
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'No '${APICLIobjectstype}' to generate '${APICLIcomplexobjectstype}' members from!' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     else
+        ExportComplexObjectViaGenericObjectsArrayToJSON
+        errorreturn=$?
+    fi
+    
+    if ${APISCRIPTVERBOSE} ; then
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Not "standard" Export Type :  '${TypeOfExport}' so do not handle complex objects '${APICLIcomplexobjectstype}' for '${APICLIobjectstype}'!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  Done with Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     fi
     
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
     if [ ${errorreturn} != 0 ] ; then
         # Handle Error in operation
-        echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in ComplexObjectsJSONViaGenericObjectsArrayHandler procedure' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in ComplexObjectsJSONViaGenericObjectsArrayHandler procedure' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         if ${ABORTONERROR} ; then
             read -t ${WAITTIME} -n 1 -p "Any key to EXIT script due to error ${errorreturn}.  Automatic EXIT after ${WAITTIME} seconds : " anykey
@@ -11210,7 +13692,7 @@ ComplexObjectsJSONViaGenericObjectsArrayHandler () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-23:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-02:02
 
 
 # -------------------------------------------------------------------------------------------------
@@ -11251,19 +13733,14 @@ ComplexObjectsJSONViaGenericObjectsArrayHandler () {
 # |  - Reference Details and initial object
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-26:01 - 
+ClearObjectDefinitionData
 
-export AugmentExportedFields=false
-
-if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
-    export AugmentExportedFields=true
-elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
-    export AugmentExportedFields=true
-elif ${OnlySystemObjects} ; then
-    export AugmentExportedFields=true
-else
-    export AugmentExportedFields=false
-fi
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLIcomplexobjecttype=custom-application-site-from-generic-object
+export APICLIcomplexobjectstype=custom-application-sites-from-generic-objects
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
 
 export APIGenObjectTypes=generic-objects
 export APIGenObjectClassField=class-name
@@ -11275,19 +13752,24 @@ export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
 export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
 export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site
 export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites
-export APIGenObjCSVobjecttype=${APIGenObjobjecttype}
 export APIGenObjobjectkey=name
+export APIGenObjobjectkeydetailslevel=standard
 
-export APICLIobjecttype=application-site
-export APICLIobjectstype=application-sites
-export APICLIcomplexobjecttype=custom-application-site-from-generic-object
-export APICLIcomplexobjectstype=custom-application-sites-from-generic-objects
-export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIGenObjjsonrepofileobject=${APIGenObjobjectstype}
+export APIGenObjcomplexjsonrepofileobject=${APIGenObjcomplexobjectstype}
+export APIGenObjCSVobjecttype=${APIGenObjobjectstype}
+export APIGenObjcomplexCSVobjecttype=${APIGenObjcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=true
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -11314,15 +13796,381 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
+export AugmentExportedFields=false
+
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export AugmentExportedFields=true
+elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+    export AugmentExportedFields=true
+elif ${OnlySystemObjects} ; then
+    export AugmentExportedFields=true
+else
+    export AugmentExportedFields=false
+fi
 
 ComplexObjectsJSONViaGenericObjectsArrayHandler
 
 
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+# Complex Object via Generic-Objects Handlers - Object Specific Keys with Value arrays
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+
+
+CheckAPIKeepAlive
+
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Complex Object via Generic-Objects Handlers - Object Specific Keys with Value arrays' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+# START :  Complex Object via Generic-Objects - Object Specific Keys with Value arrays Handling Procedures Handling Procedures
+# -------------------------------------------------------------------------------------------------
+
+# ADDED 2023-03-02 -
+# MODIFIED 2023-03-02:01 -
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# END :  Complex Object via Generic-Objects - Object Specific Keys with Value arrays Handling Procedures Handling Procedures
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : custom application-sites-from-generic-objects
+# |  - Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+# |  - Reference Details and initial object
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLIcomplexobjecttype=custom-application-site-from-generic-object
+export APICLIcomplexobjectstype=custom-application-sites-from-generic-objects
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIGenObjectTypes=generic-objects
+export APIGenObjectClassField=class-name
+export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+export APIGenObjectClassShort="appfw.CpmiUserApplication"
+export APIGenObjectField=uid
+
+export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
+export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
+export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site
+export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites
+export APIGenObjobjectkey=name
+export APIGenObjobjectkeydetailslevel=standard
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIGenObjjsonrepofileobject=${APIGenObjobjectstype}
+export APIGenObjcomplexjsonrepofileobject=${APIGenObjcomplexobjectstype}
+export APIGenObjCSVobjecttype=${APIGenObjobjectstype}
+export APIGenObjcomplexCSVobjecttype=${APIGenObjcomplexobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export AugmentExportedFields=false
+
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export AugmentExportedFields=true
+elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+    export AugmentExportedFields=true
+elif ${OnlySystemObjects} ; then
+    export AugmentExportedFields=true
+else
+    export AugmentExportedFields=false
+fi
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : custom application-sites - url-lists from generic object
+# |  - Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLIcomplexobjecttype=custom-application-site-from-generic-object-element-url-list
+export APICLIcomplexobjectstype=custom-application-sites-from-generic-objects-elements-url-lists
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIGenObjectTypes=generic-objects
+export APIGenObjectClassField=class-name
+export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+export APIGenObjectClassShort="appfw.CpmiUserApplication"
+export APIGenObjectField=uid
+
+export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
+export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
+export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site-element-url-list
+export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites-elements-url-lists
+export APIGenObjobjectkey=name
+export APIGenObjobjectkeydetailslevel=standard
+
+export APIobjectspecifickey='url-list'
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=custom-application-sites-from-generic-objects
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIGenObjjsonrepofileobject=${APIGenObjobjectstype}
+export APIGenObjcomplexjsonrepofileobject=${APIGenObjcomplexobjectstype}
+export APIGenObjCSVobjecttype=${APIGenObjobjectstype}
+export APIGenObjcomplexCSVobjecttype=${APIGenObjcomplexobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+#GetGenericObjectsByClassWithSpecificKeyArrayValues
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : custom application-sites - application-signatures from generic object
+# |  - Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+# |  - Review of this application-sites objects element for application-signature resulted in a removal of this object, because a singular entry
+# +-------------------------------------------------------------------------------------------------
+
+#ClearObjectDefinitionData
+
+#export APICLIobjecttype=application-site
+#export APICLIobjectstype=application-sites
+#export APICLIcomplexobjecttype=custom-application-site-from-generic-object-element-application-signature
+#export APICLIcomplexobjectstype=custom-application-sites-from-generic-objects-elements-application-signatures
+#export APIobjectminversion=1.1
+#export APIobjectexportisCPI=false
+
+#export APIGenObjectTypes=generic-objects
+#export APIGenObjectClassField=class-name
+#export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+#export APIGenObjectClassShort="appfw.CpmiUserApplication"
+#export APIGenObjectField=uid
+
+#export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
+#export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
+#export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site-element-application-signature
+#export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites-elements-application-signatures
+#export APIGenObjobjectkey=name
+#export APIGenObjobjectkeydetailslevel=standard
+
+#export APIobjectspecifickey='application-signature'
+
+#export APIobjectspecificselector00key=
+#export APIobjectspecificselector00value=
+#export APICLIexportnameaddon=
+
+#export APIobjectjsonrepofileobject=custom-application-sites-from-generic-objects
+#export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+#export APIGenObjjsonrepofileobject=${APIGenObjobjectstype}
+#export APIGenObjcomplexjsonrepofileobject=${APIGenObjcomplexobjectstype}
+#export APIGenObjCSVobjecttype=${APIGenObjobjectstype}
+#export APIGenObjcomplexCSVobjecttype=${APIGenObjcomplexobjectstype}
+
+#export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+#export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+#export APIobjectdoexport=true
+#export APIobjectdoexportJSON=false
+#export APIobjectdoexportCSV=true
+#export APIobjectdoimport=true
+#export APIobjectdorename=false
+#export APIobjectdoupdate=false
+#export APIobjectdodelete=false
+
+#export APIobjectusesdetailslevel=true
+#export APIobjectcanignorewarning=true
+#export APIobjectcanignoreerror=true
+#export APIobjectcansetifexists=false
+#export APIobjectderefgrpmem=false
+#export APIobjecttypehasname=true
+#export APIobjecttypehasuid=true
+#export APIobjecttypehasdomain=true
+#export APIobjecttypehastags=true
+#export APIobjecttypehasmeta=true
+#export APIobjecttypeimportname=true
+
+#export APIobjectCSVFileHeaderAbsoluteBase=false
+#export APIobjectCSVJQparmsAbsoluteBase=false
+
+#export APIobjectCSVexportWIP=false
+
+#GetGenericObjectsByClassWithSpecificKeyArrayValues
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : custom application-sites - additional-categories from generic object
+# |  - Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLIcomplexobjecttype=custom-application-site-from-generic-object-element-additional-category
+export APICLIcomplexobjectstype=custom-application-sites-from-generic-objects-elements-additional-categories
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIGenObjectTypes=generic-objects
+export APIGenObjectClassField=class-name
+export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+export APIGenObjectClassShort="appfw.CpmiUserApplication"
+export APIGenObjectField=uid
+
+export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
+export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
+export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site-element-additional-category
+export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites-elements-additional-categories
+export APIGenObjobjectkey=name
+export APIGenObjobjectkeydetailslevel=standard
+
+export APIobjectspecifickey='additional-categories'
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=custom-application-sites-from-generic-objects
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIGenObjjsonrepofileobject=${APIGenObjobjectstype}
+export APIGenObjcomplexjsonrepofileobject=${APIGenObjcomplexobjectstype}
+export APIGenObjCSVobjecttype=${APIGenObjobjectstype}
+export APIGenObjcomplexCSVobjecttype=${APIGenObjcomplexobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+#GetGenericObjectsByClassWithSpecificKeyArrayValues
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
 # !-------------------------------------------------------------------------------------------------!
@@ -11429,8 +14277,20 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 
 
+# =================================================================================================
+# Action Script Completed
+# =================================================================================================
+
+
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Action Script Completed :  '${ActionScriptName} | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
 
 return 0
 

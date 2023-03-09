@@ -18,8 +18,8 @@
 #
 ScriptVersion=00.60.12
 ScriptRevision=100
-ScriptSubRevision=450
-ScriptDate=2023-02-26
+ScriptSubRevision=500
+ScriptDate=2023-03-08
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
@@ -45,13 +45,16 @@ export APIActionScriptDescription="Special Object Export to CSV action operation
 # =================================================================================================
 
 
-if ${APISCRIPTVERBOSE} ; then
-    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'ActionScriptName:  '${ActionScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${logfilepath}
-else
-    echo `${dtzs}`${dtzsep} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'ActionScriptName:  '${ActionScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} >> ${logfilepath}
-fi
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Action Script Name:  '${ActionScriptName}'  Script Version: '${ScriptVersion}'  Revision: '${ScriptRevision}.${ScriptSubRevision} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Action Script original call name :  '$0 | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Action Script initial parameters :  '"$@" | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
 # =================================================================================================
@@ -91,11 +94,13 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 
+export actionstemplogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_temp_'${DATEDTGS}.log
+
+
 # =================================================================================================
 # START:  Local Proceedures
 # =================================================================================================
 
-export actionstemplogfilepath=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_temp_'${DATEDTGS}.log
 
 # -------------------------------------------------------------------------------------------------
 # SetupTempLogFile - Setup Temporary Log File and clear any debris
@@ -190,11 +195,33 @@ ForceShowTempLogFile () {
 # -------------------------------------------------------------------------------------------------
 
 
+# MODIFIED 2023-03-08:01 - 
+
+# -------------------------------------------------------------------------------------------------
+# mgmt_cli keep alive configuration parameters
+# -------------------------------------------------------------------------------------------------
+
+#
+# mgmtclikeepalivelast       : Very First or Last time CheckAPIKeepAlive was checked, using ${SECONDS}
+# mgmtclikeepalivenow        : Current time for check versus last, using ${SECONDS}
+# mgmtclikeepaliveelapsed    : The calculated seconds between the current check and last time CheckAPIKeepAlive was checked
+# mgmtclikeepaliveinterval   : Interval between executions of CheckAPIKeepAlive desired, with default at 60 seconds
+#
+# Need to add CLI configuration parameter for this value ${mgmtclikeepaliveinterval} in the future to tweak
+#
+
+export mgmtclikeepalivelast=${SECONDS}
+export mgmtclikeepalivenow=
+export mgmtclikeepaliveelapsed=
+export mgmtclikeepaliveinterval=60
+
+
+# -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # Check API Keep Alive Status - CheckAPIKeepAlive
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-06-11:02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-08:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # Check API Keep Alive Status.
@@ -206,35 +233,75 @@ CheckAPIKeepAlive () {
     
     errorreturn=0
     
-    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    # -------------------------------------------------------------------------------------------------
     
-    tempworklogfile=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.keepalivecheck.log
+    # MODIFIED 2023-03-08:01 - 
     
-    if ${LoggedIntoMgmtCli} ; then
-        #echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check : ... ' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
+    #export mgmtclikeepalivelast=${SECONDS}
+    #export mgmtclikeepalivenow=
+    #export mgmtclikeepaliveinterval=60
+    #export mgmtclikeepaliveelapsed=
+    
+    export mgmtclikeepalivenow=${SECONDS}
+    export mgmtclikeepaliveelapsed=$(( ${mgmtclikeepalivenow} - ${mgmtclikeepalivelast} ))
+    
+    echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  last = '${mgmtclikeepalivelast}' current = '${mgmtclikeepalivenow}' elapsed = '${mgmtclikeepaliveelapsed} >> ${logfilepath}
+    
+    if [[ ${mgmtclikeepaliveelapsed} -gt ${mgmtclikeepaliveinterval} ]] ; then
+        # Last check for keep alive was longer ago than the ${mgmtclikeepaliveinterval} so do the check
         
-        if ${addversion2keepalive} ; then
-            #mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
-            mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} > ${tempworklogfile} 2>&1
-            export errorreturn=$?
+        # -------------------------------------------------------------------------------------------------
+        
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        
+        tempworklogfile=/var/tmp/${ScriptName}'_'${APIScriptVersion}'_'${DATEDTGS}.keepalivecheck.log
+        
+        if ${LoggedIntoMgmtCli} ; then
+            #echo -n `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  ' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  Elapsed seoconds since last check = '${mgmtclikeepaliveelapsed}', which is greater than the interval = '${mgmtclikeepaliveinterval} >> ${tempworklogfile}
+            echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${tempworklogfile}
+            
+            echo -n `${dtzs}`${dtzsep}' ' > ${tempworklogfile}
+            if ${addversion2keepalive} ; then
+                #mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+                mgmt_cli keepalive --version ${CurrentAPIVersion} -s ${APICLIsessionfile} >> ${tempworklogfile} 2>&1
+                export errorreturn=$?
+            else
+                #mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
+                mgmt_cli keepalive -s ${APICLIsessionfile} >> ${tempworklogfile} 2>&1
+                export errorreturn=$?
+            fi
+            
+            echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${tempworklogfile}
+            
+            cat ${tempworklogfile} >> ${logfilepath}
+            
+            echo `${dtzs}`${dtzsep}' Remove temporary log file:  "'${tempworklogfile}'"' >> ${logfilepath}
+            echo -n `${dtzs}`${dtzsep}' ' >> ${logfilepath}
+            rm -v ${tempworklogfile} >> ${logfilepath} 2>&1
+            
+            echo `${dtzs}`${dtzsep} 'Keep Alive Check errorreturn = [ '${errorreturn}' ]' | tee -a -i ${logfilepath}
+            
+            if [ ${errorreturn} != 0 ] ; then
+                # Something went wrong, terminate
+                echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
+                
+                export LoggedIntoMgmtCli=false
+                
+                . ${mgmt_cli_API_operations_handler} LOGIN "$@"
+                LOGINEXITCODE=$?
+                
+                if [ ${LOGINEXITCODE} != 0 ] ; then
+                    exit ${LOGINEXITCODE}
+                else
+                    export LoggedIntoMgmtCli=true
+                    export errorreturn=0
+                fi
+            fi
         else
-            #mgmt_cli keepalive -s ${APICLIsessionfile} >> ${logfilepath} 2>&1
-            mgmt_cli keepalive -s ${APICLIsessionfile} > ${tempworklogfile} 2>&1
-            export errorreturn=$?
-        fi
-        
-        cat ${tempworklogfile} >> ${logfilepath}
-        rm ${tempworklogfile} >> ${logfilepath} 2>&1
-        
-        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Keep Alive Check errorreturn = [ '${errorreturn}' ]' | tee -a -i ${logfilepath}
-        
-        if [ ${errorreturn} != 0 ] ; then
-            # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli keepalive operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Lets see if we can login again' | tee -a -i ${logfilepath}
+            # Uhhh what, this check should only happen if logged in
+            echo `${dtzs}`${dtzsep} ' Executing mgmt_cli login instead of mgmt_cli keepalive check ?!?...  ' | tee -a -i ${logfilepath}
             
             export LoggedIntoMgmtCli=false
             
@@ -248,30 +315,23 @@ CheckAPIKeepAlive () {
                 export errorreturn=0
             fi
         fi
+        
+        echo `${dtzs}`${dtzsep} 'Keep Alive Check completed!' >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+        
+        # -------------------------------------------------------------------------------------------------
+        
     else
-        # Uhhh what, this check should only happen if logged in
-        echo `${dtzs}`${dtzsep} ' Executing mgmt_cli login instead of mgmt_cli keepalive check ?!?...  ' | tee -a -i ${logfilepath}
-        
-        export LoggedIntoMgmtCli=false
-        
-        . ${mgmt_cli_API_operations_handler} LOGIN "$@"
-        LOGINEXITCODE=$?
-        
-        if [ ${LOGINEXITCODE} != 0 ] ; then
-            exit ${LOGINEXITCODE}
-        else
-            export LoggedIntoMgmtCli=true
-            export errorreturn=0
-        fi
+        # Last check for keep alive was more recent than the ${mgmtclikeepaliveinterval} so skip this one
+        echo `${dtzs}`${dtzsep} ' mgmt_cli keepalive check :  Elapsed seoconds since last check = '${mgmtclikeepaliveelapsed}', which is within the interval = '${mgmtclikeepaliveinterval} >> ${logfilepath}
     fi
+    export mgmtclikeepalivelast=${SECONDS}
     
-    echo `${dtzs}`${dtzsep} 'Keep Alive Check completed!' >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-06-11:02
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ - MODIFIED 2023-03-08:01
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -306,11 +366,352 @@ export DefaultAPIObjectLimitMDSM=${RecommendedAPIObjectLimitMDSM}
 export DefaultAPIObjectLimitMDSMSlowObjects=${SlowObjectAPIObjectLimitMDSMSlow}
 
 
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# =================================================================================================
+# -------------------------------------------------------------------------------------------------
+# START : Execution Common Initial File and Path Location Handlers
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CommonInitialFileAndPathLocationHandlerFirst
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-06:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The CommonInitialFileAndPathLocationHandlerFirst is EXPLAIN.
+#
+
+CommonInitialFileAndPathLocationHandlerFirst () {
+    
+    # ------------------------------------------------------------------------
+    #
+    # SANITY CHECK FOR ${templogfilepath} and associated log file or HARD EXIT
+    #
+    
+    if [ x"${templogfilepath}" = x"" ] ; then
+        # Missing temporary log file path value
+        echo `${dtzs}`${dtzsep}
+        echo `${dtzs}`${dtzsep} '!!!! ERROR - missing value for ${templogfilepath} ! - EXITING !!!!'
+        exit 253
+    fi
+    if [ ! -r ${templogfilepath} ] ; then
+        # Unable to write to temporary log file path
+        echo `${dtzs}`${dtzsep}
+        echo `${dtzs}`${dtzsep} '!!!! ERROR - Unable to write to temporary log file path : "'${templogfilepath}'" ! - EXITING !!!!'
+        exit 252
+    fi
+    
+    # ------------------------------------------------------------------------
+    
+    # ------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-07:01 -
+    #
+    
+    #printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'X' "${X}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'MinAPIObjectLimit' "${MinAPIObjectLimit}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'MaxAPIObjectLimit' "${MaxAPIObjectLimit}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'RecommendedAPIObjectLimitMDSM' "${RecommendedAPIObjectLimitMDSM}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'DefaultAPIObjectLimit' "${DefaultAPIObjectLimit}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'DefaultAPIObjectLimitMDSM' "${DefaultAPIObjectLimitMDSM}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'domainnamenospace' "${domainnamenospace}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'CLIparm_NODOMAINFOLDERS' "${CLIparm_NODOMAINFOLDERS}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'primarytargetoutputformat' "${primarytargetoutputformat}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLICSVExportpathbase' "${APICLICSVExportpathbase}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIpathexport' "${APICLIpathexport}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathroot' "${JSONRepopathroot}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathbase' "${JSONRepopathbase}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+    
+    # ------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:02 -
+    #
+    
+    echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'Current APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'Current JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+    
+    if ! ${CLIparm_NODOMAINFOLDERS} ; then
+        # adding domain name to path for MDM operations
+        if [ ! -z "${domainnamenospace}" ] ; then
+            # Handle adding domain name to path for MDM operations
+            export APICLIpathexport=${APICLICSVExportpathbase}/${domainnamenospace}
+            
+            echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
+            echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+            
+            if [ ! -r ${APICLIpathexport} ] ; then
+                echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+                mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>&1
+            fi
+            
+            export JSONRepopathbase=${JSONRepopathroot}/${domainnamenospace}
+            
+            echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to JSON repository path for MDM operations' >> ${templogfilepath}
+            echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+            
+            if [ ! -r ${JSONRepopathbase} ] ; then
+                echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+                mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>&1
+            fi
+        else
+            # Domain name is empty so not adding
+            export APICLIpathexport=${APICLICSVExportpathbase}
+            
+            echo `${dtzs}`${dtzsep} 'Handle empty domain name to path for MDM operations, so NO CHANGE' >> ${templogfilepath}
+            echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+            
+            if [ ! -r ${APICLIpathexport} ] ; then
+                echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+                mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>&1
+            fi
+            
+            export JSONRepopathbase=${JSONRepopathroot}
+            
+            echo `${dtzs}`${dtzsep} 'Handle empty domain name to JSON repository path for MDM operations, so NO CHANGE' >> ${templogfilepath}
+            echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+            
+            if [ ! -r ${JSONRepopathbase} ] ; then
+                echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+                mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>&1
+            fi
+        fi
+    else
+        # NOT adding domain name to path for MDM operations
+        export APICLIpathexport=${APICLICSVExportpathbase}
+        
+        echo `${dtzs}`${dtzsep} 'NOT adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
+        echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+        
+        if [ ! -r ${APICLIpathexport} ] ; then
+            echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+            mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>&1
+        fi
+        
+        export JSONRepopathbase=${JSONRepopathroot}
+        
+        echo `${dtzs}`${dtzsep} 'NOT adding domain name = ['"${domainnamenospace}"'] to JSON repository path for MDM operations' >> ${templogfilepath}
+        echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+        
+        if [ ! -r ${JSONRepopathbase} ] ; then
+            echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+            mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>&1
+        fi
+    fi
+    
+    echo `${dtzs}`${dtzsep} 'Final APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'Final JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+    
+    # ------------------------------------------------------------------------
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CommonInitialFileAndPathLocationHandlerLast
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-06:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The CommonInitialFileAndPathLocationHandlerLast is EXPLAIN.
+#
+
+CommonInitialFileAndPathLocationHandlerLast () {
+    
+    # ------------------------------------------------------------------------
+    #
+    # SANITY CHECK FOR ${templogfilepath} and associated log file or HARD EXIT
+    #
+    
+    if [ x"${templogfilepath}" = x"" ] ; then
+        # Missing temporary log file path value
+        echo `${dtzs}`${dtzsep}
+        echo `${dtzs}`${dtzsep} '!!!! ERROR - missing value for ${templogfilepath} ! - EXITING !!!!'
+        exit 253
+    fi
+    if [ ! -r ${templogfilepath} ] ; then
+        # Unable to write to temporary log file path
+        echo `${dtzs}`${dtzsep}
+        echo `${dtzs}`${dtzsep} '!!!! ERROR - Unable to write to temporary log file path : "'${templogfilepath}'" ! - EXITING !!!!'
+        exit 252
+    fi
+    
+    # ------------------------------------------------------------------------
+    
+    # ------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:02 -
+    #
+    
+    if [ x"${primarytargetoutputformat}" = x"${FileExtJSON}" ] ; then
+        # for JSON provide the detail level
+        
+        export APICLIpathexport=${APICLIpathexport}/${APICLIdetaillvl}
+        
+        if [ ! -r ${APICLIpathexport} ] ; then
+            echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+            mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>&1
+        fi
+        
+        export APICLIJSONpathexportwip=
+        if ${script_uses_wip_json} ; then
+            # script uses work-in-progress (wip) folder for json
+            
+            export APICLIJSONpathexportwip=${APICLIpathexport}/wip
+            
+            if [ ! -r ${APICLIJSONpathexportwip} ] ; then
+                echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+                mkdir -p -v ${APICLIJSONpathexportwip} >> ${templogfilepath} 2>&1
+            fi
+        fi
+    else
+        export APICLIJSONpathexportwip=
+    fi
+    
+    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'After handling json target' >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'APICLIJSONpathexportwip = '${APICLIJSONpathexportwip} >> ${templogfilepath}
+    
+    # ------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:02 -
+    #
+    
+    if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
+        # for CSV handle specifics, like wip
+        
+        export APICLICSVpathexportwip=
+        if ${script_uses_wip} ; then
+            # script uses work-in-progress (wip) folder for csv
+            
+            export APICLICSVpathexportwip=${APICLIpathexport}/wip
+            
+            if [ ! -r ${APICLICSVpathexportwip} ] ; then
+                echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+                mkdir -p -v ${APICLICSVpathexportwip} >> ${templogfilepath} 2>&1
+            fi
+        fi
+    else
+        export APICLICSVpathexportwip=
+    fi
+    
+    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'After handling csv target' >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'APICLICSVpathexportwip = '${APICLICSVpathexportwip} >> ${templogfilepath}
+    
+    # ------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:02 -
+    #
+    
+    export APICLIfileexportpost='_'${APICLIdetaillvl}'_'${APICLIfileexportsuffix}
+    
+    export APICLICSVheaderfilesuffix=header
+    
+    export APICLICSVfileexportpost='_'${APICLIdetaillvl}'_'${APICLICSVfileexportsuffix}
+    
+    export APICLIJSONheaderfilesuffix=header
+    export APICLIJSONfooterfilesuffix=footer
+    
+    export APICLIJSONfileexportpost='_'${APICLIdetaillvl}'_'${APICLIJSONfileexportsuffix}
+    
+    # In export operations, we do not utilize the details level of other than "standard" export types, so either "full" or "standard"
+    export JSONRepoDetailname=${APICLIdetaillvl}
+    case ${APICLIdetaillvl} in
+        'full' )
+            export JSONRepoDetailname=${APICLIdetaillvl}
+            ;;
+        'standard' )
+            export JSONRepoDetailname=${APICLIdetaillvl}
+            ;;
+        * )
+            export JSONRepoDetailname='full'
+            ;;
+    esac
+    
+    export JSONRepofilepost='_'${JSONRepoDetailname}'_'${JSONRepofilesuffix}
+    
+    #printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'X' "${X}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'Setup other file and path variables' >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIfileexportpost' "${APICLIfileexportpost}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLICSVheaderfilesuffix' "${APICLICSVheaderfilesuffix}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLICSVfileexportpost' "${APICLICSVfileexportpostX}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIJSONheaderfilesuffix' "${APICLIJSONheaderfilesuffix}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIJSONfooterfilesuffix' "${APICLIJSONfooterfilesuffix}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIJSONfileexportpost' "${APICLIJSONfileexportpost}" >> ${templogfilepath}
+    
+    # ------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:02 -
+    #
+    
+    #printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'X' "${X}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} 'Working operations file and path variables' >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'primarytargetoutputformat' "${primarytargetoutputformat}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIpathexport' "${APICLIpathexport}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathroot' "${JSONRepopathroot}" >> ${templogfilepath}
+    printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathbase' "${JSONRepopathbase}" >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------'  >>  ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+    
+    # ------------------------------------------------------------------------
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# END : Execution Common Initial File and Path Location Handlers
+# -------------------------------------------------------------------------------------------------
+# =================================================================================================
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
 # =================================================================================================
 # Start executing Main operations
 # =================================================================================================
 
-# MODIFIED 2021-10-22 -
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Configure working paths for export and dump
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-06:02 -
 #
 
 # ------------------------------------------------------------------------
@@ -320,107 +721,25 @@ export DefaultAPIObjectLimitMDSMSlowObjects=${SlowObjectAPIObjectLimitMDSMSlow}
 export templogfilepath=/var/tmp/templog_${ScriptName}.`date +%Y%m%d-%H%M%S%Z`.log
 echo `${dtzs}`${dtzsep} > ${templogfilepath}
 
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------'  >>  ${templogfilepath}
+echo `${dtzs}`${dtzsep} >> ${templogfilepath}
 echo `${dtzs}`${dtzsep} 'Configure working paths for export and dump' >> ${templogfilepath}
 echo `${dtzs}`${dtzsep} >> ${templogfilepath}
 
 # ------------------------------------------------------------------------
 
-# MODIFIED 2021-10-24 -
-#
-
-#printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'X' "${X}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'MinAPIObjectLimit' "${MinAPIObjectLimit}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'MaxAPIObjectLimit' "${MaxAPIObjectLimit}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'RecommendedAPIObjectLimitMDSM' "${RecommendedAPIObjectLimitMDSM}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'DefaultAPIObjectLimit' "${DefaultAPIObjectLimit}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'DefaultAPIObjectLimitMDSM' "${DefaultAPIObjectLimitMDSM}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'domainnamenospace' "${domainnamenospace}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'CLIparm_NODOMAINFOLDERS' "${CLIparm_NODOMAINFOLDERS}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'primarytargetoutputformat' "${primarytargetoutputformat}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLICSVExportpathbase' "${APICLICSVExportpathbase}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIpathexport' "${APICLIpathexport}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathroot' "${JSONRepopathroot}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathbase' "${JSONRepopathbase}" >> ${templogfilepath}
-
-# ------------------------------------------------------------------------
-
-# MODIFIED 2022-05-02:02 -
-
-echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'Current APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'Current JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
-
-if ! ${CLIparm_NODOMAINFOLDERS} ; then
-    # adding domain name to path for MDM operations
-    if [ ! -z "${domainnamenospace}" ] ; then
-        # Handle adding domain name to path for MDM operations
-        export APICLIpathexport=${APICLICSVExportpathbase}/${domainnamenospace}
-        
-        echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
-        echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
-        
-        if [ ! -r ${APICLIpathexport} ] ; then
-            mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>> ${templogfilepath}
-        fi
-        
-        export JSONRepopathbase=${JSONRepopathroot}/${domainnamenospace}
-        
-        echo `${dtzs}`${dtzsep} 'Handle adding domain name = ['"${domainnamenospace}"'] to JSON repository path for MDM operations' >> ${templogfilepath}
-        echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
-        
-        if [ ! -r ${JSONRepopathbase} ] ; then
-            mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>> ${templogfilepath}
-        fi
-    else
-        # Domain name is empty so not adding
-        export APICLIpathexport=${APICLICSVExportpathbase}
-        
-        echo `${dtzs}`${dtzsep} 'Handle empty domain name to path for MDM operations, so NO CHANGE' >> ${templogfilepath}
-        echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
-        
-        if [ ! -r ${APICLIpathexport} ] ; then
-            mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>> ${templogfilepath}
-        fi
-        
-        export JSONRepopathbase=${JSONRepopathroot}
-        
-        echo `${dtzs}`${dtzsep} 'Handle empty domain name to JSON repository path for MDM operations, so NO CHANGE' >> ${templogfilepath}
-        echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
-        
-        if [ ! -r ${JSONRepopathbase} ] ; then
-            mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>> ${templogfilepath}
-        fi
-    fi
-else
-    # NOT adding domain name to path for MDM operations
-    export APICLIpathexport=${APICLICSVExportpathbase}
-    
-    echo `${dtzs}`${dtzsep} 'NOT adding domain name = ['"${domainnamenospace}"'] to path for MDM operations' >> ${templogfilepath}
-    echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
-    
-    if [ ! -r ${APICLIpathexport} ] ; then
-        mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>> ${templogfilepath}
-    fi
-    
-    export JSONRepopathbase=${JSONRepopathroot}
-    
-    echo `${dtzs}`${dtzsep} 'NOT adding domain name = ['"${domainnamenospace}"'] to JSON repository path for MDM operations' >> ${templogfilepath}
-    echo `${dtzs}`${dtzsep} 'JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
-    
-    if [ ! -r ${JSONRepopathbase} ] ; then
-        mkdir -p -v ${JSONRepopathbase} >> ${templogfilepath} 2>> ${templogfilepath}
-    fi
-fi
-
-echo `${dtzs}`${dtzsep} 'Final APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'Final JSONRepopathbase = '${JSONRepopathbase} >> ${templogfilepath}
+CommonInitialFileAndPathLocationHandlerFirst
 
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
-# This section is specific to scripts that ARE action handlers
+
+
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# START:  This section is specific to scripts that ARE action handlers
 # ------------------------------------------------------------------------
 
-# MODIFIED 2021-10-22 -
+# MODIFIED 2023-03-06:02 -
 #
 
 # primary operation is export to primarytargetoutputformat
@@ -430,148 +749,57 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${templogfilepath}
 echo `${dtzs}`${dtzsep} 'Export to '${primarytargetoutputformat}' Starting!' | tee -a -i ${templogfilepath}
 
 if [ ! -r ${APICLIpathexport} ] ; then
-    mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>> ${templogfilepath}
+    echo -n `${dtzs}`${dtzsep}' ' >> ${templogfilepath}
+    mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>&1
 fi
 
 echo `${dtzs}`${dtzsep} >> ${templogfilepath}
 echo `${dtzs}`${dtzsep} 'After Evaluation of script type' >> ${templogfilepath}
 echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
 
+
+# ------------------------------------------------------------------------
+# END:  This section is specific to scripts that ARE action handlers
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
 
-# MODIFIED 2021-10-22 -
+
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+
+CommonInitialFileAndPathLocationHandlerLast
+
+# ------------------------------------------------------------------------
+
+# MODIFIED 2023-03-06:02 -
 #
 
-if [ x"${primarytargetoutputformat}" = x"${FileExtJSON}" ] ; then
-    # for JSON provide the detail level
-    
-    export APICLIpathexport=${APICLIpathexport}/${APICLIdetaillvl}
-    
-    if [ ! -r ${APICLIpathexport} ] ; then
-        mkdir -p -v ${APICLIpathexport} >> ${templogfilepath} 2>> ${templogfilepath}
-    fi
-    
-    export APICLIJSONpathexportwip=
-    if ${script_uses_wip_json} ; then
-        # script uses work-in-progress (wip) folder for json
-        
-        export APICLIJSONpathexportwip=${APICLIpathexport}/wip
-        
-        if [ ! -r ${APICLIJSONpathexportwip} ] ; then
-            mkdir -p -v ${APICLIJSONpathexportwip} >> ${templogfilepath} 2>> ${templogfilepath}
-        fi
-    fi
-else
-    export APICLIJSONpathexportwip=
-fi
+echo `${dtzs}`${dtzsep} 'Import temporary log file from "'${templogfilepath}'"' >> ${templogfilepath}
 
-echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'After handling json target' >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'APICLIJSONpathexportwip = '${APICLIJSONpathexportwip} >> ${templogfilepath}
+echo `${dtzs}`${dtzsep} >> ${logfilepath}
 
-# ------------------------------------------------------------------------
-
-# MODIFIED 2021-10-22 -
-#
-
-if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
-    # for CSV handle specifics, like wip
-    
-    export APICLICSVpathexportwip=
-    if ${script_uses_wip} ; then
-        # script uses work-in-progress (wip) folder for csv
-        
-        export APICLICSVpathexportwip=${APICLIpathexport}/wip
-        
-        if [ ! -r ${APICLICSVpathexportwip} ] ; then
-            mkdir -p -v ${APICLICSVpathexportwip} >> ${templogfilepath} 2>> ${templogfilepath}
-        fi
-    fi
-else
-    export APICLICSVpathexportwip=
-fi
-
-echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'After handling csv target' >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'APICLIpathexport = '${APICLIpathexport} >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'APICLICSVpathexportwip = '${APICLICSVpathexportwip} >> ${templogfilepath}
-
-# ------------------------------------------------------------------------
-
-# MODIFIED 2021-10-25 -
-#
-
-export APICLIfileexportpost='_'${APICLIdetaillvl}'_'${APICLIfileexportsuffix}
-
-export APICLICSVheaderfilesuffix=header
-
-export APICLICSVfileexportpost='_'${APICLIdetaillvl}'_'${APICLICSVfileexportsuffix}
-
-export APICLIJSONheaderfilesuffix=header
-export APICLIJSONfooterfilesuffix=footer
-
-export APICLIJSONfileexportpost='_'${APICLIdetaillvl}'_'${APICLIJSONfileexportsuffix}
-
-# In export operations, we do not utilize the details level of other than "standard" export types, so either "full" or "standard"
-export JSONRepoDetailname=${APICLIdetaillvl}
-case ${APICLIdetaillvl} in
-    'full' )
-        export JSONRepoDetailname=${APICLIdetaillvl}
-        ;;
-    'standard' )
-        export JSONRepoDetailname=${APICLIdetaillvl}
-        ;;
-    * )
-        export JSONRepoDetailname='full'
-        ;;
-esac
-
-export JSONRepofilepost='_'${JSONRepoDetailname}'_'${JSONRepofilesuffix}
-
-#printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'X' "${X}" >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'Setup other file and path variables' >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIfileexportpost' "${APICLIfileexportpost}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLICSVheaderfilesuffix' "${APICLICSVheaderfilesuffix}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLICSVfileexportpost' "${APICLICSVfileexportpostX}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIJSONheaderfilesuffix' "${APICLIJSONheaderfilesuffix}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIJSONfooterfilesuffix' "${APICLIJSONfooterfilesuffix}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIJSONfileexportpost' "${APICLIJSONfileexportpost}" >> ${templogfilepath}
-
-# ------------------------------------------------------------------------
-
-# MODIFIED 2021-10-22 -
-#
-
-echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-
+##echo -n `${dtzs}`${dtzsep}' ' >> ${logfilepath}
 cat ${templogfilepath} >> ${logfilepath} 2>&1
+
+echo -n `${dtzs}`${dtzsep}' ' >> ${logfilepath}
 rm -v ${templogfilepath} >> ${logfilepath} 2>&1
 
-# ------------------------------------------------------------------------
-
-# MODIFIED 2021-10-24 -
-#
-
-#printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'X' "${X}" >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} 'Working operations file and path variables' >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'MinAPIObjectLimit' "${MinAPIObjectLimit}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'MaxAPIObjectLimit' "${MaxAPIObjectLimit}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'RecommendedAPIObjectLimitMDSM' "${RecommendedAPIObjectLimitMDSM}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'DefaultAPIObjectLimit' "${DefaultAPIObjectLimit}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'DefaultAPIObjectLimitMDSM' "${DefaultAPIObjectLimitMDSM}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'primarytargetoutputformat' "${primarytargetoutputformat}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'APICLIpathexport' "${APICLIpathexport}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathroot' "${JSONRepopathroot}" >> ${templogfilepath}
-printf "`${dtzs}`${dtzsep}"'variable :  %-35s = %s\n' 'JSONRepopathbase' "${JSONRepopathbase}" >> ${templogfilepath}
-echo `${dtzs}`${dtzsep} >> ${templogfilepath}
+echo `${dtzs}`${dtzsep} >> ${logfilepath}
 
 # ------------------------------------------------------------------------
 
-# ------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Configure working paths for export and dump - Completed
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
 
 # MODIFIED 2021-10-22 -
 #
@@ -585,7 +813,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 # =================================================================================================
 # -------------------------------------------------------------------------------------------------
-# START : Main Operational repeated proceedures - Export Objects to raw JSON
+# START : Main Operational repeated proceedures - Export Objects to CSV
 # -------------------------------------------------------------------------------------------------
 
 
@@ -643,7 +871,7 @@ ConfigureMgmtCLIOperationalParametersExport () {
         echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'APIobjectusesdetailslevel' ' : ' >> ${logfilepath} ; echo ${APIobjectusesdetailslevel} >> ${logfilepath}
         echo -n `${dtzs}`${dtzsep} '    - ' >> ${logfilepath}; printf "%-40s %s" 'MgmtCLI_Show_OpParms' ' : ' >> ${logfilepath} ; echo ${MgmtCLI_Show_OpParms} >> ${logfilepath}
         echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Procedure ConfigureMgmtCLIOperationalParametersExport completed!  errorreturn = '${errorreturn} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Procedure ConfigureMgmtCLIOperationalParametersExport completed!  errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
         echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
     fi
     
@@ -652,6 +880,822 @@ ConfigureMgmtCLIOperationalParametersExport () {
 
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2022-06-12:01
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ClearObjectDefinitionData
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-08:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ClearObjectDefinitionData clear the data associated with objects to zero and start clean.
+#
+
+ClearObjectDefinitionData () {
+    
+    #
+    # Maximum Object defined
+    #
+    
+    # +-------------------------------------------------------------------------------------------------
+    # | Complex Object : Specific Complex OBJECT : 
+    # |  - Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+    # |  - Reference Details and initial object
+    # +-------------------------------------------------------------------------------------------------
+    
+    #export APICLIobjecttype=<object_type_singular>
+    #export APICLIobjectstype=<object_type_plural>
+    #export APICLIcomplexobjecttype=<complex_object_type_singular>
+    #export APICLIcomplexobjectstype=<complex_object_type_plural>
+    #export APIobjectminversion=<object_type_api_version>|example:  1.1
+    #export APIobjectexportisCPI=false|true
+    
+    #export APIGenObjectTypes=<Generic-Object-Type>|example:  generic-objects
+    #export APIGenObjectClassField=<Generic-Object-ClassField>|example:  class-name
+    #export APIGenObjectClass=<Generic-Object-Class>|example:  "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+    #export APIGenObjectClassShort=<Generic-Object-Class-Short>|example:  "appfw.CpmiUserApplication"
+    #export APIGenObjectField=<Generic-Object-Key-Field>|example:  uid
+    
+    #export APIGenObjobjecttype=<Generic-Object-Type>|example:  appfw_CpmiUserApplication_application-site
+    #export APIGenObjobjectstype=<Generic-Objects-Type-plural>|example:  appfw_CpmiUserApplication_application-sites
+    #export APIGenObjcomplexobjecttype=<Generic-Complex-Object-Type>|example:  appfw_CpmiUserApplication_application-site
+    #export APIGenObjcomplexobjectstype=<Generic-Complex-Objects-Type-plural>|example:  appfw_CpmiUserApplication_application-sites
+    #export APIGenObjobjectkey=name
+    #export APIGenObjobjectkeydetailslevel=standard
+    
+    #export APIobjectspecifickey='url-list'
+    
+    #export APIobjectspecificselector00key=
+    #export APIobjectspecificselector00value=
+    #export APICLIexportnameaddon=
+    
+    #export APICLIexportcriteria01key=
+    #export APICLIexportcriteria01value=
+    
+    #export APIobjectjsonrepofileobject=${APICLIcomplexobjectstype}
+    #export APICLICSVobjecttype=${APICLIobjectstype}
+    #export APIGenObjjsonrepofileobject=${APIGenObjobjectstype}
+    #export APIGenObjcomplexjsonrepofileobject=${APIGenObjcomplexobjectstype}
+    #export APIGenObjCSVobjecttype=${APIGenObjobjectstype}
+    #export APIGenObjcomplexCSVobjecttype=${APIGenObjcomplexobjectstype}
+    #
+    #export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+    #export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+    
+    #export APIobjectdoexport=true
+    #export APIobjectdoexportJSON=true
+    #export APIobjectdoexportCSV=true
+    #export APIobjectdoimport=true
+    #export APIobjectdorename=true
+    #export APIobjectdoupdate=true
+    #export APIobjectdodelete=true
+    
+    #export APIobjectusesdetailslevel=true
+    #export APIobjectcanignorewarning=true
+    #export APIobjectcanignoreerror=true
+    #export APIobjectcansetifexists=false
+    #export APIobjectderefgrpmem=false
+    #export APIobjecttypehasname=true
+    #export APIobjecttypehasuid=true
+    #export APIobjecttypehasdomain=true
+    #export APIobjecttypehastags=true
+    #export APIobjecttypehasmeta=true
+    #export APIobjecttypeimportname=true
+    
+    #export APIobjectCSVFileHeaderAbsoluteBase=false
+    #export APIobjectCSVJQparmsAbsoluteBase=false
+    
+    #export APIobjectCSVexportWIP=false
+    
+    #export AugmentExportedFields=false
+    
+    #if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+        #export AugmentExportedFields=true
+    #elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+        #export AugmentExportedFields=true
+    #elif ${OnlySystemObjects} ; then
+        #export AugmentExportedFields=true
+    #else
+        #export AugmentExportedFields=false
+    #fi
+    
+    #if ! ${AugmentExportedFields} ; then
+        #export APICLIexportnameaddon=
+    #else
+        #export APICLIexportnameaddon=FOR_REFERENCE_ONLY
+    #fi
+    
+    ##
+    ## APICLICSVsortparms can change due to the nature of the object
+    ##
+    #export APICLICSVsortparms='-f -t , -k 1,1'
+    
+    #export CSVFileHeader=
+    #if ! ${AugmentExportedFields} ; then
+        #export CSVFileHeader='"primary-category"'
+        ## The risk key is not imported
+        ##export CSVFileHeader=${CSVFileHeader}',"risk"'
+    #else
+        #export CSVFileHeader='"application-id","primary-category"'
+        ## The risk key is not imported
+        ##export CSVFileHeader=${CSVFileHeader}',"risk"'
+    #fi
+    ##export CSVFileHeader=
+    ##export CSVFileHeader='"key","key"'
+    ##export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+    ##export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
+    ##export CSVFileHeader=${CSVFileHeader}',"icon"'
+    
+    #export CSVJQparms=
+    #if ! ${AugmentExportedFields} ; then
+        #export CSVJQparms='.["primary-category"]'
+        ## The risk key is not imported
+        ##export CSVJQparms=${CSVJQparms}', .["risk"]'
+    #else
+        #export CSVJQparms='.["application-id"], .["primary-category"]'
+        ## The risk key is not imported
+        #export CSVJQparms=${CSVJQparms}', .["risk"]'
+    #fi
+    ##export CSVJQparms=
+    ##export CSVJQparms='.["value"], .["value"]'
+    ##export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+    ##export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
+    ##export CSVJQparms=${CSVJQparms}', .["icon"]'
+    
+    # +-------------------------------------------------------------------------------------------------
+    # +-------------------------------------------------------------------------------------------------
+    
+    export APICLIobjecttype=
+    export APICLIobjectstype=
+    export APICLIcomplexobjecttype=
+    export APICLIcomplexobjectstype=
+    export APIobjectminversion=
+    export APIobjectexportisCPI=
+    
+    export APIGenObjectTypes=
+    export APIGenObjectClassField=
+    export APIGenObjectClass=
+    export APIGenObjectClassShort=
+    export APIGenObjectField=
+    
+    export APIGenObjobjecttype=
+    export APIGenObjobjectstype=
+    export APIGenObjcomplexobjecttype=
+    export APIGenObjcomplexobjectstype=
+    export APIGenObjjsonrepofileobject=
+    export APIGenObjcomplexjsonrepofileobject=
+    export APIGenObjCSVobjecttype=
+    export APIGenObjcomplexCSVobjecttype=
+    export APIGenObjobjectkey=
+    export APIGenObjobjectkeydetailslevel=
+    
+    export APIobjectspecifickey=
+    
+    export APIobjectspecificselector00key=
+    export APIobjectspecificselector00value=
+    export APICLIexportnameaddon=
+    
+    export APICLIexportcriteria01key=
+    export APICLIexportcriteria01value=
+    
+    export APIobjectjsonrepofileobject=
+    export APICLICSVobjecttype=
+    export APIobjectrecommendedlimit=
+    export APIobjectrecommendedlimitMDSM=
+    
+    export APIobjectdoexport=
+    export APIobjectdoexportJSON=
+    export APIobjectdoexportCSV=
+    export APIobjectdoimport=
+    export APIobjectdorename=
+    export APIobjectdoupdate=
+    export APIobjectdodelete=
+    
+    export APIobjectusesdetailslevel=
+    export APIobjectcanignorewarning=
+    export APIobjectcanignoreerror=
+    export APIobjectcansetifexists=
+    export APIobjectderefgrpmem=
+    export APIobjecttypehasname=
+    export APIobjecttypehasuid=
+    export APIobjecttypehasdomain=
+    export APIobjecttypehastags=
+    export APIobjecttypehasmeta=
+    export APIobjecttypeimportname=
+    
+    export APIobjectCSVFileHeaderAbsoluteBase=
+    export APIobjectCSVJQparmsAbsoluteBase=
+    
+    export APIobjectCSVexportWIP=
+    
+    export AugmentExportedFields=
+    
+    export CSVFileHeader=
+    export CSVJQparms=
+    
+    # +-------------------------------------------------------------------------------------------------
+    # +-------------------------------------------------------------------------------------------------
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-08:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# DumpObjectDefinitionData
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-08:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The DumpObjectDefinitionData dump the content of the current object definition data to terminal and/or log.
+#
+
+DumpObjectDefinitionData () {
+    
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    
+    if ${APISCRIPTVERBOSE} ; then
+        echo `${dtzs}`${dtzsep} 'Object Definition Data details - show and log' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        
+        # +-------------------------------------------------------------------------------------------------
+        # +-------------------------------------------------------------------------------------------------
+        
+        #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'AAA' "${AAA}" | tee -a -i ${logfilepath}
+        #
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIobjecttype' "${APICLIobjecttype}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIobjectstype' "${APICLIobjectstype}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIcomplexobjecttype' "${APICLIcomplexobjecttype}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIcomplexobjectstype' "${APICLIcomplexobjectstype}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectminversion' "${APIobjectminversion}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectexportisCPI' "${APIobjectexportisCPI}" | tee -a -i ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectTypes' "${APIGenObjectTypes}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectClassField' "${APIGenObjectClassField}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectClass' "${APIGenObjectClass}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectClassShort' "${APIGenObjectClassShort}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectField' "${APIGenObjectField}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjecttype' "${APIGenObjobjecttype}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjectstype' "${APIGenObjobjectstype}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexobjecttype' "${APIGenObjcomplexobjecttype}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexobjectstype' "${APIGenObjcomplexobjectstype}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjjsonrepofileobject' "${APIGenObjjsonrepofileobject}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexjsonrepofileobject' "${APIGenObjcomplexjsonrepofileobject}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjCSVobjecttype' "${APIGenObjCSVobjecttype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexCSVobjecttype' "${APIGenObjcomplexCSVobjecttype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjectkey' "${APIGenObjobjectkey}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjectkeydetailslevel' "${APIGenObjobjectkeydetailslevel}" | tee -a -i ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectspecifickey' "${APIobjectspecifickey}" | tee -a -i ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectspecificselector00key' "${APIobjectspecificselector00key}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectspecificselector00value' "${APIobjectspecificselector00value}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIexportnameaddon' "${APICLIexportnameaddon}" | tee -a -i ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIexportcriteria01key' "${APICLIexportcriteria01key}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIexportcriteria01value' "${APICLIexportcriteria01value}" | tee -a -i ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectjsonrepofileobject' "${APIobjectjsonrepofileobject}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVobjecttype' "${APICLICSVobjecttype}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectrecommendedlimit' "${APIobjectrecommendedlimit}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectrecommendedlimitMDSM' "${APIobjectrecommendedlimitMDSM}" | tee -a -i ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoexport' "${APIobjectdoexport}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoexportJSON' "${APIobjectdoexportJSON}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoexportCSV' "${APIobjectdoexportCSV}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoimport' "${APIobjectdoimport}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdorename' "${APIobjectdorename}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoupdate' "${APIobjectdoupdate}" | tee -a -i ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdodelete' "${APIobjectdodelete}" | tee -a -i ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectusesdetailslevel' "${APIobjectusesdetailslevel}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectcanignorewarning' "${APIobjectcanignorewarning}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectcanignoreerror' "${APIobjectcanignoreerror}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectcansetifexists' "${APIobjectcansetifexists}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectderefgrpmem' "${APIobjectderefgrpmem}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehasname' "${APIobjecttypehasname}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehasuid' "${APIobjecttypehasuid}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehasdomain' "${APIobjecttypehasdomain}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehastags' "${APIobjecttypehastags}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehasmeta' "${APIobjecttypehasmeta}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypeimportname' "${APIobjecttypeimportname}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectCSVFileHeaderAbsoluteBase' "${APIobjectCSVFileHeaderAbsoluteBase}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectCSVJQparmsAbsoluteBase' "${APIobjectCSVJQparmsAbsoluteBase}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectCSVexportWIP' "${APIobjectCSVexportWIP}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'AugmentExportedFields' "${AugmentExportedFields}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVFileHeader' "${CSVFileHeader}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVJQparms' "${CSVJQparms}" >> ${logfilepath}
+        
+        # +-------------------------------------------------------------------------------------------------
+        # +-------------------------------------------------------------------------------------------------
+        
+    else
+        echo `${dtzs}`${dtzsep} 'Object Definition Data details - dump to log' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        
+        # +-------------------------------------------------------------------------------------------------
+        # +-------------------------------------------------------------------------------------------------
+        
+        #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'AAA' "${AAA}" >> ${logfilepath}
+        #
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIobjecttype' "${APICLIobjecttype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIobjectstype' "${APICLIobjectstype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIcomplexobjecttype' "${APICLIcomplexobjecttype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIcomplexobjectstype' "${APICLIcomplexobjectstype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectminversion' "${APIobjectminversion}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectexportisCPI' "${APIobjectexportisCPI}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectTypes' "${APIGenObjectTypes}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectClassField' "${APIGenObjectClassField}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectClass' "${APIGenObjectClass}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectClassShort' "${APIGenObjectClassShort}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjectField' "${APIGenObjectField}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjecttype' "${APIGenObjobjecttype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjectstype' "${APIGenObjobjectstype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexobjecttype' "${APIGenObjcomplexobjecttype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexobjectstype' "${APIGenObjcomplexobjectstype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjjsonrepofileobject' "${APIGenObjjsonrepofileobject}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexjsonrepofileobject' "${APIGenObjcomplexjsonrepofileobject}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjCSVobjecttype' "${APIGenObjCSVobjecttype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexCSVobjecttype' "${APIGenObjcomplexCSVobjecttype}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjectkey' "${APIGenObjobjectkey}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjectkeydetailslevel' "${APIGenObjobjectkeydetailslevel}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectspecifickey' "${APIobjectspecifickey}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectspecificselector00key' "${APIobjectspecificselector00key}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectspecificselector00value' "${APIobjectspecificselector00value}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIexportnameaddon' "${APICLIexportnameaddon}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIexportcriteria01key' "${APICLIexportcriteria01key}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIexportcriteria01value' "${APICLIexportcriteria01value}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectjsonrepofileobject' "${APIobjectjsonrepofileobject}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVobjecttype' "${APICLICSVobjecttype}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectrecommendedlimit' "${APIobjectrecommendedlimit}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectrecommendedlimitMDSM' "${APIobjectrecommendedlimitMDSM}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoexport' "${APIobjectdoexport}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoexportJSON' "${APIobjectdoexportJSON}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoexportCSV' "${APIobjectdoexportCSV}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoimport' "${APIobjectdoimport}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdorename' "${APIobjectdorename}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdoupdate' "${APIobjectdoupdate}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectdodelete' "${APIobjectdodelete}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectusesdetailslevel' "${APIobjectusesdetailslevel}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectcanignorewarning' "${APIobjectcanignorewarning}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectcanignoreerror' "${APIobjectcanignoreerror}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectcansetifexists' "${APIobjectcansetifexists}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectderefgrpmem' "${APIobjectderefgrpmem}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehasname' "${APIobjecttypehasname}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehasuid' "${APIobjecttypehasuid}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehasdomain' "${APIobjecttypehasdomain}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehastags' "${APIobjecttypehastags}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypehasmeta' "${APIobjecttypehasmeta}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjecttypeimportname' "${APIobjecttypeimportname}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectCSVFileHeaderAbsoluteBase' "${APIobjectCSVFileHeaderAbsoluteBase}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectCSVJQparmsAbsoluteBase' "${APIobjectCSVJQparmsAbsoluteBase}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectCSVexportWIP' "${APIobjectCSVexportWIP}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'AugmentExportedFields' "${AugmentExportedFields}" >> ${logfilepath}
+        
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVFileHeader' "${CSVFileHeader}" >> ${logfilepath}
+        printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'CSVJQparms' "${CSVJQparms}" >> ${logfilepath}
+        
+        # +-------------------------------------------------------------------------------------------------
+        # +-------------------------------------------------------------------------------------------------
+        
+    fi
+    
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-08:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ConfigureWorkAPIObjectLimit
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-03:02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ConfigureWorkAPIObjectLimit handles the stanard configuration of the ${WorkAPIObjectLimit} value.
+#
+
+ConfigureWorkAPIObjectLimit () {
+    
+    # MODIFIED 2023-03-03:02 -
+    
+    if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
+        # This object does not have limits to check and probably does not have more than one object entry
+        export WorkAPIObjectLimit=1
+        echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit set to '${WorkAPIObjectLimit}' because this object is singular and special' | tee -a -i ${logfilepath}
+    else
+        export WorkAPIObjectLimit=${MaxAPIObjectLimit}
+        if [ -z "${domainnamenospace}" ] ; then
+            # an empty ${domainnamenospace} indicates that we are not working towards an MDSM
+            export WorkAPIObjectLimit=${APIobjectrecommendedlimit}
+        else
+            # an empty ${domainnamenospace} indicates that we are working towards an MDSM
+            export WorkAPIObjectLimit=${APIobjectrecommendedlimitMDSM}
+        fi
+        
+        echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
+        
+        if ${OverrideMaxObjects} ; then
+            echo `${dtzs}`${dtzsep} 'Override Maximum Objects with OverrideMaxObjectsNumber :  '${OverrideMaxObjectsNumber}' objects value' | tee -a -i ${logfilepath}
+            export WorkAPIObjectLimit=${OverrideMaxObjectsNumber}
+        fi
+        
+        echo `${dtzs}`${dtzsep} 'Final WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
+    fi
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectrecommendedlimit' "${APIobjectrecommendedlimit}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectrecommendedlimitMDSM' "${APIobjectrecommendedlimitMDSM}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'WorkAPIObjectLimit' "${WorkAPIObjectLimit}" >> ${logfilepath}
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-03:02
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ConfigureCSVFileNamesForExport
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ConfigureCSVFileNamesForExport Configures the CSV File name for Export operations.
+#
+
+ConfigureCSVFileNamesForExport () {
+    
+    # MODIFIED 2023-03-04:01 -
+    
+    if [ x"${APICLICSVobjecttype}" != x"" ] ; then
+        export APICLICSVfilename=${APICLICSVobjecttype}
+    elif [ x"${APICLIcomplexobjectstype}" != x"" ] ; then
+        export APICLICSVfilename=${APICLIcomplexobjectstype}
+    else
+        export APICLICSVfilename=${APICLIobjectstype}
+    fi
+    if [ x"${APICLIexportnameaddon}" != x"" ] ; then
+        export APICLICSVfilename=${APICLICSVfilename}'_'${APICLIexportnameaddon}
+    fi
+    export APICLICSVfilename=${APICLICSVfilename}'_'${APICLIdetaillvl}'_csv'${APICLICSVfileexportsuffix}
+    export APICLICSVfile=${APICLIpathexport}/${APICLICSVfilename}
+    export APICLICSVfilewip=${APICLICSVpathexportwip}/${APICLICSVfilename}
+    export APICLICSVfileheader=${APICLICSVfilewip}.${APICLICSVheaderfilesuffix}
+    export APICLICSVfiledata=${APICLICSVfilewip}.data
+    export APICLICSVfilesort=${APICLICSVfilewip}.sort
+    export APICLICSVfiledatalast=${APICLICSVfilewip}.datalast
+    export APICLICSVfileoriginal=${APICLICSVfilewip}.original
+    
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVpathexportwip' "${APICLICSVpathexportwip}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIexportnameaddon' "${APICLIexportnameaddon}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIdetaillvl' "${APICLIdetaillvl}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfileexportsuffix' "${APICLICSVfileexportsuffix}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIpathexport' "${APICLIpathexport}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfilename' "${APICLICSVfilename}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfile' "${APICLICSVfile}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVpathexportwip' "${APICLICSVpathexportwip}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfilewip' "${APICLICSVfilewip}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVheaderfilesuffix' "${APICLICSVheaderfilesuffix}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfileheader' "${APICLICSVfileheader}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfiledata' "${APICLICSVfiledata}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfilesort' "${APICLICSVfilesort}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfiledatalast' "${APICLICSVfiledatalast}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfileoriginal' "${APICLICSVfileoriginal}" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ConfigureJSONRepoFileNamesAndPaths
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ConfigureJSONRepoFileNamesAndPaths sets up the file name and paths to the JSON Repository.
+#
+
+ConfigureJSONRepoFileNamesAndPaths () {
+    
+    echo `${dtzs}`${dtzsep} 'Using the following details level for the JSON Repository = '${JSONRepoDetailname} >> ${logfilepath}
+    
+    # Configure the JSON Repository File information
+    
+    # In export operations, we do not utilize the details level of other than "standard" export types, so either "full" or "standard"
+    export JSONRepoDetailname=${APICLIdetaillvl}
+    case ${APICLIdetaillvl} in
+        'full' )
+            export JSONRepoDetailname=${APICLIdetaillvl}
+            ;;
+        'standard' )
+            export JSONRepoDetailname=${APICLIdetaillvl}
+            ;;
+        * )
+            export JSONRepoDetailname='full'
+            ;;
+    esac
+    
+    if ${NoSystemObjects} ; then
+        if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
+            # In CSV export operations, we do not utilize the ${APICLIdetaillvl}.NoSystemObjects to ensure we harvest from the repository
+            export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}
+        else
+            export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}.NoSystemObjects
+        fi
+    elif ${OnlySystemObjects} ; then
+        if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
+            # In CSV export operations, we do not utilize the ${APICLIdetaillvl}.OnlySystemObjects to ensure we harvest from the repository
+            export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}
+        else
+            export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}.OnlySystemObjects
+        fi
+    else
+        export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}
+    fi
+    
+    export JSONRepofilepost='_'${JSONRepoDetailname}'_'${JSONRepofilesuffix}
+    
+    # MODIFIED 2023-03-04:01 -
+    
+    if [ x"${APIobjectjsonrepofileobject}" != x"" ] ; then
+        export JSONRepofilename=${APIobjectjsonrepofileobject}
+    else
+        export JSONRepofilename=${APICLIobjectstype}
+    fi
+    if [ x"${APICLIexportnameaddon}" != x"" ] ; then
+        # We need to check if we can actually use the ${APICLIexportnameaddon}
+        if [ -r "${JSONRepopathworking}/${JSONRepofilepre}${JSONRepofilename}'_'${APICLIexportnameaddon}${JSONRepofilepost}" ] ; then
+            # the JSON repository actually contains the file with the ${APICLIexportnameaddon}, so use it
+            export JSONRepofilename=${JSONRepofilename}'_'${APICLIexportnameaddon}
+        else
+            # the JSON repository does not contain the file with the ${APICLIexportnameaddon}, so use the basic value
+            export JSONRepofilename=${JSONRepofilename}
+        fi
+    fi
+    
+    export JSONRepoFile=${JSONRepopathworking}/${JSONRepofilepre}${JSONRepofilename}${JSONRepofilepost}
+    
+    export APICLIJSONfilelast=${APICLICSVpathexportwip}/${APICLICSVfilename}'_json_last'${APICLIJSONfileexportsuffix}
+    
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectjsonrepofileobject' "${APIobjectjsonrepofileobject}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIobjectstype' "${APICLIobjectstype}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoDetailname' "${JSONRepoDetailname}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepopathbase' "${JSONRepopathbase}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoDetailname' "${JSONRepoDetailname}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepopathworking' "${JSONRepopathworking}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepofilepre' "${JSONRepofilepre}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepofilename' "${JSONRepofilename}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepofilepost' "${JSONRepofilepost}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepopathworking' "${JSONRepopathworking}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoFile' "${JSONRepoFile}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIJSONfilelast' "${APICLIJSONfilelast}" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ConfigureComplexObjectJSONRepoFileNamesAndPaths
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ConfigureComplexObjectJSONRepoFileNamesAndPaths sets up the file name and paths to the JSON Repository for a  Complex Object.
+#
+
+ConfigureComplexObjectJSONRepoFileNamesAndPaths () {
+    
+    # First configure the default plumbing for a JSON Repository File and Path
+    
+    ConfigureJSONRepoFileNamesAndPaths
+    
+    # MODIFIED 2023-03-04:01 -
+    
+    if [ x"${APIobjectjsonrepofileobject}" != x"" ] ; then
+        export JSONRepoComplexObjectfilename=${APIobjectjsonrepofileobject}
+    elif [ x"${APICLIcomplexobjectstype}" != x"" ] ; then
+        export JSONRepoComplexObjectfilename=${APICLIcomplexobjectstype}
+    else
+        export JSONRepofilename=${APICLIobjectstype}
+    fi
+    if [ x"${APICLIexportnameaddon}" != x"" ] ; then
+        # We need to check if we can actually use the ${APICLIexportnameaddon}
+        if [ -r "${JSONRepopathworking}/${JSONRepofilepre}${JSONRepoComplexObjectfilename}'_'${APICLIexportnameaddon}${JSONRepofilepost}" ] ; then
+            # the JSON repository actually contains the file with the ${APICLIexportnameaddon}, so use it
+            export JSONRepoComplexObjectfilename=${JSONRepoComplexObjectfilename}'_'${APICLIexportnameaddon}
+        else
+            # the JSON repository does not contain the file with the ${APICLIexportnameaddon}, so use the basic value
+            export JSONRepoComplexObjectfilename=${JSONRepoComplexObjectfilename}
+        fi
+    fi
+    
+    export JSONRepoComplexObjectFile=${JSONRepopathworking}/${JSONRepofilepre}${JSONRepoComplexObjectfilename}${JSONRepofilepost}
+    
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectjsonrepofileobject' "${APIobjectjsonrepofileobject}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIcomplexobjectstype' "${APICLIcomplexobjectstype}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoComplexObjectfilename' "${JSONRepoComplexObjectfilename}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoComplexObjectFile' "${JSONRepoComplexObjectFile}" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ConfigureGenericObjectJSONRepoFileNamesAndPaths
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ConfigureGenericObjectJSONRepoFileNamesAndPaths sets up the file name and paths to the JSON Repository for a Generic API Object.
+#
+
+ConfigureGenericObjectJSONRepoFileNamesAndPaths () {
+    
+    # First configure the default plumbing for a JSON Repository File and Path
+    
+    ConfigureJSONRepoFileNamesAndPaths
+    
+    # MODIFIED 2023-03-04:01 -
+    
+    if [ x"${APIGenObjjsonrepofileobject}" != x"" ] ; then
+        export JSONRepoAPIGenObjectfilename=${APIGenObjjsonrepofileobject}
+    elif [ x"${APIGenObjobjectstype}" != x"" ] ; then
+        export JSONRepoAPIGenObjectfilename=${APIGenObjobjectstype}
+    else
+        export JSONRepoAPIGenObjectfilename=${APICLIobjectstype}
+    fi
+    if [ x"${APICLIexportnameaddon}" != x"" ] ; then
+        # We need to check if we can actually use the ${APICLIexportnameaddon}
+        if [ -r "${JSONRepopathworking}/${JSONRepofilepre}${JSONRepoAPIGenObjectfilename}'_'${APICLIexportnameaddon}${JSONRepofilepost}" ] ; then
+            # the JSON repository actually contains the file with the ${APICLIexportnameaddon}, so use it
+            export JSONRepoAPIGenObjectfilename=${JSONRepoAPIGenObjectfilename}'_'${APICLIexportnameaddon}
+        else
+            # the JSON repository does not contain the file with the ${APICLIexportnameaddon}, so use the basic value
+            export JSONRepoAPIGenObjectfilename=${JSONRepoAPIGenObjectfilename}
+        fi
+    fi
+    
+    export JSONRepoAPIGenObjectFile=${JSONRepopathworking}/${JSONRepofilepre}${JSONRepoAPIGenObjectfilename}${JSONRepofilepost}
+    
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjjsonrepofileobject' "${APIGenObjjsonrepofileobject}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjectstype' "${APIGenObjobjectstype}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoAPIGenObjectfilename' "${JSONRepoAPIGenObjectfilename}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoAPIGenObjectFile' "${JSONRepoAPIGenObjectFile}" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# ConfigureGenericComplexObjectJSONRepoFileNamesAndPaths
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The ConfigureGenericComplexObjectJSONRepoFileNamesAndPaths sets up the file name and paths to the JSON Repository for a Generic API Complex Object.
+#
+
+ConfigureGenericComplexObjectJSONRepoFileNamesAndPaths () {
+    
+    # First configure the default plumbing for a JSON Repository File and Path
+    
+    ConfigureJSONRepoFileNamesAndPaths
+    
+    # MODIFIED 2023-03-04:01 -
+    
+    if [ x"${APIGenObjcomplexjsonrepofileobject}" != x"" ] ; then
+        export JSONRepoAPIGenComplexObjectfilename=${APIGenObjcomplexjsonrepofileobject}
+    elif [ x"${APIGenObjcomplexobjectstype}" != x"" ] ; then
+        export JSONRepoAPIGenComplexObjectfilename=${APIGenObjcomplexobjectstype}
+    elif [ x"${APIGenObjobjectstype}" != x"" ] ; then
+        export JSONRepoAPIGenComplexObjectfilename=${APIGenObjobjectstype}
+    else
+        export JSONRepoAPIGenComplexObjectfilename=${APICLIobjectstype}
+    fi
+    if [ x"${APICLIexportnameaddon}" != x"" ] ; then
+        # We need to check if we can actually use the ${APICLIexportnameaddon}
+        if [ -r "${JSONRepopathworking}/${JSONRepofilepre}${JSONRepoAPIGenComplexObjectfilename}'_'${APICLIexportnameaddon}${JSONRepofilepost}" ] ; then
+            # the JSON repository actually contains the file with the ${APICLIexportnameaddon}, so use it
+            export JSONRepoAPIGenComplexObjectfilename=${JSONRepoAPIGenComplexObjectfilename}'_'${APICLIexportnameaddon}
+        else
+            # the JSON repository does not contain the file with the ${APICLIexportnameaddon}, so use the basic value
+            export JSONRepoAPIGenComplexObjectfilename=${JSONRepoAPIGenComplexObjectfilename}
+        fi
+    fi
+    
+    export JSONRepoAPIGenComplexObjectFile=${JSONRepopathworking}/${JSONRepofilepre}${JSONRepoAPIGenComplexObjectfilename}${JSONRepofilepost}
+    
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexjsonrepofileobject' "${APIGenObjcomplexjsonrepofileobject}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjcomplexobjectstype' "${APIGenObjcomplexobjectstype}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIGenObjobjectstype' "${APIGenObjobjectstype}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoAPIGenComplexObjectfilename' "${JSONRepoAPIGenComplexObjectfilename}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoAPIGenComplexObjectFile' "${JSONRepoAPIGenComplexObjectFile}" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    return 0
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
+
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -838,7 +1882,7 @@ ConfigureObjectQuerySelector () {
         fi
     fi
     
-    echo `${dtzs}`${dtzsep} '    - Object Query Selector = ['${objectqueryselector}']' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '    Object Query Selector in []s is ['${objectqueryselector}']' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} '--------------------------------------------------------------------------' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} >> ${logfilepath}
     
@@ -860,7 +1904,7 @@ ConfigureObjectQuerySelector () {
 # SetupExportObjectsToCSVviaJQ
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-01-05:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-03:02\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The SetupExportObjectsToCSVviaJQ is the setup actions for the script's repeated actions.
@@ -875,135 +1919,13 @@ SetupExportObjectsToCSVviaJQ () {
     #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'X' "${X}" >> ${logfilepath}
     #
     
-    # MODIFIED 2022-09-14 -
-    
-    if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
-        # This object does not have limits to check and probably does not have more than one object entry
-        export WorkAPIObjectLimit=1
-        echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit set to '${WorkAPIObjectLimit}' because this object is singular and special' | tee -a -i ${logfilepath}
-    else
-        export WorkAPIObjectLimit=${MaxAPIObjectLimit}
-        if [ -z "${domainnamenospace}" ] ; then
-            # an empty ${domainnamenospace} indicates that we are not working towards an MDSM
-            export WorkAPIObjectLimit=${APIobjectrecommendedlimit}
-        else
-            # an empty ${domainnamenospace} indicates that we are working towards an MDSM
-            export WorkAPIObjectLimit=${APIobjectrecommendedlimitMDSM}
-        fi
-        
-        echo `${dtzs}`${dtzsep} 'WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
-        
-        if ${OverrideMaxObjects} ; then
-            echo `${dtzs}`${dtzsep} 'Override Maximum Objects with OverrideMaxObjectsNumber :  '${OverrideMaxObjectsNumber}' objects value' | tee -a -i ${logfilepath}
-            export WorkAPIObjectLimit=${OverrideMaxObjectsNumber}
-        fi
-        
-        echo `${dtzs}`${dtzsep} 'Final WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
-    fi
-    
-    echo `${dtzs}`${dtzsep} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectrecommendedlimit' "${APIobjectrecommendedlimit}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectrecommendedlimitMDSM' "${APIobjectrecommendedlimitMDSM}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'WorkAPIObjectLimit' "${WorkAPIObjectLimit}" >> ${logfilepath}
+    ConfigureWorkAPIObjectLimit
     
     # Build the object type specific output file
     
-    export APICLICSVfilename=${APICLIobjectstype}
-    if [ x"${APICLIexportnameaddon}" != x"" ] ; then
-        export APICLICSVfilename=${APICLICSVfilename}'_'${APICLIexportnameaddon}
-    fi
-    export APICLICSVfilename=${APICLICSVfilename}'_'${APICLIdetaillvl}'_csv'${APICLICSVfileexportsuffix}
-    export APICLICSVfile=${APICLIpathexport}/${APICLICSVfilename}
-    export APICLICSVfilewip=${APICLICSVpathexportwip}/${APICLICSVfilename}
-    export APICLICSVfileheader=${APICLICSVfilewip}.${APICLICSVheaderfilesuffix}
-    export APICLICSVfiledata=${APICLICSVfilewip}.data
-    export APICLICSVfilesort=${APICLICSVfilewip}.sort
-    export APICLICSVfiledatalast=${APICLICSVfilewip}.datalast
-    export APICLICSVfileoriginal=${APICLICSVfilewip}.original
+    ConfigureCSVFileNamesForExport
     
-    # Configure the JSON Repository File information
-    
-    # In export operations, we do not utilize the details level of other than "standard" export types, so either "full" or "standard"
-    export JSONRepoDetailname=${APICLIdetaillvl}
-    case ${APICLIdetaillvl} in
-        'full' )
-            export JSONRepoDetailname=${APICLIdetaillvl}
-            ;;
-        'standard' )
-            export JSONRepoDetailname=${APICLIdetaillvl}
-            ;;
-        * )
-            export JSONRepoDetailname='full'
-            ;;
-    esac
-    
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVpathexportwip' "${APICLICSVpathexportwip}" >> ${logfilepath}
-    
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIexportnameaddon' "${APICLIexportnameaddon}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIdetaillvl' "${APICLIdetaillvl}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfileexportsuffix' "${APICLICSVfileexportsuffix}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIpathexport' "${APICLIpathexport}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfilename' "${APICLICSVfilename}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfile' "${APICLICSVfile}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVpathexportwip' "${APICLICSVpathexportwip}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfilewip' "${APICLICSVfilewip}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVheaderfilesuffix' "${APICLICSVheaderfilesuffix}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfileheader' "${APICLICSVfileheader}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfiledata' "${APICLICSVfiledata}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfilesort' "${APICLICSVfilesort}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfiledatalast' "${APICLICSVfiledatalast}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfileoriginal' "${APICLICSVfileoriginal}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoDetailname' "${JSONRepoDetailname}" >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} >> ${logfilepath}
-    
-    echo `${dtzs}`${dtzsep} 'Using the following details level for the JSON Repository = '${JSONRepoDetailname} >> ${logfilepath}
-    
-    if ${NoSystemObjects} ; then
-        if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
-            # In CSV export operations, we do not utilize the ${APICLIdetaillvl}.NoSystemObjects to ensure we harvest from the repository
-            export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}
-        else
-            export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}.NoSystemObjects
-        fi
-    elif ${OnlySystemObjects} ; then
-        if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
-            # In CSV export operations, we do not utilize the ${APICLIdetaillvl}.OnlySystemObjects to ensure we harvest from the repository
-            export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}
-        else
-            export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}.OnlySystemObjects
-        fi
-    else
-        export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}
-    fi
-    
-    export JSONRepofilepost='_'${JSONRepoDetailname}'_'${JSONRepofilesuffix}
-    
-    export JSONRepofilename=${APICLIobjectstype}
-    if [ x"${APICLIexportnameaddon}" != x"" ] ; then
-        # We need to check if we can actually use the ${APICLIexportnameaddon}
-        if [ -r "${JSONRepopathworking}/${JSONRepofilepre}${JSONRepofilename}'_'${APICLIexportnameaddon}${JSONRepofilepost}" ] ; then
-            # the JSON repository actually contains the file with the ${APICLIexportnameaddon}, so use it
-            export JSONRepofilename=${JSONRepofilename}'_'${APICLIexportnameaddon}
-        else
-            # the JSON repository does not contain the file with the ${APICLIexportnameaddon}, so use the basic value
-            export JSONRepofilename=${JSONRepofilename}
-        fi
-    fi
-    
-    export JSONRepoFile=${JSONRepopathworking}/${JSONRepofilepre}${JSONRepofilename}${JSONRepofilepost}
-    
-    export APICLIJSONfilelast=${APICLICSVpathexportwip}/${APICLICSVfilename}'_json_last'${APICLIJSONfileexportsuffix}
-    
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepopathbase' "${JSONRepopathbase}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoDetailname' "${JSONRepoDetailname}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepopathworking' "${JSONRepopathworking}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepofilepre' "${JSONRepofilepre}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepofilename' "${JSONRepofilename}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepofilepost' "${JSONRepofilepost}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepopathworking' "${JSONRepopathworking}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoFile' "${JSONRepoFile}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIJSONfilelast' "${APICLIJSONfilelast}" >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    ConfigureJSONRepoFileNamesAndPaths
     
     if [ ! -r ${APICLICSVpathexportwip} ] ; then
         mkdir -p -v ${APICLICSVpathexportwip} >> ${logfilepath} 2>&1
@@ -1045,7 +1967,11 @@ SetupExportObjectsToCSVviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-01-05:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-03:02
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1660,13 +2586,27 @@ ConfigureExportCSVandJQParameters () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2022-07-12:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # DetermineIfDoMgmtCLIQuery executes check if executing export using mgmt_cli command.
 #
 
 DetermineIfDoMgmtCLIQuery () {
+    #
+    # Expected configured key input values
+    #
+    # ${script_use_json_repo}
+    # ${UseJSONRepo}
+    # ${objectstoshow}
+    # ${APICLIobjectstype}
+    # ${JSONRepoObjectsTotal}
+    # ${JSONRepoFile}
+    #
+    # Output values:
+    #
+    # ${domgmtcliquery}
+    # ${errorreturn}
     #
     
     export errorreturn=0
@@ -1675,98 +2615,69 @@ DetermineIfDoMgmtCLIQuery () {
     
     export domgmtcliquery=false
     
-    # MODIFIED 2022-07-12:01 -
-    if ${UseJSONRepo} ; then
+    # MODIFIED 2023-03-06:01 -
+    
+    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQuery procedure Starting...' | tee -a -i ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'objectstoshow' "${objectstoshow}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoObjectsTotal' "${JSONRepoObjectsTotal}" >> ${logfilepath}
+    
+    if ! ${script_use_json_repo} ; then
+        # Script use of JSON Repository is denied
+        echo `${dtzs}`${dtzsep} 'Script use of JSON Repository file "'${JSONRepoFile}'" is DENIED by script!' | tee -a -i ${logfilepath}
+        export domgmtcliquery=true
+    elif ${UseJSONRepo} ; then
         # Use of JSON Repository Enabled
         echo `${dtzs}`${dtzsep} 'Check use of JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+        
         if ${NoSystemObjects} ; then
-            # Ignore System Objects
-            if [[ ${JSONRepoObjectsTotal} -gt 0 ]] ; then
-                # JSON Repository has content
-                if ${script_use_json_repo} ; then
-                    # Check if we have different content in repository than expected
-                    if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
-                        # JSON Repository has the same number of objects as the management database
-                        # Use of JSON Repository is indicated
-                        export domgmtcliquery=false
-                        echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
-                    else
-                        # JSON Repository has a differnt number of objects than the management database, 
-                        # so something definitely changed and we probably can't use the repository
-                        export domgmtcliquery=true
-                        echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
-                        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
-                    fi
-                else
-                    # Use of JSON Repository is denied
-                    export domgmtcliquery=true
-                    echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
-                fi
-            else
-                # JSON Repository has a differnt number of objects than the management database, 
-                # so something definitely changed and we probably can't use the repository
-                export domgmtcliquery=true
-                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
-            fi
+            CompareObjectsTotalEqual=false
         elif ${OnlySystemObjects} ; then
-            # Only System Objects
-            if [[ ${JSONRepoObjectsTotal} -gt 0 ]] ; then
-                # JSON Repository has content
-                if ${script_use_json_repo} ; then
-                    # Check if we have different content in repository than expected
-                    if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
-                        # JSON Repository has the same number of objects as the management database
-                        # Use of JSON Repository is indicated
-                        export domgmtcliquery=false
-                        echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
-                    else
-                        # JSON Repository has a differnt number of objects than the management database, 
-                        # so something definitely changed and we probably can't use the repository
-                        export domgmtcliquery=true
-                        echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
-                        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
-                    fi
-                else
-                    # Use of JSON Repository is denied
-                    export domgmtcliquery=true
-                    echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
-                fi
-            else
-                # JSON Repository has a differnt number of objects than the management database, 
-                # so something definitely changed and we probably can't use the repository
-                export domgmtcliquery=true
-                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
-            fi
+            CompareObjectsTotalEqual=false
         else
-            # Include System Objects
+            CompareObjectsTotalEqual=true
+        fi
+        
+        if ${CompareObjectsTotalEqual} ; then
             if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
                 # JSON Repository has the same number of objects as the management database
-                if ${script_use_json_repo} ; then
-                    # Use of JSON Repository is indicated
-                    export domgmtcliquery=false
-                    echo `${dtzs}`${dtzsep} 'Using JSON Repository for ['${objectstoshow}':'${JSONRepoObjectsTotal}'] of '${APICLIobjectstype}' objects file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
-                else
-                    # Use of JSON Repository is denied
-                    export domgmtcliquery=true
-                    echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
-                fi
+                export domgmtcliquery=false
             else
-                # JSON Repository has a differnt number of objects than the management database, 
-                # so something definitely changed and we probably can't use the repository
+                # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
                 export domgmtcliquery=true
                 echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
-                echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+            fi
+        else
+            if [[ ${JSONRepoObjectsTotal} -gt 0 ]] ; then
+                # JSON Repository has content
+                if [[ ${objectstoshow} -eq ${JSONRepoObjectsTotal} ]] ; then
+                    # JSON Repository has the same number of objects as the management database
+                    export domgmtcliquery=false
+                else
+                    # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                    export domgmtcliquery=true
+                    echo `${dtzs}`${dtzsep} 'Object count of '${APICLIobjectstype}' objects [ '${objectstoshow}' ] does not match count of [ '${JSONRepoObjectsTotal}' ] in JSON Repository file!' | tee -a -i ${logfilepath}
+                fi
+            else
+                # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                export domgmtcliquery=true
             fi
         fi
     else
-        # Use of JSON Repository Enabled
-        export domgmtcliquery=false
-        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation.' | tee -a -i ${logfilepath}
+        # Use of JSON Repository Disabled
+        echo `${dtzs}`${dtzsep} 'Script use of JSON Repository file "'${JSONRepoFile}'" is DENIED by operation!' | tee -a -i ${logfilepath}
+        export domgmtcliquery=true
+    fi
+    
+    if ${domgmtcliquery} ; then
+        echo `${dtzs}`${dtzsep} 'NOT Using JSON Repository file "'${JSONRepoFile}'" for operation, shift to mgmt_cli query.' | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} 'Using JSON Repository for [ '${objectstoshow}' : '${JSONRepoObjectsTotal}' ] of '${APICLIobjectstype}' objects for operation' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} ' -- In file "'${JSONRepoFile}'"' | tee -a -i ${logfilepath}
     fi
     
     # -------------------------------------------------------------------------------------------------
     
-    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQuery procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQuery result domgmtcliquery [ '${domgmtcliquery}' ], procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
     
@@ -1774,7 +2685,648 @@ DetermineIfDoMgmtCLIQuery () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-07-12:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# DetermineIfDoMgmtCLIQueryComplexObject
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-07:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# DetermineIfDoMgmtCLIQueryComplexObject executes check if executing export using mgmt_cli command.
+#
+
+DetermineIfDoMgmtCLIQueryComplexObject () {
+    #
+    # Expected configured key input values
+    #
+    # ${script_use_json_repo}
+    # ${UseJSONRepo}
+    # ${objectstoshowcomplexobject}
+    # ${APICLIcomplexobjectstype}
+    # ${JSONRepoComplexObjectsTotal}
+    # ${JSONRepoComplexObjectFile}
+    #
+    # Output values:
+    #
+    # ${domgmtcliquerycomplexobject}
+    # ${errorreturn}
+    #
+    
+    export errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    export domgmtcliquerycomplexobject=false
+    
+    # MODIFIED 2023-03-06:01 -
+    
+    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQueryComplexObject procedure Starting...' | tee -a -i ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'objectstoshowcomplexobject' "${objectstoshowcomplexobject}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoComplexObjectsTotal' "${JSONRepoComplexObjectsTotal}" >> ${logfilepath}
+    
+    if ! ${script_use_json_repo} ; then
+        # Script use of JSON Repository is denied
+        echo `${dtzs}`${dtzsep} 'Script use of Complex Object JSON Repository file "'${JSONRepoComplexObjectFile}'" is DENIED by script!' | tee -a -i ${logfilepath}
+        export domgmtcliquerycomplexobject=true
+    elif ${UseJSONRepo} ; then
+        # Use of JSON Repository Enabled
+        echo `${dtzs}`${dtzsep} 'Check use of Complex Object JSON Repository file "'${JSONRepoComplexObjectFile}'" for operation.' | tee -a -i ${logfilepath}
+        
+        if ${NoSystemObjects} ; then
+            CompareObjectsTotalEqual=false
+        elif ${OnlySystemObjects} ; then
+            CompareObjectsTotalEqual=false
+        else
+            CompareObjectsTotalEqual=true
+        fi
+        
+        if ${CompareObjectsTotalEqual} ; then
+            if [[ ${objectstoshowcomplexobject} -eq ${JSONRepoComplexObjectsTotal} ]] ; then
+                # JSON Repository has the same number of objects as the management database
+                export domgmtcliquerycomplexobject=false
+            else
+                # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                export domgmtcliquerycomplexobject=true
+                echo `${dtzs}`${dtzsep} 'Object count of '${APICLIcomplexobjectstype}' objects [ '${objectstoshowcomplexobject}' ] does not match count of [ '${JSONRepoComplexObjectsTotal}' ] in Complex Object JSON Repository file!' | tee -a -i ${logfilepath}
+            fi
+        else
+            if [[ ${JSONRepoComplexObjectsTotal} -gt 0 ]] ; then
+                # JSON Repository has content
+                if [[ ${objectstoshowcomplexobject} -eq ${JSONRepoComplexObjectsTotal} ]] ; then
+                    # JSON Repository has the same number of objects as the management database
+                    export domgmtcliquerycomplexobject=false
+                else
+                    # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                    export domgmtcliquerycomplexobject=true
+                    echo `${dtzs}`${dtzsep} 'Object count of '${APICLIcomplexobjectstype}' objects [ '${objectstoshowcomplexobject}' ] does not match count of [ '${JSONRepoComplexObjectsTotal}' ] in Complex Object JSON Repository file!' | tee -a -i ${logfilepath}
+                fi
+            else
+                # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                export domgmtcliquerycomplexobject=true
+            fi
+        fi
+    else
+        # Use of JSON Repository Disabled
+        echo `${dtzs}`${dtzsep} 'Script use of Complex Object JSON Repository file "'${JSONRepoComplexObjectFile}'" is DENIED by operation!' | tee -a -i ${logfilepath}
+        export domgmtcliquerycomplexobject=true
+    fi
+    
+    if ${domgmtcliquerycomplexobject} ; then
+        echo `${dtzs}`${dtzsep} 'NOT Using Complex Object JSON Repository file "'${JSONRepoComplexObjectFile}'" for operation, shift to mgmt_cli query.' | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} 'Using JSON Repository for [ '${objectstoshowcomplexobject}' : '${JSONRepoComplexObjectsTotal}' ] of '${APICLIcomplexobjectstype}' objects for operation' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} ' -- In file "'${JSONRepoComplexObjectFile}'"' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQueryComplexObject result domgmtcliquerycomplexobject [ '${domgmtcliquerycomplexobject}' ], procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# DetermineIfDoMgmtCLIQueryGenericObject
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-07:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# DetermineIfDoMgmtCLIQueryGenericObject executes check if executing export using mgmt_cli command.
+#
+
+DetermineIfDoMgmtCLIQueryGenericObject () {
+    #
+    # Expected configured key input values
+    #
+    # ${script_use_json_repo}
+    # ${UseJSONRepo}
+    # ${objectstoshowgenericobject}
+    # ${APIGenObjobjectstype}
+    # ${JSONRepoAPIGenObjectsTotal}
+    # ${JSONRepoAPIGenObjectFile}
+    #
+    # Output values:
+    #
+    # ${domgmtcliquerygenericobject}
+    # ${errorreturn}
+    #
+    
+    export errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    export domgmtcliquerygenericobject=false
+    
+    # MODIFIED 2023-03-06:01 -
+    
+    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQueryGenericObject procedure Starting...' | tee -a -i ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'objectstoshowgenericobject' "${objectstoshowgenericobject}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoAPIGenObjectsTotal' "${JSONRepoAPIGenObjectsTotal}" >> ${logfilepath}
+    
+    if ! ${script_use_json_repo} ; then
+        # Script use of JSON Repository is denied
+        echo `${dtzs}`${dtzsep} 'Script use of Generic Object JSON Repository file "'${JSONRepoAPIGenObjectFile}'" is DENIED by script!' | tee -a -i ${logfilepath}
+        export domgmtcliquerygenericobject=true
+    elif ${UseJSONRepo} ; then
+        # Use of JSON Repository Enabled
+        echo `${dtzs}`${dtzsep} 'Check use of Generic Object JSON Repository file "'${JSONRepoAPIGenObjectFile}'" for operation.' | tee -a -i ${logfilepath}
+        
+        if ${NoSystemObjects} ; then
+            CompareObjectsTotalEqual=false
+        elif ${OnlySystemObjects} ; then
+            CompareObjectsTotalEqual=false
+        else
+            CompareObjectsTotalEqual=true
+        fi
+        
+        if ${CompareObjectsTotalEqual} ; then
+            if [[ ${objectstoshowgenericobject} -eq ${JSONRepoAPIGenObjectsTotal} ]] ; then
+                # JSON Repository has the same number of objects as the management database
+                export domgmtcliquerygenericobject=false
+            else
+                # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                export domgmtcliquerygenericobject=true
+                echo `${dtzs}`${dtzsep} 'Object count of '${APIGenObjobjectstype}' objects [ '${objectstoshowgenericobject}' ] does not match count of [ '${JSONRepoAPIGenObjectsTotal}' ] in Generic Object JSON Repository file!' | tee -a -i ${logfilepath}
+            fi
+        else
+            if [[ ${JSONRepoAPIGenObjectsTotal} -gt 0 ]] ; then
+                # JSON Repository has content
+                if [[ ${objectstoshowgenericobject} -eq ${JSONRepoAPIGenObjectsTotal} ]] ; then
+                    # JSON Repository has the same number of objects as the management database
+                    export domgmtcliquerygenericobject=false
+                else
+                    # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                    export domgmtcliquerygenericobject=true
+                    echo `${dtzs}`${dtzsep} 'Object count of '${APIGenObjobjectstype}' objects [ '${objectstoshowgenericobject}' ] does not match count of [ '${JSONRepoAPIGenObjectsTotal}' ] in Generic Object JSON Repository file!' | tee -a -i ${logfilepath}
+                fi
+            else
+                # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                export domgmtcliquerygenericobject=true
+            fi
+        fi
+    else
+        # Use of JSON Repository Disabled
+        echo `${dtzs}`${dtzsep} 'Script use of Generic Object JSON Repository file "'${JSONRepoAPIGenObjectFile}'" is DENIED by operation!' | tee -a -i ${logfilepath}
+        export domgmtcliquerygenericobject=true
+    fi
+    
+    if ${domgmtcliquerygenericobject} ; then
+        echo `${dtzs}`${dtzsep} 'NOT Using Generic Object JSON Repository file "'${JSONRepoAPIGenObjectFile}'" for operation, shift to mgmt_cli query.' | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} 'Using JSON Repository for [ '${objectstoshowgenericobject}' : '${JSONRepoAPIGenObjectsTotal}' ] of '${APIGenObjobjectstype}' objects for operation' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} ' -- In file "'${JSONRepoAPIGenObjectFile}'"' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQueryGenericObject result domgmtcliquerygenericobject [ '${domgmtcliquerygenericobject}' ], procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# DetermineIfDoMgmtCLIQueryGenericComplexObject
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-07:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# DetermineIfDoMgmtCLIQueryGenericComplexObject executes check if executing export using mgmt_cli command.
+#
+
+DetermineIfDoMgmtCLIQueryGenericComplexObject () {
+    #
+    # Expected configured key input values
+    #
+    # ${script_use_json_repo}
+    # ${UseJSONRepo}
+    # ${objectstoshowgenericcomplexobject}
+    # ${APIGenObjcomplexobjectstype}
+    # ${JSONRepoAPIGenComplexObjectsTotal}
+    # ${JSONRepoAPIGenComplexObjectFile}
+    #
+    # Output values:
+    #
+    # ${domgmtcliquerygenericcomplexobject}
+    # ${errorreturn}
+    #
+    
+    export errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    export domgmtcliquerygenericcomplexobject=false
+    
+    # MODIFIED 2023-03-06:01 -
+    
+    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQueryGenericComplexObject procedure Starting...' | tee -a -i ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'objectstoshowgenericcomplexobject' "${objectstoshowgenericcomplexobject}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoAPIGenComplexObjectsTotal' "${JSONRepoAPIGenComplexObjectsTotal}" >> ${logfilepath}
+    
+    if ! ${script_use_json_repo} ; then
+        # Script use of JSON Repository is denied
+        echo `${dtzs}`${dtzsep} 'Script use of Generic Object JSON Repository file "'${JSONRepoAPIGenComplexObjectFile}'" is DENIED by script!' | tee -a -i ${logfilepath}
+        export domgmtcliquerygenericcomplexobject=true
+    elif ${UseJSONRepo} ; then
+        # Use of JSON Repository Enabled
+        echo `${dtzs}`${dtzsep} 'Check use of Generic Object JSON Repository file "'${JSONRepoAPIGenComplexObjectFile}'" for operation.' | tee -a -i ${logfilepath}
+        
+        if ${NoSystemObjects} ; then
+            CompareObjectsTotalEqual=false
+        elif ${OnlySystemObjects} ; then
+            CompareObjectsTotalEqual=false
+        else
+            CompareObjectsTotalEqual=true
+        fi
+        
+        if ${CompareObjectsTotalEqual} ; then
+            if [[ ${objectstoshowgenericcomplexobject} -eq ${JSONRepoAPIGenComplexObjectsTotal} ]] ; then
+                # JSON Repository has the same number of objects as the management database
+                export domgmtcliquerygenericcomplexobject=false
+            else
+                # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                export domgmtcliquerygenericcomplexobject=true
+                echo `${dtzs}`${dtzsep} 'Object count of '${APIGenObjcomplexobjectstype}' objects [ '${objectstoshowgenericcomplexobject}' ] does not match count of [ '${JSONRepoAPIGenComplexObjectsTotal}' ] in Generic Object JSON Repository file!' | tee -a -i ${logfilepath}
+            fi
+        else
+            if [[ ${JSONRepoAPIGenComplexObjectsTotal} -gt 0 ]] ; then
+                # JSON Repository has content
+                if [[ ${objectstoshowgenericcomplexobject} -eq ${JSONRepoAPIGenComplexObjectsTotal} ]] ; then
+                    # JSON Repository has the same number of objects as the management database
+                    export domgmtcliquerygenericcomplexobject=false
+                else
+                    # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                    export domgmtcliquerygenericcomplexobject=true
+                    echo `${dtzs}`${dtzsep} 'Object count of '${APIGenObjcomplexobjectstype}' objects [ '${objectstoshowgenericcomplexobject}' ] does not match count of [ '${JSONRepoAPIGenComplexObjectsTotal}' ] in Generic Object JSON Repository file!' | tee -a -i ${logfilepath}
+                fi
+            else
+                # JSON Repository has a differnt number of objects than the management database, so something definitely changed and we probably can't use the repository
+                export domgmtcliquerygenericcomplexobject=true
+            fi
+        fi
+    else
+        # Use of JSON Repository Disabled
+        echo `${dtzs}`${dtzsep} 'Script use of Generic Object JSON Repository file "'${JSONRepoAPIGenComplexObjectFile}'" is DENIED by operation!' | tee -a -i ${logfilepath}
+        export domgmtcliquerygenericcomplexobject=true
+    fi
+    
+    if ${domgmtcliquerygenericcomplexobject} ; then
+        echo `${dtzs}`${dtzsep} 'NOT Using Generic Object JSON Repository file "'${JSONRepoAPIGenComplexObjectFile}'" for operation, shift to mgmt_cli query.' | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} 'Using JSON Repository for [ '${objectstoshowgenericcomplexobject}' : '${JSONRepoAPIGenComplexObjectsTotal}' ] of '${APIGenObjcomplexobjectstype}' objects for operation' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} ' -- In file "'${JSONRepoAPIGenComplexObjectFile}'"' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'DetermineIfDoMgmtCLIQueryGenericComplexObject result domgmtcliquerygenericcomplexobject [ '${domgmtcliquerygenericcomplexobject}' ], procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CheckJSONRepoFileObjectTotal
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-06:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# CheckJSONRepoFileObjectTotal executes a check of the total number of objects for that type using standard object JSON Repository File.
+#
+
+CheckJSONRepoFileObjectTotal () {
+    #
+    
+    export errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:01 -
+    
+    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileObjectTotal procedure Starting...' >> ${logfilepath}
+    
+    if [ -r ${JSONRepoFile} ] ; then
+        # JSON Repository File for the target object exists, lets check for the number objects
+        
+        export JSONRepoObjectsTotal=0
+        
+        if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
+            # Handle objects that are singularities, like the special objects - api-settings, policy-settings, global-properties, etc.
+            export checkJSONRepoTotal=1
+        else
+            export checkJSONRepoTotal=`cat ${JSONRepoFile} | ${JQ} ".total"`
+        fi
+        
+        export JSONRepoObjectsTotal=${checkJSONRepoTotal}
+        echo `${dtzs}`${dtzsep} 'JSONRepoObjectsTotal = [ '${JSONRepoObjectsTotal}' ]' >> ${logfilepath}
+        
+        if [ x"${JSONRepoObjectsTotal}" == x"" ] ; then
+            # There are null objects, so skip
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was NULL' | tee -a -i ${logfilepath}
+            export JSONRepoObjectsTotal=0
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        elif [[ ${JSONRepoObjectsTotal} -lt 1 ]] ; then
+            # no objects of this type
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was < 1 [ '${JSONRepoObjectsTotal}' ] (so zero)' | tee -a -i ${logfilepath}
+            export JSONRepoObjectsTotal=0
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        else
+            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        fi
+    else
+        # JSON Repository File for the target object DOES NOT exists
+        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, fail -r check' | tee -a -i ${logfilepath}
+        export JSONRepoObjectsTotal=0
+        echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'JSONRepoObjectsTotal = [ '${JSONRepoObjectsTotal}' ]' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileObjectTotal procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CheckJSONRepoFileComplexObjectTotal
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-06:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# CheckJSONRepoFileComplexObjectTotal executes a check of the total number of objects for that type using Complex Object JSON Repository file.
+#
+
+CheckJSONRepoFileComplexObjectTotal () {
+    #
+    
+    export errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:01 -
+    
+    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileComplexObjectTotal procedure Starting...' >> ${logfilepath}
+    
+    if [ -r ${JSONRepoComplexObjectFile} ] ; then
+        # Complex Object JSON Repository file for the target object exists, lets check for the number objects
+        
+        export JSONRepoComplexObjectsTotal=0
+        
+        if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
+            # Handle objects that are singularities, like the special objects - api-settings, policy-settings, global-properties, etc.
+            export checkJSONRepoComplexObjectsTotal=1
+        else
+            export checkJSONRepoComplexObjectsTotal=`cat ${JSONRepoComplexObjectFile} | ${JQ} ".total"`
+        fi
+        
+        export JSONRepoComplexObjectsTotal=${checkJSONRepoComplexObjectsTotal}
+        echo `${dtzs}`${dtzsep} 'JSONRepoComplexObjectsTotal = [ '${JSONRepoComplexObjectsTotal}' ]' >> ${logfilepath}
+        
+        if [ x"${JSONRepoComplexObjectsTotal}" == x"" ] ; then
+            # There are null objects, so skip
+            export JSONRepoComplexObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoComplexObjectFile}'" IS NOT readable, value returned was NULL' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoComplexObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        elif [[ ${JSONRepoComplexObjectsTotal} -lt 1 ]] ; then
+            # no objects of this type
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoComplexObjectFile}'" IS NOT readable, value returned was < 1 [ '${JSONRepoComplexObjectsTotal}' ] (so zero)' | tee -a -i ${logfilepath}
+            export JSONRepoComplexObjectsTotal=0
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoComplexObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        else
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoComplexObjectFile}'" exists,' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoComplexObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        fi
+    else
+        # Complex Object JSON Repository file for the target object DOES NOT exists
+        export JSONRepoComplexObjectsTotal=0
+        echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoComplexObjectFile}'" IS NOT readable, fail -r check' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoComplexObjectsTotal}' ].' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'JSONRepoComplexObjectsTotal = [ '${JSONRepoComplexObjectsTotal}' ]' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileComplexObjectTotal procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CheckJSONRepoFileAPIGenericObjectTotal
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-06:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# CheckJSONRepoFileAPIGenericObjectTotal executes a check of the total number of objects for that type using API Generic Object JSON Repository file.
+#
+
+CheckJSONRepoFileAPIGenericObjectTotal () {
+    #
+    
+    export errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:01 -
+    
+    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileAPIGenericObjectTotal procedure Starting...' >> ${logfilepath}
+    
+    if [ -r ${JSONRepoAPIGenObjectFile} ] ; then
+        # Complex Object JSON Repository file for the target object exists, lets check for the number objects
+        
+        export JSONRepoAPIGenObjectsTotal=0
+        
+        if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
+            # Handle objects that are singularities, like the special objects - api-settings, policy-settings, global-properties, etc.
+            export checkJSONRepoAPIGenObjectsTotal=1
+        else
+            export checkJSONRepoAPIGenObjectsTotal=`cat ${JSONRepoAPIGenObjectFile} | ${JQ} ".total"`
+        fi
+        
+        export JSONRepoAPIGenObjectsTotal=${checkJSONRepoAPIGenObjectsTotal}
+        echo `${dtzs}`${dtzsep} 'JSONRepoAPIGenObjectsTotal = [ '${JSONRepoAPIGenObjectsTotal}' ]' >> ${logfilepath}
+        
+        if [ x"${JSONRepoAPIGenObjectsTotal}" == x"" ] ; then
+            # There are null objects, so skip
+            export JSONRepoAPIGenObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoAPIGenObjectFile}'" IS NOT readable, value returned was NULL' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoAPIGenObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        elif [[ ${JSONRepoAPIGenObjectsTotal} -lt 1 ]] ; then
+            # no objects of this type
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoAPIGenObjectFile}'" IS NOT readable, value returned was < 1 [ '${JSONRepoAPIGenObjectsTotal}' ] (so zero)' | tee -a -i ${logfilepath}
+            export JSONRepoAPIGenObjectsTotal=0
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoAPIGenObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        else
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoAPIGenObjectFile}'" exists,' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoAPIGenObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        fi
+    else
+        # Complex Object JSON Repository file for the target object DOES NOT exists
+        export JSONRepoAPIGenObjectsTotal=0
+        echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoAPIGenObjectFile}'" IS NOT readable, fail -r check' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoAPIGenObjectsTotal}' ].' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'JSONRepoAPIGenObjectsTotal = [ '${JSONRepoAPIGenObjectsTotal}' ]' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileAPIGenericObjectTotal procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CheckJSONRepoFileAPIGenericComplexObjectTotal
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2023-03-06:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# CheckJSONRepoFileAPIGenericComplexObjectTotal executes a check of the total number of objects for that type using API Generic Complex Object JSON Repository file.
+#
+
+CheckJSONRepoFileAPIGenericComplexObjectTotal () {
+    #
+    
+    export errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-06:01 -
+    
+    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileAPIGenericComplexObjectTotal procedure Starting...' >> ${logfilepath}
+    
+    if [ -r ${JSONRepoAPIGenComplexObjectFile} ] ; then
+        # Complex Object JSON Repository file for the target object exists, lets check for the number objects
+        
+        export JSONRepoAPIGenComplexObjectsTotal=0
+        
+        if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
+            # Handle objects that are singularities, like the special objects - api-settings, policy-settings, global-properties, etc.
+            export checkJSONRepoAPIGenComplexObjectsTotal=1
+        else
+            export checkJSONRepoAPIGenComplexObjectsTotal=`cat ${JSONRepoAPIGenComplexObjectFile} | ${JQ} ".total"`
+        fi
+        
+        export JSONRepoAPIGenComplexObjectsTotal=${checkJSONRepoAPIGenComplexObjectsTotal}
+        echo `${dtzs}`${dtzsep} 'JSONRepoAPIGenComplexObjectsTotal = [ '${JSONRepoAPIGenComplexObjectsTotal}' ]' >> ${logfilepath}
+        
+        if [ x"${JSONRepoAPIGenComplexObjectsTotal}" == x"" ] ; then
+            # There are null objects, so skip
+            export JSONRepoAPIGenComplexObjectsTotal=0
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoAPIGenComplexObjectFile}'" IS NOT readable, value returned was NULL' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoAPIGenComplexObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        elif [[ ${JSONRepoAPIGenComplexObjectsTotal} -lt 1 ]] ; then
+            # no objects of this type
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoAPIGenComplexObjectFile}'" IS NOT readable, value returned was < 1 [ '${JSONRepoAPIGenComplexObjectsTotal}' ] (so zero)' | tee -a -i ${logfilepath}
+            export JSONRepoAPIGenComplexObjectsTotal=0
+            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoAPIGenComplexObjectsTotal}' ].' | tee -a -i ${logfilepath}
+        else
+            echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoAPIGenComplexObjectFile}'" exists,' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoAPIGenComplexObjectsTotal}' ]' | tee -a -i ${logfilepath}
+        fi
+    else
+        # Complex Object JSON Repository file for the target object DOES NOT exists
+        export JSONRepoAPIGenComplexObjectsTotal=0
+        echo `${dtzs}`${dtzsep} 'Complex Object JSON Repository file "'${JSONRepoAPIGenComplexObjectFile}'" IS NOT readable, fail -r check' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoAPIGenComplexObjectsTotal}' ].' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'JSONRepoAPIGenComplexObjectsTotal = [ '${JSONRepoAPIGenComplexObjectsTotal}' ]' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileAPIGenericComplexObjectTotal procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1786,7 +3338,7 @@ DetermineIfDoMgmtCLIQuery () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2022-10-27:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-06:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # MgmtCLIExportObjectsToCSVviaJQ executes the export of the objects data to CSV using mgmt_cli command.
@@ -1801,31 +3353,18 @@ MgmtCLIExportObjectsToCSVviaJQ () {
     
     # Execute the mgmt_cli query of the management host database
     
-    echo `${dtzs}`${dtzsep} 'Processing '${objectstoshow}' '${APICLIobjecttype}' objects in '${WorkAPIObjectLimit}' object chunks:' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Processing [ '${objectstoshow}' ] '${APICLIobjecttype}' objects in '${WorkAPIObjectLimit}' object chunks:' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Export '${APICLIobjectstype}' to CSV File' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '  and dump to '${APICLICSVfile} | tee -a -i ${logfilepath}
-    if ${APISCRIPTVERBOSE} ; then
-        # Verbose mode ON
-        echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-        echo ${CSVJQparms} >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-    else
-        # Verbose mode OFF
-        echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-        echo ${CSVJQparms} >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-    fi
+    echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
+    echo ${CSVJQparms} >> ${logfilepath}
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     while [ ${objectslefttoshow} -ge 1 ] ; do
@@ -1856,7 +3395,7 @@ MgmtCLIExportObjectsToCSVviaJQ () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'MgmtCLIExportObjectsToCSVviaJQ : Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'MgmtCLIExportObjectsToCSVviaJQ : Problem during mgmt_cli operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} '  File contents with potential error from '${APICLICSVfiledatalast}' : ' >> ${logfilepath}
             echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
             echo >> ${logfilepath}
@@ -1879,7 +3418,7 @@ MgmtCLIExportObjectsToCSVviaJQ () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'MgmtCLIExportObjectsToCSVviaJQ : Problem during mgmt_cli JQ Parsing operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'MgmtCLIExportObjectsToCSVviaJQ : Problem during mgmt_cli JQ Parsing operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} '  File contents (first 3 and last 10 lines) with potential error from '${APICLICSVfiledata}' : ' >> ${logfilepath}
             echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
             echo >> ${logfilepath}
@@ -1904,7 +3443,7 @@ MgmtCLIExportObjectsToCSVviaJQ () {
     
     # -------------------------------------------------------------------------------------------------
     
-    echo `${dtzs}`${dtzsep} 'MgmtCLIExportObjectsToCSVviaJQ procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'MgmtCLIExportObjectsToCSVviaJQ procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
     
@@ -1912,77 +3451,7 @@ MgmtCLIExportObjectsToCSVviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-10-27:01
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-# -------------------------------------------------------------------------------------------------
-# CheckJSONRepoFileObjectTotal
-# -------------------------------------------------------------------------------------------------
-
-
-# MODIFIED 2022-09-14:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# CheckJSONRepoFileObjectTotal executes a check of the total number of objects for that type.
-#
-
-CheckJSONRepoFileObjectTotal () {
-    #
-    
-    export errorreturn=0
-    
-    # -------------------------------------------------------------------------------------------------
-    
-    # MODIFIED 2022-09-14:01 -
-    
-    if [ -r ${JSONRepoFile} ] ; then
-        # JSON Repository File for the target object exists, lets check for the number objects
-        export JSONRepoObjectsTotal=0
-        if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
-            # Handle objects that are singularities, like the special objects - api-settings, policy-settings, global-properties, etc.
-            export checkJSONRepoTotal=1
-        else
-            export checkJSONRepoTotal=`cat ${JSONRepoFile} | ${JQ} ".total"`
-        fi
-            export JSONRepoObjectsTotal=${checkJSONRepoTotal}
-        
-        if [ x"${JSONRepoObjectsTotal}" == x"" ] ; then
-            # There are null objects, so skip
-            export JSONRepoObjectsTotal=0
-            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was NULL' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
-        elif [[ ${JSONRepoObjectsTotal} -lt 1 ]] ; then
-            # no objects of this type
-            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, value returned was < 1 [ '${JSONRepoObjectsTotal}' ] (so zero)' | tee -a -i ${logfilepath}
-            export JSONRepoObjectsTotal=0
-            echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
-        else
-            echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" exists,' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} '  and is readable, so usable for getting the total number of objects from it.' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} '  total of objects is [ '${JSONRepoObjectsTotal}' ]' | tee -a -i ${logfilepath}
-        fi
-    else
-        # JSON Repository File for the target object DOES NOT exists
-        export JSONRepoObjectsTotal=0
-        echo `${dtzs}`${dtzsep} 'JSON Repository file "'${JSONRepoFile}'" IS NOT readable, fail -r check' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  so setting total of objects to Zero [ '${JSONRepoObjectsTotal}' ].' | tee -a -i ${logfilepath}
-    fi
-    
-    # -------------------------------------------------------------------------------------------------
-    
-    echo `${dtzs}`${dtzsep} 'CheckJSONRepoFileObjectTotal procedure errorreturn :  '${errorreturn} >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    return ${errorreturn}
-    
-    #
-}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-09-14:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2009,31 +3478,19 @@ JSONRepositoryExportObjectsToCSV () {
     
     # Execute the JSON repository query instead
     
-    echo `${dtzs}`${dtzsep} 'Processing '${objectstoshow}' '${APICLIobjecttype}' objects from the JSON repository file '${JSONRepoFile} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Processing [ '${objectstoshow}' ] '${APICLIobjecttype}' objects' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} ' - From the JSON repository file '${JSONRepoFile} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Export '${APICLIobjectstype}' to CSV File' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '  and dump to '${APICLICSVfile} | tee -a -i ${logfilepath}
-    if ${APISCRIPTVERBOSE} ; then
-        # Verbose mode ON
-        echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-        echo ${CSVJQparms} >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-    else
-        # Verbose mode OFF
-        echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-        echo ${CSVJQparms} >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-    fi
+    echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
+    echo ${CSVJQparms} >> ${logfilepath}
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     if [ x"${objectqueryselector}" == x"" ] ; then
@@ -2048,13 +3505,13 @@ JSONRepositoryExportObjectsToCSV () {
     
     if [ ${errorreturn} != 0 ] ; then
         # Something went wrong, terminate
-        echo `${dtzs}`${dtzsep} 'JSONRepositoryExportObjectsToCSV : Problem during JSON Repository file query operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'JSONRepositoryExportObjectsToCSV : Problem during JSON Repository file query operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
         return ${errorreturn}
     fi
     
     # -------------------------------------------------------------------------------------------------
     
-    echo `${dtzs}`${dtzsep} 'JSONRepositoryExportObjectsToCSV procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'JSONRepositoryExportObjectsToCSV procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
     
@@ -2074,7 +3531,7 @@ JSONRepositoryExportObjectsToCSV () {
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2022-09-15:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The ExportObjectsToCSVviaJQ is the meat of the script's repeated actions.
@@ -2085,6 +3542,12 @@ JSONRepositoryExportObjectsToCSV () {
 
 ExportObjectsToCSVviaJQ () {
     #
+    
+    export Workingfilename=
+    export APICLIfileexport=
+    export APICLIJSONfilelast=
+    
+    errorreturn=0
     
     if ! ${APIobjectdoexport} ; then
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
@@ -2127,6 +3590,9 @@ ExportObjectsToCSVviaJQ () {
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     fi
     
+    # -------------------------------------------------------------------------------------------------
+    
+    DumpObjectDefinitionData
     
     # -------------------------------------------------------------------------------------------------
     
@@ -2197,14 +3663,14 @@ ExportObjectsToCSVviaJQ () {
     objectslefttoshow=${objectstoshow}
     currentoffset=0
     
-    # MODIFIED 2022-07-12:01 -
+    # MODIFIED 2023-03-04:01 -
     
     export JSONRepoObjectsTotal=
     
     CheckJSONRepoFileObjectTotal 
     errorreturn=$?
     
-    # MODIFIED 2022-07-12:01 -
+    # MODIFIED 2023-03-04:01 -
     
     export domgmtcliquery=false
     
@@ -2219,7 +3685,7 @@ ExportObjectsToCSVviaJQ () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'ExportObjectsToCSVviaJQ : Problem during mgmt_cli JQ Parsing operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'ExportObjectsToCSVviaJQ : Problem during mgmt_cli JQ Parsing operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
         
@@ -2231,7 +3697,7 @@ ExportObjectsToCSVviaJQ () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'ExportObjectsToCSVviaJQ : Problem during JSON Repository file query operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'ExportObjectsToCSVviaJQ : Problem during JSON Repository file query operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
     fi
@@ -2243,7 +3709,7 @@ ExportObjectsToCSVviaJQ () {
     
     if [ ${errorreturn} != 0 ] ; then
         # Something went wrong, terminate
-        echo `${dtzs}`${dtzsep} 'ExportObjectsToCSVviaJQ : Problem found in procedure FinalizeExportObjectsToCSVviaJQ! error return = '${errorreturn} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'ExportObjectsToCSVviaJQ : Problem found in procedure FinalizeExportObjectsToCSVviaJQ! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
         return ${errorreturn}
     fi
     
@@ -2256,7 +3722,7 @@ ExportObjectsToCSVviaJQ () {
         
     fi
     
-    echo `${dtzs}`${dtzsep} 'ExportObjectsToCSVviaJQ procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'ExportObjectsToCSVviaJQ procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
     
@@ -2264,7 +3730,7 @@ ExportObjectsToCSVviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-09-15:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-04:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -2302,7 +3768,7 @@ GetNumberOfObjectsviaJQ () {
     
     if [ ${errorreturn} != 0 ] ; then
         # Something went wrong, terminate
-        echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli objectstotal operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli objectstotal operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
         return ${errorreturn}
     fi
     
@@ -2410,11 +3876,11 @@ CheckAPIVersionAndExecuteOperation () {
         ExportObjectsToCSVviaJQ
         errorreturn=$?
         
-        echo `${dtzs}`${dtzsep} 'CheckAPIVersionAndExecuteOperation call to ExportObjectsToCSVviaJQ procedure returned :  '${errorreturn} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'CheckAPIVersionAndExecuteOperation call to ExportObjectsToCSVviaJQ procedure returned :  !{ '${errorreturn}' }!' >> ${logfilepath}
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in ExportObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in ExportObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} ' Contents of file '${APICLICSVfiledatalast} | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} '-   --  --  --  --  --  --  --  --  --   --  --  --  --  --  --  --  --  --   -' | tee -a -i ${logfilepath}
@@ -2438,7 +3904,7 @@ CheckAPIVersionAndExecuteOperation () {
         # Handle Error in operation
         if ${ABORTONERROR} ; then
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             read -t ${WAITTIME} -n 1 -p "Any key to EXIT script due to error ${errorreturn}.  Automatic EXIT after ${WAITTIME} seconds : " anykey
             echo
@@ -2468,13 +3934,13 @@ CheckAPIVersionAndExecuteOperation () {
             exit ${errorreturn}
         else
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CheckAPIVersionAndExecuteOperation procedure, but continueing' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CheckAPIVersionAndExecuteOperation procedure, but continueing' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             #return ${errorreturn}
         fi
     fi
     
-    echo `${dtzs}`${dtzsep} 'CheckAPIVersionAndExecuteOperation procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CheckAPIVersionAndExecuteOperation procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-' | tee -a -i ${logfilepath}
     
     return ${errorreturn}
@@ -2539,14 +4005,24 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Simple Object :  Standard Simple objects
 # +-------------------------------------------------------------------------------------------------
 
+#ClearObjectDefinitionData
+
 #export APICLIobjecttype='<object_type_singular>'
 #export APICLIobjectstype='<object_type_plural>'
 #export APIobjectminversion='<object_type_api_version>'
+#export APIobjectexportisCPI=false
+
+#export APIobjectspecifickey=
+
+#export APIobjectspecificselector00key=
+#export APIobjectspecificselector00value=
+#export APICLIexportnameaddon=
+
+#export APIobjectjsonrepofileobject=${APICLIobjectstype}
 #export APICLICSVobjecttype=${APICLIobjectstype}
+
 #export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 #export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-#export APIobjectexportisCPI=false
 
 #export APIobjectdoexport=true
 #export APIobjectdoexportJSON=true
@@ -2572,10 +4048,6 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 #export APIobjectCSVJQparmsAbsoluteBase=false
 
 #export APIobjectCSVexportWIP=false
-
-#export APIobjectspecificselector00key=
-#export APIobjectspecificselector00value=
-#export APICLIexportnameaddon=
 
 ##
 ## APICLICSVsortparms can change due to the nature of the object
@@ -2803,14 +4275,24 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Simple Object :  SmartTasks
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=smart-task
 export APICLIobjectstype=smart-tasks
 export APIobjectminversion=1.6
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2836,10 +4318,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -2893,11 +4371,14 @@ export CSVJQparms=${CSVJQparms}', .["action"]["run-script"]["targets"][4]["name"
 export CSVJQparms=${CSVJQparms}', .["action"]["send-mail"]["mail-settings"]["recipients"]'
 export CSVJQparms=${CSVJQparms}', .["action"]["send-mail"]["mail-settings"]["sender-email"]'
 export CSVJQparms=${CSVJQparms}', .["action"]["send-mail"]["mail-settings"]["subject"]'
-export CSVJQparms=${CSVJQparms}', .["action"]["send-mail"]["mail-settings"]["body"]'
+# The body presents a problem because it will contain escaped characters that wreck the CSV output, so convert that to JSON
+# There may be a better way, but that is yet to be found
+#export CSVJQparms=${CSVJQparms}', .["action"]["send-mail"]["mail-settings"]["body"]'
+export CSVJQparms=${CSVJQparms}', ( .["action"]["send-mail"]["mail-settings"]["body"] | tojson )'
 export CSVJQparms=${CSVJQparms}', .["action"]["send-mail"]["mail-settings"]["attachment"]'
 export CSVJQparms=${CSVJQparms}', .["action"]["send-mail"]["mail-settings"]["bcc-recipients"]'
 export CSVJQparms=${CSVJQparms}', .["action"]["send-mail"]["mail-settings"]["cc-recipients"]'
-export CSVJQparms=${CSVJQparms}', .["action"]["send-mail"]["smtp-server"]'
+export CSVJQparms=${CSVJQparms}', .["action"]["send-mail"]["smtp-server"]["name"]'
 export CSVJQparms=${CSVJQparms}', .["trigger"]["name"]'
 export CSVJQparms=${CSVJQparms}', .["custom-data"]'
 #export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
@@ -2919,14 +4400,24 @@ CheckAPIVersionAndExecuteOperation
 # | Simple Object :  Repository Scripts
 # +-------------------------------------------------------------------------------------------------
 
+ClearObjectDefinitionData
+
 export APICLIobjecttype=repository-script
 export APICLIobjectstype=repository-scripts
 export APIobjectminversion=1.9
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -2952,10 +4443,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -3404,31 +4891,18 @@ MgmtCLIExportSpecialObjectsToCSVviaJQ () {
     
     # Execute the mgmt_cli query of the management host database
     
-    echo `${dtzs}`${dtzsep} 'Processing '${objectstoshow}' '${APICLIobjecttype}' objects in '${WorkAPIObjectLimit}' object chunks:' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Processing [ '${objectstoshow}' ] '${APICLIobjecttype}' objects in '${WorkAPIObjectLimit}' object chunks:' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Export '${APICLIobjectstype}' to CSV File' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '  and dump to '${APICLICSVfile} | tee -a -i ${logfilepath}
-    if ${APISCRIPTVERBOSE} ; then
-        # Verbose mode ON
-        echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-        echo ${CSVJQparms} >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-    else
-        # Verbose mode OFF
-        echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-        echo ${CSVJQparms} >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-    fi
+    echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
+    echo ${CSVJQparms} >> ${logfilepath}
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     while [ ${objectslefttoshow} -ge 1 ] ; do
@@ -3459,7 +4933,7 @@ MgmtCLIExportSpecialObjectsToCSVviaJQ () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'MgmtCLIExportSpecialObjectsToCSVviaJQ : Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'MgmtCLIExportSpecialObjectsToCSVviaJQ : Problem during mgmt_cli operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} '  File contents with potential error from '${APICLICSVfiledatalast}' : ' >> ${logfilepath}
             echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
             echo >> ${logfilepath}
@@ -3482,7 +4956,7 @@ MgmtCLIExportSpecialObjectsToCSVviaJQ () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'MgmtCLIExportSpecialObjectsToCSVviaJQ : Problem during mgmt_cli JQ Parsing operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'MgmtCLIExportSpecialObjectsToCSVviaJQ : Problem during mgmt_cli JQ Parsing operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} '  File contents (first 3 and last 10 lines) with potential error from '${APICLICSVfiledata}' : ' >> ${logfilepath}
             echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
             echo >> ${logfilepath}
@@ -3507,7 +4981,7 @@ MgmtCLIExportSpecialObjectsToCSVviaJQ () {
     
     # -------------------------------------------------------------------------------------------------
     
-    echo `${dtzs}`${dtzsep} 'MgmtCLIExportSpecialObjectsToCSVviaJQ procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'MgmtCLIExportSpecialObjectsToCSVviaJQ procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
     
@@ -3542,31 +5016,19 @@ JSONRepositoryExportSpecialObjectsToCSV () {
     
     # Execute the JSON repository query instead
     
-    echo `${dtzs}`${dtzsep} 'Processing '${objectstoshow}' '${APICLIobjecttype}' objects from the JSON repository file '${JSONRepoFile} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Processing [ '${objectstoshow}' ] '${APICLIobjecttype}' objects' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} ' - From the JSON repository file '${JSONRepoFile} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Export '${APICLIobjectstype}' to CSV File' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '  and dump to '${APICLICSVfile} | tee -a -i ${logfilepath}
-    if ${APISCRIPTVERBOSE} ; then
-        # Verbose mode ON
-        echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-        echo ${CSVJQparms} >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-    else
-        # Verbose mode OFF
-        echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-        echo ${CSVJQparms} >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-    fi
+    echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
+    echo ${CSVJQparms} >> ${logfilepath}
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     if [ x"${objectqueryselector}" == x"" ] ; then
@@ -3581,7 +5043,7 @@ JSONRepositoryExportSpecialObjectsToCSV () {
     
     if [ ${errorreturn} != 0 ] ; then
         # Something went wrong, terminate
-        echo `${dtzs}`${dtzsep} 'JSONRepositoryExportSpecialObjectsToCSV : Problem during JSON Repository file query operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'JSONRepositoryExportSpecialObjectsToCSV : Problem during JSON Repository file query operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} '  File contents (first 3 and last 10 lines) with potential error from '${APICLICSVfiledata}' : ' >> ${logfilepath}
         echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
         echo >> ${logfilepath}
@@ -3596,7 +5058,7 @@ JSONRepositoryExportSpecialObjectsToCSV () {
     
     # -------------------------------------------------------------------------------------------------
     
-    echo `${dtzs}`${dtzsep} 'JSONRepositoryExportSpecialObjectsToCSV procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'JSONRepositoryExportSpecialObjectsToCSV procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
     
@@ -3694,7 +5156,7 @@ ExportSpecialObjectToCSVWithoutLimitsAndDetailLevel () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToCSVWithoutLimitsAndDetailLevel : Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToCSVWithoutLimitsAndDetailLevel : Problem during mgmt_cli operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} '  File contents with potential error from '${APICLIJSONfilelast}' : ' >> ${logfilepath}
             echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
             echo >> ${logfilepath}
@@ -3741,7 +5203,7 @@ ExportSpecialObjectToCSVWithoutLimitsAndDetailLevel () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToCSVWithoutLimitsAndDetailLevel : Problem during JSON Repo copy operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToCSVWithoutLimitsAndDetailLevel : Problem during JSON Repo copy operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} '  File contents with potential error from '${APICLIJSONfilelast}' : ' >> ${logfilepath}
             echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
             echo >> ${logfilepath}
@@ -3772,7 +5234,7 @@ ExportSpecialObjectToCSVWithoutLimitsAndDetailLevel () {
     
     if [ ${errorreturn} != 0 ] ; then
         # Something went wrong, terminate
-        echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToCSVWithoutLimitsAndDetailLevel : Problem during JSON query operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToCSVWithoutLimitsAndDetailLevel : Problem during JSON query operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} '  File contents with potential error from "'${APICLIJSONfileworking}'" : ' >> ${logfilepath}
         echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
         echo >> ${logfilepath}
@@ -3789,7 +5251,7 @@ ExportSpecialObjectToCSVWithoutLimitsAndDetailLevel () {
         echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
     fi
     
-    echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToCSVWithoutLimitsAndDetailLevel procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToCSVWithoutLimitsAndDetailLevel procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
@@ -3845,7 +5307,7 @@ ExportSpecialObjectToCSVStandard () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToCSVStandard : Problem during MgmtCLIExportSpecialObjectsToCSVviaJQ operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToCSVStandard : Problem during MgmtCLIExportSpecialObjectsToCSVviaJQ operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
         
@@ -3857,12 +5319,12 @@ ExportSpecialObjectToCSVStandard () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToCSVStandard : Problem during JSONRepositoryExportSpecialObjectsToCSV operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToCSVStandard : Problem during JSONRepositoryExportSpecialObjectsToCSV operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
     fi
     
-    echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToCSVStandard procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'ExportSpecialObjectToCSVStandard procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
@@ -3879,7 +5341,7 @@ ExportSpecialObjectToCSVStandard () {
 # Main Operational repeated proceedure - SpecialExportRAWObjectToCSV
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-01-05:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The Main Operational Procedure is the meat of the script's repeated actions.
@@ -3890,6 +5352,10 @@ SpecialExportRAWObjectToCSV () {
     #
     # Export Objects to raw JSON
     #
+    
+    export Workingfilename=
+    export APICLIfileexport=
+    export APICLIJSONfilelast=
     
     errorreturn=0
     
@@ -3920,7 +5386,7 @@ SpecialExportRAWObjectToCSV () {
         echo `${dtzs}`${dtzsep} 'Object '${APICLIobjecttype}' does NOT support EXPORT!  APIobjectdoexport = '${APIobjectdoexport} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} 'Skipping!' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToCSV procedure returns :  '${errorreturn} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToCSV procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} >> ${logfilepath}
         return 0
     fi
@@ -3931,7 +5397,7 @@ SpecialExportRAWObjectToCSV () {
             # OK, need to skip this because we can't process this with detials-level "standard"
             echo `${dtzs}`${dtzsep} 'Object type :  '${APICLIobjectstype}' has defined object type selectors set, but details-level is "'${APICLIdetaillvl}'", so skipping to avoid fail!' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToCSV procedure returns :  '${errorreturn} >> ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToCSV procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} >> ${logfilepath}
             return ${errorreturn}
         fi
@@ -3948,6 +5414,14 @@ SpecialExportRAWObjectToCSV () {
     
     # -------------------------------------------------------------------------------------------------
     
+    echo `${dtzs}`${dtzsep} 'Start Processing '${APICLIobjecttype}':' | tee -a -i ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    DumpObjectDefinitionData
+    
+    # -------------------------------------------------------------------------------------------------
+    
     # MODIFIED 2021-02-01 -
     #
     
@@ -3960,7 +5434,7 @@ SpecialExportRAWObjectToCSV () {
         # Something went wrong, terminate
         echo `${dtzs}`${dtzsep} 'Problem found in procedure ConfigureSpecialObjectCSVandJQParameters! error returned = '${errorreturn} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToCSV procedure returns :  '${errorreturn} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToCSV procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} >> ${logfilepath}
         return ${errorreturn}
     fi
@@ -3976,7 +5450,7 @@ SpecialExportRAWObjectToCSV () {
         # Something went wrong, terminate
         echo `${dtzs}`${dtzsep} 'Problem found in procedure SetupExportObjectsToCSVviaJQ! error returned = '${errorreturn} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToCSV procedure returns :  '${errorreturn} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToCSV procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} >> ${logfilepath}
         return ${errorreturn}
     fi
@@ -4000,12 +5474,16 @@ SpecialExportRAWObjectToCSV () {
     
     ConfigureMgmtCLIOperationalParametersExport
     
-    export APICLIfilename=${APICLIobjectstype}
+    # MODIFIED 2023-03-03:03 -
+    
+    if [ x"${APICLICSVobjecttype}" != x"" ] ; then
+        export APICLIfilename=${APICLICSVobjecttype}
+    else
+        export APICLIfilename=${APICLIobjectstype}
+    fi
     if [ x"${APICLIexportnameaddon}" != x"" ] ; then
         export APICLIfilename=${APICLIfilename}'_'${APICLIexportnameaddon}
     fi
-    
-    echo `${dtzs}`${dtzsep} 'Start Processing '${APICLIobjecttype}':' | tee -a -i ${logfilepath}
     
     if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
         # This object does not have limits to check and probably does not have more than one object entry
@@ -4019,6 +5497,15 @@ SpecialExportRAWObjectToCSV () {
     
     # -------------------------------------------------------------------------------------------------
     
+    export Workingfilename=${APICLIfilename}
+    export APICLIfileexport=${APICLIpathexport}/${APICLIfileexportpre}${Workingfilename}${APICLIfileexportpost}
+    export APICLIJSONfilelast=${Slurpworkfolder}/${APICLIfileexportpre}${Workingfilename}'_last'${APICLIJSONfileexportpost}
+    
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'Workingfilename' "${Workingfilename}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIfileexport' "${APICLIfileexport}" >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIJSONfilelast' "${APICLIJSONfilelast}" >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
     errorreturn=0
     
     if [ ${APIobjectrecommendedlimit} -eq 0 ] ; then
@@ -4029,7 +5516,7 @@ SpecialExportRAWObjectToCSV () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToCSV : Problem found in procedure ExportSpecialObjectToCSVWithoutLimitsAndDetailLevel! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToCSV : Problem found in procedure ExportSpecialObjectToCSVWithoutLimitsAndDetailLevel! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
         
@@ -4041,7 +5528,7 @@ SpecialExportRAWObjectToCSV () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToCSV : Problem found in procedure ExportSpecialObjectToCSVStandard! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToCSV : Problem found in procedure ExportSpecialObjectToCSVStandard! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
         
@@ -4054,7 +5541,7 @@ SpecialExportRAWObjectToCSV () {
     
     if [ ${errorreturn} != 0 ] ; then
         # Something went wrong, terminate
-        echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToCSV : Problem found in procedure FinalizeExportObjectsToCSVviaJQ! error return = '${errorreturn} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToCSV : Problem found in procedure FinalizeExportObjectsToCSVviaJQ! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
         return ${errorreturn}
     fi
     
@@ -4067,13 +5554,13 @@ SpecialExportRAWObjectToCSV () {
         
     fi
     
-    echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToCSV procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'SpecialExportRAWObjectToCSV procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-01-05:01
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-03-04:02
 
 
 # -------------------------------------------------------------------------------------------------
@@ -4166,11 +5653,11 @@ SpecialObjectsCheckAPIVersionAndExecuteOperation () {
         SpecialExportRAWObjectToCSV
         errorreturn=$?
         
-        echo `${dtzs}`${dtzsep} 'SpecialObjectsCheckAPIVersionAndExecuteOperation call to SpecialExportRAWObjectToCSV procedure returned :  '${errorreturn} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'SpecialObjectsCheckAPIVersionAndExecuteOperation call to SpecialExportRAWObjectToCSV procedure returned :  !{ '${errorreturn}' }!' >> ${logfilepath}
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in SpecialObjectsCheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in SpecialObjectsCheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         fi
         
@@ -4187,7 +5674,7 @@ SpecialObjectsCheckAPIVersionAndExecuteOperation () {
         # Handle Error in operation
         if ${ABORTONERROR} ; then
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in SpecialObjectsCheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in SpecialObjectsCheckAPIVersionAndExecuteOperation procedure' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             read -t ${WAITTIME} -n 1 -p "Any key to EXIT script due to error ${errorreturn}.  Automatic EXIT after ${WAITTIME} seconds : " anykey
             echo
@@ -4217,13 +5704,13 @@ SpecialObjectsCheckAPIVersionAndExecuteOperation () {
             exit ${errorreturn}
         else
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in SpecialObjectsCheckAPIVersionAndExecuteOperation procedure, but continueing' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in SpecialObjectsCheckAPIVersionAndExecuteOperation procedure, but continueing' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             #return ${errorreturn}
         fi
     fi
     
-    echo `${dtzs}`${dtzsep} 'SpecialObjectsCheckAPIVersionAndExecuteOperation procedure returns :  '${errorreturn} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'SpecialObjectsCheckAPIVersionAndExecuteOperation procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-' | tee -a -i ${logfilepath}
     
     return ${errorreturn}
@@ -4249,45 +5736,45 @@ SpecialObjectsCheckAPIVersionAndExecuteOperation () {
 # -------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# Special Singular Objects - export object
-# -------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+# | Special Object : Special Singular Objects - export object
+# +-------------------------------------------------------------------------------------------------
 
-# ADDED 2022-09-15 -
+#ClearObjectDefinitionData
 
 #export APICLIobjecttype='<object_type_singular>'
 #export APICLIobjectstype='<object_type_plural>'
 #export APIobjectminversion='<object_type_api_version>'
+#export APIobjectexportisCPI=false|true
+#export APIobjectjsonrepofileobject=${APICLIobjectstype}
 #export APICLICSVobjecttype=${APICLIobjectstype}
 #export APIobjectrecommendedlimit=0
 #export APIobjectrecommendedlimitMDSM=0
 
-#export APIobjectexportisCPI=false
+#export APIobjectdoexport=true|false
+#export APIobjectdoexportJSON=true|false
+#export APIobjectdoexportCSV=true|false
+#export APIobjectdoimport=true|false
+#export APIobjectdorename=true|false
+#export APIobjectdoupdate=true|false
+#export APIobjectdodelete=true|false
 
-#export APIobjectdoexport=true
-#export APIobjectdoexportJSON=true
-#export APIobjectdoexportCSV=true
-#export APIobjectdoimport=true
-#export APIobjectdorename=false
-#export APIobjectdoupdate=false
-#export APIobjectdodelete=false
+#export APIobjectusesdetailslevel=true|false
+#export APIobjectcanignorewarning=true|false
+#export APIobjectcanignoreerror=true|false
+#export APIobjectcansetifexists=false|true
+#export APIobjectderefgrpmem=false|true
+#export APIobjecttypehasname=true|false
+#export APIobjecttypehasuid=true|false
+#export APIobjecttypehasdomain=true|false
+#export APIobjecttypehastags=true|false
+#export APIobjecttypehasmeta=true|false
+#export APIobjecttypeimportname=true|false
 
-#export APIobjectusesdetailslevel=false
-#export APIobjectcanignorewarning=false
-#export APIobjectcanignoreerror=false
-#export APIobjectcansetifexists=false
-#export APIobjectderefgrpmem=false
-#export APIobjecttypehasname=false
-#export APIobjecttypehasuid=true
-#export APIobjecttypehasdomain=true
-#export APIobjecttypehastags=true
-#export APIobjecttypehasmeta=true
-#export APIobjecttypeimportname=true
+#export APIobjectCSVFileHeaderAbsoluteBase=false|true
+#export APIobjectCSVJQparmsAbsoluteBase=false|true
 
-#export APIobjectCSVFileHeaderAbsoluteBase=false
-#export APIobjectCSVJQparmsAbsoluteBase=false
-
-#export APIobjectCSVexportWIP=false
+#export APIobjectCSVexportWIP=false|true
 
 #export APIobjectspecificselector00key=
 #export APIobjectspecificselector00value=
@@ -4356,6 +5843,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
@@ -4387,7 +5875,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # START :  Simple Object via Generic-Objects Handling Procedures
 # -------------------------------------------------------------------------------------------------
 
-# ADDED 2022-12-14 -
+# PENDING -
 
 
 # -------------------------------------------------------------------------------------------------
@@ -4400,24 +5888,6 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 
 
-#if ${NoSystemObjects} ; then
-    ## Ignore System Objects
-    
-#elif ${OnlySystemObjects} ; then
-    ## Only System Objects
-    
-#elif ${CreatorIsNotSystem} ; then
-    ## Only System Objects
-    
-#elif ${CreatorIsSystem} ; then
-    ## Only System Objects
-    
-#else
-    ## Don't Ignore System Objects
-    
-#fi
-
-
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
@@ -4428,17 +5898,12 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Reference Details and initial object
 # +-------------------------------------------------------------------------------------------------
 
-export AugmentExportedFields=false
+ClearObjectDefinitionData
 
-if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
-    export AugmentExportedFields=true
-elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
-    export AugmentExportedFields=true
-elif ${OnlySystemObjects} ; then
-    export AugmentExportedFields=true
-else
-    export AugmentExportedFields=false
-fi
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
 
 export APIGenObjectTypes=generic-objects
 export APIGenObjectClassField=class-name
@@ -4450,16 +5915,24 @@ export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
 export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
 export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site
 export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites
-export APIGenObjCSVobjecttype=${APIGenObjobjecttype}
+export APIGenObjobjectkey=name
+export APIGenObjobjectkeydetailslevel=standard
 
-export APICLIobjecttype=application-site
-export APICLIobjectstype=application-sites
-export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APIGenObjcomplexobjectstype}
+export APICLICSVobjecttype=${APIGenObjcomplexobjectstype}
+export APIGenObjjsonrepofileobject=${APIGenObjobjectstype}
+export APIGenObjcomplexjsonrepofileobject=${APIGenObjcomplexobjectstype}
+export APIGenObjCSVobjecttype=${APIGenObjobjectstype}
+export APIGenObjcomplexCSVobjecttype=${APIGenObjcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=true
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -4486,9 +5959,17 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
+export AugmentExportedFields=false
+
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export AugmentExportedFields=true
+elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+    export AugmentExportedFields=true
+elif ${OnlySystemObjects} ; then
+    export AugmentExportedFields=true
+else
+    export AugmentExportedFields=false
+fi
 
 #SimpleObjectsJSONViaGenericObjectsHandler
 
@@ -4563,7 +6044,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # SetupExportComplexObjectsToCSVviaJQ
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-01-05:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-03:04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The SetupExportComplexObjectsToCSVviaJQ is the setup actions for the script's repeated actions.
@@ -4578,127 +6059,11 @@ SetupExportComplexObjectsToCSVviaJQ () {
     #printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'X' "${X}" >> ${logfilepath}
     #
     
-    # MODIFIED 2021-11-09 -
+    ConfigureWorkAPIObjectLimit
     
-    export WorkAPIObjectLimit=${MaxAPIObjectLimit}
-    if [ -z "${domainnamenospace}" ] ; then
-        # an empty ${domainnamenospace} indicates that we are not working towards an MDSM
-        export WorkAPIObjectLimit=${APIobjectrecommendedlimit}
-    else
-        # an empty ${domainnamenospace} indicates that we are working towards an MDSM
-        export WorkAPIObjectLimit=${APIobjectrecommendedlimitMDSM}
-    fi
+    ConfigureCSVFileNamesForExport
     
-    echo `${dtzs}`${dtzsep} ' - WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' >> ${logfilepath}
-    
-    if ${OverrideMaxObjects} ; then
-        echo `${dtzs}`${dtzsep} ' - Override Maximum Objects ['${WorkAPIObjectLimit}'] with OverrideMaxObjectsNumber :  '${OverrideMaxObjectsNumber}' objects value' | tee -a -i ${logfilepath}
-        export WorkAPIObjectLimit=${OverrideMaxObjectsNumber}
-    fi
-    
-    echo `${dtzs}`${dtzsep} ' - Final WorkAPIObjectLimit :  '${WorkAPIObjectLimit}' objects (SMS = '${APIobjectrecommendedlimit}', MDSM = '${APIobjectrecommendedlimitMDSM}')' | tee -a -i ${logfilepath}
-    
-    echo `${dtzs}`${dtzsep} >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectrecommendedlimit' "${APIobjectrecommendedlimit}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APIobjectrecommendedlimitMDSM' "${APIobjectrecommendedlimitMDSM}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'WorkAPIObjectLimit' "${WorkAPIObjectLimit}" >> ${logfilepath}
-    
-    export APICLICSVfilename=${APICLIcomplexobjectstype}
-    if [ x"${APICLIexportnameaddon}" != x"" ] ; then
-        export APICLICSVfilename=${APICLICSVfilename}'_'${APICLIexportnameaddon}
-    fi
-    export APICLICSVfilename=${APICLICSVfilename}'_'${APICLIdetaillvl}'_csv'${APICLICSVfileexportsuffix}
-    export APICLICSVfile=${APICLIpathexport}/${APICLICSVfilename}
-    export APICLICSVfilewip=${APICLICSVpathexportwip}/${APICLICSVfilename}
-    export APICLICSVfileheader=${APICLICSVfilewip}.${APICLICSVheaderfilesuffix}
-    export APICLICSVfiledata=${APICLICSVfilewip}.data
-    export APICLICSVfilesort=${APICLICSVfilewip}.sort
-    export APICLICSVfiledatalast=${APICLICSVfilewip}.datalast
-    export APICLICSVfileoriginal=${APICLICSVfilewip}.original
-    
-    # Configure the JSON Repository File information
-    
-    # In export operations, we do not utilize the details level of other than "standard" export types, so either "full" or "standard"
-    export JSONRepoDetailname=${APICLIdetaillvl}
-    case ${APICLIdetaillvl} in
-        'full' )
-            export JSONRepoDetailname=${APICLIdetaillvl}
-            ;;
-        'standard' )
-            export JSONRepoDetailname=${APICLIdetaillvl}
-            ;;
-        * )
-            export JSONRepoDetailname='full'
-            ;;
-    esac
-    
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVpathexportwip' "${APICLICSVpathexportwip}" >> ${logfilepath}
-    
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIexportnameaddon' "${APICLIexportnameaddon}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIdetaillvl' "${APICLIdetaillvl}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfileexportsuffix' "${APICLICSVfileexportsuffix}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIpathexport' "${APICLIpathexport}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfilename' "${APICLICSVfilename}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfile' "${APICLICSVfile}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVpathexportwip' "${APICLICSVpathexportwip}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfilewip' "${APICLICSVfilewip}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVheaderfilesuffix' "${APICLICSVheaderfilesuffix}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfileheader' "${APICLICSVfileheader}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfiledata' "${APICLICSVfiledata}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfilesort' "${APICLICSVfilesort}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfiledatalast' "${APICLICSVfiledatalast}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLICSVfileoriginal' "${APICLICSVfileoriginal}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoDetailname' "${JSONRepoDetailname}" >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} >> ${logfilepath}
-    
-    echo `${dtzs}`${dtzsep} 'Using the following details level for the JSON Repository = '${JSONRepoDetailname} >> ${logfilepath}
-    
-    if ${NoSystemObjects} ; then
-        if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
-            # In CSV export operations, we do not utilize the ${APICLIdetaillvl}.NoSystemObjects to ensure we harvest from the repository
-            export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}
-        else
-            export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}.NoSystemObjects
-        fi
-    elif ${OnlySystemObjects} ; then
-        if [ x"${primarytargetoutputformat}" = x"${FileExtCSV}" ] ; then
-            # In CSV export operations, we do not utilize the ${APICLIdetaillvl}.OnlySystemObjects to ensure we harvest from the repository
-            export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}
-        else
-            export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}.OnlySystemObjects
-        fi
-    else
-        export JSONRepopathworking=${JSONRepopathbase}/${JSONRepoDetailname}
-    fi
-    
-    export JSONRepofilepost='_'${JSONRepoDetailname}'_'${JSONRepofilesuffix}
-    
-    export JSONRepofilename=${APICLIobjectstype}
-    if [ x"${APICLIexportnameaddon}" != x"" ] ; then
-        # We need to check if we can actually use the ${APICLIexportnameaddon}
-        if [ -r "${JSONRepopathworking}/${JSONRepofilepre}${JSONRepofilename}'_'${APICLIexportnameaddon}${JSONRepofilepost}" ] ; then
-            # the JSON repository actually contains the file with the ${APICLIexportnameaddon}, so use it
-            export JSONRepofilename=${JSONRepofilename}'_'${APICLIexportnameaddon}
-        else
-            # the JSON repository does not contain the file with the ${APICLIexportnameaddon}, so use the basic value
-            export JSONRepofilename=${JSONRepofilename}
-        fi
-    fi
-    
-    export JSONRepoFile=${JSONRepopathworking}/${JSONRepofilepre}${JSONRepofilename}${JSONRepofilepost}
-    
-    export APICLIJSONfilelast=${APICLICSVpathexportwip}/${APICLICSVfilename}'_json_last'${APICLIJSONfileexportsuffix}
-    
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepopathbase' "${JSONRepopathbase}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoDetailname' "${JSONRepoDetailname}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepopathworking' "${JSONRepopathworking}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepofilepre' "${JSONRepofilepre}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepofilename' "${JSONRepofilename}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepofilepost' "${JSONRepofilepost}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepopathworking' "${JSONRepopathworking}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'JSONRepoFile' "${JSONRepoFile}" >> ${logfilepath}
-    printf "`${dtzs}`${dtzsep}%-40s = %s\n" 'APICLIJSONfilelast' "${APICLIJSONfilelast}" >> ${logfilepath}
-    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    ConfigureJSONRepoFileNamesAndPaths
     
     if [ ! -r ${APICLICSVpathexportwip} ] ; then
         mkdir -p -v ${APICLICSVpathexportwip} >> ${logfilepath} 2>&1
@@ -4741,7 +6106,7 @@ SetupExportComplexObjectsToCSVviaJQ () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-01-05:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-03:04
 
 
 # -------------------------------------------------------------------------------------------------
@@ -4869,7 +6234,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # PopulateArrayOfObjectsTypeFromMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-04-29:04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -4879,27 +6244,16 @@ PopulateArrayOfObjectsTypeFromMgmtDB () {
     
     errorreturn=0
     
-    # MODIFIED 2022-04-22 -
-    
+    # MODIFIED 2023-03-04:01 - 
     # System Object selection operands
-    # MODIFIED 2022-04-22 - 
     # Current alternative if more options to exclude are needed
+    
     ConfigureObjectQuerySelector
     
     echo `${dtzs}`${dtzsep} '  '${APICLIobjectstype}' - Populate up to next '${WorkAPIObjectLimit}' '${APICLIobjecttype}' objects starting with object '${currentobjecttypesoffset}' of '${objectslefttoshow}' remaining!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '  '${APICLIobjectstype}'   Using Object Query Selector "'${objectqueryselector}'"' | tee -a -i ${logfilepath}
     
-    if ${NoSystemObjects} ; then
-        # Ignore System Objects
-        MGMT_CLI_OBJECTSTYPE_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentobjecttypesoffset} details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${OnlySystemObjects} ; then
-        # Only System Objects
-        MGMT_CLI_OBJECTSTYPE_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentobjecttypesoffset} details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${CreatorIsNotSystem} ; then
-        # Only System Objects
-        MGMT_CLI_OBJECTSTYPE_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentobjecttypesoffset} details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${CreatorIsSystem} ; then
-        # Only System Objects
+    if [ x"${objectqueryselector}" != x"" ] ; then
         MGMT_CLI_OBJECTSTYPE_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currentobjecttypesoffset} details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
     else
         # Don't Ignore System Objects
@@ -4910,6 +6264,7 @@ PopulateArrayOfObjectsTypeFromMgmtDB () {
     # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
     
     echo -n `${dtzs}`${dtzsep} '    Read Objects into array:  ' | tee -a -i ${logfilepath}
+    
     while read -r line; do
         if [ "${line}" == '' ]; then
             # ${line} value is nul, so skip adding to array
@@ -4921,20 +6276,27 @@ PopulateArrayOfObjectsTypeFromMgmtDB () {
         fi
     done <<< "${MGMT_CLI_OBJECTSTYPE_STRING}"
     errorreturn=$?
+    
     echo | tee -a -i ${logfilepath}
     
+    echo `${dtzs}`${dtzsep} 'PopulateArrayOfObjectsTypeFromMgmtDB procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-04-29:04
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
 # PopulateArrayOfObjectsTypeFromJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# ADDED 2022-04-29:04 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 -  \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -4944,30 +6306,18 @@ PopulateArrayOfObjectsTypeFromJSONRepository () {
     
     errorreturn=0
     
-    # MODIFIED 2022-04-22 -
-    
+    # MODIFIED 2023-03-04:01 - 
     # System Object selection operands
-    # MODIFIED 2022-04-22 - 
     # Current alternative if more options to exclude are needed
+    
     ConfigureObjectQuerySelector
     
     echo `${dtzs}`${dtzsep} '  '${APICLIobjectstype}' - Populate up to this number ['${JSONRepoObjectsTotal}'] of '${APICLIobjecttype}' objects' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '  '${APICLIobjectstype}'   Using Object Query Selector "'${objectqueryselector}'"' | tee -a -i ${logfilepath}
     
-    if ${NoSystemObjects} ; then
-        # Ignore System Objects
-        JSON_REPO_OBJECTSTYPE_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${OnlySystemObjects} ; then
-        # Ignore System Objects
-        JSON_REPO_OBJECTSTYPE_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${CreatorIsNotSystem} ; then
-        # Ignore System Objects
-        JSON_REPO_OBJECTSTYPE_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${CreatorIsSystem} ; then
-        # Ignore System Objects
+    if [ x"${objectqueryselector}" != x"" ] ; then
         JSON_REPO_OBJECTSTYPE_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
     else
-        # Don't Ignore System Objects
         JSON_REPO_OBJECTSTYPE_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[].name | @sh' -r`"
     fi
     
@@ -4975,6 +6325,7 @@ PopulateArrayOfObjectsTypeFromJSONRepository () {
     # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
     
     echo -n `${dtzs}`${dtzsep} '    Read Objects into array:  ' | tee -a -i ${logfilepath}
+    
     while read -r line; do
         if [ "${line}" == '' ]; then
             # ${line} value is nul, so skip adding to array
@@ -4986,13 +6337,20 @@ PopulateArrayOfObjectsTypeFromJSONRepository () {
         fi
     done <<< "${JSON_REPO_OBJECTSTYPE_STRING}"
     errorreturn=$?
+    
     echo | tee -a -i ${logfilepath}
     
+    echo `${dtzs}`${dtzsep} 'PopulateArrayOfObjectsTypeFromJSONRepository procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-04-29:04
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
@@ -5066,7 +6424,7 @@ GetArrayOfObjectsType () {
             errorreturn=$?
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in PopulateArrayOfObjectsTypeFromMgmtDB procedure' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in PopulateArrayOfObjectsTypeFromMgmtDB procedure' | tee -a -i ${logfilepath}
                 return ${errorreturn}
             fi
             
@@ -5086,7 +6444,7 @@ GetArrayOfObjectsType () {
         errorreturn=$?
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in PopulateArrayOfObjectsTypeFromJSONRepository procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in PopulateArrayOfObjectsTypeFromJSONRepository procedure' | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
     fi
@@ -5179,7 +6537,7 @@ DumpArrayOfObjectsType () {
 # CollectMembersInObjectsTypeWithMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-10-27:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-02-27:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -5244,7 +6602,7 @@ CollectMembersInObjectsTypeWithMgmtDB () {
             
             # MODIFIED 2021-10-23
             # What is this?  Multiple jq operations to consolidate the operation into a single strike
-            # 0.)  Output the Repository file of ${APICLIobjecttype} for jq processing
+            # 0.)  Output the object ${APICLIobjecttype} with name ${objectnametoevaluate} at details-level "full" for jq processing
             #      Action: ]# mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json
             # 1.)  Get the current objects members as a seperate list
             #      Action: ]# ${JQ} '.objects[] | select(.name == "'"${objectnametoevaluate}"'") | .members[]'
@@ -5254,7 +6612,7 @@ CollectMembersInObjectsTypeWithMgmtDB () {
             #      Action: ]# ${JQ} '.[] | [ '"${CSVJQmemberparms}"' ] | @csv' -r
             #
             
-            mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.members[]' | ${JQ} -s '.' | ${JQ} '.[] | [ '"${CSVJQmemberparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
+            mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.members[]' | ${JQ} -s '.' | ${JQ} '.[] | [ '"${CSVJQmemberparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
             errorreturn=$?
             
             if [ "${errorreturn}" != "0" ] ; then
@@ -5277,7 +6635,7 @@ CollectMembersInObjectsTypeWithMgmtDB () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-10-27:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-27:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -5429,7 +6787,7 @@ CollectMembersInObjectsType () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Handle Error in operation
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectMembersInObjectsTypeWithMgmtDB procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectMembersInObjectsTypeWithMgmtDB procedure' | tee -a -i ${logfilepath}
         fi
         
     else
@@ -5440,7 +6798,7 @@ CollectMembersInObjectsType () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Handle Error in operation
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectMembersInObjectsTypeWithJSONRepository procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectMembersInObjectsTypeWithJSONRepository procedure' | tee -a -i ${logfilepath}
         fi
         
     fi
@@ -5487,7 +6845,7 @@ GetObjectMembers () {
     
     if [ ${errorreturn} != 0 ] ; then
         # Handle Error in operation
-        echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in SetupExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in SetupExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
         
         if ${APISCRIPTVERBOSE} ; then
             echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype}' -- RETURNING!!' | tee -a -i ${logfilepath}
@@ -5504,7 +6862,7 @@ GetObjectMembers () {
     
     if [ ${errorreturn} != 0 ] ; then
         # Handle Error in operation
-        echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in GetArrayOfObjectsType procedure' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in GetArrayOfObjectsType procedure' | tee -a -i ${logfilepath}
             
             if ${APISCRIPTVERBOSE} ; then
                 echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype}' -- RETURNING!!' | tee -a -i ${logfilepath}
@@ -5525,7 +6883,7 @@ GetObjectMembers () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Handle Error in operation
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in DumpArrayOfObjectsType procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in DumpArrayOfObjectsType procedure' | tee -a -i ${logfilepath}
             
             if ${APISCRIPTVERBOSE} ; then
                 echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype}' -- RETURNING!!' | tee -a -i ${logfilepath}
@@ -5542,7 +6900,7 @@ GetObjectMembers () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Handle Error in operation
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectMembersInObjectsType procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectMembersInObjectsType procedure' | tee -a -i ${logfilepath}
             
             if ${APISCRIPTVERBOSE} ; then
                 echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype}' -- RETURNING!!' | tee -a -i ${logfilepath}
@@ -5559,7 +6917,7 @@ GetObjectMembers () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Handle Error in operation
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in FinalizeExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in FinalizeExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
             
             if ${APISCRIPTVERBOSE} ; then
                 echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype}' -- RETURNING!!' | tee -a -i ${logfilepath}
@@ -5600,7 +6958,7 @@ GetObjectMembers () {
 # GenericComplexObjectsMembersHandler proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-09-15:02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 -  \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 GenericComplexObjectsMembersHandler () {
@@ -5633,38 +6991,47 @@ GenericComplexObjectsMembersHandler () {
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    # MODIFIED 2022-09-16:01 -
-    # Account for whether the original object definition is for REFERENCE, NO IMPORT already
-    
-    if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
-        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        else
-            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        fi
-    elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
-        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        else
-            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        fi
-    elif ${OnlySystemObjects} ; then
-        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        else
-            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        fi
-    else
-        export APICLIexportnameaddon=${APICLIexportnameaddon}
-    fi
-    
     if ${ExportTypeIsStandard} ; then
+        # -------------------------------------------------------------------------------------------------
+        
+        # MODIFIED 2023-03-04:01 -
+        #
+        
+        DumpObjectDefinitionData
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        # MODIFIED 2022-09-16:01 -
+        # Account for whether the original object definition is for REFERENCE, NO IMPORT already
+        
+        if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+            if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            else
+                export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            fi
+        elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+            if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            else
+                export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            fi
+        elif ${OnlySystemObjects} ; then
+            if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            else
+                export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            fi
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}
+        fi
+        
         objectstotal_object=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
         export number_object="${objectstotal_object}"
         
@@ -5693,7 +7060,7 @@ GenericComplexObjectsMembersHandler () {
     
     if [ ${errorreturn} != 0 ] ; then
         # Handle Error in operation
-        echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in GenericComplexObjectsMembersHandler procedure' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in GenericComplexObjectsMembersHandler procedure' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         if ${ABORTONERROR} ; then
             read -t ${WAITTIME} -n 1 -p "Any key to EXIT script due to error ${errorreturn}.  Automatic EXIT after ${WAITTIME} seconds : " anykey
@@ -5740,7 +7107,7 @@ GenericComplexObjectsMembersHandler () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-09-15:02
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -5762,11 +7129,17 @@ GenericComplexObjectsMembersHandler () {
 #export APICLIcomplexobjecttype='<object_type_singular>-member'
 #export APICLIcomplexobjectstype='<object_type_plural>-members'
 #export APIobjectminversion='<object_type_api_version>'
+#export APIobjectexportisCPI=false
+
+#export APIobjectspecificselector00key=
+#export APIobjectspecificselector00value=
+#export APICLIexportnameaddon=
+
+#export APIobjectjsonrepofileobject=${APICLIobjectstype}
 #export APICLICSVobjecttype=${APICLIobjectstype}
+
 #export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 #export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-#export APIobjectexportisCPI=false
 
 #export APIobjectdoexport=true
 #export APIobjectdoexportJSON=true
@@ -5792,10 +7165,6 @@ GenericComplexObjectsMembersHandler () {
 #export APIobjectCSVJQparmsAbsoluteBase=false
 
 #export APIobjectCSVexportWIP=false
-
-#export APIobjectspecificselector00key=
-#export APIobjectspecificselector00value=
-#export APICLIexportnameaddon=
 
 ##
 ## APICLICSVsortparms can change due to the nature of the object
@@ -5866,21 +7235,22 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # PopulateArrayOfHostInterfacesFromMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-25:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
 # PopulateArrayOfHostInterfacesFromMgmtDB populates array of host objects for further processing from Management DB via mgmt_cli.
 
 PopulateArrayOfHostInterfacesFromMgmtDB () {
-    
-    errorreturn=0
-    
     #
     # APICLICSVsortparms can change due to the nature of the object
     #
     
-    # MODIFIED 2022-06-11 -
+    errorreturn=0
+    
+    # MODIFIED 2023-03-04:01 - 
+    # System Object selection operands
+    # Current alternative if more options to exclude are needed
     
     ConfigureObjectQuerySelector
     
@@ -5891,20 +7261,9 @@ PopulateArrayOfHostInterfacesFromMgmtDB () {
     
     # MGMT_CLI_HOSTS_STRING is a string with multiple lines. Each line contains a name of a host.
     
-    if ${NoSystemObjects} ; then
-        # Ignore System Objects
-        MGMT_CLI_HOSTS_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${OnlySystemObjects} ; then
-        # Ignore System Objects
-        MGMT_CLI_HOSTS_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${CreatorIsNotSystem} ; then
-        # Ignore System Objects
-        MGMT_CLI_HOSTS_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${CreatorIsSystem} ; then
-        # Ignore System Objects
+    if [ x"${objectqueryselector}" != x"" ] ; then
         MGMT_CLI_HOSTS_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
     else
-        # Don't Ignore System Objects
         MGMT_CLI_HOSTS_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level standard -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[].name | @sh' -r`"
     fi
     
@@ -5929,16 +7288,12 @@ PopulateArrayOfHostInterfacesFromMgmtDB () {
             arrayelement=$((arraylength-1))
             
             if ${APISCRIPTVERBOSE} ; then
-                # Verbose mode ON
-                # Output list of all hosts found
                 echo -n ' '"${line}"', ' | tee -a -i ${logfilepath}
                 echo -n "$(eval echo ${line})"', ' >> ${logfilepath}
                 echo -n "$arraylength"', ' >> ${logfilepath}
                 echo -n "$arrayelement"', ' | tee -a -i ${logfilepath}
-                #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"', ' | tee -a -i ${logfilepath}
             fi
             
-            #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
             INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
             
             NUM_HOST_INTERFACES=${INTERFACES_COUNT}
@@ -5986,7 +7341,6 @@ PopulateArrayOfHostInterfacesFromMgmtDB () {
         fi
         
         if ${APISCRIPTVERBOSE} ; then
-            # Verbose mode ON
             echo | tee -a -i ${logfilepath}
             echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         fi
@@ -5997,19 +7351,24 @@ PopulateArrayOfHostInterfacesFromMgmtDB () {
     echo | tee -a -i ${logfilepath}
     
     if ${APISCRIPTVERBOSE} ; then
-        # Verbose mode ON
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} 'HostInterfacesCount     = '${HostInterfacesCount} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} 'MAXHostInterfacesValues = '${MAXHostInterfacesValues} | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'HostInterfacesCount     = '${HostInterfacesCount} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'MAXHostInterfacesValues = '${MAXHostInterfacesValues} >> ${logfilepath}
     fi
     
     export HostInterfacesCount=${HostInterfacesCount}
     
+    echo `${dtzs}`${dtzsep} 'PopulateArrayOfHostInterfacesFromMgmtDB procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-25:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -6020,25 +7379,23 @@ PopulateArrayOfHostInterfacesFromMgmtDB () {
 # PopulateArrayOfHostInterfacesFromJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-09-13:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
 # PopulateArrayOfHostInterfacesFromJSONRepository populates array of host objects for further processing from JSON Repository.
 
 PopulateArrayOfHostInterfacesFromJSONRepository () {
-    
-    errorreturn=0
-    
     #
     # APICLICSVsortparms can change due to the nature of the object
     #
     
-    # MODIFIED 2022-04-22 -
+    errorreturn=0
     
+    # MODIFIED 2023-03-04:01 - 
     # System Object selection operands
-    # MODIFIED 2022-04-22 - 
     # Current alternative if more options to exclude are needed
+    
     ConfigureObjectQuerySelector
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
@@ -6047,20 +7404,9 @@ PopulateArrayOfHostInterfacesFromJSONRepository () {
     
     # MGMT_CLI_HOSTS_STRING is a string with multiple lines. Each line contains a name of a host.
     
-    if ${NoSystemObjects} ; then
-        # Ignore System Objects
-        JSON_REPO_HOSTS_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${OnlySystemObjects} ; then
-        # Ignore System Objects
-        JSON_REPO_HOSTS_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${CreatorIsNotSystem} ; then
-        # Ignore System Objects
-        JSON_REPO_HOSTS_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${CreatorIsSystem} ; then
-        # Ignore System Objects
+    if [ x"${objectqueryselector}" != x"" ] ; then
         JSON_REPO_HOSTS_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
     else
-        # Don't Ignore System Objects
         JSON_REPO_HOSTS_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[].name | @sh' -r`"
     fi
     
@@ -6085,17 +7431,12 @@ PopulateArrayOfHostInterfacesFromJSONRepository () {
             arrayelement=$((arraylength-1))
             
             if ${APISCRIPTVERBOSE} ; then
-                # Verbose mode ON
-                # Output list of all hosts found
                 echo -n ' '"${line}"', ' | tee -a -i ${logfilepath}
                 echo -n "$(eval echo ${line})"', ' >> ${logfilepath}
                 echo -n "$arraylength"', ' >> ${logfilepath}
                 echo -n "$arrayelement"', ' | tee -a -i ${logfilepath}
-                #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"', ' | tee -a -i ${logfilepath}
             fi
             
-            #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${ALLHOSTARR[${arrayelement}]})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
-            #INTERFACES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} ".interfaces | length")
             INTERFACES_COUNT=$(cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"$(eval echo ${line})"'") | .interfaces | length')
             
             NUM_HOST_INTERFACES=${INTERFACES_COUNT}
@@ -6143,7 +7484,6 @@ PopulateArrayOfHostInterfacesFromJSONRepository () {
         fi
         
         if ${APISCRIPTVERBOSE} ; then
-            # Verbose mode ON
             echo | tee -a -i ${logfilepath}
             echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         fi
@@ -6155,19 +7495,24 @@ PopulateArrayOfHostInterfacesFromJSONRepository () {
     echo | tee -a -i ${logfilepath}
     
     if ${APISCRIPTVERBOSE} ; then
-        # Verbose mode ON
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} 'HostInterfacesCount     = '${HostInterfacesCount} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} 'MAXHostInterfacesValues = '${MAXHostInterfacesValues} | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'HostInterfacesCount     = '${HostInterfacesCount} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'MAXHostInterfacesValues = '${MAXHostInterfacesValues} >> ${logfilepath}
     fi
     
     export HostInterfacesCount=${HostInterfacesCount}
     
+    echo `${dtzs}`${dtzsep} 'PopulateArrayOfHostInterfacesFromJSONRepository procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-09-13:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -6241,7 +7586,7 @@ GetArrayOfHostInterfaces () {
             errorreturn=$?
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in PopulateArrayOfHostInterfacesFromMgmtDB procedure' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in PopulateArrayOfHostInterfacesFromMgmtDB procedure' | tee -a -i ${logfilepath}
                 return ${errorreturn}
             fi
             
@@ -6261,7 +7606,7 @@ GetArrayOfHostInterfaces () {
         errorreturn=$?
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in PopulateArrayOfHostInterfacesFromJSONRepository procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in PopulateArrayOfHostInterfacesFromJSONRepository procedure' | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
     fi
@@ -6424,7 +7769,7 @@ CollectInterfacesInHostObjectsFromMgmtDB () {
             errorreturn=$?
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectInterfacesInHostObjectsFromMgmtDB mgmt_cli execution reading host '${hostnametoevaluate}' interfaces' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectInterfacesInHostObjectsFromMgmtDB mgmt_cli execution reading host '${hostnametoevaluate}' interfaces' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} '  File contents (first 3 and last 10 lines) with potential error from '${APICLICSVfiledata}' : ' >> ${logfilepath}
                 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
                 echo >> ${logfilepath}
@@ -6541,7 +7886,7 @@ CollectInterfacesInHostObjectsFromJSONRepository () {
             errorreturn=$?
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectInterfacesInHostObjectsFromJSONRepository JQ execution reading host '${hostnametoevaluate}' interfaces' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectInterfacesInHostObjectsFromJSONRepository JQ execution reading host '${hostnametoevaluate}' interfaces' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} '  File contents (first 3 and last 10 lines) with potential error from '${APICLICSVfiledata}' : ' >> ${logfilepath}
                 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
                 echo >> ${logfilepath}
@@ -6617,7 +7962,7 @@ CollectInterfacesInHostObjects () {
         errorreturn=$?
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectInterfacesInHostObjectsFromMgmtDB procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectInterfacesInHostObjectsFromMgmtDB procedure' | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
         
@@ -6628,7 +7973,7 @@ CollectInterfacesInHostObjects () {
         errorreturn=$?
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectInterfacesInHostObjectsFromJSONRepository procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectInterfacesInHostObjectsFromJSONRepository procedure' | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
         
@@ -6649,7 +7994,7 @@ CollectInterfacesInHostObjects () {
 # GetHostInterfacesProcessor proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-03-10 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -6660,6 +8005,15 @@ GetHostInterfacesProcessor () {
     errorreturn=0
     
     if ${ExportTypeIsStandard} ; then
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        # MODIFIED 2023-03-04:01 -
+        #
+        
+        DumpObjectDefinitionData
+        
+        # -------------------------------------------------------------------------------------------------
         
         export HostInterfacesCount=0
         
@@ -6682,7 +8036,7 @@ GetHostInterfacesProcessor () {
         errorreturn=$?
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in SetupExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in SetupExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
         
@@ -6690,7 +8044,7 @@ GetHostInterfacesProcessor () {
         errorreturn=$?
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in SetupExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in GetArrayOfHostInterfaces procedure' | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
         
@@ -6710,7 +8064,7 @@ GetHostInterfacesProcessor () {
             errorreturn=$?
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in DumpArrayOfHostsObjects procedure' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in DumpArrayOfHostsObjects procedure' | tee -a -i ${logfilepath}
                 return ${errorreturn}
             fi
             
@@ -6718,7 +8072,7 @@ GetHostInterfacesProcessor () {
             errorreturn=$?
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectInterfacesInHostObjects procedure' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectInterfacesInHostObjects procedure' | tee -a -i ${logfilepath}
                 return ${errorreturn}
             fi
             
@@ -6726,7 +8080,7 @@ GetHostInterfacesProcessor () {
             errorreturn=$?
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in FinalizeExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in FinalizeExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
                 return ${errorreturn}
             fi
             
@@ -6746,7 +8100,7 @@ GetHostInterfacesProcessor () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-03-10
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -6847,7 +8201,7 @@ GetHostInterfaces () {
     
     if [ ${errorreturn} != 0 ] ; then
         # Handle Error in operation
-        echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in GetHostInterfacesProcessor procedure' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in GetHostInterfacesProcessor procedure' | tee -a -i ${logfilepath}
         
         if ${ABORTONERROR} ; then
             read -t ${WAITTIME} -n 1 -p "Any key to EXIT script due to error ${errorreturn}.  Automatic EXIT after ${WAITTIME} seconds : " anykey
@@ -6911,18 +8265,26 @@ GetHostInterfaces () {
 # | Complex Object : Specific Complex OBJECT : hosts with host interfaces
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-26:01 - 
+ClearObjectDefinitionData
 
 export APICLIobjecttype=host
 export APICLIobjectstype=hosts
 export APICLIcomplexobjecttype=host-interface
 export APICLIcomplexobjectstype=host-interfaces
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
 export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=false
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -6948,10 +8310,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -7047,7 +8405,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # PopulateArrayOfSpecificObjectFromMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-09-13:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -7057,141 +8415,168 @@ PopulateArrayOfSpecificObjectFromMgmtDB () {
     
     errorreturn=0
     
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'PopulateArrayOfSpecificObjectFromMgmtDB procedure Starting' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
     ConfigureObjectQuerySelector
+    
+    # -------------------------------------------------------------------------------------------------
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '  '${APICLIcomplexobjectstype}' - Populate Array of '${APICLIobjecttype}' Names from Management Database via mgmt_cli!' | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} '  '${APICLIcomplexobjectstype}' - Populate up to next '${WorkAPIObjectLimit}' '${APICLIobjecttype}' object Names starting with object '${currenthostoffset}' of '${objectslefttoshow}' remaining!' | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    # MGMT_CLI_NAMES_STRING is a string with multiple lines. Each line contains a name of an object of type ${APICLIobjectstype}.
+    export objectslefttoshow=${objectstoshow}
     
-    if ${NoSystemObjects} ; then
-        # Ignore System Objects
-        MGMT_CLI_NAMES_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${OnlySystemObjects} ; then
-        # Ignore System Objects
-        MGMT_CLI_NAMES_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${CreatorIsNotSystem} ; then
-        # Ignore System Objects
-        MGMT_CLI_NAMES_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${CreatorIsSystem} ; then
-        # Ignore System Objects
-        MGMT_CLI_NAMES_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    else
-        # Don't Ignore System Objects
-        MGMT_CLI_NAMES_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level standard -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[].name | @sh' -r`"
-    fi
+    currenthostoffset=0
     
-    # break the string into an array - each element of the array is a line in the original string
-    # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
-    
-    echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    
-    while read -r line; do
-        # MODIFIED 2022-09-12 -
-        if [ "${line}" == '' ]; then
-            # ${line} value is nul, so skip adding to array
-            echo -n '%' | tee -a -i ${logfilepath}
+    while [ ${objectslefttoshow} -ge 1 ] ; do
+        # we have objects to process
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        echo `${dtzs}`${dtzsep} '  '${APICLIcomplexobjectstype}' - Populate up to next '${WorkAPIObjectLimit}' '${APICLIobjecttype}' object Names starting with object '${currenthostoffset}' of '${objectslefttoshow}' remaining!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        
+        # MGMT_CLI_NAMES_STRING is a string with multiple lines. Each line contains a name of an object of type ${APICLIobjectstype}.
+        
+        if [ x"${objectqueryselector}" != x"" ] ; then
+            MGMT_CLI_NAMES_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
         else
-            # ${line} value is NOT nul, so add to array
-            
-            ALLAPPLICATIONSITESARR+=("${line}")
-            
-            echo -n '.' | tee -a -i ${logfilepath}
-            
-            arraylength=${#ALLAPPLICATIONSITESARR[@]}
-            arrayelement=$((arraylength-1))
-            
-            if ${APISCRIPTVERBOSE} ; then
-                # Verbose mode ON
-                # Output list of all hosts found
-                echo -n ' '"${line}"', ' | tee -a -i ${logfilepath}
-                echo -n "$(eval echo ${line})"', ' >> ${logfilepath}
-                echo -n "$arraylength"', ' >> ${logfilepath}
-                echo -n "$arrayelement"', ' | tee -a -i ${logfilepath}
-                #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"', ' | tee -a -i ${logfilepath}
-            fi
-            
-            #SPECIFICKEY_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${ALLAPPLICATIONSITESARR[${arrayelement}]})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.'${APIobjectspecifickey}' | length')
-            SPECIFICKEYVALUES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.'${APIobjectspecifickey}' | length' )
-            
-            NUM_SPECIFIC_KEY_VALUES=${SPECIFICKEYVALUES_COUNT}
-            
-            if [ x"${NUM_SPECIFIC_KEY_VALUES}" == x"" ] ; then
-                # There are null objects, so skip
-                if ${APISCRIPTVERBOSE} ; then
-                    echo -n 'N, ' | tee -a -i ${logfilepath}
-                else
-                    echo -n 'N' | tee -a -i ${logfilepath}
-                fi
-                echo -n '-' | tee -a -i ${logfilepath}
-            elif [[ ${NUM_SPECIFIC_KEY_VALUES} -lt 1 ]] ; then
-                # no objects of this type
-                if ${APISCRIPTVERBOSE} ; then
-                    echo -n '0, ' | tee -a -i ${logfilepath}
-                else
-                    echo -n '0' | tee -a -i ${logfilepath}
-                fi
-                echo -n '-' | tee -a -i ${logfilepath}
-            elif [[ ${NUM_SPECIFIC_KEY_VALUES} -gt 0 ]] ; then
-                # More than zero (1) interfaces, something to process
-                if [ ${NUM_SPECIFIC_KEY_VALUES} -gt ${MAXObjectsSpecificKeyValues} ] ; then
-                    export MAXObjectsSpecificKeyValues=${NUM_SPECIFIC_KEY_VALUES}
-                fi
+            MGMT_CLI_NAMES_STRING="`mgmt_cli show ${APICLIobjectstype} limit ${WorkAPIObjectLimit} offset ${currenthostoffset} details-level standard -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[].name | @sh' -r`"
+        fi
+        
+        # break the string into an array - each element of the array is a line in the original string
+        # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
+        
+        echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        
+        while read -r line; do
+            # MODIFIED 2022-09-12 -
+            if [ "${line}" == '' ]; then
+                # ${line} value is nul, so skip adding to array
+                echo -n '%' | tee -a -i ${logfilepath}
+            else
+                # ${line} value is NOT nul, so add to array
+                
+                ALLSPECIFICOBJECTSKEYFIELDARRAY+=("${line}")
+                
+                echo -n '.' | tee -a -i ${logfilepath}
+                
+                arraylength=${#ALLSPECIFICOBJECTSKEYFIELDARRAY[@]}
+                arrayelement=$((arraylength-1))
                 
                 if ${APISCRIPTVERBOSE} ; then
-                    echo -n "${NUM_SPECIFIC_KEY_VALUES}"', ' | tee -a -i ${logfilepath}
-                else
-                    echo -n "${NUM_SPECIFIC_KEY_VALUES}" | tee -a -i ${logfilepath}
+                    # Verbose mode ON
+                    # Output list of all hosts found
+                    echo -n ' '"${line}"', ' | tee -a -i ${logfilepath}
+                    echo -n "$(eval echo ${line})"', ' >> ${logfilepath}
+                    echo -n "$arraylength"', ' >> ${logfilepath}
+                    echo -n "$arrayelement"', ' | tee -a -i ${logfilepath}
+                    #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"', ' | tee -a -i ${logfilepath}
                 fi
-                APPLICATIONSITESARR+=("${line}")
-                let SpecificKeyValuesCount=SpecificKeyValuesCount+${NUM_SPECIFIC_KEY_VALUES}
-                echo -n '!' | tee -a -i ${logfilepath}
-            else
-                # ?? Whatever..., so skip
-                if ${APISCRIPTVERBOSE} ; then
-                    echo -n '?, ' | tee -a -i ${logfilepath}
+                
+                SPECIFICKEYVALUES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '."'${APIobjectspecifickey}'" | length' )
+                
+                NUM_SPECIFIC_KEY_VALUES=${SPECIFICKEYVALUES_COUNT}
+                
+                if [ x"${NUM_SPECIFIC_KEY_VALUES}" == x"" ] ; then
+                    # There are null objects, so skip
+                    if ${APISCRIPTVERBOSE} ; then
+                        echo -n 'N, ' | tee -a -i ${logfilepath}
+                    else
+                        echo -n 'N' | tee -a -i ${logfilepath}
+                    fi
+                    echo -n '-' | tee -a -i ${logfilepath}
+                elif [[ ${NUM_SPECIFIC_KEY_VALUES} -lt 1 ]] ; then
+                    # no objects of this type
+                    if ${APISCRIPTVERBOSE} ; then
+                        echo -n '0, ' | tee -a -i ${logfilepath}
+                    else
+                        echo -n '0' | tee -a -i ${logfilepath}
+                    fi
+                    echo -n '-' | tee -a -i ${logfilepath}
+                elif [[ ${NUM_SPECIFIC_KEY_VALUES} -gt 0 ]] ; then
+                    # More than zero (1) interfaces, something to process
+                    if [ ${NUM_SPECIFIC_KEY_VALUES} -gt ${MAXObjectsSpecificKeyValues} ] ; then
+                        export MAXObjectsSpecificKeyValues=${NUM_SPECIFIC_KEY_VALUES}
+                    fi
+                    
+                    if ${APISCRIPTVERBOSE} ; then
+                        echo -n "${NUM_SPECIFIC_KEY_VALUES}"', ' | tee -a -i ${logfilepath}
+                    else
+                        echo -n "${NUM_SPECIFIC_KEY_VALUES}" | tee -a -i ${logfilepath}
+                    fi
+                    SPECIFICOBJECTSKEYFIELDARRAY+=("${line}")
+                    let SpecificKeyValuesCount=SpecificKeyValuesCount+${NUM_SPECIFIC_KEY_VALUES}
+                    echo -n '!' | tee -a -i ${logfilepath}
                 else
-                    echo -n '?' | tee -a -i ${logfilepath}
+                    # ?? Whatever..., so skip
+                    if ${APISCRIPTVERBOSE} ; then
+                        echo -n '?, ' | tee -a -i ${logfilepath}
+                    else
+                        echo -n '?' | tee -a -i ${logfilepath}
+                    fi
+                    echo -n '-' | tee -a -i ${logfilepath}
                 fi
-                echo -n '-' | tee -a -i ${logfilepath}
+                
             fi
             
-        fi
+            if ${APISCRIPTVERBOSE} ; then
+                echo | tee -a -i ${logfilepath}
+                echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            fi
+            
+        done <<< "${MGMT_CLI_NAMES_STRING}"
+        errorreturn=$?
         
-        if ${APISCRIPTVERBOSE} ; then
-            # Verbose mode ON
-            echo | tee -a -i ${logfilepath}
-            echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        fi
+        echo | tee -a -i ${logfilepath}
         
-    done <<< "${MGMT_CLI_NAMES_STRING}"
-    errorreturn=$?
+        # -------------------------------------------------------------------------------------------------
+        
+        objectslefttoshow=`expr ${objectslefttoshow} - ${WorkAPIObjectLimit}`
+        currenthostoffset=`expr ${currenthostoffset} + ${WorkAPIObjectLimit}`
+        
+        CheckAPIKeepAlive
+        
+    done
+    
+    # -------------------------------------------------------------------------------------------------
     
     echo | tee -a -i ${logfilepath}
     
     if ${APISCRIPTVERBOSE} ; then
-        # Verbose mode ON
+        echo `${dtzs}`${dtzsep} '  SpecificKeyValuesCount      = '${SpecificKeyValuesCount} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  MAXObjectsSpecificKeyValues = '${MAXObjectsSpecificKeyValues} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'SpecificKeyValuesCount      = '${SpecificKeyValuesCount} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'MAXObjectsSpecificKeyValues = '${MAXObjectsSpecificKeyValues} | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} '  SpecificKeyValuesCount      = '${SpecificKeyValuesCount} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  MAXObjectsSpecificKeyValues = '${MAXObjectsSpecificKeyValues} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
     fi
     
     export SpecificKeyValuesCount=${SpecificKeyValuesCount}
     
+    echo `${dtzs}`${dtzsep} 'PopulateArrayOfSpecificObjectFromMgmtDB procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-09-13:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
 # PopulateArrayOfSpecificObjectFromJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-09-13:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -7201,28 +8586,27 @@ PopulateArrayOfSpecificObjectFromJSONRepository () {
     
     errorreturn=0
     
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'PopulateArrayOfSpecificObjectFromJSONRepository procedure Starting' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
     ConfigureObjectQuerySelector
     
+    # -------------------------------------------------------------------------------------------------
+    
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} '  '${APICLIcomplexobjectstype}' - Populate Array of '${APICLIobjecttype}' UIDs from JSON Repository!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  '${APICLIcomplexobjectstype}' - Populate Array of '${APICLIobjecttype}' Names from JSON Repository!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    # MGMT_CLI_NAMES_STRING is a string with multiple lines. Each line contains a name of a host.
+    # JSON_REPO_NAMES_STRING is a string with multiple lines. Each line contains a name of a ${APICLIobjecttype}.
     
-    if ${NoSystemObjects} ; then
-        # Ignore System Objects
-        JSON_REPO_NAMES_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${OnlySystemObjects} ; then
-        # Ignore System Objects
-        JSON_REPO_NAMES_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${CreatorIsNotSystem} ; then
-        # Ignore System Objects
-        JSON_REPO_NAMES_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
-    elif ${CreatorIsSystem} ; then
-        # Ignore System Objects
+    if [ x"${objectqueryselector}" != x"" ] ; then
         JSON_REPO_NAMES_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .name | @sh' -r`"
     else
-        # Don't Ignore System Objects
         JSON_REPO_NAMES_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[].name | @sh' -r`"
     fi
     
@@ -7239,11 +8623,11 @@ PopulateArrayOfSpecificObjectFromJSONRepository () {
         else
             # ${line} value is NOT nul, so add to array
             
-            ALLAPPLICATIONSITESARR+=("${line}")
+            ALLSPECIFICOBJECTSKEYFIELDARRAY+=("${line}")
             
             echo -n '.' | tee -a -i ${logfilepath}
             
-            arraylength=${#ALLAPPLICATIONSITESARR[@]}
+            arraylength=${#ALLSPECIFICOBJECTSKEYFIELDARRAY[@]}
             arrayelement=$((arraylength-1))
             
             if ${APISCRIPTVERBOSE} ; then
@@ -7256,9 +8640,7 @@ PopulateArrayOfSpecificObjectFromJSONRepository () {
                 #echo -n "$(eval echo ${ALLHOSTARR[${arrayelement}]})"', ' | tee -a -i ${logfilepath}
             fi
             
-            #SPECIFICKEY_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${ALLAPPLICATIONSITESARR[${arrayelement}]})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.'${APIobjectspecifickey}' | length')
-            #SPECIFICKEYVALUES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.'${APIobjectspecifickey}' | length' )
-            SPECIFICKEYVALUES_COUNT=$(cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"$(eval echo ${line})"'") | .'${APIobjectspecifickey}' | length')
+            SPECIFICKEYVALUES_COUNT=$(cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"$(eval echo ${line})"'") | ."'${APIobjectspecifickey}'" | length')
             
             NUM_SPECIFIC_KEY_VALUES=${SPECIFICKEYVALUES_COUNT}
             
@@ -7289,7 +8671,7 @@ PopulateArrayOfSpecificObjectFromJSONRepository () {
                 else
                     echo -n "${NUM_SPECIFIC_KEY_VALUES}" | tee -a -i ${logfilepath}
                 fi
-                APPLICATIONSITESARR+=("${line}")
+                SPECIFICOBJECTSKEYFIELDARRAY+=("${line}")
                 let SpecificKeyValuesCount=SpecificKeyValuesCount+${NUM_SPECIFIC_KEY_VALUES}
                 echo -n '!' | tee -a -i ${logfilepath}
             else
@@ -7317,26 +8699,35 @@ PopulateArrayOfSpecificObjectFromJSONRepository () {
     echo | tee -a -i ${logfilepath}
     
     if ${APISCRIPTVERBOSE} ; then
-        # Verbose mode ON
+        echo `${dtzs}`${dtzsep} '  SpecificKeyValuesCount      = '${SpecificKeyValuesCount} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  MAXObjectsSpecificKeyValues = '${MAXObjectsSpecificKeyValues} | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'SpecificKeyValuesCount      = '${SpecificKeyValuesCount} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'MAXObjectsSpecificKeyValues = '${MAXObjectsSpecificKeyValues} | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} '  SpecificKeyValuesCount      = '${SpecificKeyValuesCount} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  MAXObjectsSpecificKeyValues = '${MAXObjectsSpecificKeyValues} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
     fi
     
     export SpecificKeyValuesCount=${SpecificKeyValuesCount}
     
+    echo `${dtzs}`${dtzsep} 'PopulateArrayOfSpecificObjectFromJSONRepository procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-09-13:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
 # GetArrayOfSpecificKeyValues proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-09-13:02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -7344,112 +8735,163 @@ PopulateArrayOfSpecificObjectFromJSONRepository () {
 
 GetArrayOfSpecificKeyValues () {
     
-    # MODIFIED 2022-09-13:01 -
+    # MODIFIED 2023-03-07:01 -
     
     errorreturn=0
     
-    APPLICATIONSITESARR=()
-    ALLAPPLICATIONSITESARR=()
+    SPECIFICOBJECTSKEYFIELDARRAY=()
+    ALLSPECIFICOBJECTSKEYFIELDARRAY=()
     MAXObjectsSpecificKeyValues=0
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'GetArrayOfSpecificKeyValues procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Generate array of ' ${APICLIobjectstype} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    # MODIFIED 2022-09-13:01 -
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
     
     CheckAPIKeepAlive
+    errorreturn=$?
     
-    # MODIFIED 2022-09-13:01 -
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CheckAPIKeepAlive procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
     
     export WorkingAPICLIdetaillvl=${APICLIdetaillvl}
     
+    # -------------------------------------------------------------------------------------------------
+    
     ConfigureMgmtCLIOperationalParametersExport
     
-    objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard ${MgmtCLI_Base_OpParms} | ${JQ} ".total")
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    objectstotal=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0  details-level standard -s ${APICLIsessionfile} -f json  | ${JQ} ".total")
     
     objectstoshow=${objectstotal}
+    errorreturn=$?
     
-    # MODIFIED 2022-07-12:01 -
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in mgmt_cli query for .total for '${APICLIobjectstype}' object [ '${objectstoshow}' ]' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
+    ConfigureJSONRepoFileNamesAndPaths
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in ConfigureJSONRepoFileNamesAndPaths procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
     
     export JSONRepoObjectsTotal=
     
     CheckJSONRepoFileObjectTotal 
     errorreturn=$?
     
-    # MODIFIED 2022-07-12:01 -
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CheckJSONRepoFileObjectTotal procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} ' - Objects to Show :  Simple [ '${objectstoshow}' ] ' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} ' - JSON Repo Total of :  Simple Objects [ '${JSONRepoObjectsTotal}' ] ' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
     
     export domgmtcliquery=false
     
     DetermineIfDoMgmtCLIQuery
     errorreturn=$?
     
-    currenthostoffset=0
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in DetermineIfDoMgmtCLIQuery procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
     
     if ${domgmtcliquery} ; then
         # Execute the mgmt_cli query of the management host database
         
-        echo `${dtzs}`${dtzsep} "Processing ${objectstoshow} ${APICLIobjecttype} objects in ${WorkAPIObjectLimit} object chunks:" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Processing [ '${objectstoshow}' ] '${APICLIobjecttype}' objects in '${WorkAPIObjectLimit}' object chunks:' | tee -a -i ${logfilepath}
         
-        objectslefttoshow=${objectstoshow}
-        
-        while [ ${objectslefttoshow} -ge 1 ] ; do
-            # we have objects to process
-            echo `${dtzs}`${dtzsep} "  Now processing up to next ${WorkAPIObjectLimit} ${APICLIobjecttype} objects starting with object ${currenthostoffset} of ${objectslefttoshow} remaining!" | tee -a -i ${logfilepath}
-            
-            PopulateArrayOfSpecificObjectFromMgmtDB
-            errorreturn=$?
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in PopulateArrayOfSpecificObjectFromMgmtDB procedure' | tee -a -i ${logfilepath}
-                return ${errorreturn}
-            fi
-            
-            objectslefttoshow=`expr ${objectslefttoshow} - ${WorkAPIObjectLimit}`
-            currenthostoffset=`expr ${currenthostoffset} + ${WorkAPIObjectLimit}`
-            
-            CheckAPIKeepAlive
-            
-        done
-        
+        PopulateArrayOfSpecificObjectFromMgmtDB
+        errorreturn=$?
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in PopulateArrayOfSpecificObjectFromMgmtDB procedure' | tee -a -i ${logfilepath}
+            return ${errorreturn}
+        fi
     else
         # Execute the JSON repository query instead
         
-        echo `${dtzs}`${dtzsep} 'Processing '${objectstoshow}' '${APICLIobjecttype}' objects from the JSON repository file '${JSONRepoFile} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Processing [ '${objectstoshow}' ] '${APICLIobjecttype}' objects' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '   from the JSON repository file '${JSONRepoFile} | tee -a -i ${logfilepath}
         
         PopulateArrayOfSpecificObjectFromJSONRepository
         errorreturn=$?
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in PopulateArrayOfSpecificObjectFromJSONRepository procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in PopulateArrayOfSpecificObjectFromJSONRepository procedure' | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
     fi
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Final SpecificKeyValuesCount = '${SpecificKeyValuesCount} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'Final Host Array = ' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Final Specific Object Key Values = ' | tee -a -i ${logfilepath}
     echo '------------------------------------------------------------------------       ' | tee -a -i ${logfilepath}
     #echo | tee -a -i ${logfilepath}
     
-    echo '['"${APPLICATIONSITESARR[@]}"']' | tee -a -i ${logfilepath}
+    echo '['"${SPECIFICOBJECTSKEYFIELDARRAY[@]}"']' | tee -a -i ${logfilepath}
     
     #echo | tee -a -i ${logfilepath}
     echo '------------------------------------------------------------------------       ' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
+    echo `${dtzs}`${dtzsep} 'GetArrayOfSpecificKeyValues procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-09-13:02
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
 # DumpArrayOfSpecificObjects proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-09-12:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -7466,7 +8908,7 @@ DumpArrayOfSpecificObjects () {
         #echo `${dtzs}`${dtzsep} Dump All objects | tee -a -i ${logfilepath}
         #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         #
-        #for i in "${ALLAPPLICATIONSITESARR[@]}"
+        #for i in "${ALLSPECIFICOBJECTSKEYFIELDARRAY[@]}"
         #do
         #    echo `${dtzs}`${dtzsep} "$i, ${i//\'/}" | tee -a -i ${logfilepath}
         #done
@@ -7475,7 +8917,7 @@ DumpArrayOfSpecificObjects () {
         echo `${dtzs}`${dtzsep} ${APICLIobjecttype}' with '${APIobjectspecifickey}' values defined' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         
-        for j in "${APPLICATIONSITESARR[@]}"
+        for j in "${SPECIFICOBJECTSKEYFIELDARRAY[@]}"
         do
             echo `${dtzs}`${dtzsep} "$j, ${j//\'/}" | tee -a -i ${logfilepath}
         done
@@ -7490,14 +8932,18 @@ DumpArrayOfSpecificObjects () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-09-12:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
 # CollectSpecificKeyValuesInObjectsFromMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-09-13:02 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -7507,9 +8953,28 @@ CollectSpecificKeyValuesInObjectsFromMgmtDB () {
     
     errorreturn=0
     
-    #
-    # using bash variables in a jq expression
-    #
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CollectSpecificKeyValuesInObjectsFromMgmtDB procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    CheckAPIKeepAlive
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CheckAPIKeepAlive procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    export WorkingAPICLIdetaillvl=${APICLIdetaillvl}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    ConfigureMgmtCLIOperationalParametersExport
+    
+    # -------------------------------------------------------------------------------------------------
     
     export CSVJQspecifickeyvaluesparmsbase=${CSVJQparms}
     
@@ -7524,13 +8989,8 @@ CollectSpecificKeyValuesInObjectsFromMgmtDB () {
     
     export CSVJQspecifickeyvaluesparmsbase=${CSVJQparms}${CSVJQspecifickeyvalueserroraddon}
     
-    for i in "${APPLICATIONSITESARR[@]}"
+    for i in "${SPECIFICOBJECTSKEYFIELDARRAY[@]}"
     do
-        CheckAPIKeepAlive
-        
-        export WorkingAPICLIdetaillvl=${APICLIdetaillvl}
-        
-        ConfigureMgmtCLIOperationalParametersExport
         
         export objecttoevaluate=${i}
         export objectnametoevaluate=${i//\'/}
@@ -7538,7 +8998,7 @@ CollectSpecificKeyValuesInObjectsFromMgmtDB () {
         #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         #echo `${dtzs}`${dtzsep} Host with interfaces "${objectnametoevaluate}" | tee -a -i ${logfilepath}
         
-        SPECIFICKEYVALUES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.'${APIobjectspecifickey}' | length')
+        SPECIFICKEYVALUES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '."'${APIobjectspecifickey}'" | length')
         
         NUM_SPECIFIC_KEY_VALUES=${SPECIFICKEYVALUES_COUNT}
         
@@ -7567,23 +9027,23 @@ CollectSpecificKeyValuesInObjectsFromMgmtDB () {
             #echo ${CSVJQspecifickeyvaluesparms} >> ${logfilepath}
             #echo '------------------------------------------------------------------------       ' | >> ${logfilepath}
             
-            #mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.'${APIobjectspecifickey}'[]' | ${JQ} -s '.' | ${JQ} '.[] | [ '"${CSVJQspecifickeyvaluesparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
+            #mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '."'${APIobjectspecifickey}'"[]' | ${JQ} -s '.' | ${JQ} '.[] | [ '"${CSVJQspecifickeyvaluesparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
             
             for j in `seq 0 $(expr ${NUM_SPECIFIC_KEY_VALUES} - 1 )`
             do
-                    GETSPECIFICKEYVALUE=$(mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.'${APIobjectspecifickey}'['${j}']')
+                    GETSPECIFICKEYVALUE=$(mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '."'${APIobjectspecifickey}'"['${j}']')
                     export SPECIFICKEYVALUE=${GETSPECIFICKEYVALUE}
                     errorreturn=$?
                     
                     if [ ${errorreturn} != 0 ] ; then
                         # Something went wrong, terminate
-                        echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectSpecificKeyValuesInObjectsFromMgmtDB mgmt_cli execution reading '${APICLIobjecttype}' object '${objectnametoevaluate}' '"${APIobjectspecifickey}"' sequence number: '${j} | tee -a -i ${logfilepath}
+                        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectSpecificKeyValuesInObjectsFromMgmtDB mgmt_cli execution reading '${APICLIobjecttype}' object '${objectnametoevaluate}' '"${APIobjectspecifickey}"' sequence number: '${j} | tee -a -i ${logfilepath}
                         return ${errorreturn}
                     fi
                     
                     echo '"'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} >> ${APICLICSVfiledata}
                     sequencenumberformatted=`printf "%03d" ${j}`
-                    echo 'Sequence Number:  '${sequencenumberformatted}' : "'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Sequence Number [ '${sequencenumberformatted}' ] : "'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} | tee -a -i ${logfilepath}
             done
             
         else
@@ -7593,18 +9053,24 @@ CollectSpecificKeyValuesInObjectsFromMgmtDB () {
         
     done
     
+    echo `${dtzs}`${dtzsep} 'CollectSpecificKeyValuesInObjectsFromMgmtDB procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-09-13:02
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
 # CollectSpecificKeyValuesInObjectsFromJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-09-13:02 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -7614,9 +9080,10 @@ CollectSpecificKeyValuesInObjectsFromJSONRepository () {
     
     errorreturn=0
     
-    #
-    # using bash variables in a jq expression
-    #
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CollectSpecificKeyValuesInObjectsFromJSONRepository procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
     
     export CSVJQspecifickeyvaluesparmsbase=${CSVJQparms}
     
@@ -7631,7 +9098,7 @@ CollectSpecificKeyValuesInObjectsFromJSONRepository () {
     
     export CSVJQspecifickeyvaluesparmsbase=${CSVJQparms}${CSVJQspecifickeyvalueserroraddon}
     
-    for i in "${APPLICATIONSITESARR[@]}"
+    for i in "${SPECIFICOBJECTSKEYFIELDARRAY[@]}"
     do
         export objecttoevaluate=${i}
         export objectnametoevaluate=${i//\'/}
@@ -7639,8 +9106,8 @@ CollectSpecificKeyValuesInObjectsFromJSONRepository () {
         #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         #echo `${dtzs}`${dtzsep} Host with interfaces "${objectnametoevaluate}" | tee -a -i ${logfilepath}
         
-        #SPECIFICKEYVALUES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.'${APIobjectspecifickey}' | length')
-        SPECIFICKEYVALUES_COUNT=$(cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"${objectnametoevaluate}"'") | .'${APIobjectspecifickey}' | length')
+        #SPECIFICKEYVALUES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '."'${APIobjectspecifickey}'" | length')
+        SPECIFICKEYVALUES_COUNT=$(cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"${objectnametoevaluate}"'") | ."'${APIobjectspecifickey}'" | length')
         
         NUM_SPECIFIC_KEY_VALUES=${SPECIFICKEYVALUES_COUNT}
         
@@ -7662,33 +9129,23 @@ CollectSpecificKeyValuesInObjectsFromJSONRepository () {
             # More than zero (0) interfaces, something to process
             echo `${dtzs}`${dtzsep} 'host '"${objectnametoevaluate}"' number of specific key values = '"${NUM_SPECIFIC_KEY_VALUES}" | tee -a -i ${logfilepath}
             
-            #export CSVJQspecifickeyvaluesparms='"'${objectnametoevaluate}'", '${CSVJQspecifickeyvaluesparmsbase}
-            
-            #echo `${dtzs}`${dtzsep} 'CSVJQspecifickeyvaluesparms : ' >> ${logfilepath}
-            #echo '------------------------------------------------------------------------       ' | >> ${logfilepath}
-            #echo ${CSVJQspecifickeyvaluesparms} >> ${logfilepath}
-            #echo '------------------------------------------------------------------------       ' | >> ${logfilepath}
-            
-            #cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"${objectnametoevaluate}"'") | .'${APIobjectspecifickey}'[]' | ${JQ} -s '.' | ${JQ} '.[] | [ '"${CSVJQspecifickeyvaluesparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
-            #cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"${objectnametoevaluate}"'") | .'${APIobjectspecifickey}'[]' | ${JQ} -s '.' | ${JQ} '.[] | [ '"${CSVJQspecifickeyvaluesparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
-            
             for j in `seq 0 $(expr ${NUM_SPECIFIC_KEY_VALUES} - 1 )`
             do
-                    #cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"${objectnametoevaluate}"'") | .'${APIobjectspecifickey}'['${j}']' | ${JQ} -s '.' | ${JQ} '.[] | [ '"${CSVJQspecifickeyvaluesparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
+                    sequencenumberformatted=`printf "%03d" ${j}`
                     
-                    GETSPECIFICKEYVALUE=$(cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"${objectnametoevaluate}"'") | .'${APIobjectspecifickey}'['${j}']')
+                    GETSPECIFICKEYVALUE=$(cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"${objectnametoevaluate}"'") | ."'${APIobjectspecifickey}'"['${j}']')
+                    
                     export SPECIFICKEYVALUE=${GETSPECIFICKEYVALUE}
                     errorreturn=$?
                     
                     if [ ${errorreturn} != 0 ] ; then
                         # Something went wrong, terminate
-                        echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectSpecificKeyValuesInObjectsFromJSONRepository JQ execution reading '${APICLIobjecttype}' object '${objectnametoevaluate}' '"${APIobjectspecifickey}"' sequence number: '${j} | tee -a -i ${logfilepath}
+                        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectSpecificKeyValuesInObjectsFromJSONRepository JQ execution reading '${APICLIobjecttype}' object '${objectnametoevaluate}' "'"${APIobjectspecifickey}"'" sequence number: ['${j}']' | tee -a -i ${logfilepath}
                         return ${errorreturn}
                     fi
                     
                     echo '"'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} >> ${APICLICSVfiledata}
-                    sequencenumberformatted=`printf "%03d" ${j}`
-                    echo 'Sequence Number:  '${sequencenumberformatted}' : "'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} | tee -a -i ${logfilepath}
+                    echo `${dtzs}`${dtzsep} 'Sequence Number [ '${sequencenumberformatted}' ] : "'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} | tee -a -i ${logfilepath}
             done
         else
             # ?? Whatever..., so skip
@@ -7697,18 +9154,24 @@ CollectSpecificKeyValuesInObjectsFromJSONRepository () {
         
     done
     
+    echo `${dtzs}`${dtzsep} 'CollectSpecificKeyValuesInObjectsFromJSONRepository procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-09-13:02
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-07:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
 # CollectSpecificKeyValuesInObjects proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-09-12:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -7718,29 +9181,21 @@ CollectSpecificKeyValuesInObjects () {
     
     errorreturn=0
     
-    #
-    # using bash variables in a jq expression
-    #
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CollectSpecificKeyValuesInObjects procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Use array of '${APICLIobjecttype}' objects to generate '"${APIobjectspecifickey}"' CSV' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    # MODIFIED 2022-07-12:01 -
+    # -------------------------------------------------------------------------------------------------
     
-    export JSONRepoObjectsTotal=
-    
-    CheckJSONRepoFileObjectTotal 
-    errorreturn=$?
-    
-    # MODIFIED 2022-07-12:01 -
-    
-    export domgmtcliquery=false
-    
-    DetermineIfDoMgmtCLIQuery
-    errorreturn=$?
-    
-    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    #
+    # ${domgmtcliquery} should still be valid from GetArrayOfGenericObjectsByClassWithSpecificKeyValues where we executed the elements to get the values
+    # through the use of complex object and generic object specific JSON Repo File checks and related operations.
+    #
     
     if ${domgmtcliquery} ; then
         # Execute the mgmt_cli query of the management host database
@@ -7749,7 +9204,7 @@ CollectSpecificKeyValuesInObjects () {
         errorreturn=$?
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectSpecificKeyValuesInObjectsFromMgmtDB procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectSpecificKeyValuesInObjectsFromMgmtDB procedure' | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
         
@@ -7760,24 +9215,30 @@ CollectSpecificKeyValuesInObjects () {
         errorreturn=$?
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectSpecificKeyValuesInObjectsFromJSONRepository procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectSpecificKeyValuesInObjectsFromJSONRepository procedure' | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
         
     fi
     
+    echo `${dtzs}`${dtzsep} 'CollectSpecificKeyValuesInObjects procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-09-12:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-07:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
 # GetObjectSpecificKeyArrayValuesDetailsProcessor proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-09-12:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -7787,205 +9248,128 @@ GetObjectSpecificKeyArrayValuesDetailsProcessor () {
     
     errorreturn=0
     
-    if ${ExportTypeIsStandard} ; then
-        
-        export SpecificKeyValuesCount=0
-        
-        # MODIFIED 2021-01-28 -
-        
-        if ${CSVADDEXPERRHANDLE} ; then
-            export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
-            export CSVJQparms=${CSVJQparms}', true, true'
-            #
-            # May need to add plumbing to handle the case that not all objects types might support set-if-exists
-            # For now just keep it separate
-            #
-            if ${APIobjectcansetifexists} ; then
-                export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
-                export CSVJQparms=${CSVJQparms}', true'
-            fi
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'GetObjectSpecificKeyArrayValuesDetailsProcessor procedure Starting...' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    # Assumes that ${ExportTypeIsStandard} true
+    
+    export SpecificKeyValuesCount=0
+    
+    # MODIFIED 2021-01-28 -
+    
+    if ${CSVADDEXPERRHANDLE} ; then
+        export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+        export CSVJQparms=${CSVJQparms}', true, true'
+        #
+        # May need to add plumbing to handle the case that not all objects types might support set-if-exists
+        # For now just keep it separate
+        #
+        if ${APIobjectcansetifexists} ; then
+            export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
+            export CSVJQparms=${CSVJQparms}', true'
         fi
-        
-        SetupExportComplexObjectsToCSVviaJQ
-        errorreturn=$?
-        if [ ${errorreturn} != 0 ] ; then
-            # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in SetupExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
-            return ${errorreturn}
-        fi
-        
-        GetArrayOfSpecificKeyValues
-        errorreturn=$?
-        if [ ${errorreturn} != 0 ] ; then
-            # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in SetupExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
-            return ${errorreturn}
-        fi
-        
-        if [ x"${SpecificKeyValuesCount}" == x"" ] ; then
-            # There are null objects, so skip
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} '! No application-sites found - NULL' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        elif [[ ${SpecificKeyValuesCount} -lt 1 ]] ; then
-            # no objects of this type
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} '! No application-sitesfound - 0' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        elif [[ ${SpecificKeyValuesCount} -gt 0 ]] ; then
-            # We have host interfaces to process
-            DumpArrayOfSpecificObjects
-            errorreturn=$?
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in DumpArrayOfSpecificObjects procedure' | tee -a -i ${logfilepath}
-                return ${errorreturn}
-            fi
-            
-            CollectSpecificKeyValuesInObjects
-            errorreturn=$?
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectSpecificKeyValuesInObjects procedure' | tee -a -i ${logfilepath}
-                return ${errorreturn}
-            fi
-            
-            FinalizeExportComplexObjectsToCSVviaJQ
-            errorreturn=$?
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in FinalizeExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
-                return ${errorreturn}
-            fi
-            
-        else
-            # No host interfaces
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} '! No '${APICLIcomplexobjectstype}' found' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        fi
-    else
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    SetupExportComplexObjectsToCSVviaJQ
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, terminate
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in SetupExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+        return ${errorreturn}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    GetArrayOfSpecificKeyValues
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, terminate
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in GetArrayOfSpecificKeyValues procedure' | tee -a -i ${logfilepath}
+        return ${errorreturn}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    if [ x"${SpecificKeyValuesCount}" == x"" ] ; then
+        # There are null objects, so skip
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Not "standard" Export Type :  '${TypeOfExport}' so do not handle complex objects '${APICLIcomplexobjectstype}' for '${APICLIobjectstype}'!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '! No application-sites found - NULL' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    elif [[ ${SpecificKeyValuesCount} -lt 1 ]] ; then
+        # no objects of this type
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '! No application-sitesfound - 0' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    elif [[ ${SpecificKeyValuesCount} -gt 0 ]] ; then
+        # We have host interfaces to process
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        DumpArrayOfSpecificObjects
+        errorreturn=$?
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in DumpArrayOfSpecificObjects procedure' | tee -a -i ${logfilepath}
+            return ${errorreturn}
+        fi
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        CollectSpecificKeyValuesInObjects
+        errorreturn=$?
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectSpecificKeyValuesInObjects procedure' | tee -a -i ${logfilepath}
+            return ${errorreturn}
+        fi
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        FinalizeExportComplexObjectsToCSVviaJQ
+        errorreturn=$?
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in FinalizeExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+            return ${errorreturn}
+        fi
+        
+        # -------------------------------------------------------------------------------------------------
+        
+    else
+        # No host interfaces
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '! No '${APICLIcomplexobjectstype}' found' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     fi
     
+    echo `${dtzs}`${dtzsep} 'GetObjectSpecificKeyArrayValuesDetailsProcessor procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-09-12:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
 
 
 # -------------------------------------------------------------------------------------------------
-# GetObjectSpecificKeyArrayValuesDetailsProcessor proceedure
 # -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2022-09-16:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-#
-# GetObjectSpecificKeyArrayValuesDetailsProcessor generate output of objects specific key values from existing objects with specific key values objects
-
-GetObjectSpecificKeyArrayValuesDetailsProcessor () {
-    
-    errorreturn=0
-    
-    if ${ExportTypeIsStandard} ; then
-        
-        export SpecificKeyValuesCount=0
-        
-        # MODIFIED 2021-01-28 -
-        
-        if ${CSVADDEXPERRHANDLE} ; then
-            export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
-            export CSVJQparms=${CSVJQparms}', true, true'
-            #
-            # May need to add plumbing to handle the case that not all objects types might support set-if-exists
-            # For now just keep it separate
-            #
-            if ${APIobjectcansetifexists} ; then
-                export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
-                export CSVJQparms=${CSVJQparms}', true'
-            fi
-        fi
-        
-        SetupExportComplexObjectsToCSVviaJQ
-        errorreturn=$?
-        if [ ${errorreturn} != 0 ] ; then
-            # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in SetupExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
-            return ${errorreturn}
-        fi
-        
-        GetArrayOfSpecificKeyValues
-        errorreturn=$?
-        if [ ${errorreturn} != 0 ] ; then
-            # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in SetupExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
-            return ${errorreturn}
-        fi
-        
-        if [ x"${SpecificKeyValuesCount}" == x"" ] ; then
-            # There are null objects, so skip
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} '! No application-sites found - NULL' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        elif [[ ${SpecificKeyValuesCount} -lt 1 ]] ; then
-            # no objects of this type
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} '! No application-sitesfound - 0' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        elif [[ ${SpecificKeyValuesCount} -gt 0 ]] ; then
-            # We have host interfaces to process
-            DumpArrayOfSpecificObjects
-            errorreturn=$?
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in DumpArrayOfSpecificObjects procedure' | tee -a -i ${logfilepath}
-                return ${errorreturn}
-            fi
-            
-            CollectSpecificKeyValuesInObjects
-            errorreturn=$?
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectSpecificKeyValuesInObjects procedure' | tee -a -i ${logfilepath}
-                return ${errorreturn}
-            fi
-            
-            FinalizeExportComplexObjectsToCSVviaJQ
-            errorreturn=$?
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in FinalizeExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
-                return ${errorreturn}
-            fi
-            
-        else
-            # No host interfaces
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} '! No '${APICLIcomplexobjectstype}' found' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        fi
-    else
-        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Not "standard" Export Type :  '${TypeOfExport}' so do not handle complex objects '${APICLIcomplexobjectstype}' for '${APICLIobjectstype}'!' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    fi
-    
-    return ${errorreturn}
-}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-09-16:01
 
 
 # -------------------------------------------------------------------------------------------------
 # GetObjectSpecificKeyArrayValues proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2022-12-21:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -8037,40 +9421,48 @@ GetObjectSpecificKeyArrayValues () {
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     fi
     
-    # MODIFIED 2022-09-16:01 -
-    # Account for whether the original object definition is for REFERENCE, NO IMPORT already
-    
-    if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
-        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        else
-            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        fi
-    elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
-        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        else
-            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        fi
-    elif ${OnlySystemObjects} ; then
-        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        else
-            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        fi
-    else
-        export APICLIexportnameaddon=${APICLIexportnameaddon}
-    fi
-    
-    # MODIFIED 2022-05-02 -
-    
     if ${ExportTypeIsStandard} ; then
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        # MODIFIED 2023-03-04:01 -
+        #
+        
+        DumpObjectDefinitionData
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        # MODIFIED 2022-09-16:01 -
+        # Account for whether the original object definition is for REFERENCE, NO IMPORT already
+        
+        if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+            if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            else
+                export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            fi
+        elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+            if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            else
+                export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            fi
+        elif ${OnlySystemObjects} ; then
+            if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            else
+                export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            fi
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}
+        fi
+        
         objectstotal_object=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
         export number_object="${objectstotal_object}"
         
@@ -8095,7 +9487,7 @@ GetObjectSpecificKeyArrayValues () {
     
     if [ ${errorreturn} != 0 ] ; then
         # Handle Error in operation
-        echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in GetObjectSpecificKeyArrayValuesDetailsProcessor procedure' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Error !{ '${errorreturn}' }! in GetObjectSpecificKeyArrayValuesDetailsProcessor procedure' | tee -a -i ${logfilepath}
         
         if ${ABORTONERROR} ; then
             read -t ${WAITTIME} -n 1 -p "Any key to EXIT script due to error ${errorreturn}.  Automatic EXIT after ${WAITTIME} seconds : " anykey
@@ -8142,7 +9534,7 @@ GetObjectSpecificKeyArrayValues () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2022-12-21:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -8158,37 +9550,37 @@ GetObjectSpecificKeyArrayValues () {
 
 # +-------------------------------------------------------------------------------------------------
 # | Complex Object : Specific Complex OBJECT : application-sites
-# | - Reference Details
+# |  - Reference Details, APIobjectdoX set to "false" to disable
 # +-------------------------------------------------------------------------------------------------
 
-export AugmentExportedFields=false
-
-if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
-    export AugmentExportedFields=true
-elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
-    export AugmentExportedFields=true
-elif ${OnlySystemObjects} ; then
-    export AugmentExportedFields=true
-else
-    export AugmentExportedFields=false
-fi
+ClearObjectDefinitionData
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
+export APICLIcomplexobjecttype=application-sites
+export APICLIcomplexobjectstype=application-sites
 export APIobjectminversion=1.1
+export APIobjectexportisCPI=true
+
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIcomplexobjectstype}
 export APICLICSVobjecttype=${APICLIobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 
-export APIobjectexportisCPI=true
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=true
-export APIobjectdoupdate=true
-export APIobjectdodelete=true
+export APIobjectdoexport=false
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=false
+export APIobjectdoimport=false
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
 
 export APIobjectusesdetailslevel=true
 export APIobjectcanignorewarning=true
@@ -8207,9 +9599,17 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
+export AugmentExportedFields=false
+
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export AugmentExportedFields=true
+elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+    export AugmentExportedFields=true
+elif ${OnlySystemObjects} ; then
+    export AugmentExportedFields=true
+else
+    export AugmentExportedFields=false
+fi
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -8248,6 +9648,11 @@ if ${AugmentExportedFields} ; then
     export CSVFileHeader=${CSVFileHeader}',"url-list.12"'
     export CSVFileHeader=${CSVFileHeader}',"url-list.13"'
     export CSVFileHeader=${CSVFileHeader}',"url-list.14"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.15"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.16"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.17"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.18"'
+    export CSVFileHeader=${CSVFileHeader}',"url-list.19"'
 fi
 export CSVFileHeader=${CSVFileHeader}',"additional-categories.0"'
 if ${AugmentExportedFields} ; then
@@ -8256,6 +9661,11 @@ if ${AugmentExportedFields} ; then
     export CSVFileHeader=${CSVFileHeader}',"additional-categories.2"'
     export CSVFileHeader=${CSVFileHeader}',"additional-categories.3"'
     export CSVFileHeader=${CSVFileHeader}',"additional-categories.4"'
+    export CSVFileHeader=${CSVFileHeader}',"additional-categories.5"'
+    export CSVFileHeader=${CSVFileHeader}',"additional-categories.6"'
+    export CSVFileHeader=${CSVFileHeader}',"additional-categories.7"'
+    export CSVFileHeader=${CSVFileHeader}',"additional-categories.8"'
+    export CSVFileHeader=${CSVFileHeader}',"additional-categories.9"'
 fi
 export CSVFileHeader=${CSVFileHeader}',"application-signature"'
 export CSVFileHeader=${CSVFileHeader}',"description"'
@@ -8295,6 +9705,11 @@ if ${AugmentExportedFields} ; then
     export CSVJQparms=${CSVJQparms}', .["url-list"][12]'
     export CSVJQparms=${CSVJQparms}', .["url-list"][13]'
     export CSVJQparms=${CSVJQparms}', .["url-list"][14]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][15]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][16]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][17]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][18]'
+    export CSVJQparms=${CSVJQparms}', .["url-list"][19]'
 fi
 export CSVJQparms=${CSVJQparms}', .["additional-categories"][0]'
 if ${AugmentExportedFields} ; then
@@ -8303,6 +9718,11 @@ if ${AugmentExportedFields} ; then
     export CSVJQparms=${CSVJQparms}', .["additional-categories"][2]'
     export CSVJQparms=${CSVJQparms}', .["additional-categories"][3]'
     export CSVJQparms=${CSVJQparms}', .["additional-categories"][4]'
+    export CSVJQparms=${CSVJQparms}', .["additional-categories"][5]'
+    export CSVJQparms=${CSVJQparms}', .["additional-categories"][6]'
+    export CSVJQparms=${CSVJQparms}', .["additional-categories"][7]'
+    export CSVJQparms=${CSVJQparms}', .["additional-categories"][8]'
+    export CSVJQparms=${CSVJQparms}', .["additional-categories"][9]'
 fi
 export CSVJQparms=${CSVJQparms}', .["application-signature"]'
 export CSVJQparms=${CSVJQparms}', .["description"]'
@@ -8319,18 +9739,26 @@ export CSVJQparms=${CSVJQparms}', .["description"]'
 # | Complex Object : Specific Complex OBJECT : application-sites - url-list
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-26:01 - 
+ClearObjectDefinitionData
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
-export APICLIcomplexobjecttype=application-site-url-list
-export APICLIcomplexobjectstype=application-sites-url-lists
+export APICLIcomplexobjecttype=application-site-element-url-list
+export APICLIcomplexobjectstype=application-sites-elements-url-lists
 export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectexportisCPI=true
+
+export APIobjectspecifickey='url-list'
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=true
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=false
@@ -8356,12 +9784,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
-export APIobjectspecifickey='"url-list"'
 
 
 #
@@ -8439,19 +9861,26 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Complex Object : Specific Complex OBJECT : application-sites - application-signature
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-26:01 - 
-# Review of this application-sites objects element for application-signature resulted in a removal of this object, because a singular entry
+#ClearObjectDefinitionData
 
 #export APICLIobjecttype=application-site
 #export APICLIobjectstype=application-sites
-#export APICLIcomplexobjecttype=application-site-application-signature
-#export APICLIcomplexobjectstype=application-sites-application-signatures
+#export APICLIcomplexobjecttype=application-site-element-application-signature
+#export APICLIcomplexobjectstype=application-sites-elements-application-signatures
 #export APIobjectminversion=1.1
-#export APICLICSVobjecttype=${APICLIobjectstype}
+#export APIobjectexportisCPI=true
+
+#export APIobjectspecifickey='application-signature'
+
+#export APIobjectspecificselector00key=
+#export APIobjectspecificselector00value=
+#export APICLIexportnameaddon=
+
+#export APIobjectjsonrepofileobject=${APICLIobjectstype}
+#export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 #export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 #export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-#export APIobjectexportisCPI=true
 
 #export APIobjectdoexport=true
 #export APIobjectdoexportJSON=false
@@ -8477,12 +9906,6 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 #export APIobjectCSVJQparmsAbsoluteBase=false
 
 #export APIobjectCSVexportWIP=false
-
-#export APIobjectspecificselector00key=
-#export APIobjectspecificselector00value=
-#export APICLIexportnameaddon=
-
-#export APIobjectspecifickey='"application-signature"'
 
 ##
 ## APICLICSVsortparms can change due to the nature of the object
@@ -8558,18 +9981,26 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # | Complex Object : Specific Complex OBJECT : application-sites - additional-categories
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-26:01 - 
+ClearObjectDefinitionData
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
-export APICLIcomplexobjecttype=application-site-additional-category
-export APICLIcomplexobjectstype=application-sites-additional-categories
+export APICLIcomplexobjecttype=application-site-element-additional-category
+export APICLIcomplexobjectstype=application-sites-elements-additional-categories
 export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectexportisCPI=true
+
+export APIobjectspecifickey='additional-categories'
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIobjectstype}
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=true
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=false
@@ -8595,12 +10026,6 @@ export APIobjectCSVFileHeaderAbsoluteBase=false
 export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
-export APIobjectspecifickey='"additional-categories"'
 
 #
 # APICLICSVsortparms can change due to the nature of the object
@@ -8708,7 +10133,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # ConfigureCriteriaBasedObjectQuerySelector
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-25:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-06:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ConfigureCriteriaBasedObjectQuerySelector () {
@@ -8720,13 +10145,25 @@ ConfigureCriteriaBasedObjectQuerySelector () {
     
     #printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'XX' "${XX}" >> ${logfilepath}
     
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------'  >>  ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Configure Criteria Based Object QuerySelector     : '  >>  ${logfilepath}
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------'  >>  ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} '-  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -'  >>  ${logfilepath}
+    
+    # MODIFIED 2023-03-06:01 -
+    
+    ConfigureObjectQuerySelector
+    
+    echo `${dtzs}`${dtzsep} '-  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -'  >>  ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
     # -------------------------------------------------------------------------------------------------
     # Configure object criteria 01 selection query elements objecttypecriteriaselectorelement
     # -------------------------------------------------------------------------------------------------
-    
-    # MODIFIED 2022-06-11 -
-    
-    ConfigureObjectQuerySelector
     
     #export objecttypecriteriaselectorelement='."'"${APICLIexportcriteria01key}"'" == "'"${APICLIexportcriteria01value}"'"'
     # For the Boolean values of ${APICLIexportcriteria01value} we need to check that the text value is true or folse, to be specific
@@ -8744,15 +10181,28 @@ ConfigureCriteriaBasedObjectQuerySelector () {
     printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'APICLIexportcriteria01key' ${APICLIexportcriteria01key} >> ${logfilepath}
     printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'APICLIexportcriteria01value' ${APICLIexportcriteria01value} >> ${logfilepath}
     printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'objecttypecriteriaselectorelement' ${objecttypecriteriaselectorelement} >> ${logfilepath}
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'objecttypeselectorelement' ${objecttypecriteriaselectorelement} >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    # MODIFIED 2023-03-06:01 -
+    #
+    # THIS SECTION SHOULD NOT BE MODIFIED OR SIMPLIFIED TO ENSURE OPERATION AS EXPECT!
+    #
+    # -------------------------------------------------------------------------------------------------
     
     # We need to assemble a more complicated selection method for this
     #
     export userauthobjectselector='select( '
     
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" ' - userauthobjectselector' ${userauthobjectselector} >> ${logfilepath}
+    
     if [ x"${objecttypeselectorelement}" != x"" ] ; then
         #export userauthobjectselector=${userauthobjectselector}'( '"${objecttypeselectorelement}"' ) and ( '
         export userauthobjectselector=${userauthobjectselector}'( '"${objecttypeselectorelement}"' ) and '
     fi
+    
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" ' - userauthobjectselector' ${userauthobjectselector} >> ${logfilepath}
     
     if ${NoSystemObjects} ; then
         # Ignore System Objects
@@ -8770,6 +10220,7 @@ ConfigureCriteriaBasedObjectQuerySelector () {
         # Don't Ignore System Objects
         export userauthobjectselector=${userauthobjectselector}'( '"${objecttypecriteriaselectorelement}"' )'
     fi
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" ' - userauthobjectselector' ${userauthobjectselector} >> ${logfilepath}
     
     #if [ x"${objecttypeselectorelement}" != x"" ] ; then
         #export userauthobjectselector=${userauthobjectselector}' )'
@@ -8777,13 +10228,20 @@ ConfigureCriteriaBasedObjectQuerySelector () {
     
     export userauthobjectselector=${userauthobjectselector}' )'
     
-    echo `${dtzs}`${dtzsep} '    - userauthobjectselector = ['"${userauthobjectselector}"']' >> ${logfilepath}
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
     
+    printf "`${dtzs}`${dtzsep}    - %-40s : %s\n" 'FINAL - userauthobjectselector' ${userauthobjectselector} >> ${logfilepath}
+    
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------'  >>  ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'ConfigureCriteriaBasedObjectQuerySelector procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------'  >>  ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2023-02-25:01
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ - MODIFIED 2023-03-06:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -8831,7 +10289,7 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
     
     if [ ${errorreturn} != 0 ] ; then
         # Something went wrong, terminate
-        echo `${dtzs}`${dtzsep} 'Problem found in procedure SetupExportComplexObjectsToCSVviaJQ! error return = '${errorreturn} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Problem found in procedure SetupExportComplexObjectsToCSVviaJQ! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
         return ${errorreturn}
     fi
     
@@ -8927,7 +10385,7 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
             
             if [ ${errorreturn} != 0 ] ; then
                 # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'Problem during mgmt_cli operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
                 echo `${dtzs}`${dtzsep} '  File contents with potential error from '${APICLICSVfiledatalast}' : ' >> ${logfilepath}
                 echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
                 echo >> ${logfilepath}
@@ -8965,7 +10423,7 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Problem during JSON Repository file query operation! error return = '${errorreturn} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Problem during JSON Repository file query operation! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} '  File contents (first 3 and last 10 lines) with potential error from '${APICLICSVfiledata}' : ' >> ${logfilepath}
             echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
             echo >> ${logfilepath}
@@ -8983,7 +10441,7 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
     errorreturn=$?
     if [ ${errorreturn} != 0 ] ; then
         # Something went wrong, terminate
-        echo `${dtzs}`${dtzsep} 'Problem found in procedure FinalizeExportComplexObjectsToCSVviaJQ! error return = '${errorreturn} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Problem found in procedure FinalizeExportComplexObjectsToCSVviaJQ! error return = { '${errorreturn}' }' | tee -a -i ${logfilepath}
         
         return ${errorreturn}
     fi
@@ -9016,7 +10474,7 @@ ExportObjectElementCriteriaBasedToCSVviaJQ () {
 # GetObjectElementCriteriaBased proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-25:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -9048,38 +10506,47 @@ GetObjectElementCriteriaBased () {
         return 0
     fi
     
-    # MODIFIED 2022-09-16:01 -
-    # Account for whether the original object definition is for REFERENCE, NO IMPORT already
-    
-    if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
-        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        else
-            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        fi
-    elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
-        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        else
-            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        fi
-    elif ${OnlySystemObjects} ; then
-        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        else
-            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        fi
-    else
-        export APICLIexportnameaddon=${APICLIexportnameaddon}
-    fi
-    
     if ${ExportTypeIsStandard} ; then
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        # MODIFIED 2023-03-04:01 -
+        #
+        
+        DumpObjectDefinitionData
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        # MODIFIED 2022-09-16:01 -
+        # Account for whether the original object definition is for REFERENCE, NO IMPORT already
+        
+        if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+            if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            else
+                export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            fi
+        elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+            if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            else
+                export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            fi
+        elif ${OnlySystemObjects} ; then
+            if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            else
+                export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            fi
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}
+        fi
         
         ExportObjectElementCriteriaBasedToCSVviaJQ
         errorreturn=$?
@@ -9090,7 +10557,7 @@ GetObjectElementCriteriaBased () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in ExportObjectElementCriteriaBasedToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in ExportObjectElementCriteriaBasedToCSVviaJQ procedure' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} ' Contents of file '${APICLICSVfiledatalast} | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} '-   --  --  --  --  --  --  --  --  --   --  --  --  --  --  --  --  --  --   -' | tee -a -i ${logfilepath}
@@ -9156,7 +10623,7 @@ GetObjectElementCriteriaBased () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-25:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -9237,18 +10704,406 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+# START :  Complex Object via Generic-Objects Common Procedures and Handlers
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-07:01 -
+
+
+# -------------------------------------------------------------------------------------------------
+# CommonGenericObjectsHandlersInitialSetup01
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The CommonGenericObjectsHandlersInitialSetup01 is Common routine for Generic Objects Handlers for Initialization - 01.
+#
+
+CommonGenericObjectsHandlersInitialSetup01 () {
+    
+    errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    CheckAPIKeepAlive
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CheckAPIKeepAlive procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    export WorkingAPICLIdetaillvl=${APICLIdetaillvl}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    ConfigureMgmtCLIOperationalParametersExport
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'CommonGenericObjectsHandlersInitialSetup01 procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+
+# -------------------------------------------------------------------------------------------------
+
+#CommonGenericObjectsHandlersInitialSetup01
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery is Common routine for Generic Objects Handlers for .
+#
+
+CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery () {
+    
+    errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    genericobjectstotal=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+    
+    export objectstoshowgenericobject=${genericobjectstotal}
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in mgmt_cli query for .total for '${APIGenObjectTypes}' '${APIGenObjectClassField}' '"${APIGenObjectClass}"' object [ '${objectstoshowgenericobject}' ]' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
+    ConfigureGenericObjectJSONRepoFileNamesAndPaths
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in ConfigureGenericObjectJSONRepoFileNamesAndPaths procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
+    export JSONRepoAPIGenObjectsTotal=
+    
+    CheckJSONRepoFileAPIGenericObjectTotal
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CheckJSONRepoFileAPIGenericObjectTotal procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
+    export domgmtcliquerygenericobject=false
+    
+    DetermineIfDoMgmtCLIQueryGenericObject
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in DetermineIfDoMgmtCLIQuery procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
+
+# -------------------------------------------------------------------------------------------------
+
+#CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CommonGenericObjectsSetupComplexObjectsTotalsPathsJSONRepoDoMgmtCLIQuery
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The CommonGenericObjectsSetupComplexObjectsTotalsPathsJSONRepoDoMgmtCLIQuery is Common routine for Generic Objects Handlers for .
+#
+
+CommonGenericObjectsSetupComplexObjectsTotalsPathsJSONRepoDoMgmtCLIQuery () {
+    
+    errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
+    #
+    # There should be the same number of entries in the JSON Repository file for the ${APICLIcomplexobjectstype} as for the ${APIGenObjobjectstype} if we have good JSON data!
+    #
+    # So set the value of ${objectstoshowcomplexobject} to the same value as ${objectstoshowgenericobject} since we DO NOT want the potential full number of actual ${APICLIobjectstype},
+    # which could be very different than the Generic Object collected subset.
+    #
+    # CheckJSONRepoFileComplexObjectTotal generates the number of ${JSONRepoComplexObjectsTotal} which is the value we need for ${objectstoshowcomplexobject}, 
+    # but we are going to compare ${objectstoshowcomplexobject} to ${JSONRepoComplexObjectsTotal} next in DetermineIfDoMgmtCLIQueryComplexObject
+    #
+    
+    export objectstoshowcomplexobject=${objectstoshowgenericobject}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
+    ConfigureComplexObjectJSONRepoFileNamesAndPaths
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in ConfigureComplexObjectJSONRepoFileNamesAndPaths procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
+    export JSONRepoComplexObjectsTotal=
+    
+    CheckJSONRepoFileComplexObjectTotal
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CheckJSONRepoFileComplexObjectTotal procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} ' - Objects to Show :  Complex [ '${objectstoshowcomplexobject}' ] and Generic [ '${objectstoshowgenericobject}' ] ' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} ' - JSON Repo Total of :  Complex Objects [ '${JSONRepoComplexObjectsTotal}' ] and Generic Objects [ '${JSONRepoAPIGenObjectsTotal}' ] ' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
+    export domgmtcliquerycomplexobject=false
+    
+    DetermineIfDoMgmtCLIQueryComplexObject
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in DetermineIfDoMgmtCLIQueryComplexObject procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'CommonGenericObjectsSetupComplexObjectsTotalsPathsJSONRepoDoMgmtCLIQuery procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
+
+# -------------------------------------------------------------------------------------------------
+
+#CommonGenericObjectsSetupComplexObjectsTotalsPathsJSONRepoDoMgmtCLIQuery
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CommonGenericObjectsDetermineGenericaAndComplexObjectsDoMgmtCLIQuery
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-07:02 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# The CommonGenericObjectsDetermineGenericaAndComplexObjectsDoMgmtCLIQuery is Common routine for Generic Objects Handlers for .
+#
+
+CommonGenericObjectsDetermineGenericaAndComplexObjectsDoMgmtCLIQuery () {
+    #
+    # Expected configured key input values
+    #
+    # ${domgmtcliquerygenericobject}
+    # ${domgmtcliquerycomplexobject}
+    # ${objectstoshowgenericobject}
+    # ${objectstoshowcomplexobject}
+    #
+    # Output values:
+    #
+    # ${domgmtcliquery}
+    # ${genericobjectjsonrepoOK}
+    # ${complexobjectjsonrepoOK}
+    # ${errorreturn}
+    #
+    
+    
+    errorreturn=0
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CommonGenericObjectsDetermineGenericaAndComplexObjectsDoMgmtCLIQuery procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    # Need some critical error checking if this is to work!
+    
+    forcecrashandburn=false
+    
+    if [ -z ${domgmtcliquerygenericobject} ] ; then
+        # Missing parameter domgmtcliquerygenericobject, which is not set, so document, crash and burn
+        
+        if ! ${forcecrashandburn} ; then echo `${dtzs}`${dtzsep} '!!!!  OPERATIONAL SCRIPT IMPLEMENTATION ERROR !!!!' | tee -a -i ${logfilepath} ; fi
+        forcecrashandburn=true
+        echo `${dtzs}`${dtzsep} '!!!!  VARIABLE domgmtcliquerygenericobject is NOT SET [ '${domgmtcliquerygenericobject}' ] !!!!' | tee -a -i ${logfilepath}
+    fi
+    
+    if [ -z ${domgmtcliquerycomplexobject} ] ; then
+        # Missing parameter domgmtcliquerycomplexobject, which is not set, so document, crash and burn
+        
+        if ! ${forcecrashandburn} ; then echo `${dtzs}`${dtzsep} '!!!!  OPERATIONAL SCRIPT IMPLEMENTATION ERROR !!!!' | tee -a -i ${logfilepath} ; fi
+        forcecrashandburn=true
+        echo `${dtzs}`${dtzsep} '!!!!  VARIABLE domgmtcliquerycomplexobject is NOT SET [ '${domgmtcliquerycomplexobject}' ] !!!!' | tee -a -i ${logfilepath}
+    fi
+    
+    if [ -z ${objectstoshowgenericobject} ] ; then
+        # Missing parameter objectstoshowgenericobject, which is not set, so document, crash and burn
+        
+        if ! ${forcecrashandburn} ; then echo `${dtzs}`${dtzsep} '!!!!  OPERATIONAL SCRIPT IMPLEMENTATION ERROR !!!!' | tee -a -i ${logfilepath} ; fi
+        forcecrashandburn=true
+        echo `${dtzs}`${dtzsep} '!!!!  VARIABLE objectstoshowgenericobject is NOT SET [ '${objectstoshowgenericobject}' ] !!!!' | tee -a -i ${logfilepath}
+    fi
+    
+    if [ -z ${objectstoshowcomplexobject} ] ; then
+        # Missing parameter objectstoshowcomplexobject, which is not set, so document, crash and burn
+        
+        if ! ${forcecrashandburn} ; then echo `${dtzs}`${dtzsep} '!!!!  OPERATIONAL SCRIPT IMPLEMENTATION ERROR !!!!' | tee -a -i ${logfilepath} ; fi
+        forcecrashandburn=true
+        echo `${dtzs}`${dtzsep} '!!!!  VARIABLE objectstoshowcomplexobject is NOT SET [ '${objectstoshowcomplexobject}' ] !!!!' | tee -a -i ${logfilepath}
+    fi
+    
+    if ${forcecrashandburn} ; then 
+        echo `${dtzs}`${dtzsep} '!!!!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '!!!!  CRITICAL INFORMATION REQUIRED TO OPERATE IS MISSING IN SCRIPT, CONTACT DEVELOPER !!!!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '!!!!  PROCEDURE:  CommonGenericObjectsDetermineGenericaAndComplexObjectsDoMgmtCLIQuery !!!!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '!!!!  OPERATIONAL SCRIPT IMPLEMENTATION ERROR -- EXITING !!!!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '!!!!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        exit 212
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    # There is some more logic required to determine if we can do a JSON Repo File based operation given the need for using two files the generic object and the complex object files.
+    
+    export domgmtcliquery=false
+    
+    if ${domgmtcliquerycomplexobject} ; then
+        export complexobjectjsonrepoOK=false
+    else
+        export complexobjectjsonrepoOK=true
+    fi
+    
+    if ${domgmtcliquerygenericobject} ; then
+        export genericobjectjsonrepoOK=false
+    else
+        export genericobjectjsonrepoOK=true
+    fi
+    
+    if [[ ${complexobjectjsonrepoOK} && ${genericobjectjsonrepoOK} ]] ; then
+        echo `${dtzs}`${dtzsep} ' - Complex Object and Generic Object Repository Files are OK and no issues with values!' >> ${logfilepath}
+        if [ ${objectstoshowcomplexobject} -ne ${objectstoshowgenericobject} ] ; then
+            echo `${dtzs}`${dtzsep} '  -- Count of Complex Objects [ '${objectstoshowcomplexobject}' ] and Generic Objects [ '${objectstoshowgenericobject}' ] IS equal so no problem with doing the JSON Repository operation!' >> ${logfilepath}
+            export domgmtcliquery=true
+        else
+            echo `${dtzs}`${dtzsep} '  -- Count of Complex Objects [ '${objectstoshowcomplexobject}' ] and Generic Objects [ '${objectstoshowgenericobject}' ] IS NOT equal so a problem with doing the JSON Repository operation!' >> ${logfilepath}
+            export domgmtcliquery=false
+        fi
+    else
+        echo `${dtzs}`${dtzsep} ' - Complex Object or Generic Object Repository Files is NOT OK so a problem with doing the JSON Repository operation!' >> ${logfilepath}
+        export domgmtcliquery=true
+    fi
+    
+    echo `${dtzs}`${dtzsep} ' - Value of domgmtcliquery = [ '${domgmtcliquery}' ], Count of Complex Objects [ '${objectstoshowcomplexobject}' ] and Generic Objects [ '${objectstoshowgenericobject}' ] ' | tee -a -i ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} 'CommonGenericObjectsDetermineGenericaAndComplexObjectsDoMgmtCLIQuery procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    return ${errorreturn}
+    
+    #
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:02
+
+# -------------------------------------------------------------------------------------------------
+
+#CommonGenericObjectsDetermineGenericaAndComplexObjectsDoMgmtCLIQuery
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# END :  Complex Object via Generic-Objects Common Procedures and Handlers
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # START :  Complex Object via Generic-Objects Handling Procedures
 # -------------------------------------------------------------------------------------------------
 
 # ADDED 2023-01-06 -
-# MODIFIED 2023-02-24:01 -
+# MODIFIED 2023-03-07:01 -
 
 
 # -------------------------------------------------------------------------------------------------
 # PopulateArrayOfGenericObjectsByClassFromMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-24:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -9258,50 +11113,79 @@ PopulateArrayOfGenericObjectsByClassFromMgmtDB () {
     
     errorreturn=0
     
-    # MODIFIED 2022-11-11 -
-    
+    # MODIFIED 2023-03-04:01 - 
     # System Object selection operands
-    # MODIFIED 2022-04-22 - 
     # Current alternative if more options to exclude are needed
+    
     ConfigureObjectQuerySelector
+    
+    # -------------------------------------------------------------------------------------------------
     
     #export APIGenObjectTypes=generic-objects
     #export APIGenObjectClassField=class-name
     #export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
     #export APIGenObjectField=uid
     
-
-    echo `${dtzs}`${dtzsep} '  '${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}"' - Populate up to next '${WorkAPIObjectLimit}' '${APIGenObjectField}' fields starting with object '${currentobjecttypesoffset}' of '${objectslefttoshow}' remaining!' | tee -a -i ${logfilepath}
+    export currentobjecttypesoffset=0
+    export genericobjectslefttoshow=0
+    
+    export genericobjectslefttoshow=${objectstoshowgenericobject}
+    
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  '${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}"' - Populate up to next '${WorkAPIObjectLimit}' [ "'${APIGenObjectField}'" ] fields starting with object '${currentobjecttypesoffset}' of '${genericobjectslefttoshow}' remaining!' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '   --  Using Object Query Selector "'${objectqueryselector}'"' | tee -a -i ${logfilepath}
     
-    if [ x"${objectqueryselector}" != x"" ] ; then
-        MGMT_CLI_GENERICOBJECTSFIELD_STRING="`mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit ${WorkAPIObjectLimit} offset ${currentobjecttypesoffset} details-level standard -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${objectqueryselector}"' | .'"${APIGenObjectField}"' | @sh' -r`"
-    else
-        MGMT_CLI_GENERICOBJECTSFIELD_STRING="`mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit ${WorkAPIObjectLimit} offset ${currentobjecttypesoffset} details-level standard -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | .'"${APIGenObjectField}"' | @sh' -r`"
-    fi
-    
-    # break the string into an array - each element of the array is a line in the original string
-    # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
-    
-    echo -n `${dtzs}`${dtzsep} '    Read Generic-Objects '${APIGenObjectField}' fields into array:  ' | tee -a -i ${logfilepath}
-    while read -r line; do
-        if [ "${line}" == '' ]; then
-            # ${line} value is nul, so skip adding to array
-            echo -n '%' | tee -a -i ${logfilepath}
+    while [ ${genericobjectslefttoshow} -ge 1 ] ; do
+        # we have objects to process
+        
+        echo `${dtzs}`${dtzsep} '   - Now processing up to next '${WorkAPIObjectLimit}' '${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}"' objects starting with object '${currentobjecttypesoffset}' of '${genericobjectslefttoshow}' remaining!' | tee -a -i ${logfilepath}
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        if [ x"${objectqueryselector}" != x"" ] ; then
+            MGMT_CLI_GENERICOBJECTSFIELD_STRING="`mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit ${WorkAPIObjectLimit} offset ${currentobjecttypesoffset} details-level ${APIGenObjobjectkeydetailslevel} -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${objectqueryselector}"' | .'"${APIGenObjectField}"' | @sh' -r`"
         else
-            # ${line} value is NOT nul, so add to array
-            GENERICOBJECTSKEYFIELDARRAY+=("${line}")
-            echo -n '.' | tee -a -i ${logfilepath}
+            MGMT_CLI_GENERICOBJECTSFIELD_STRING="`mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit ${WorkAPIObjectLimit} offset ${currentobjecttypesoffset} details-level ${APIGenObjobjectkeydetailslevel} -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | .'"${APIGenObjectField}"' | @sh' -r`"
         fi
-    done <<< "${MGMT_CLI_GENERICOBJECTSFIELD_STRING}"
-    errorreturn=$?
-    echo | tee -a -i ${logfilepath}
+        
+        # break the string into an array - each element of the array is a line in the original string
+        # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
+        
+        echo -n `${dtzs}`${dtzsep} '   --  Read Generic-Objects [ "'${APIGenObjectField}'" ] fields into array:  ' | tee -a -i ${logfilepath}
+        
+        while read -r line; do
+            if [ "${line}" == '' ]; then
+                # ${line} value is nul, so skip adding to array
+                echo -n '%' | tee -a -i ${logfilepath}
+            else
+                # ${line} value is NOT nul, so add to array
+                GENERICOBJECTSKEYFIELDARRAY+=("${line}")
+                echo -n '.' | tee -a -i ${logfilepath}
+            fi
+        done <<< "${MGMT_CLI_GENERICOBJECTSFIELD_STRING}"
+        errorreturn=$?
+        
+        echo | tee -a -i ${logfilepath}
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        export genericobjectslefttoshow=`expr ${genericobjectslefttoshow} - ${WorkAPIObjectLimit}`
+        export currentobjecttypesoffset=`expr ${currentobjecttypesoffset} + ${WorkAPIObjectLimit}`
+        
+        CheckAPIKeepAlive
+        
+    done
     
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'PopulateArrayOfGenericObjectsByClassFromMgmtDB procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-24:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -9311,7 +11195,7 @@ PopulateArrayOfGenericObjectsByClassFromMgmtDB () {
 # PopulateArrayOfGenericObjectsByClassFromJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-24:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -9321,33 +11205,35 @@ PopulateArrayOfGenericObjectsByClassFromJSONRepository () {
     
     errorreturn=0
     
-    # MODIFIED 2022-04-22 -
-    
+    # MODIFIED 2023-03-04:01 - 
     # System Object selection operands
-    # MODIFIED 2022-04-22 - 
     # Current alternative if more options to exclude are needed
+    
     ConfigureObjectQuerySelector
     
+    # -------------------------------------------------------------------------------------------------
     
     #export APIGenObjectTypes=generic-objects
     #export APIGenObjectClassField=class-name
     #export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
     #export APIGenObjectField=uid
     
-
-    echo `${dtzs}`${dtzsep} '  '${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}"' - Populate up to this number ['${JSONRepoObjectsTotal}'] of '${APIGenObjectField}' fields' | tee -a -i ${logfilepath}
+    
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  '${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}"' - Populate up to this number ['${JSONRepoObjectsTotal}'] of [ "'${APIGenObjectField}'" ] fields' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} '   --  Using Object Query Selector "'${objectqueryselector}'"' | tee -a -i ${logfilepath}
     
     if [ x"${objectqueryselector}" != x"" ] ; then
-        JSON_REPO_GENERICOBJECTSFIELD_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .${APIGenObjectField} | @sh' -r`"
+        JSON_REPO_GENERICOBJECTSFIELD_STRING="`cat ${JSONRepoAPIGenObjectFile} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .'"${APIGenObjectField}"' | @sh' -r`"
     else
-        JSON_REPO_GENERICOBJECTSFIELD_STRING="`cat ${JSONRepoFile} | ${JQ} '.objects[] | .${APIGenObjectField} | @sh' -r`"
+        JSON_REPO_GENERICOBJECTSFIELD_STRING="`cat ${JSONRepoAPIGenObjectFile} | ${JQ} '.objects[] | .'"${APIGenObjectField}"' | @sh' -r`"
     fi
     
     # break the string into an array - each element of the array is a line in the original string
     # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
     
-    echo -n `${dtzs}`${dtzsep} '    Read Generic-Objects '${APIGenObjectField}' fields into array:  ' | tee -a -i ${logfilepath}
+    echo -n `${dtzs}`${dtzsep} '   --  Read Generic-Objects [ "'${APIGenObjectField}'" ] fields into array:  ' | tee -a -i ${logfilepath}
+    
     while read -r line; do
         if [ "${line}" == '' ]; then
             # ${line} value is nul, so skip adding to array
@@ -9359,13 +11245,17 @@ PopulateArrayOfGenericObjectsByClassFromJSONRepository () {
         fi
     done <<< "${JSON_REPO_GENERICOBJECTSFIELD_STRING}"
     errorreturn=$?
+    
     echo | tee -a -i ${logfilepath}
     
+    echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'PopulateArrayOfGenericObjectsByClassFromJSONRepository procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-24:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -9376,13 +11266,15 @@ PopulateArrayOfGenericObjectsByClassFromJSONRepository () {
 # DumpArrayOfGenericObjectsKeyFieldValues proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-23:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
 # DumpArrayOfGenericObjectsKeyFieldValues outputs the array of generic objects names.
 
 DumpArrayOfGenericObjectsKeyFieldValues () {
+    
+    errorreturn=0
     
     if ${APISCRIPTVERBOSE} ; then
         # Verbose mode ON
@@ -9406,11 +11298,13 @@ DumpArrayOfGenericObjectsKeyFieldValues () {
         
     fi
     
-    return 0
+    echo `${dtzs}`${dtzsep} 'DumpArrayOfGenericObjectsKeyFieldValues procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-23:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -9421,7 +11315,7 @@ DumpArrayOfGenericObjectsKeyFieldValues () {
 # GetArrayOfComplexObjectsFromGenericObjectsFieldByKey proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-24:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -9442,74 +11336,95 @@ GetArrayOfComplexObjectsFromGenericObjectsFieldByKey () {
     echo `${dtzs}`${dtzsep} 'Generate array of '${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" ${APIGenObjectField}' fields' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    # MODIFIED 2023-02-24:01 -
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
     
-    CheckAPIKeepAlive
+    # MODIFIED 2023-03-07:02 -
     
-    # MODIFIED 2023-02-24:01 -
+    # Script simplification for common operations among Complex Objects via Generic Objects procedures
     
-    export WorkingAPICLIdetaillvl=${APICLIdetaillvl}
+    #CommonGenericObjectsHandlersInitialSetup01
+    #CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery
+    #CommonGenericObjectsSetupComplexObjectsTotalsPathsJSONRepoDoMgmtCLIQuery
+    #CommonGenericObjectsDetermineGenericaAndComplexObjectsDoMgmtCLIQuery
     
-    ConfigureMgmtCLIOperationalParametersExport
+    # -------------------------------------------------------------------------------------------------
     
-    #objectstotal=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 1 offset 0 details-level standard ${MgmtCLI_Base_OpParms} | ${JQ} ".total")
-    objectstotal=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" details-level standard ${MgmtCLI_Base_OpParms} | ${JQ} ".total")
+    errorreturn=0
     
-    export objectstoshow=${objectstotal}
-    
-    # MODIFIED 2022-07-12:01 -
-    
-    export JSONRepoObjectsTotal=
-    
-    CheckJSONRepoFileObjectTotal 
+    CommonGenericObjectsHandlersInitialSetup01
     errorreturn=$?
     
-    # MODIFIED 2022-07-12:01 -
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CommonGenericObjectsHandlersInitialSetup01 procedure' | tee -a -i ${logfilepath}
+    fi
     
-    export domgmtcliquery=false
+    # -------------------------------------------------------------------------------------------------
     
-    DetermineIfDoMgmtCLIQuery
+    errorreturn=0
+    
+    CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery
     errorreturn=$?
     
-    export currentobjecttypesoffset=0
-    export objectslefttoshow=0
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
+    CommonGenericObjectsSetupComplexObjectsTotalsPathsJSONRepoDoMgmtCLIQuery
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CommonGenericObjectsSetupComplexObjectsTotalsPathsJSONRepoDoMgmtCLIQuery procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
+    CommonGenericObjectsDetermineGenericaAndComplexObjectsDoMgmtCLIQuery
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CommonGenericObjectsDetermineGenericaAndComplexObjectsDoMgmtCLIQuery procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
     
     if ${domgmtcliquery} ; then
         # Execute the mgmt_cli query of the management host database
         
-        echo `${dtzs}`${dtzsep} "Processing ${objectstoshow} ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" objects in ${WorkAPIObjectLimit} object chunks:" | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Processing [ '${objectstoshowgenericobject}' ] '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" objects in '${WorkAPIObjectLimit}' object chunks:' | tee -a -i ${logfilepath}
         
-        export objectslefttoshow=${objectstoshow}
-        
-        while [ ${objectslefttoshow} -ge 1 ] ; do
-            # we have objects to process
-            echo `${dtzs}`${dtzsep} '  Now processing up to next '${WorkAPIObjectLimit}' '${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}"' objects starting with object '${currentobjecttypesoffset}' of '${objectslefttoshow}' remaining!' | tee -a -i ${logfilepath}
-            
-            PopulateArrayOfGenericObjectsByClassFromMgmtDB
-            errorreturn=$?
-            if [ ${errorreturn} != 0 ] ; then
-                # Something went wrong, terminate
-                echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in PopulateArrayOfGenericObjectsByClassFromMgmtDB procedure' | tee -a -i ${logfilepath}
-                return ${errorreturn}
-            fi
-            
-            export objectslefttoshow=`expr ${objectslefttoshow} - ${WorkAPIObjectLimit}`
-            export currentobjecttypesoffset=`expr ${currentobjecttypesoffset} + ${WorkAPIObjectLimit}`
-            
-            CheckAPIKeepAlive
-            
-        done
+        PopulateArrayOfGenericObjectsByClassFromMgmtDB
+        errorreturn=$?
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in PopulateArrayOfGenericObjectsByClassFromMgmtDB procedure' | tee -a -i ${logfilepath}
+            return ${errorreturn}
+        fi
         
     else
         # Execute the JSON repository query instead
         
-        echo `${dtzs}`${dtzsep} 'Processing '${JSONRepoObjectsTotal}' ['${objectstoshow}'] '${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}"' objects from the JSON repository file '${JSONRepoFile} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Processing [ '${JSONRepoAPIGenObjectsTotal}' : '${objectstoshowgenericobject}' ] '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" objects' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  - From the JSON repository file '${JSONRepoAPIGenObjectFile} | tee -a -i ${logfilepath}
         
         PopulateArrayOfGenericObjectsByClassFromJSONRepository
         errorreturn=$?
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in PopulateArrayOfGenericObjectsByClassFromJSONRepository procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in PopulateArrayOfGenericObjectsByClassFromJSONRepository procedure' | tee -a -i ${logfilepath}
             return ${errorreturn}
         fi
     fi
@@ -9522,13 +11437,10 @@ GetArrayOfComplexObjectsFromGenericObjectsFieldByKey () {
     else
         export ObjectsOfTypeToProcess=false
     fi
-    if ${APISCRIPTVERBOSE} ; then
-        echo `${dtzs}`${dtzsep} '  Final ObjectsOfTypeToProcess = '${ObjectsOfTypeToProcess} | tee -a -i ${logfilepath}
-    else
-        echo `${dtzs}`${dtzsep} '  Final ObjectsOfTypeToProcess = '${ObjectsOfTypeToProcess} >> ${logfilepath}
-    fi
     
-    echo `${dtzs}`${dtzsep} '  Number of Object Types Array Elements = ['"${#GENERICOBJECTSKEYFIELDARRAY[@]}"']' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Final ObjectsOfTypeToProcess = [ '${ObjectsOfTypeToProcess}' ]' | tee -a -i ${logfilepath}
+    
+    echo `${dtzs}`${dtzsep} '  Number of Object Types Array Elements = [ '"${#GENERICOBJECTSKEYFIELDARRAY[@]}"' ]' | tee -a -i ${logfilepath}
     if ${APISCRIPTVERBOSE} ; then
         echo `${dtzs}`${dtzsep} '  Final Object Types Array = ' | tee -a -i ${logfilepath}
         echo '------------------------------------------------------------------------       ' | tee -a -i ${logfilepath}
@@ -9550,11 +11462,13 @@ GetArrayOfComplexObjectsFromGenericObjectsFieldByKey () {
     fi
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
+    echo `${dtzs}`${dtzsep} 'GetArrayOfComplexObjectsFromGenericObjectsFieldByKey procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-24:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -9565,7 +11479,7 @@ GetArrayOfComplexObjectsFromGenericObjectsFieldByKey () {
 # CollectComplexObjectsFromGenericObjectsFieldWithMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-24:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-08:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -9585,85 +11499,74 @@ CollectComplexObjectsFromGenericObjectsFieldWithMgmtDB () {
     echo `${dtzs}`${dtzsep} 'Processing '${APICLIcomplexobjecttype}' objects in '${WorkAPIObjectLimit}' object chunks:' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Export '${APICLIcomplexobjectstype}' to CSV File' | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} '  and dump to '${APICLICSVfiledata} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  and dump to "'${APICLICSVfiledata}'"' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
+    echo ${CSVJQparms} >> ${logfilepath}
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    if ${APISCRIPTVERBOSE} ; then
-        # Verbose mode ON
-        echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-        echo ${CSVJQparms} >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-    else
-        # Verbose mode OFF
-        echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-        echo ${CSVJQparms} >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-    fi
-    
     
     for i in "${GENERICOBJECTSKEYFIELDARRAY[@]}"
     do
         export objecttoevaluate=${i}
         export objectnametoevaluate=${i//\'/}
         
-        if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' name "'${objectnametoevaluate}'" '${MgmtCLI_Show_OpParms}' \>> '${APICLICSVfiledatalast} | tee -a -i ${logfilepath}
-        else
-            echo `${dtzs}`${dtzsep} '  Command Executed :  mgmt_cli show '${APICLIobjectstype}' name "'${objectnametoevaluate}'" '${MgmtCLI_Show_OpParms}' \>> '${APICLICSVfiledatalast} >> ${logfilepath}
-        fi
+        echo `${dtzs}`${dtzsep} 'Processing '${APICLIcomplexobjecttype}' object with "'${APIGenObjectField}'" "'${objectnametoevaluate}'" using mgmt_cli command' | tee -a -i ${logfilepath}
+        
+        echo `${dtzs}`${dtzsep} '  - Command Executed :  mgmt_cli show '${APICLIobjectstype}' '${APIGenObjectField}' "'${objectnametoevaluate}'" '${MgmtCLI_Show_OpParms}' \>> '${APICLICSVfiledatalast} >> ${logfilepath}
+        
+        # The objects in the array should already reflect any ${objectqueryselector} nuances
+        # Build json file with objects array, single item, for easier jq to CSV next
         
         echo '{ "objects": [ ' > ${APICLICSVfiledatalast}
         
-        mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" ${MgmtCLI_Show_OpParms} >> ${APICLICSVfiledatalast}
+        mgmt_cli show ${APICLIobjecttype} ${APIGenObjectField} "${objectnametoevaluate}" ${MgmtCLI_Show_OpParms} >> ${APICLICSVfiledatalast}
         errorreturn=$?
         
         echo '], "from": 0, "to": 1, "total": 1 }' >> ${APICLICSVfiledatalast}
-                
+        
         if [ "${errorreturn}" != "0" ] ; then
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} 'Error in mgmt_cli Operation in CollectComplexObjectsFromGenericObjectsFieldWithMgmtDB for object '${APICLIobjecttype}' with name '${objectnametoevaluate}' which may lead to failure to generate output!' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} '  File contents with potential error from '${APICLICSVfiledatalast}' : ' >> ${logfilepath}
-            echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  File contents with potential error from "'${APICLICSVfiledatalast}'" : ' >> ${logfilepath}
+        else
+            echo `${dtzs}`${dtzsep} >> ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  Result in "'${APICLICSVfiledatalast}'" : ' >> ${logfilepath}
+            echo '-------------------------------------------------------------------------------------------------' >> ${logfilepath}
             echo >> ${logfilepath}
-            
-            cat ${APICLICSVfiledatalast} | tee -a -i ${logfilepath}
-            
-            echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            cat ${APICLICSVfiledatalast} >> ${logfilepath}
+            echo >> ${logfilepath}
+            echo '-------------------------------------------------------------------------------------------------' >> ${logfilepath}
         fi
         
         cat ${APICLICSVfiledatalast} | ${JQ} '.objects[] | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
         errorreturn=$?
         
         if [ "${errorreturn}" != "0" ] ; then
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} 'Error in JQ Operation in CollectComplexObjectsFromGenericObjectsFieldWithMgmtDB for object '${APICLIobjecttype}' with name '${objectnametoevaluate}' which may lead to failure to generate output!' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} '  File contents with potential error from '${APICLICSVfiledata}' : ' >> ${logfilepath}
-            echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-            echo >> ${logfilepath}
-            
-            cat ${APICLICSVfiledata} | tee -a -i ${logfilepath}
-            
-            echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '  Result in "'${APICLICSVfiledatalast}'" : ' >> ${logfilepath}
+            echo '-------------------------------------------------------------------------------------------------' >> ${logfilepath}
+            echo >> ${logfilepath}
+            cat ${APICLICSVfiledatalast} >> ${logfilepath}
+            echo >> ${logfilepath}
+            echo '-------------------------------------------------------------------------------------------------' >> ${logfilepath}
         fi
         
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
     done
     
+    echo `${dtzs}`${dtzsep} 'CollectComplexObjectsFromGenericObjectsFieldWithMgmtDB procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-24:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-08:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -9674,7 +11577,7 @@ CollectComplexObjectsFromGenericObjectsFieldWithMgmtDB () {
 # CollectComplexObjectsFromGenericObjectsFieldWithJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-24:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-08:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -9691,78 +11594,53 @@ CollectComplexObjectsFromGenericObjectsFieldWithJSONRepository () {
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    echo `${dtzs}`${dtzsep} 'Processing '${APICLIcomplexobjecttype}' objects from the JSON repository file '${JSONRepoFile} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Processing '${APICLIcomplexobjecttype}' objects ' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  from the JSON repository file "'${JSONRepoComplexObjectFile}'"' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Export '${APICLIcomplexobjectstype}' to CSV File' | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} '  and dump to '${APICLICSVfiledata} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  and dump to "'${APICLICSVfiledata}'"' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
+    echo ${CSVJQparms} >> ${logfilepath}
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    if ${APISCRIPTVERBOSE} ; then
-        # Verbose mode ON
-        echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-        echo ${CSVJQparms} >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-    else
-        # Verbose mode OFF
-        echo `${dtzs}`${dtzsep} '  Export details level   :  '${APICLIdetaillvl} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Export Filename add-on :  '${APICLIexportnameaddon} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  mgmt_cli parameters    :  '${MgmtCLI_Show_OpParms} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  Object Query Selector  :  '${objectqueryselector} >> ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  CSVJQparms :  ' >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-        echo ${CSVJQparms} >> ${logfilepath}
-        echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> ${logfilepath}
-    fi
     
     for i in "${GENERICOBJECTSKEYFIELDARRAY[@]}"
     do
         export objecttoevaluate=${i}
         export objectnametoevaluate=${i//\'/}
         
-        # -------------------------------------------------------------------------------------------------
+        echo `${dtzs}`${dtzsep} 'Processing '${APICLIcomplexobjecttype}' object with "'${APIGenObjectField}'" "'${objectnametoevaluate}'" from the JSON repository file' | tee -a -i ${logfilepath}
         
-        # Execute the JSON repository query instead
+        # The objects in the array should already reflect any ${objectqueryselector} nuances
         
-        echo `${dtzs}`${dtzsep} 'Processing '${APICLIcomplexobjecttype}' objects "'${objectnametoevaluate}'" from the JSON repository file '${JSONRepoFile} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Export '${APICLIcomplexobjectstype}' to CSV File' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} '  and dump to '${APICLICSVfiledata} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        
-        if [ x"${objectqueryselector}" == x"" ] ; then
-            # object query selector is empty, get it all
-            cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"${objectnametoevaluate}"'") | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
-            errorreturn=$?
-        else
-            # Use object query selector
-            cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"${objectnametoevaluate}"'") | '"${objectqueryselector}"' | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
-            errorreturn=$?
-        fi
+        cat ${JSONRepoComplexObjectFile} | ${JQ} '.objects[] | select(.'"${APIGenObjectField}"' == "'"${objectnametoevaluate}"'") | [ '"${CSVJQparms}"' ] | @csv' -r >> ${APICLICSVfiledata}
+        errorreturn=$?
         
         if [ "${errorreturn}" != "0" ] ; then
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} 'Error in JQ Operation in CollectComplexObjectsFromGenericObjectsFieldWithJSONRepository for '${APICLIcomplexobjectstype}' object '${objectnametoevaluate}' which may lead to failure to generate output!' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} '  File contents with potential error from '${APICLICSVfiledata}' : ' >> ${logfilepath}
-            echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            echo '-------------------------------------------------------------------------------------------------' >> ${logfilepath}
             echo >> ${logfilepath}
-            
-            cat ${APICLICSVfiledata} | tee -a -i ${logfilepath}
-            
-            echo '-------------------------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            cat ${APICLICSVfiledatalast} >> ${logfilepath}
+            echo >> ${logfilepath}
+            echo '-------------------------------------------------------------------------------------------------' >> ${logfilepath}
         fi
         
     done
     
+    echo `${dtzs}`${dtzsep} 'CollectComplexObjectsFromGenericObjectsFieldWithJSONRepository procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-24:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED - 2023-03-08:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -9773,7 +11651,7 @@ CollectComplexObjectsFromGenericObjectsFieldWithJSONRepository () {
 # CollectComplexObjectsViaGenericObjectsFieldArrayToCSV proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-24:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-06:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -9786,24 +11664,15 @@ CollectComplexObjectsViaGenericObjectsFieldArrayToCSV () {
     #
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    echo `${dtzs}`${dtzsep} 'Use array of '${APICLIobjectstype}' to generate objects type members CSV' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Use array of ["'${APIGenObjectField}'"] to generate '${APICLIcomplexobjecttype}' objects CSV' | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
-    # MODIFIED 2022-07-12:01 -
+    # -------------------------------------------------------------------------------------------------
     
-    export JSONRepoObjectsTotal=
-    
-    CheckJSONRepoFileObjectTotal 
-    errorreturn=$?
-    
-    # MODIFIED 2022-07-12:01 -
-    
-    export domgmtcliquery=false
-    
-    DetermineIfDoMgmtCLIQuery
-    errorreturn=$?
-    
-    errorreturn=0
+    #
+    # ${domgmtcliquery} should still be valid from GetArrayOfGenericObjectsByClassWithSpecificKeyValues where we executed the elements to get the values
+    # through the use of complex object and generic object specific JSON Repo File checks and related operations.
+    #
     
     if ${domgmtcliquery} ; then
         # Execute the mgmt_cli query of the management host database
@@ -9813,7 +11682,7 @@ CollectComplexObjectsViaGenericObjectsFieldArrayToCSV () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Handle Error in operation
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectComplexObjectsFromGenericObjectsFieldWithMgmtDB procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectComplexObjectsFromGenericObjectsFieldWithMgmtDB procedure' | tee -a -i ${logfilepath}
         fi
         
     else
@@ -9824,16 +11693,18 @@ CollectComplexObjectsViaGenericObjectsFieldArrayToCSV () {
         
         if [ ${errorreturn} != 0 ] ; then
             # Handle Error in operation
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectComplexObjectsFromGenericObjectsFieldWithJSONRepository procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectComplexObjectsFromGenericObjectsFieldWithJSONRepository procedure' | tee -a -i ${logfilepath}
         fi
         
     fi
     
+    echo `${dtzs}`${dtzsep} 'CollectComplexObjectsViaGenericObjectsFieldArrayToCSV procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-24:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -9844,7 +11715,7 @@ CollectComplexObjectsViaGenericObjectsFieldArrayToCSV () {
 # ExportComplexObjectViaGenericObjectsArrayToCSV proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-24:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-06:02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -9852,33 +11723,36 @@ CollectComplexObjectsViaGenericObjectsFieldArrayToCSV () {
 
 ExportComplexObjectViaGenericObjectsArrayToCSV () {
     
+    export Workingfilename=
+    export APICLIfileexport=
+    export APICLIJSONfilelast=
+    
     errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    DumpObjectDefinitionData
+    
+    # -------------------------------------------------------------------------------------------------
     
     export GENERICOBJECTSKEYFIELDARRAY=()
     export ObjectsOfTypeToProcess=false
     
-    if ${CSVADDEXPERRHANDLE} ; then
-        export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
-        export CSVJQparms=${CSVJQparms}', true, true'
-        #
-        # May need to add plumbing to handle the case that not all objects types might support set-if-exists
-        # For now just keep it separate
-        #
-        #if ${APIobjectcansetifexists} ; then
-            #export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
-            #export CSVJQparms=${CSVJQparms}', true'
-        #fi
-    fi
+    # -------------------------------------------------------------------------------------------------
     
-    SetupExportComplexObjectsToCSVviaJQ
+    # MODIFIED 2023-03-02 -
+    
+    # Since this stipulates a standard object exported to CSV but using a Generic Object array to show ${APICLIobjectstype} we actually want the standard CSV and JQ parameters configured
+    
+    ConfigureExportCSVandJQParameters
     errorreturn=$?
     
     if [ ${errorreturn} != 0 ] ; then
         # Handle Error in operation
-        echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in SetupExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in ConfigureExportCSVandJQParameters procedure -- RETURNING!!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'"' >> ${logfilepath}
         
         if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype}' -- RETURNING!!' | tee -a -i ${logfilepath}
             if ! ${NOWAIT} ; then
                 read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
             fi
@@ -9887,36 +11761,61 @@ ExportComplexObjectViaGenericObjectsArrayToCSV () {
         return ${errorreturn}
     fi
     
+    # -------------------------------------------------------------------------------------------------
+    
+    SetupExportComplexObjectsToCSVviaJQ
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Handle Error in operation
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in SetupExportComplexObjectsToCSVviaJQ procedure -- RETURNING!!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'"' >> ${logfilepath}
+        
+        if ${APISCRIPTVERBOSE} ; then
+            if ! ${NOWAIT} ; then
+                read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
+            fi
+        fi
+        
+        return ${errorreturn}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
     GetArrayOfComplexObjectsFromGenericObjectsFieldByKey
     errorreturn=$?
     
     if [ ${errorreturn} != 0 ] ; then
         # Handle Error in operation
-        echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in GetArrayOfComplexObjectsFromGenericObjectsFieldByKey procedure' | tee -a -i ${logfilepath}
-            
-            if ${APISCRIPTVERBOSE} ; then
-                echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype}' -- RETURNING!!' | tee -a -i ${logfilepath}
-                if ! ${NOWAIT} ; then
-                    read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
-                fi
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in GetArrayOfComplexObjectsFromGenericObjectsFieldByKey procedure -- RETURNING!!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'"' | tee -a -i ${logfilepath}
+        
+        if ${APISCRIPTVERBOSE} ; then
+            if ! ${NOWAIT} ; then
+                read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
             fi
-            
+        fi
+        
         return ${errorreturn}
     fi
     
+    # -------------------------------------------------------------------------------------------------
+    
     if ${ObjectsOfTypeToProcess} ; then
         # we have objects left to process after generating the array of ObjectsType
-        echo `${dtzs}`${dtzsep} 'Processing returned '${#GENERICOBJECTSKEYFIELDARRAY[@]}' objects of type '${APICLIcomplexobjectstype}', so processing this object' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Processing returned [ '${#GENERICOBJECTSKEYFIELDARRAY[@]}' ] objects of type "'${APICLIcomplexobjectstype}'", so processing this object' | tee -a -i ${logfilepath}
+        
+        # -------------------------------------------------------------------------------------------------
         
         DumpArrayOfGenericObjectsKeyFieldValues
         errorreturn=$?
         
         if [ ${errorreturn} != 0 ] ; then
             # Handle Error in operation
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in DumpArrayOfGenericObjectsKeyFieldValues procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in DumpArrayOfGenericObjectsKeyFieldValues procedure -- RETURNING!!' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'"' >> ${logfilepath}
             
             if ${APISCRIPTVERBOSE} ; then
-                echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype}' -- RETURNING!!' | tee -a -i ${logfilepath}
                 if ! ${NOWAIT} ; then
                     read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
                 fi
@@ -9924,16 +11823,18 @@ ExportComplexObjectViaGenericObjectsArrayToCSV () {
             
             return ${errorreturn}
         fi
+        
+        # -------------------------------------------------------------------------------------------------
         
         CollectComplexObjectsViaGenericObjectsFieldArrayToCSV
         errorreturn=$?
         
         if [ ${errorreturn} != 0 ] ; then
             # Handle Error in operation
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in CollectComplexObjectsViaGenericObjectsFieldArrayToCSV procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectComplexObjectsViaGenericObjectsFieldArrayToCSV procedure -- RETURNING!!' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'"' >> ${logfilepath}
             
             if ${APISCRIPTVERBOSE} ; then
-                echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype}' -- RETURNING!!' | tee -a -i ${logfilepath}
                 if ! ${NOWAIT} ; then
                     read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
                 fi
@@ -9941,16 +11842,18 @@ ExportComplexObjectViaGenericObjectsArrayToCSV () {
             
             return ${errorreturn}
         fi
+        
+        # -------------------------------------------------------------------------------------------------
         
         FinalizeExportComplexObjectsToCSVviaJQ
         errorreturn=$?
         
         if [ ${errorreturn} != 0 ] ; then
             # Handle Error in operation
-            echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in FinalizeExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in FinalizeExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
             
             if ${APISCRIPTVERBOSE} ; then
-                echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype}' -- RETURNING!!' | tee -a -i ${logfilepath}
+                echo `${dtzs}`${dtzsep} 'ERROR Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'"' | tee -a -i ${logfilepath}
                 if ! ${NOWAIT} ; then
                     read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
                 fi
@@ -9959,13 +11862,17 @@ ExportComplexObjectViaGenericObjectsArrayToCSV () {
             return ${errorreturn}
         fi
         
+        # -------------------------------------------------------------------------------------------------
+        
         if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} 'Done with Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Done with Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'"' | tee -a -i ${logfilepath}
         fi
     else
         # The array of ObjectsType is empty, nothing to process
         echo `${dtzs}`${dtzsep} 'No objects of type '${APICLIobjectstype}' were returned to process, skipping further operations on this object' | tee -a -i ${logfilepath}
     fi
+    
+    # -------------------------------------------------------------------------------------------------
     
     if ${APISCRIPTVERBOSE} ; then
         if ! ${NOWAIT} ; then
@@ -9973,11 +11880,13 @@ ExportComplexObjectViaGenericObjectsArrayToCSV () {
         fi
     fi
     
+    echo `${dtzs}`${dtzsep} 'ExportComplexObjectViaGenericObjectsArrayToCSV procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
     return ${errorreturn}
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-24:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -9988,7 +11897,7 @@ ExportComplexObjectViaGenericObjectsArrayToCSV () {
 # ComplexObjectsCSVViaGenericObjectsHandler proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-24:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-04:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ComplexObjectsCSVViaGenericObjectsHandler () {
@@ -10019,70 +11928,65 @@ ComplexObjectsCSVViaGenericObjectsHandler () {
         return 0
     fi
     
+    genericobjectstotal_object=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+    export number_objects="${genericobjectstotal_object}"
+    
+    if [ ${number_objects} -le 0 ] ; then
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Object type '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'"' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} ' has NO [ '${number_objects}' ] objects to generate '${APICLIcomplexobjectstype}' objects from!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Skipping!...' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Object type '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'"' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} ' has [ '${number_objects}' ] objects to generate '${APICLIcomplexobjectstype}' objects from!' | tee -a -i ${logfilepath}
+        
+        # MODIFIED 2022-09-16:01 -
+        # Account for whether the original object definition is for REFERENCE, NO IMPORT already
+        
+        if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+            if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            else
+                export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            fi
+        elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+            if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            else
+                export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            fi
+        elif ${OnlySystemObjects} ; then
+            if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            else
+                export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            fi
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}
+        fi
+        
+        ExportComplexObjectViaGenericObjectsArrayToCSV
+        errorreturn=$?
+    fi
+    
+    if ${APISCRIPTVERBOSE} ; then
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  Done with Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype} | tee -a -i ${logfilepath}
+    fi
+    
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    
-    # MODIFIED 2022-09-16:01 -
-    # Account for whether the original object definition is for REFERENCE, NO IMPORT already
-    
-    if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
-        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        else
-            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        fi
-    elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
-        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        else
-            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        fi
-    elif ${OnlySystemObjects} ; then
-        if [ x"${APICLIexportnameaddon}" == x"" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
-            export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        else
-            export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
-        fi
-    else
-        export APICLIexportnameaddon=${APICLIexportnameaddon}
-    fi
-    
-    if ${ExportTypeIsStandard} ; then
-        #objectstotal_object=$(mgmt_cli show ${APICLIobjectstype} limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
-        objectstotal_object=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
-        export number_object="${objectstotal_object}"
-        
-        if [ ${number_object} -le 0 ] ; then
-            # No groups found
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'No '${APICLIobjectstype}' to generate '${APICLIcomplexobjectstype}' members from!' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        else
-            ExportComplexObjectViaGenericObjectsArrayToCSV
-            errorreturn=$?
-        fi
-        
-        if ${APISCRIPTVERBOSE} ; then
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} '  Done with Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        fi
-        
-        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    else
-        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} 'Not "standard" Export Type :  '${TypeOfExport}' so do not handle complex objects '${APICLIcomplexobjectstype}' for '${APICLIobjectstype}'!' | tee -a -i ${logfilepath}
-        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-    fi
     
     if [ ${errorreturn} != 0 ] ; then
         # Handle Error in operation
-        echo `${dtzs}`${dtzsep} 'Error '${errorreturn}' in ComplexObjectsCSVViaGenericObjectsHandler procedure' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in ComplexObjectsCSVViaGenericObjectsHandler procedure' | tee -a -i ${logfilepath}
         echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         if ${ABORTONERROR} ; then
             read -t ${WAITTIME} -n 1 -p "Any key to EXIT script due to error ${errorreturn}.  Automatic EXIT after ${WAITTIME} seconds : " anykey
@@ -10141,7 +12045,7 @@ ComplexObjectsCSVViaGenericObjectsHandler () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-24:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -10182,19 +12086,14 @@ ComplexObjectsCSVViaGenericObjectsHandler () {
 # |  - Reference Details and initial object
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-26:01 - 
+ClearObjectDefinitionData
 
-export AugmentExportedFields=false
-
-if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
-    export AugmentExportedFields=true
-elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
-    export AugmentExportedFields=true
-elif ${OnlySystemObjects} ; then
-    export AugmentExportedFields=true
-else
-    export AugmentExportedFields=false
-fi
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLIcomplexobjecttype=custom-application-site-from-generic-object
+export APICLIcomplexobjectstype=custom-application-sites-from-generic-objects
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
 
 export APIGenObjectTypes=generic-objects
 export APIGenObjectClassField=class-name
@@ -10206,19 +12105,24 @@ export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
 export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
 export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site
 export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites
-export APIGenObjCSVobjecttype=${APIGenObjobjecttype}
 export APIGenObjobjectkey=name
+export APIGenObjobjectkeydetailslevel=standard
 
-export APICLIobjecttype=application-site
-export APICLIobjectstype=application-sites
-export APICLIcomplexobjecttype=custom-application-site-from-generic-object
-export APICLIcomplexobjectstype=custom-application-sites-from-generic-objects
-export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIGenObjjsonrepofileobject=${APIGenObjobjectstype}
+export APIGenObjcomplexjsonrepofileobject=${APIGenObjcomplexobjectstype}
+export APIGenObjCSVobjecttype=${APIGenObjobjectstype}
+export APIGenObjcomplexCSVobjecttype=${APIGenObjcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=true
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=true
@@ -10245,9 +12149,17 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
+export AugmentExportedFields=false
+
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export AugmentExportedFields=true
+elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+    export AugmentExportedFields=true
+elif ${OnlySystemObjects} ; then
+    export AugmentExportedFields=true
+else
+    export AugmentExportedFields=false
+fi
 
 if ! ${AugmentExportedFields} ; then
     export APICLIexportnameaddon=
@@ -10287,11 +12199,6 @@ if ${AugmentExportedFields} ; then
     export CSVFileHeader=${CSVFileHeader}',"url-list.7"'
     export CSVFileHeader=${CSVFileHeader}',"url-list.8"'
     export CSVFileHeader=${CSVFileHeader}',"url-list.9"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.10"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.11"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.12"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.13"'
-    export CSVFileHeader=${CSVFileHeader}',"url-list.14"'
 fi
 export CSVFileHeader=${CSVFileHeader}',"additional-categories.0"'
 if ${AugmentExportedFields} ; then
@@ -10334,11 +12241,6 @@ if ${AugmentExportedFields} ; then
     export CSVJQparms=${CSVJQparms}', .["url-list"][7]'
     export CSVJQparms=${CSVJQparms}', .["url-list"][8]'
     export CSVJQparms=${CSVJQparms}', .["url-list"][9]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][10]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][11]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][12]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][13]'
-    export CSVJQparms=${CSVJQparms}', .["url-list"][14]'
 fi
 export CSVJQparms=${CSVJQparms}', .["additional-categories"][0]'
 if ${AugmentExportedFields} ; then
@@ -10358,7 +12260,7 @@ export CSVJQparms=${CSVJQparms}', .["description"]'
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-24:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-02:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 objectstotal_generic_objects=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
@@ -10419,88 +12321,19 @@ echo `${dtzs}`${dtzsep} '- - - - - - - - - - - - - - - - - - - - - - - - - - - -
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-24:01
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-02:01
 
 
 # +-------------------------------------------------------------------------------------------------
-# | Complex Object : Specific Complex OBJECT : custom application-sites - url-lists from generic object
-# |  - Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
-# +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-26:01 - 
-
-export APIGenObjectTypes=generic-objects
-export APIGenObjectClassField=class-name
-export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
-export APIGenObjectClassShort="appfw.CpmiUserApplication"
-export APIGenObjectField=uid
-
-export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
-export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
-export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site-url-list
-export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites-url-lists
-export APIGenObjCSVobjecttype=${APIGenObjobjecttype}
-export APIGenObjobjectkey=name
+ClearObjectDefinitionData
 
 export APICLIobjecttype=application-site
 export APICLIobjectstype=application-sites
-export APICLIcomplexobjecttype=custom-application-site-url-list-from-generic-object
-export APICLIcomplexobjectstype=custom-application-sites-url-lists-from-generic-objects
+export APICLIcomplexobjecttype=custom-application-site-from-generic-object
+export APICLIcomplexobjectstype=custom-application-sites-from-generic-objects
 export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
-export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-export APIobjectexportisCPI=true
-
-export APIobjectdoexport=true
-export APIobjectdoexportJSON=false
-export APIobjectdoexportCSV=true
-export APIobjectdoimport=true
-export APIobjectdorename=false
-export APIobjectdoupdate=false
-export APIobjectdodelete=false
-
-export APIobjectusesdetailslevel=true
-export APIobjectcanignorewarning=true
-export APIobjectcanignoreerror=true
-export APIobjectcansetifexists=false
-export APIobjectderefgrpmem=false
-export APIobjecttypehasname=true
-export APIobjecttypehasuid=true
-export APIobjecttypehasdomain=true
-export APIobjecttypehastags=true
-export APIobjecttypehasmeta=true
-export APIobjecttypeimportname=true
-
-export APIobjectCSVFileHeaderAbsoluteBase=false
-export APIobjectCSVJQparmsAbsoluteBase=false
-
-export APIobjectCSVexportWIP=false
-
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
-export APIobjectspecifickey='"url-list"'
-
-# MODIFIED 2023-02-26:01 - 
-
-export AugmentExportedFields=false
-
-if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
-    export AugmentExportedFields=true
-elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
-    export AugmentExportedFields=true
-elif ${OnlySystemObjects} ; then
-    export AugmentExportedFields=true
-else
-    export AugmentExportedFields=false
-fi
+export APIobjectexportisCPI=false
 
 export APIGenObjectTypes=generic-objects
 export APIGenObjectClassField=class-name
@@ -10512,22 +12345,27 @@ export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
 export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
 export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site
 export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites
-export APIGenObjCSVobjecttype=${APIGenObjobjecttype}
 export APIGenObjobjectkey=name
+export APIGenObjobjectkeydetailslevel=standard
 
-export APICLIobjecttype=application-site
-export APICLIobjectstype=application-sites
-export APICLIcomplexobjecttype=custom-application-site-from-generic-object
-export APICLIcomplexobjectstype=custom-application-sites-from-generic-objects
-export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=_SINGLE_ALTERNATIVE_
+
+export APIobjectjsonrepofileobject=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIGenObjjsonrepofileobject=${APIGenObjobjectstype}
+export APIGenObjcomplexjsonrepofileobject=${APIGenObjcomplexobjectstype}
+export APIGenObjCSVobjecttype=${APIGenObjobjectstype}
+export APIGenObjcomplexCSVobjecttype=${APIGenObjcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 
-export APIobjectexportisCPI=true
-
 export APIobjectdoexport=true
-export APIobjectdoexportJSON=true
+export APIobjectdoexportJSON=false
 export APIobjectdoexportCSV=true
 export APIobjectdoimport=true
 export APIobjectdorename=true
@@ -10551,168 +12389,137 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
-
 #
 # APICLICSVsortparms can change due to the nature of the object
 #
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-export CSVFileHeader=${CSVFileHeader}'"name","url-list.add"'
+if ! ${AugmentExportedFields} ; then
+    export CSVFileHeader='"primary-category"'
+    # The risk key is not imported
+    #export CSVFileHeader=${CSVFileHeader}',"risk"'
+else
+    export CSVFileHeader='"application-id","primary-category"'
+    # The risk key is not imported
+    export CSVFileHeader=${CSVFileHeader}',"risk"'
+fi
+export CSVFileHeader=${CSVFileHeader}',"urls-defined-as-regular-expression"'
+if ${AugmentExportedFields} ; then
+    # user-defined can't be imported so while shown, it adds no value for normal operations
+    export CSVFileHeader=${CSVFileHeader}',"user-defined"'
+fi
+export CSVFileHeader=${CSVFileHeader}',"url-list.0"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.1"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.2"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.3"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.4"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.5"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.6"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.7"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.8"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.9"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.10"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.11"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.12"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.13"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.14"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.15"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.16"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.17"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.18"'
+export CSVFileHeader=${CSVFileHeader}',"url-list.19"'
+export CSVFileHeader=${CSVFileHeader}',"additional-categories.0"'
+export CSVFileHeader=${CSVFileHeader}',"additional-categories.1"'
+export CSVFileHeader=${CSVFileHeader}',"additional-categories.2"'
+export CSVFileHeader=${CSVFileHeader}',"additional-categories.3"'
+export CSVFileHeader=${CSVFileHeader}',"additional-categories.4"'
+export CSVFileHeader=${CSVFileHeader}',"additional-categories.5"'
+export CSVFileHeader=${CSVFileHeader}',"additional-categories.6"'
+export CSVFileHeader=${CSVFileHeader}',"additional-categories.7"'
+export CSVFileHeader=${CSVFileHeader}',"additional-categories.8"'
+export CSVFileHeader=${CSVFileHeader}',"additional-categories.9"'
+export CSVFileHeader=${CSVFileHeader}',"application-signature"'
+export CSVFileHeader=${CSVFileHeader}',"description"'
 #export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
 #export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}'.["name"], .["url-list"][${j}]'
-export CSVJQparms=${CSVJQparms}'.["name"]'
+if ! ${AugmentExportedFields} ; then
+    export CSVJQparms='.["primary-category"]'
+    # The risk key is not imported
+    #export CSVJQparms=${CSVJQparms}', .["risk"]'
+else
+    export CSVJQparms='.["application-id"], .["primary-category"]'
+    # The risk key is not imported
+    export CSVJQparms=${CSVJQparms}', .["risk"]'
+fi
+export CSVJQparms=${CSVJQparms}', .["urls-defined-as-regular-expression"]'
+if ${AugmentExportedFields} ; then
+    # user-defined can't be imported so while shown, it adds no value for normal operations
+    export CSVJQparms=${CSVJQparms}', .["user-defined"]'
+fi
+export CSVJQparms=${CSVJQparms}', .["url-list"][0]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][1]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][2]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][3]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][4]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][5]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][6]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][7]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][8]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][9]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][10]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][11]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][12]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][13]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][14]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][15]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][16]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][17]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][18]'
+export CSVJQparms=${CSVJQparms}', .["url-list"][19]'
+export CSVJQparms=${CSVJQparms}', .["additional-categories"][0]'
+export CSVJQparms=${CSVJQparms}', .["additional-categories"][1]'
+export CSVJQparms=${CSVJQparms}', .["additional-categories"][2]'
+export CSVJQparms=${CSVJQparms}', .["additional-categories"][3]'
+export CSVJQparms=${CSVJQparms}', .["additional-categories"][4]'
+export CSVJQparms=${CSVJQparms}', .["additional-categories"][5]'
+export CSVJQparms=${CSVJQparms}', .["additional-categories"][6]'
+export CSVJQparms=${CSVJQparms}', .["additional-categories"][7]'
+export CSVJQparms=${CSVJQparms}', .["additional-categories"][8]'
+export CSVJQparms=${CSVJQparms}', .["additional-categories"][9]'
+export CSVJQparms=${CSVJQparms}', .["application-signature"]'
+export CSVJQparms=${CSVJQparms}', .["description"]'
 #export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
+
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-24:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-02:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-case "${TypeOfExport}" in
-    # a "Standard" export operation
-    'standard' )
-        objectstotal_generic_objects=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
-        export number_generic_objects="${objectstotal_generic_objects}"
-        export number_of_objects=${number_generic_objects}
-        
-        if [ ${number_of_objects} -le 0 ] ; then
-            # No hosts found
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'No '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" to generate '${APIobjectspecifickey}' from!' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-        else
-            # hosts found
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} 'Check '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" with [ '${number_of_objects}' ] objects to generate '${APIobjectspecifickey}'!' | tee -a -i ${logfilepath}
-            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-            
-            #ComplexObjectsCSVViaGenericObjectsHandler
-        fi
-        
-        ;;
-    # a "name-only" export operation
-    #'name-only' )
-    # a "name-and-uid" export operation
-    #'name-and-uid' )
-    # a "uid-only" export operation
-    #'uid-only' )
-    # a "rename-to-new-nam" export operation
-    #'rename-to-new-name' )
-    # Anything unknown is handled as "standard"
-    * )
-        echo `${dtzs}`${dtzsep} 'Skipping '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" "'"${APICLIexportnameaddon}"'" for export type '${TypeOfExport}'!...' | tee -a -i ${logfilepath}
+objectstotal_generic_objects=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+export number_generic_objects="${objectstotal_generic_objects}"
+export number_of_objects=${number_generic_objects}
 
-        ;;
-esac
-
-echo `${dtzs}`${dtzsep} '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
-echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-24:01
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-# +-------------------------------------------------------------------------------------------------
-# | Complex Object : Specific Complex OBJECT : custom application-sites - application-signatures from generic object
-# |  - Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
-# +-------------------------------------------------------------------------------------------------
-
-# MODIFIED 2023-02-26:01 - 
-# Review of this application-sites objects element for application-signature resulted in a removal of this object, because a singular entry
-
-#export APIGenObjectTypes=generic-objects
-#export APIGenObjectClassField=class-name
-#export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
-#export APIGenObjectClassShort="appfw.CpmiUserApplication"
-#export APIGenObjectField=uid
-
-#export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
-#export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
-#export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site-application-signature
-#export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites-application-signatures
-#export APIGenObjCSVobjecttype=${APIGenObjobjecttype}
-#export APIGenObjobjectkey=name
-
-#export APICLIobjecttype=application-site
-#export APICLIobjectstype=application-sites
-#export APICLIcomplexobjecttype=custom-application-site-signature-from-generic-object
-#export APICLIcomplexobjectstype=custom-application-sites-signatures-from-generic-objects
-#export APIobjectminversion=1.1
-#export APICLICSVobjecttype=${APICLIobjectstype}
-#export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
-#export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
-
-#export APIobjectexportisCPI=true
-
-#export APIobjectdoexport=true
-#export APIobjectdoexportJSON=false
-#export APIobjectdoexportCSV=true
-#export APIobjectdoimport=true
-#export APIobjectdorename=false
-#export APIobjectdoupdate=false
-#export APIobjectdodelete=false
-
-#export APIobjectusesdetailslevel=true
-#export APIobjectcanignorewarning=true
-#export APIobjectcanignoreerror=true
-#export APIobjectcansetifexists=false
-#export APIobjectderefgrpmem=false
-#export APIobjecttypehasname=true
-#export APIobjecttypehasuid=true
-#export APIobjecttypehasdomain=true
-#export APIobjecttypehastags=true
-#export APIobjecttypehasmeta=true
-#export APIobjecttypeimportname=true
-
-#export APIobjectCSVFileHeaderAbsoluteBase=false
-#export APIobjectCSVJQparmsAbsoluteBase=false
-
-#export APIobjectCSVexportWIP=false
-
-#export APIobjectspecificselector00key=
-#export APIobjectspecificselector00value=
-#export APICLIexportnameaddon=
-
-#export APIobjectspecifickey='"application-signature"'
-
-##
-## APICLICSVsortparms can change due to the nature of the object
-##
-#export APICLICSVsortparms='-f -t , -k 1,1'
-
-#export CSVFileHeader=
-#export CSVFileHeader=${CSVFileHeader}'"name","application-signature"'
-##export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
-##export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
-##export CSVFileHeader=${CSVFileHeader}',"icon"'
-
-#export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}'.["name"], .["application-signature"]'
-##export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
-##export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
-##export CSVJQparms=${CSVJQparms}', .["icon"]'
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2023-02-24:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
+if [ ${number_of_objects} -le 0 ] ; then
+    # No hosts found
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'No '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" to generate '${APIobjectspecifickey}' from!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+else
+    # hosts found
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Check '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" with [ '${number_of_objects}' ] objects to generate '${APIobjectspecifickey}'!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    ComplexObjectsCSVViaGenericObjectsHandler
+fi
 
 #case "${TypeOfExport}" in
     ## a "Standard" export operation
@@ -10747,15 +12554,1094 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     ## Anything unknown is handled as "standard"
     #* )
         #echo `${dtzs}`${dtzsep} 'Skipping '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" "'"${APICLIexportnameaddon}"'" for export type '${TypeOfExport}'!...' | tee -a -i ${logfilepath}
-
         #;;
 #esac
 
-#echo `${dtzs}`${dtzsep} '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
-#echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-24:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-02:01
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+# !-------------------------------------------------------------------------------------------------!
+
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+# Complex Object via Generic-Objects Handlers - Object Specific Keys with Value arrays
+# **-------------------------------------------------------------------------------------------------**
+# **-------------------------------------------------------------------------------------------------**
+
+
+CheckAPIKeepAlive
+
+
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Complex Object via Generic-Objects Handlers - Object Specific Keys with Value arrays' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# START :  Complex Object via Generic-Objects - Object Specific Keys with Value arrays Handling Procedures Handling Procedures
+# -------------------------------------------------------------------------------------------------
+
+# ADDED 2023-03-02 -
+# MODIFIED 2023-03-02:01 -
+
+
+# -------------------------------------------------------------------------------------------------
+# PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromMgmtDB proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-05:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromMgmtDB populates array of objects for further processing from Management DB via mgmt_cli.
+
+PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromMgmtDB () {
+    
+    errorreturn=0
+    
+    ConfigureObjectQuerySelector
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  '${APICLIcomplexobjectstype}' - Populate Array of '${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}"' .'"${APIGenObjectField}"' fields from Management Database via mgmt_cli!' | tee -a -i ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    genericobjectslefttoshow=${objectstoshowgenericobject}
+    
+    currentobjectoffset=0
+    
+    while [ ${genericobjectslefttoshow} -ge 1 ] ; do
+        # we have objects to process
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        echo `${dtzs}`${dtzsep} '  '${APICLIcomplexobjectstype}' - Populate up to next '${WorkAPIObjectLimit}' .'"${APIGenObjectField}"' fields starting with object '${currentobjectoffset}' of '${genericobjectslefttoshow}' remaining!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '   --  Using Object Query Selector "'${objectqueryselector}'"' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        
+        # MGMT_CLI_GENERIC_KEY_FIELD_STRING is a string with multiple lines. Each line contains a ${APIGenObjectField} for ${APICLIobjectstype} obtained via query of generic object with class.
+        
+        if [ x"${objectqueryselector}" != x"" ] ; then
+            MGMT_CLI_GENERIC_KEY_FIELD_STRING="`mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit ${WorkAPIObjectLimit} offset ${currentobjectoffset} details-level ${APIGenObjobjectkeydetailslevel} -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | '"${objectqueryselector}"' | .'"${APIGenObjectField}"' | @sh' -r`"
+        else
+            MGMT_CLI_GENERIC_KEY_FIELD_STRING="`mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit ${WorkAPIObjectLimit} offset ${currentobjectoffset} details-level ${APIGenObjobjectkeydetailslevel} -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.objects[] | .'"${APIGenObjectField}"' | @sh' -r`"
+        fi
+        
+        # break the string into an array - each element of the array is a line in the original string
+        # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
+        
+        echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        
+        while read -r line; do
+            if [ "${line}" == '' ]; then
+                # ${line} value is nul, so skip adding to array
+                echo -n '%' | tee -a -i ${logfilepath}
+            else
+                # ${line} value is NOT nul, so add to array
+                
+                ALLGENERICOBJECTSKEYFIELDARRAY+=("${line}")
+                
+                echo -n '.' | tee -a -i ${logfilepath}
+                
+                arraylength=${#ALLGENERICOBJECTSKEYFIELDARRAY[@]}
+                arrayelement=$((arraylength-1))
+                
+                if ${APISCRIPTVERBOSE} ; then
+                    # Verbose mode ON
+                    # Output list of all hosts found
+                    echo -n ' '"${line}"', ' | tee -a -i ${logfilepath}
+                    echo -n "$(eval echo ${line})"', ' >> ${logfilepath}
+                    echo -n "$arraylength"', ' >> ${logfilepath}
+                    echo -n "$arrayelement"', ' | tee -a -i ${logfilepath}
+                    #echo -n "$(eval echo ${ALLGENERICOBJECTSKEYFIELDARRAY[${arrayelement}]})"', ' | tee -a -i ${logfilepath}
+                fi
+                
+                SPECIFICKEYVALUES_COUNT=$(mgmt_cli show ${APICLIobjecttype} ${APIGenObjectField} "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '."'${APIobjectspecifickey}'" | length' )
+                
+                NUM_SPECIFIC_KEY_VALUES=${SPECIFICKEYVALUES_COUNT}
+                
+                if [ x"${NUM_SPECIFIC_KEY_VALUES}" == x"" ] ; then
+                    # There are null objects, so skip
+                    if ${APISCRIPTVERBOSE} ; then
+                        echo -n 'N, ' | tee -a -i ${logfilepath}
+                    else
+                        echo -n 'N' | tee -a -i ${logfilepath}
+                    fi
+                    echo -n '-' | tee -a -i ${logfilepath}
+                elif [[ ${NUM_SPECIFIC_KEY_VALUES} -lt 1 ]] ; then
+                    # no objects of this type
+                    if ${APISCRIPTVERBOSE} ; then
+                        echo -n '0, ' | tee -a -i ${logfilepath}
+                    else
+                        echo -n '0' | tee -a -i ${logfilepath}
+                    fi
+                    echo -n '-' | tee -a -i ${logfilepath}
+                elif [[ ${NUM_SPECIFIC_KEY_VALUES} -gt 0 ]] ; then
+                    # More than zero (1) interfaces, something to process
+                    if [ ${NUM_SPECIFIC_KEY_VALUES} -gt ${MAXObjectsSpecificKeyValues} ] ; then
+                        export MAXObjectsSpecificKeyValues=${NUM_SPECIFIC_KEY_VALUES}
+                    fi
+                    
+                    if ${APISCRIPTVERBOSE} ; then
+                        echo -n "${NUM_SPECIFIC_KEY_VALUES}"', ' | tee -a -i ${logfilepath}
+                    else
+                        echo -n "${NUM_SPECIFIC_KEY_VALUES}" | tee -a -i ${logfilepath}
+                    fi
+                    GENERICOBJECTSKEYFIELDARRAY+=("${line}")
+                    let SpecificKeyValuesCount=SpecificKeyValuesCount+${NUM_SPECIFIC_KEY_VALUES}
+                    echo -n '!' | tee -a -i ${logfilepath}
+                else
+                    # ?? Whatever..., so skip
+                    if ${APISCRIPTVERBOSE} ; then
+                        echo -n '?, ' | tee -a -i ${logfilepath}
+                    else
+                        echo -n '?' | tee -a -i ${logfilepath}
+                    fi
+                    echo -n '-' | tee -a -i ${logfilepath}
+                fi
+                
+            fi
+            
+            if ${APISCRIPTVERBOSE} ; then
+                # Verbose mode ON
+                echo | tee -a -i ${logfilepath}
+                echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            fi
+            
+        done <<< "${MGMT_CLI_GENERIC_KEY_FIELD_STRING}"
+        errorreturn=$?
+        
+        echo | tee -a -i ${logfilepath}
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        genericobjectslefttoshow=`expr ${genericobjectslefttoshow} - ${WorkAPIObjectLimit}`
+        currentobjectoffset=`expr ${currentobjectoffset} + ${WorkAPIObjectLimit}`
+        
+        CheckAPIKeepAlive
+        
+    done
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo | tee -a -i ${logfilepath}
+    
+    if ${APISCRIPTVERBOSE} ; then
+        echo `${dtzs}`${dtzsep} '  SpecificKeyValuesCount      = '${SpecificKeyValuesCount} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  MAXObjectsSpecificKeyValues = '${MAXObjectsSpecificKeyValues} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} '  SpecificKeyValuesCount      = '${SpecificKeyValuesCount} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  MAXObjectsSpecificKeyValues = '${MAXObjectsSpecificKeyValues} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    fi
+    
+    export SpecificKeyValuesCount=${SpecificKeyValuesCount}
+    
+    echo `${dtzs}`${dtzsep} 'PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromMgmtDB procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-05:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromJSONRepository proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-05:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromJSONRepository populates array of objects for further processing from JSON Repository.
+
+PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromJSONRepository () {
+    
+    errorreturn=0
+    
+    ConfigureObjectQuerySelector
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  '${APICLIcomplexobjectstype}' - Populate Array of '${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}"' .'"${APIGenObjectField}"' fields from JSON Repository!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '   --  Generic Object JSON Repository File "'${JSONRepoAPIGenObjectFile}'"' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '   --  Complex Object JSON Repository File "'${JSONRepoComplexObjectFile}'"' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '   --  Using Object Query Selector "'${objectqueryselector}'"' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    # JSON_REPO_GENERIC_KEY_FIELD_STRING is a string with multiple lines. Each line contains a ${APIGenObjectField} for ${APICLIobjectstype} collected into the JSON Repo File via query of generic object with class.
+    
+    if [ x"${objectqueryselector}" != x"" ] ; then
+        JSON_REPO_GENERIC_KEY_FIELD_STRING="`cat ${JSONRepoAPIGenObjectFile} | ${JQ} '.objects[] | '"${objectqueryselector}"' | .'"${APIGenObjectField}"' | @sh' -r`"
+    else
+        JSON_REPO_GENERIC_KEY_FIELD_STRING="`cat ${JSONRepoAPIGenObjectFile} | ${JQ} '.objects[] | .'"${APIGenObjectField}"' | @sh' -r`"
+    fi
+    
+    # break the string into an array - each element of the array is a line in the original string
+    # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
+    
+    echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    while read -r line; do
+        if [ "${line}" == '' ]; then
+            # ${line} value is nul, so skip adding to array
+            echo -n '%' | tee -a -i ${logfilepath}
+        else
+            # ${line} value is NOT nul, so add to array
+            
+            ALLGENERICOBJECTSKEYFIELDARRAY+=("${line}")
+            
+            echo -n '.' | tee -a -i ${logfilepath}
+            
+            arraylength=${#ALLGENERICOBJECTSKEYFIELDARRAY[@]}
+            arrayelement=$((arraylength-1))
+            
+            if ${APISCRIPTVERBOSE} ; then
+                # Verbose mode ON
+                # Output list of all hosts found
+                echo -n ' '"${line}"', ' | tee -a -i ${logfilepath}
+                echo -n "$(eval echo ${line})"', ' >> ${logfilepath}
+                echo -n "$arraylength"', ' >> ${logfilepath}
+                echo -n "$arrayelement"', ' | tee -a -i ${logfilepath}
+                #echo -n "$(eval echo ${ALLGENERICOBJECTSKEYFIELDARRAY[${arrayelement}]})"', ' | tee -a -i ${logfilepath}
+            fi
+            
+            SPECIFICKEYVALUES_COUNT=$(cat ${JSONRepoComplexObjectFile} | ${JQ} '.objects[] | select(.'"${APIGenObjectField}"' == "'"$(eval echo ${line})"'") | ."'${APIobjectspecifickey}'" | length')
+            
+            NUM_SPECIFIC_KEY_VALUES=${SPECIFICKEYVALUES_COUNT}
+            
+            if [ x"${NUM_SPECIFIC_KEY_VALUES}" == x"" ] ; then
+                # There are null objects, so skip
+                if ${APISCRIPTVERBOSE} ; then
+                    echo -n 'N, ' | tee -a -i ${logfilepath}
+                else
+                    echo -n 'N' | tee -a -i ${logfilepath}
+                fi
+                echo -n '-' | tee -a -i ${logfilepath}
+            elif [[ ${NUM_SPECIFIC_KEY_VALUES} -lt 1 ]] ; then
+                # no objects of this type
+                if ${APISCRIPTVERBOSE} ; then
+                    echo -n '0, ' | tee -a -i ${logfilepath}
+                else
+                    echo -n '0' | tee -a -i ${logfilepath}
+                fi
+                echo -n '-' | tee -a -i ${logfilepath}
+            elif [[ ${NUM_SPECIFIC_KEY_VALUES} -gt 0 ]] ; then
+                # More than zero (1) interfaces, something to process
+                if [ ${NUM_SPECIFIC_KEY_VALUES} -gt ${MAXObjectsSpecificKeyValues} ] ; then
+                    export MAXObjectsSpecificKeyValues=${NUM_SPECIFIC_KEY_VALUES}
+                fi
+                
+                if ${APISCRIPTVERBOSE} ; then
+                    echo -n "${NUM_SPECIFIC_KEY_VALUES}"', ' | tee -a -i ${logfilepath}
+                else
+                    echo -n "${NUM_SPECIFIC_KEY_VALUES}" | tee -a -i ${logfilepath}
+                fi
+                GENERICOBJECTSKEYFIELDARRAY+=("${line}")
+                let SpecificKeyValuesCount=SpecificKeyValuesCount+${NUM_SPECIFIC_KEY_VALUES}
+                echo -n '!' | tee -a -i ${logfilepath}
+            else
+                # ?? Whatever..., so skip
+                if ${APISCRIPTVERBOSE} ; then
+                    echo -n '?, ' | tee -a -i ${logfilepath}
+                else
+                    echo -n '?' | tee -a -i ${logfilepath}
+                fi
+                echo -n '-' | tee -a -i ${logfilepath}
+            fi
+            
+        fi
+        
+        if ${APISCRIPTVERBOSE} ; then
+            # Verbose mode ON
+            echo | tee -a -i ${logfilepath}
+            echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        fi
+        
+        
+    done <<< "${JSON_REPO_GENERIC_KEY_FIELD_STRING}"
+    errorreturn=$?
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo | tee -a -i ${logfilepath}
+    
+    if ${APISCRIPTVERBOSE} ; then
+        echo `${dtzs}`${dtzsep} '  SpecificKeyValuesCount      = '${SpecificKeyValuesCount} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  MAXObjectsSpecificKeyValues = '${MAXObjectsSpecificKeyValues} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    else
+        echo `${dtzs}`${dtzsep} '  SpecificKeyValuesCount      = '${SpecificKeyValuesCount} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} '  MAXObjectsSpecificKeyValues = '${MAXObjectsSpecificKeyValues} >> ${logfilepath}
+        echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    fi
+    
+    export SpecificKeyValuesCount=${SpecificKeyValuesCount}
+    
+    echo `${dtzs}`${dtzsep} 'PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromJSONRepository procedure errorreturn :  !{ '${errorreturn}' }!' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    return ${errorreturn}
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-05:01 -
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# GetArrayOfGenericObjectsByClassWithSpecificKeyValues proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# GetArrayOfGenericObjectsByClassWithSpecificKeyValues generates an array of ${APICLIobjectstype} objects for further processing.
+
+GetArrayOfGenericObjectsByClassWithSpecificKeyValues () {
+    
+    # MODIFIED 2023-03-07:01 -
+    
+    errorreturn=0
+    
+    GENERICOBJECTSKEYFIELDARRAY=()
+    ALLGENERICOBJECTSKEYFIELDARRAY=()
+    export MAXObjectsSpecificKeyValues=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Generate array of '${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" ${APIGenObjectField}' fields' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    # MODIFIED 2023-03-07:02 -
+    
+    # Script simplification for common operations among Complex Objects via Generic Objects procedures
+    
+    #CommonGenericObjectsHandlersInitialSetup01
+    #CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery
+    #CommonGenericObjectsSetupComplexObjectsTotalsPathsJSONRepoDoMgmtCLIQuery
+    #CommonGenericObjectsDetermineGenericaAndComplexObjectsDoMgmtCLIQuery
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
+    CommonGenericObjectsHandlersInitialSetup01
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CommonGenericObjectsHandlersInitialSetup01 procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
+    CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
+    CommonGenericObjectsSetupComplexObjectsTotalsPathsJSONRepoDoMgmtCLIQuery
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CommonGenericObjectsSetupComplexObjectsTotalsPathsJSONRepoDoMgmtCLIQuery procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
+    CommonGenericObjectsDetermineGenericaAndComplexObjectsDoMgmtCLIQuery
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CommonGenericObjectsDetermineGenericaAndComplexObjectsDoMgmtCLIQuery procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    
+    errorreturn=0
+    
+    if ${domgmtcliquery} ; then
+        # Execute the mgmt_cli query of the objects because both required JSON files are not OK or available as needed
+        
+        echo `${dtzs}`${dtzsep} 'Processing [ '${objectstoshowgenericobject}' ] '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" objects in '${WorkAPIObjectLimit}' object chunks:' | tee -a -i ${logfilepath}
+        
+        PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromMgmtDB
+        errorreturn=$?
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromMgmtDB procedure' | tee -a -i ${logfilepath}
+            return ${errorreturn}
+        fi
+    else
+        # Execute the JSON repository query because both required JSON objects should be OK
+        
+        echo `${dtzs}`${dtzsep} 'Processing '${objectstoshowgenericobject}' '${APICLIobjecttype}' objects from the JSON repository file '${JSONRepoAPIGenObjectFile} | tee -a -i ${logfilepath}
+        
+        PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromJSONRepository
+        errorreturn=$?
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromJSONRepository procedure' | tee -a -i ${logfilepath}
+            return ${errorreturn}
+        fi
+    fi
+    
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Final SpecificKeyValuesCount          = '${SpecificKeyValuesCount} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Final Generic Objedts Key Field Array = ' | tee -a -i ${logfilepath}
+    echo '------------------------------------------------------------------------       ' | tee -a -i ${logfilepath}
+    #echo | tee -a -i ${logfilepath}
+    
+    echo '['"${GENERICOBJECTSKEYFIELDARRAY[@]}"']' | tee -a -i ${logfilepath}
+    
+    #echo | tee -a -i ${logfilepath}
+    echo '------------------------------------------------------------------------       ' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    echo `${dtzs}`${dtzsep} 'GetArrayOfGenericObjectsByClassWithSpecificKeyValues procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    return ${errorreturn}
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromMgmtDB proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-05:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromMgmtDB outputs the specific key values in an object in the array of objects and collects them into the csv file using the mgmg_cli calls to the Management DB.
+
+CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromMgmtDB () {
+    
+    errorreturn=0
+    
+    #
+    # using bash variables in a jq expression
+    #
+    
+    export CSVJQspecifickeyvaluesparmsbase=${CSVJQparms}
+    
+    export CSVJQspecifickeyvalueserroraddon=
+    
+    if ${CSVADDEXPERRHANDLE} ; then
+        export CSVJQspecifickeyvalueserroraddon=', true, true'
+        if ${APIobjectcansetifexists} ; then
+            export CSVJQspecifickeyvalueserroraddon=${CSVJQspecifickeyvalueserroraddon}', true'
+        fi
+    fi
+    
+    export CSVJQspecifickeyvaluesparmsbase=${CSVJQparms}${CSVJQspecifickeyvalueserroraddon}
+    
+    for i in "${GENERICOBJECTSKEYFIELDARRAY[@]}"
+    do
+        CheckAPIKeepAlive
+        
+        export WorkingAPICLIdetaillvl=${APICLIdetaillvl}
+        
+        ConfigureMgmtCLIOperationalParametersExport
+        
+        export objecttoevaluate=${i}
+        export objectnametoevaluate=${i//\'/}
+        
+        #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        #echo `${dtzs}`${dtzsep} Host with interfaces "${objectnametoevaluate}" | tee -a -i ${logfilepath}
+        
+        #SPECIFICKEYVALUES_COUNT=$(mgmt_cli show ${APICLIobjecttype} ${APIGenObjectField} "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '."'${APIobjectspecifickey}'" | length' )
+        SPECIFICKEYVALUES_COUNT=$(mgmt_cli show ${APICLIobjecttype} ${APIGenObjectField} "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.'${APIobjectspecifickey}' | length')
+        
+        NUM_SPECIFIC_KEY_VALUES=${SPECIFICKEYVALUES_COUNT}
+        
+        if [ x"${NUM_SPECIFIC_KEY_VALUES}" == x"" ] ; then
+            # There are null objects, so skip
+            
+            echo `${dtzs}`${dtzsep} ${APICLIobjecttype}' '${APIGenObjectField}' '"${objectnametoevaluate}"' number of specific key values = NULL (0 zero)' | tee -a -i ${logfilepath}
+            
+            #return 0
+           
+        elif [[ ${NUM_SPECIFIC_KEY_VALUES} -lt 1 ]] ; then
+            # no objects of this type
+            
+            echo `${dtzs}`${dtzsep} ${APICLIobjecttype}' '${APIGenObjectField}' '"${objectnametoevaluate}"' number of specific key values = 0 (0 zero)' | tee -a -i ${logfilepath}
+            
+            #return 0
+           
+        elif [[ ${NUM_SPECIFIC_KEY_VALUES} -gt 0 ]] ; then
+            # More than zero (0) interfaces, something to process
+            echo `${dtzs}`${dtzsep} ${APICLIobjecttype}' '${APIGenObjectField}' '"${objectnametoevaluate}"' number of specific key values = '"${NUM_SPECIFIC_KEY_VALUES}" | tee -a -i ${logfilepath}
+            
+            # If there is an issue with adding the index [0] keys during import which may be exported with the basic object, then more plumbing is required here
+            # like changing the sequence to start from [1] versus [0] as it is currently done
+            for j in `seq 0 $(expr ${NUM_SPECIFIC_KEY_VALUES} - 1 )`
+            do
+                sequencenumberformatted=`printf "%05d" ${j}`
+                
+                GETSPECIFICKEYVALUE=$(mgmt_cli show ${APICLIobjecttype} ${APIGenObjectField} "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '."'${APIobjectspecifickey}'"['${j}']')
+                
+                export SPECIFICKEYVALUE=${GETSPECIFICKEYVALUE}
+                errorreturn=$?
+                
+                if [ ${errorreturn} != 0 ] ; then
+                    # Something went wrong, terminate
+                    echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromMgmtDB mgmt_cli execution reading '${APICLIobjecttype}' object '${objectnametoevaluate}' '"${APIobjectspecifickey}"' sequence number: ['${j}']' | tee -a -i ${logfilepath}
+                    return ${errorreturn}
+                fi
+                
+                echo '"'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} >> ${APICLICSVfiledata}
+                echo `${dtzs}`${dtzsep} 'Sequence Number [ '${sequencenumberformatted}' ] :  '${APIGenObjectField}' "'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} | tee -a -i ${logfilepath}
+            done
+            
+        else
+            # ?? Whatever..., so skip
+            echo `${dtzs}`${dtzsep} ${APICLIobjecttype}' '${APIGenObjectField}' '"${objectnametoevaluate}"' number of '"${APIobjectspecifickey}"' = NONE (0 zero)' | tee -a -i ${logfilepath}
+        fi
+        
+    done
+    
+    echo `${dtzs}`${dtzsep} 'CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromMgmtDB procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    return ${errorreturn}
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-05:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-05:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository outputs the host interfaces in a host in the array of host objects and collects them into the csv file using the JSON Repository.
+
+CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository () {
+    
+    errorreturn=0
+    
+    #
+    # using bash variables in a jq expression
+    #
+    
+    export CSVJQspecifickeyvaluesparmsbase=${CSVJQparms}
+    
+    export CSVJQspecifickeyvalueserroraddon=
+    
+    if ${CSVADDEXPERRHANDLE} ; then
+        export CSVJQspecifickeyvalueserroraddon=', true, true'
+        if ${APIobjectcansetifexists} ; then
+            export CSVJQspecifickeyvalueserroraddon=${CSVJQspecifickeyvalueserroraddon}', true'
+        fi
+    fi
+    
+    export CSVJQspecifickeyvaluesparmsbase=${CSVJQparms}${CSVJQspecifickeyvalueserroraddon}
+    
+    for i in "${GENERICOBJECTSKEYFIELDARRAY[@]}"
+    do
+        export objecttoevaluate=${i}
+        export objectnametoevaluate=${i//\'/}
+        
+        #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        #echo `${dtzs}`${dtzsep} Host with interfaces "${objectnametoevaluate}" | tee -a -i ${logfilepath}
+        
+        #SPECIFICKEYVALUES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.'${APIobjectspecifickey}' | length')
+            SPECIFICKEYVALUES_COUNT=$(cat ${JSONRepoComplexObjectFile} | ${JQ} '.objects[] | select(.'"${APIGenObjectField}"' == "'"$(eval echo ${line})"'") | ."'${APIobjectspecifickey}'" | length')
+        
+        NUM_SPECIFIC_KEY_VALUES=${SPECIFICKEYVALUES_COUNT}
+        
+        if [ x"${NUM_SPECIFIC_KEY_VALUES}" == x"" ] ; then
+            # There are null objects, so skip
+            
+            echo `${dtzs}`${dtzsep} ${APICLIobjecttype}' '${APIGenObjectField}' '"${objectnametoevaluate}"' number of specific key values = NULL (0 zero)' | tee -a -i ${logfilepath}
+            
+            #return 0
+           
+        elif [[ ${NUM_SPECIFIC_KEY_VALUES} -lt 1 ]] ; then
+            # no objects of this type
+            
+            echo `${dtzs}`${dtzsep} ${APICLIobjecttype}' '${APIGenObjectField}' '"${objectnametoevaluate}"' number of specific key values =  0 (0 zero)' | tee -a -i ${logfilepath}
+            
+            #return 0
+           
+        elif [[ ${NUM_SPECIFIC_KEY_VALUES} -gt 0 ]] ; then
+            # More than zero (0) interfaces, something to process
+            echo `${dtzs}`${dtzsep} ${APICLIobjecttype}' '${APIGenObjectField}' '"${objectnametoevaluate}"' number of specific key values = '"${NUM_SPECIFIC_KEY_VALUES}" | tee -a -i ${logfilepath}
+            
+            for j in `seq 0 $(expr ${NUM_SPECIFIC_KEY_VALUES} - 1 )`
+            do
+                sequencenumberformatted=`printf "%03d" ${j}`
+                
+                GETSPECIFICKEYVALUE=$(cat ${JSONRepoComplexObjectFile} | ${JQ} '.objects[] | select(.'"${APIGenObjectField}"' == "'"${objectnametoevaluate}"'") | ."'${APIobjectspecifickey}'"['${j}']')
+                
+                export SPECIFICKEYVALUE=${GETSPECIFICKEYVALUE}
+                errorreturn=$?
+                
+                if [ ${errorreturn} != 0 ] ; then
+                    # Something went wrong, terminate
+                    echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository JQ execution reading '${APICLIcomplexobjectstype}' object '${objectnametoevaluate}' "'"${APIobjectspecifickey}"'" sequence number: ['${j}']' | tee -a -i ${logfilepath}
+                    return ${errorreturn}
+                fi
+                
+                echo '"'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} >> ${APICLICSVfiledata}
+                echo `${dtzs}`${dtzsep} 'Sequence Number [ '${sequencenumberformatted}' ] : '${APIGenObjectField}' "'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} | tee -a -i ${logfilepath}
+            done
+        else
+            # ?? Whatever..., so skip
+            echo `${dtzs}`${dtzsep} ${APICLIobjecttype}' '${APIGenObjectField}' '"${objectnametoevaluate}"' number of '"${APIobjectspecifickey}"' = NONE (0 zero)' | tee -a -i ${logfilepath}
+        fi
+        
+    done
+    
+    echo `${dtzs}`${dtzsep} 'CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    return ${errorreturn}
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-05:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CollectGenericObjectsByClassWithSpecificKeyValuesInObjects proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-05:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# CollectGenericObjectsByClassWithSpecificKeyValuesInObjects outputs the ${APIobjectspecifickey} in a ${APICLIobjecttype} in the array of ${APICLIobjecttype} objects and collects them into the csv file.
+
+CollectGenericObjectsByClassWithSpecificKeyValuesInObjects () {
+    
+    errorreturn=0
+    
+    #
+    # using bash variables in a jq expression
+    #
+    
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'Use Array of "'${APIGenObjectField}'" fields from '${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}"' objects to generate ."'${APIobjectspecifickey}'" CSV' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    #
+    # ${domgmtcliquery} should still be valid from GetArrayOfGenericObjectsByClassWithSpecificKeyValues where we executed the elements to get the values
+    # through the use of complex object and generic object specific JSON Repo File checks and related operations.
+    #
+    
+    if ${domgmtcliquery} ; then
+        # Execute the mgmt_cli query of the management host database
+        
+        CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromMgmtDB
+        errorreturn=$?
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromMgmtDB procedure' | tee -a -i ${logfilepath}
+            return ${errorreturn}
+        fi
+        
+    else
+        # Execute the JSON repository query instead
+        
+        CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository
+        errorreturn=$?
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository procedure' | tee -a -i ${logfilepath}
+            return ${errorreturn}
+        fi
+        
+    fi
+    
+    echo `${dtzs}`${dtzsep} 'CollectGenericObjectsByClassWithSpecificKeyValuesInObjects procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    return ${errorreturn}
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-05:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# GetGenericObjectsByClassWithSpecificKeyArrayValuesDetailsProcessor proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# GetGenericObjectsByClassWithSpecificKeyArrayValuesDetailsProcessor generate output of objects specific key values from existing objects with specific key values objects
+
+GetGenericObjectsByClassWithSpecificKeyArrayValuesDetailsProcessor () {
+    
+    errorreturn=0
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'GetGenericObjectsByClassWithSpecificKeyArrayValuesDetailsProcessor procedure Starting...' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    export SpecificKeyValuesCount=0
+    
+    # MODIFIED 2021-01-28 -
+    
+    if ${CSVADDEXPERRHANDLE} ; then
+        export CSVFileHeader=${CSVFileHeader}',"ignore-warnings","ignore-errors"'
+        export CSVJQparms=${CSVJQparms}', true, true'
+        #
+        # May need to add plumbing to handle the case that not all objects types might support set-if-exists
+        # For now just keep it separate
+        #
+        if ${APIobjectcansetifexists} ; then
+            export CSVFileHeader=${CSVFileHeader}',"set-if-exists"'
+            export CSVJQparms=${CSVJQparms}', true'
+        fi
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    SetupExportComplexObjectsToCSVviaJQ
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, terminate
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in SetupExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+        return ${errorreturn}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    GetArrayOfGenericObjectsByClassWithSpecificKeyValues
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, terminate
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in GetArrayOfGenericObjectsByClassWithSpecificKeyValues procedure' | tee -a -i ${logfilepath}
+        return ${errorreturn}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    if [ x"${SpecificKeyValuesCount}" == x"" ] ; then
+        # There are null objects, so skip
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '! No application-sites found - NULL' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    elif [[ ${SpecificKeyValuesCount} -lt 1 ]] ; then
+        # no objects of this type
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '! No application-sitesfound - 0' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    elif [[ ${SpecificKeyValuesCount} -gt 0 ]] ; then
+        # We have host interfaces to process
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        DumpArrayOfGenericObjectsKeyFieldValues
+        errorreturn=$?
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in DumpArrayOfGenericObjectsKeyFieldValues procedure' | tee -a -i ${logfilepath}
+            return ${errorreturn}
+        fi
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        CollectGenericObjectsByClassWithSpecificKeyValuesInObjects
+        errorreturn=$?
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectGenericObjectsByClassWithSpecificKeyValuesInObjects procedure' | tee -a -i ${logfilepath}
+            return ${errorreturn}
+        fi
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        FinalizeExportComplexObjectsToCSVviaJQ
+        errorreturn=$?
+        
+        if [ ${errorreturn} != 0 ] ; then
+            # Something went wrong, terminate
+            echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in FinalizeExportComplexObjectsToCSVviaJQ procedure' | tee -a -i ${logfilepath}
+            return ${errorreturn}
+        fi
+        
+        # -------------------------------------------------------------------------------------------------
+        
+    else
+        # No host interfaces
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '! No '${APICLIcomplexobjectstype}' found' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    fi
+    
+    echo `${dtzs}`${dtzsep} 'GetGenericObjectsByClassWithSpecificKeyArrayValuesDetailsProcessor procedure errorreturn :  !{ '${errorreturn}' }!' >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    return ${errorreturn}
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# GetGenericObjectsByClassWithSpecificKeyArrayValues proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-08:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#
+# GetGenericObjectsByClassWithSpecificKeyArrayValues generate output of host's interfaces from existing hosts with interface objects using the processor
+
+GetGenericObjectsByClassWithSpecificKeyArrayValues () {
+    
+    errorreturn=0
+    
+    echo `${dtzs}`${dtzsep} '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-' | tee -a -i ${logfilepath}
+    
+    if ! ${APIobjectdoexport} ; then
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Object '${APICLIcomplexobjectstype}' does NOT support EXPORT!  APIobjectdoexport = '${APIobjectdoexport} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Skipping!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-' | tee -a -i ${logfilepath}
+        
+        return 0
+    fi
+    
+    if ! ${APIobjectdoexportCSV} ; then
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Object '${APICLIcomplexobjectstype}' does NOT support CSV EXPORT!  APIobjectdoexportCSV = '${APIobjectdoexportCSV} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Skipping!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-' | tee -a -i ${logfilepath}
+        
+        return 0
+    fi
+    
+    # ADDED 2022-12-21 -
+    if ${APIobjectexportisCPI} ; then
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Object '${APICLIcomplexobjectstype}' has Critical Performance Impact, APIobjectexportisCPI = '${APIobjectexportisCPI} | tee -a -i ${logfilepath}
+        if ! ${ExportCritPerfImpactObjects} ; then
+            echo `${dtzs}`${dtzsep} 'Skipping!' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-' | tee -a -i ${logfilepath}
+            
+            return 0
+        else
+            echo `${dtzs}`${dtzsep} 'Critical Performance Impact (CPI) Override is active!  ExportCritPerfImpactObjects = '${ExportCritPerfImpactObjects} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        fi
+    else
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Object '${APICLIcomplexobjectstype}' does not have Critical Performance Impact(CPI), APIobjectexportisCPI = '${APIobjectexportisCPI} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    fi
+    
+    # MODIFIED 2022-05-02 -
+    
+    if ${ExportTypeIsStandard} ; then
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        DumpObjectDefinitionData
+        
+        # -------------------------------------------------------------------------------------------------
+        
+        # MODIFIED 2023-03-05:01 -
+        # Account for whether the original object definition is for REFERENCE, NO IMPORT already
+        
+        if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+            if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            else
+                export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            fi
+        elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+            if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            else
+                export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            fi
+        elif ${OnlySystemObjects} ; then
+            if [ x"${APICLIexportnameaddon}" == x"" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            elif [ "${APICLIexportnameaddon}" == "REFERENCE_NO_IMPORT" ] ; then
+                export APICLIexportnameaddon='FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            else
+                export APICLIexportnameaddon=${APICLIexportnameaddon}'_FOR_REFERENCE_ONLY_DO_NOT_IMPORT'
+            fi
+        else
+            export APICLIexportnameaddon=${APICLIexportnameaddon}
+        fi
+        
+        objectstotal_object=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 1 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+        export number_object="${objectstotal_object}"
+        
+        if [ ${number_object} -le 0 ] ; then
+            # No ${APICLIobjectstype} found
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'No '${APICLIobjectstype}' to generate '${APICLIcomplexobjectstype}' members from!' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        else
+            GetGenericObjectsByClassWithSpecificKeyArrayValuesDetailsProcessor
+            errorreturn=$?
+        fi
+        
+        if ${APISCRIPTVERBOSE} ; then
+            echo `${dtzs}`${dtzsep} '  Done with Exporting Objects Type :  '${APICLIcomplexobjectstype}' from source Objects Type:  '${APICLIobjectstype} | tee -a -i ${logfilepath}
+        fi
+    else
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} 'Not "standard" Export Type :  '${TypeOfExport}' so do not handle '${APICLIcomplexobjectstype}' for '${APICLIobjectstype}'!' | tee -a -i ${logfilepath}
+        echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    fi
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Handle Error in operation
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in GetObjectSpecificKeyArrayValuesDetailsProcessor procedure' | tee -a -i ${logfilepath}
+        
+        if ${ABORTONERROR} ; then
+            read -t ${WAITTIME} -n 1 -p "Any key to EXIT script due to error ${errorreturn}.  Automatic EXIT after ${WAITTIME} seconds : " anykey
+            echo
+            
+            if ${CLIparm_NOHUP} ; then
+                # Cleanup Potential file indicating script is active for nohup mode
+                if [ -r ${script2nohupactive} ] ; then
+                    rm ${script2nohupactive} >> ${logfilepath} 2>&1
+                fi
+            fi
+            
+            export dtgs_script_finish=`date -u +%F-%T-%Z`
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Error Return Result     : '"${errorreturn}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Results in directory    : '"${APICLIpathbase}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'JSON objects Repository : '"${JSONRepopathroot}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Log output in file      : '"${logfilepath}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Script execution START  :'"${dtgs_script_start}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Script execution FINISH :'"${dtgs_script_finish}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo
+            
+            exit ${errorreturn}
+        else
+            return ${errorreturn}
+        fi
+    else
+        if ${APISCRIPTVERBOSE} ; then
+            if ! ${NOWAIT} ; then
+                read -t ${WAITTIME} -n 1 -p "Any key to continue.  Automatic continue after ${WAITTIME} seconds : " anykey
+            fi
+        fi
+    fi
+    
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-' | tee -a -i ${logfilepath}
+    
+    return ${errorreturn}
+}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-08:01
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# END :  Complex Object via Generic-Objects - Object Specific Keys with Value arrays Handling Procedures Handling Procedures
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------------------
@@ -10763,11 +13649,19 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 
 # +-------------------------------------------------------------------------------------------------
-# | Complex Object : Specific Complex OBJECT : custom application-sites - additional-categories from generic object
+# | Complex Object : Specific Complex OBJECT : custom application-sites-from-generic-objects
 # |  - Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+# |  - Reference Details and initial object
 # +-------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-24:01 - 
+ClearObjectDefinitionData
+
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLIcomplexobjecttype=custom-application-site-from-generic-object
+export APICLIcomplexobjectstype=custom-application-sites-from-generic-objects
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
 
 export APIGenObjectTypes=generic-objects
 export APIGenObjectClassField=class-name
@@ -10777,21 +13671,111 @@ export APIGenObjectField=uid
 
 export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
 export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
-export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site-additional-category
-export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites-additional-categories
-export APIGenObjCSVobjecttype=${APIGenObjobjecttype}
+export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site
+export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites
 export APIGenObjobjectkey=name
+export APIGenObjobjectkeydetailslevel=standard
 
-export APICLIobjecttype=application-site
-export APICLIobjectstype=application-sites
-export APICLIcomplexobjecttype=custom-application-site-additional-category-from-generic-object
-export APICLIcomplexobjectstype=custom-application-sites-additional-categories-from-generic-objects
-export APIobjectminversion=1.1
-export APICLICSVobjecttype=${APICLIobjectstype}
+export APIobjectspecifickey=
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=${APICLIcomplexobjectstype}
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIGenObjjsonrepofileobject=${APIGenObjobjectstype}
+export APIGenObjcomplexjsonrepofileobject=${APIGenObjcomplexobjectstype}
+export APIGenObjCSVobjecttype=${APIGenObjobjectstype}
+export APIGenObjcomplexCSVobjecttype=${APIGenObjcomplexobjectstype}
+
 export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
 export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 
-export APIobjectexportisCPI=true
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=true
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=true
+export APIobjectdoupdate=true
+export APIobjectdodelete=true
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+export AugmentExportedFields=false
+
+if ${CLIparm_CSVEXPORTDATADOMAIN} ; then
+    export AugmentExportedFields=true
+elif ${CLIparm_CSVEXPORTDATACREATOR} ; then
+    export AugmentExportedFields=true
+elif ${OnlySystemObjects} ; then
+    export AugmentExportedFields=true
+else
+    export AugmentExportedFields=false
+fi
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : custom application-sites - url-lists from generic object
+# |  - Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLIcomplexobjecttype=custom-application-site-from-generic-object-element-url-list
+export APICLIcomplexobjectstype=custom-application-sites-from-generic-objects-elements-url-lists
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIGenObjectTypes=generic-objects
+export APIGenObjectClassField=class-name
+export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+export APIGenObjectClassShort="appfw.CpmiUserApplication"
+export APIGenObjectField=uid
+
+export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
+export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
+export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site-element-url-list
+export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites-elements-url-lists
+export APIGenObjobjectkey=name
+export APIGenObjobjectkeydetailslevel=standard
+
+export APIobjectspecifickey='url-list'
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=custom-application-sites-from-generic-objects
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIGenObjjsonrepofileobject=${APIGenObjobjectstype}
+export APIGenObjcomplexjsonrepofileobject=${APIGenObjcomplexobjectstype}
+export APIGenObjCSVobjecttype=${APIGenObjobjectstype}
+export APIGenObjcomplexCSVobjecttype=${APIGenObjcomplexobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
 
 export APIobjectdoexport=true
 export APIobjectdoexportJSON=false
@@ -10818,33 +13802,28 @@ export APIobjectCSVJQparmsAbsoluteBase=false
 
 export APIobjectCSVexportWIP=false
 
-export APIobjectspecificselector00key=
-export APIobjectspecificselector00value=
-export APICLIexportnameaddon=
-
-export APIobjectspecifickey='"additional-categories"'
-
 #
 # APICLICSVsortparms can change due to the nature of the object
 #
 export APICLICSVsortparms='-f -t , -k 1,1'
 
 export CSVFileHeader=
-export CSVFileHeader=${CSVFileHeader}'"name","additional-categories.add"'
+export CSVFileHeader='"name","url-list.add"'
 #export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
 #export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
 #export CSVFileHeader=${CSVFileHeader}',"icon"'
 
 export CSVJQparms=
-#export CSVJQparms=${CSVJQparms}'.["name"], .["additional-categories"][${j}]'
-export CSVJQparms=${CSVJQparms}'.["name"]'
+# The actual "name" is added by the procedure that generates the dump of ${APIobjectspecifickey} items and ommited here!
+export CSVJQparms='.["'${APIGenObjobjectkey}'"]'
 #export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
 #export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
 #export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 # -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-02-24:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-02:02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 case "${TypeOfExport}" in
@@ -10865,7 +13844,7 @@ case "${TypeOfExport}" in
             echo `${dtzs}`${dtzsep} 'Check '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" with [ '${number_of_objects}' ] objects to generate '${APIobjectspecifickey}'!' | tee -a -i ${logfilepath}
             echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
             
-            #ComplexObjectsCSVViaGenericObjectsHandler
+            GetGenericObjectsByClassWithSpecificKeyArrayValues
         fi
         
         ;;
@@ -10888,11 +13867,294 @@ echo `${dtzs}`${dtzsep} '- - - - - - - - - - - - - - - - - - - - - - - - - - - -
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-02-24:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-02:02
 
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : custom application-sites - application-signatures from generic object
+# |  - Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+# |  - Review of this application-sites objects element for application-signature resulted in a removal of this object, because a singular entry
+# +-------------------------------------------------------------------------------------------------
+
+#ClearObjectDefinitionData
+
+#export APICLIobjecttype=application-site
+#export APICLIobjectstype=application-sites
+#export APICLIcomplexobjecttype=custom-application-site-from-generic-object-element-application-signature
+#export APICLIcomplexobjectstype=custom-application-sites-from-generic-objects-elements-application-signatures
+#export APIobjectminversion=1.1
+#export APIobjectexportisCPI=false
+
+#export APIGenObjectTypes=generic-objects
+#export APIGenObjectClassField=class-name
+#export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+#export APIGenObjectClassShort="appfw.CpmiUserApplication"
+#export APIGenObjectField=uid
+
+#export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
+#export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
+#export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site-element-application-signature
+#export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites-elements-application-signatures
+#export APIGenObjobjectkey=name
+#export APIGenObjobjectkeydetailslevel=standard
+
+#export APIobjectspecifickey='application-signature'
+
+#export APIobjectspecificselector00key=
+#export APIobjectspecificselector00value=
+#export APICLIexportnameaddon=
+
+#export APIobjectjsonrepofileobject=custom-application-sites-from-generic-objects
+#export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+#export APIGenObjjsonrepofileobject=${APIGenObjobjectstype}
+#export APIGenObjcomplexjsonrepofileobject=${APIGenObjcomplexobjectstype}
+#export APIGenObjCSVobjecttype=${APIGenObjobjectstype}
+#export APIGenObjcomplexCSVobjecttype=${APIGenObjcomplexobjectstype}
+
+#export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+#export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+#export APIobjectdoexport=true
+#export APIobjectdoexportJSON=false
+#export APIobjectdoexportCSV=true
+#export APIobjectdoimport=true
+#export APIobjectdorename=false
+#export APIobjectdoupdate=false
+#export APIobjectdodelete=false
+
+#export APIobjectusesdetailslevel=true
+#export APIobjectcanignorewarning=true
+#export APIobjectcanignoreerror=true
+#export APIobjectcansetifexists=false
+#export APIobjectderefgrpmem=false
+#export APIobjecttypehasname=true
+#export APIobjecttypehasuid=true
+#export APIobjecttypehasdomain=true
+#export APIobjecttypehastags=true
+#export APIobjecttypehasmeta=true
+#export APIobjecttypeimportname=true
+
+#export APIobjectCSVFileHeaderAbsoluteBase=false
+#export APIobjectCSVJQparmsAbsoluteBase=false
+
+#export APIobjectCSVexportWIP=false
+
+##
+## APICLICSVsortparms can change due to the nature of the object
+##
+#export APICLICSVsortparms='-f -t , -k 1,1'
+
+#export CSVFileHeader=
+#export CSVFileHeader='"name","application-signature"'
+##export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+##export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
+##export CSVFileHeader=${CSVFileHeader}',"icon"'
+
+#export CSVJQparms=
+## The actual "name" is added by the procedure that generates the dump of ${APIobjectspecifickey} items and ommited here!
+#export CSVJQparms='.["'${APIGenObjobjectkey}'"]'
+#export CSVJQparms=${CSVJQparms}'.["name"], .["application-signature"]'
+##export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+##export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
+##export CSVJQparms=${CSVJQparms}', .["icon"]'
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-02:02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+#case "${TypeOfExport}" in
+    ## a "Standard" export operation
+    #'standard' )
+        #objectstotal_generic_objects=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+        #export number_generic_objects="${objectstotal_generic_objects}"
+        #export number_of_objects=${number_generic_objects}
+        
+        #if [ ${number_of_objects} -le 0 ] ; then
+            ## No hosts found
+            #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            #echo `${dtzs}`${dtzsep} 'No '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" to generate '${APIobjectspecifickey}' from!' | tee -a -i ${logfilepath}
+            #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        #else
+            ## hosts found
+            #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            #echo `${dtzs}`${dtzsep} 'Check '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" with [ '${number_of_objects}' ] objects to generate '${APIobjectspecifickey}'!' | tee -a -i ${logfilepath}
+            #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            
+            #GetGenericObjectsByClassWithSpecificKeyArrayValues
+        #fi
+        
+        #;;
+    ## a "name-only" export operation
+    ##'name-only' )
+    ## a "name-and-uid" export operation
+    ##'name-and-uid' )
+    ## a "uid-only" export operation
+    ##'uid-only' )
+    ## a "rename-to-new-nam" export operation
+    ##'rename-to-new-name' )
+    ## Anything unknown is handled as "standard"
+    #* )
+        #echo `${dtzs}`${dtzsep} 'Skipping '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" "'"${APICLIexportnameaddon}"'" for export type '${TypeOfExport}'!...' | tee -a -i ${logfilepath}
+
+        #;;
+#esac
+
+#echo `${dtzs}`${dtzsep} '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
+#echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-02:02
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
+
+
+# +-------------------------------------------------------------------------------------------------
+# | Complex Object : Specific Complex OBJECT : custom application-sites - additional-categories from generic object
+# |  - Custom User Objects via :  generic-objects class-name "com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+# +-------------------------------------------------------------------------------------------------
+
+ClearObjectDefinitionData
+
+export APICLIobjecttype=application-site
+export APICLIobjectstype=application-sites
+export APICLIcomplexobjecttype=custom-application-site-from-generic-object-element-additional-category
+export APICLIcomplexobjectstype=custom-application-sites-from-generic-objects-elements-additional-categories
+export APIobjectminversion=1.1
+export APIobjectexportisCPI=false
+
+export APIGenObjectTypes=generic-objects
+export APIGenObjectClassField=class-name
+export APIGenObjectClass="com.checkpoint.objects.appfw.dummy.CpmiUserApplication"
+export APIGenObjectClassShort="appfw.CpmiUserApplication"
+export APIGenObjectField=uid
+
+export APIGenObjobjecttype=appfw_CpmiUserApplication_application-site
+export APIGenObjobjectstype=appfw_CpmiUserApplication_application-sites
+export APIGenObjcomplexobjecttype=appfw_CpmiUserApplication_application-site-element-additional-category
+export APIGenObjcomplexobjectstype=appfw_CpmiUserApplication_application-sites-elements-additional-categories
+export APIGenObjobjectkey=name
+export APIGenObjobjectkeydetailslevel=standard
+
+export APIobjectspecifickey='additional-categories'
+
+export APIobjectspecificselector00key=
+export APIobjectspecificselector00value=
+export APICLIexportnameaddon=
+
+export APIobjectjsonrepofileobject=custom-application-sites-from-generic-objects
+export APICLICSVobjecttype=${APICLIcomplexobjectstype}
+export APIGenObjjsonrepofileobject=${APIGenObjobjectstype}
+export APIGenObjcomplexjsonrepofileobject=${APIGenObjcomplexobjectstype}
+export APIGenObjCSVobjecttype=${APIGenObjobjectstype}
+export APIGenObjcomplexCSVobjecttype=${APIGenObjcomplexobjectstype}
+
+export APIobjectrecommendedlimit=${DefaultAPIObjectLimit}
+export APIobjectrecommendedlimitMDSM=${DefaultAPIObjectLimitMDSM}
+
+export APIobjectdoexport=true
+export APIobjectdoexportJSON=false
+export APIobjectdoexportCSV=true
+export APIobjectdoimport=true
+export APIobjectdorename=false
+export APIobjectdoupdate=false
+export APIobjectdodelete=false
+
+export APIobjectusesdetailslevel=true
+export APIobjectcanignorewarning=true
+export APIobjectcanignoreerror=true
+export APIobjectcansetifexists=false
+export APIobjectderefgrpmem=false
+export APIobjecttypehasname=true
+export APIobjecttypehasuid=true
+export APIobjecttypehasdomain=true
+export APIobjecttypehastags=true
+export APIobjecttypehasmeta=true
+export APIobjecttypeimportname=true
+
+export APIobjectCSVFileHeaderAbsoluteBase=false
+export APIobjectCSVJQparmsAbsoluteBase=false
+
+export APIobjectCSVexportWIP=false
+
+#
+# APICLICSVsortparms can change due to the nature of the object
+#
+export APICLICSVsortparms='-f -t , -k 1,1'
+
+export CSVFileHeader=
+export CSVFileHeader='"name","additional-categories.add"'
+#export CSVFileHeader=${CSVFileHeader}',"key","key","key","key"'
+#export CSVFileHeader=${CSVFileHeader}',"key.subkey","key.subkey","key.subkey","key.subkey"'
+#export CSVFileHeader=${CSVFileHeader}',"icon"'
+
+export CSVJQparms=
+# The actual "name" is added by the procedure that generates the dump of ${APIobjectspecifickey} items and ommited here!
+export CSVJQparms='.["'${APIGenObjobjectkey}'"]'
+#export CSVJQparms=${CSVJQparms}'.["name"], .["additional-categories"][${j}]'
+#export CSVJQparms=${CSVJQparms}', .["value"], .["value"], .["value"], .["value"]'
+#export CSVJQparms=${CSVJQparms}', .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"], .["value"]["subvalue"]'
+#export CSVJQparms=${CSVJQparms}', .["icon"]'
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2023-03-02:02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+case "${TypeOfExport}" in
+    # a "Standard" export operation
+    'standard' )
+        objectstotal_generic_objects=$(mgmt_cli show ${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" limit 500 offset 0 details-level standard -f json -s ${APICLIsessionfile} | ${JQ} ".total")
+        export number_generic_objects="${objectstotal_generic_objects}"
+        export number_of_objects=${number_generic_objects}
+        
+        if [ ${number_of_objects} -le 0 ] ; then
+            # No hosts found
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'No '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" to generate '${APIobjectspecifickey}' from!' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+        else
+            # hosts found
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'Check '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" with [ '${number_of_objects}' ] objects to generate '${APIobjectspecifickey}'!' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+            
+            GetGenericObjectsByClassWithSpecificKeyArrayValues
+        fi
+        
+        ;;
+    # a "name-only" export operation
+    #'name-only' )
+    # a "name-and-uid" export operation
+    #'name-and-uid' )
+    # a "uid-only" export operation
+    #'uid-only' )
+    # a "rename-to-new-nam" export operation
+    #'rename-to-new-name' )
+    # Anything unknown is handled as "standard"
+    * )
+        echo `${dtzs}`${dtzsep} 'Skipping '${APIGenObjectTypes}' '${APIGenObjectClassField}' "'"${APIGenObjectClass}"'" "'"${APICLIexportnameaddon}"'" for export type '${TypeOfExport}'!...' | tee -a -i ${logfilepath}
+
+        ;;
+esac
+
+echo `${dtzs}`${dtzsep} '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-02:02
+
+
+# +-------------------------------------------------------------------------------------------------
+# +-------------------------------------------------------------------------------------------------
 
 
 # !-------------------------------------------------------------------------------------------------!
@@ -10999,8 +14261,20 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # -------------------------------------------------------------------------------------------------
 
 
+# =================================================================================================
+# Action Script Completed
+# =================================================================================================
+
+
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} 'Action Script Completed :  '${ActionScriptName} | tee -a -i ${logfilepath}
 echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '===============================================================================' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} '-------------------------------------------------------------------------------' | tee -a -i ${logfilepath}
+echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+
 
 return 0
 

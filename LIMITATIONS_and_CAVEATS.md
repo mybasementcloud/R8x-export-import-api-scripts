@@ -1,6 +1,6 @@
-# LIMITATIONS and CAVEATS 
+# LIMITATIONS and CAVEATS
 
-## UPDATED:  2023-02-26
+## UPDATED:  2023-03-08
 
 This document outlines limitations and caveats to the implementation of R8X API export, import, set-update, and delete scripts utilizing bash mgmt_cli commands.
 
@@ -28,7 +28,8 @@ This is a best effort development operation and benefitting of financial incenti
 
 R81.20 EA Public T437 - This release has provided some issues with changes under the hood of Gaia and also some challenges in changes to the API version 1.9 handling of objects on import via mgmt_cli.
 
-- Service objects may fail to import if the values for aggressive aging set use of default timeout, but the column for timeout does not have a zero value, which might be exported because the database includes that issue.  FIXED:  release v00.60.12.000, now create multiple export files depending on the object type parameters.
+- Service objects may fail to import if the values for aggressive aging set use of default timeout, but the column for timeout does not have a zero value, which might be exported because the database includes that issue.  
+  - FIXED:  release v00.60.12.000, now create multiple export files depending on the object type parameters.
 - User and User Template objects import has some issues that still need investigation
 
 ## LIMITATIONS and CAVEATS Authentication
@@ -83,6 +84,19 @@ v00.60.12.100 - Currently RADIUS server object and RADIUS servers group object t
 
 - Certificates are currently not handled, export may not be plausible
 
+### application-site Objects
+
+- Check Point currently provides in excess of 10,000 actual application-site objects as part Application Control and URL Filtering updates, and even with a limited update there are thousands of values.
+- The regular API calls associated with application-site objects DO NOTHING to address the need to distinguish customer created application-site objects or customer CLONED application-site objects.  The show application-sites "filter" parameter is of ZERO value and there are no examples of note provided to use it for such a query, which would still require parsing all 10K+ objects in slices no greater than 500 on SMS and 250 (or smaller) on MDSM 
+- This object type has a significant level of effort required for both json and CSV export, especially if trying to obtain the customer's custom application-site objects.  This impact is extremely heavy on MDSM where current implementation (R81+) has implemented API throtteling to limit overall performance impact.
+- As of script version v00.60.12.000, the application-site object is classified as a Critical Performance Impacting (CPI) object and not generally exported unless the --DO-CPI options is utilized in CLI parameters
+- It is not recommended to execute CSV export of application-site objects by activating the --DO-CPI option, unless resourses and time are available, especially on MDSM!
+- Weak management server hardware will have a drastic impact on the export of application-site objects and should be reviewed.
+- Customers utilizing CLONED application-site objects should review their requirement and accept that they are not easily exported in CSV format.  JSON export and utilization of other methods to generate/import them are recommended, like using the Management API in REST approach via tools like POSTMAN, where the JSON can be reused with some edits.
+- MITIGATION (minimum version v00.60.12.100.500):  to address the problem of exporting customer created custom application-site objects a method was found utilizing a Generic API generic object call that specifically allows showing the custom application-site objects created by the customer; however, this does not address CLONED application-site objects (which currenly don't have a mitigation!).  Utilization of the appication-site via generic object is NOT a CPI object approach and can export the customer's created custom application-sites
+- WORKAROUND, ASSIST (minimum version v00.60.12.100.500):  if a full json export with all objects (-SO --format json) is generated with --DO-CPI before CSV export, then the most up-to-date json data for the application-sites is available and can accellerate the export to CSV if the esport is -NSO (so NO SYSTEM objects) with --DO-CPI.
+- WARNING!  Nothing stops the execution with --DO-CPI when -SO and -OSO are selected, and using that combination -SO|-OSO --DO-CPI for Objects CSV or Special Objects CSV export will lead to a significant effort by the system to generate the 10K+ SYSTEM application-site objects, and their element exports for url-list and additional-categories, which are VERY intensive operations.  USE WITH EXTREME DILIGENCE
+
 ### User-Template Objects
 
 - "authentication-method" significantly impacts export approach for user-template objects.  Unlike user objects, the basic details about the "authentication-method" are exportable and importable--with caveats
@@ -116,3 +130,8 @@ v00.60.12.100 - Currently RADIUS server object and RADIUS servers group object t
 ### Interoperable Device Objects
 
 - Since these are essentially third-party gateways, or gateways managed by other management servers, there are many more interfaces configured than just a single one.  The current implementation only harvests the first interface.  Additional interface harvesting may happen later, if code for that process is not significantly difficult.
+
+### SmartTask Objects
+
+- This object has a potential problem importing because of the way the e-mail body for certain tasks is saved, not as a base64 encooded datum, but instead implants escaped characters to handle some functions.  Export to CSV is handled such that the JQ option for "( .["${key}"] | tojson )" is utilized to generate a result that includes the original escaped characters (so essentially almost the same raw JSON from the mgmt_cli query); however, in the CSV this result is provide with tripple double-quotes (""") on either end, which may cause issues on import.
+- FEEDBACK for the import of this object would be appreciated.

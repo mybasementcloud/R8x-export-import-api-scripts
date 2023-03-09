@@ -2,7 +2,7 @@
 
 What's NEW in Check Point R8x Export, Import, Set/Update, Rename to new-name, and Delete mgmt_cli API scripts for bash on Check Point Gaia OS management hosts, using CSV files (v00.60.xx.yyy)
 
-## UPDATED:  2023-02-26
+## UPDATED:  2023-03-08
 
 Interim update
 
@@ -17,16 +17,29 @@ As of v00.60.11 this file will document major changes and additions to the versi
 
 ### v00.60.12 New Objects Supported
 
+#### v00.60.12 New JSON exports
+
+- Added support for Data Center objects:  Data Center Servers, Data Center Objects, and Data Center Queries for json export
+- Added support for custom application-site objects via generic object capture json export
+- Added support for custom application-site objects via generic object capture and array evaluation to generate custom application-sites json export
+
+#### v00.60.12 New JSON and CSV exports
+
 - Added support for Global Properties special object/properties for json and csv export, when exporting domain other than "System Data", or on SMS
 - Added support for Policy Settings special object/properties for json and csv export, when exporting domain other than "System Data", or on SMS
 - Added support for API Settings special object/properties for json and csv export, when exporting domain "System Data" (also on SMS using domain "System Data")
 - Addes support for Radius Server and Radius Group objects for API version 1.9 and later [R81.20 GA], for all operations
 - Addes support for Repository Script objects for API version 1.9 and later [R81.20 GA], for all special object operations
 - Addes support for SmartTasks objects for API version 1.9 and later [R81.20 GA], for all operations
-- Added support for application-site objects url-list and additional-categories sub-CSV files (like group members), done in special objects export script or when enabling export of Critical Performance Impacting (CPI) objects
-- Added support for Data Center objects:  Data Center Servers, Data Center Objects, and Data Center Queries for json export
-- Added support for custom application-site objects via generic object capture and array evaluation for actual application-sites, for json and csv export
-- Added support for hosts that have NAT configured and that do not have NAT configured to explicit files for easier handling, for both json and csv operations.  The original hosts and hosts_NO_NAT operations are still available.  Import should either utilize:  hosts, hosts_NO_NAT, or hosts_with_NAT and hosts_without_NAT files.
+
+#### v00.60.12 New CSV exports
+
+- Added support for application-site objects url-list and additional-categories elements-CSV files (like group members), done in special objects export script or when enabling export of Critical Performance Impacting (CPI) objects
+- Added support for custom application-site objects via generic object capture and array evaluation to generate custom application-sites csv export and import, two variants
+  - first export variant for CSV import with elements-CSV files (see next New Objects Supported) -- NOT A CPI object!
+  - second export variant for CSV import alternative, with up to 20 url-list entries and 10 additional-categories in the exported file
+- Added support for custom application-site objects via generic object capture and array evaluation for actual additional-categories and url-list elements-CSV files (like group members), for csv export and import
+- Added support for hosts that have NAT configured and that do not have NAT configured to explicit files for easier handling, for csv operations.  The original hosts and hosts_NO_NAT operations are still available.  Import should either utilize:  hosts, hosts_NO_NAT, or hosts_with_NAT and hosts_without_NAT files.  JSON export is possible for the object; however, it is disabled to avoid need for more complicated CSV export, as all the data is in the normal hosts file.
 
 ### v00.60.12 Operational Changes
 
@@ -43,6 +56,10 @@ As of v00.60.11 this file will document major changes and additions to the versi
 - Harmonization of the json file slurp operation across different export functions and implementation of some common procedures based on redundant implementations
 - Corrections of object association with different main script operations, like export, import, delete, etc.; to ensure that the correct things will work or get skipped
 - Added files for operational export of minimum necessary exports for import under the root of the script:  _minimum_export.sh, _minimum_exports_with_some_do_cpi.sh, and _minimum_system_data_exports_with_some_do_cpi.sh
+- Modified CheckAPIKeepAlive to limit impact of mgmt_cli keep alive calls by checking the last time the procedure was called and only executing an actual mgmt_cli keep alive action if the current default interval of 60 seconds has passed since the last execution; otherwise, make a quick note in logs and continue.  A future command line parameter may be added to control the actual interval between required mgmt_cli keep alive executions.
+- Reorganized layout of Object Definition Data to make it easier to see variants when reviewing script code
+- Cosmetic changes to enhance the flow of operation display, especially when utilization -v (Verbose) logging mode
+- Homogenized and harmonized how the routines handling CSV export of complex objects based on generic object queries and associated arrays to the complex object operate, to reduce the number of places to adjust certain processing methods.
 
 ## v00.60.11
 
