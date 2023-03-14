@@ -4,13 +4,13 @@ Check Point R8x Export, Import, Set/Update, Rename to new-name, and Delete mgmt_
 
 Additional documentation and information will be provided in .md, .tsv, and potentially .xlsx files in the repository.
 
-## UPDATED:  2023-03-08
+## UPDATED:  2023-03-14
 
 Interim update, reorganize the README.MD and add a Quick Start
 
 ## Overview
 
-The export, import, set-update, rename-to-new-name, and delete using CSV files scripts in this post, currently version 00.60.12.100 dated 2023-03-08, are intended to allow operations on an existing R80, R80.10, R80.20[|.M1|.M2], R80.30, R80.40, R81, R81.10 and R81.20 Check Point management server (SMS or MDSM MDS) from bash expert mode on the Check Point management server host or another API enabled Check Point management server host instance (Check Point Gaia OS R8X) able to authenticate and reach the target management server host.  Utilization from other LINUX releases is not supported, tested, or assumed to work.
+The export, import, set-update, rename-to-new-name, and delete using CSV files scripts in this post, currently version 00.60.12.100 dated 2023-03-14, are intended to allow operations on an existing R80, R80.10, R80.20[|.M1|.M2], R80.30, R80.40, R81, R81.10 and R81.20 Check Point management server (SMS or MDSM MDS) from bash expert mode on the Check Point management server host or another API enabled Check Point management server host instance (Check Point Gaia OS R8X) able to authenticate and reach the target management server host.  Utilization from other LINUX releases is not supported, tested, or assumed to work.
 
 The current set of supported objects by API version is in the supported_objects.v00.60.12.100.tsv file described by the supported_objects.version.tsv.md document
 
@@ -53,7 +53,8 @@ Releases have packages for the key script folders:
 
 The script packages are:
 
-- Deployment Package  :  devops.dev.{version}.tgz
+- Complete Deployment Package  :  devops.dev.{version}.tgz   - includes devops.results and devops.my_data folders
+- Deployment Package  :  devops.dev.only.{version}.tgz
 
 The approach to provided compressed packages was changed to facilitate quicker implementation and deployment on the management hosts.
 
@@ -66,6 +67,23 @@ The approach to provided compressed packages was changed to facilitate quicker i
 ### INSTALLATION RECOMMENDATION
 
 Recommended installation is to use the provided devops.dev.{version}.tgz and expand that to the working folder on the Gaia OS host, which should be placed under /var/log/ folder to ensure survival during Gaia OS upgrades.  The tgz file is the devops.dev folder with current scripts and tools, and a devops.results folder for results if using --RESULTS option, and the devops.my_data for holding modified csv files for operations.
+
+## Additional Documentation
+
+- [What's New](https://github.com/mybasementcloud/R8x-export-import-api-scripts/blob/master/WHATS_NEW.v00.60.12.100.md)
+- [HOW TO Guidance](https://github.com/mybasementcloud/R8x-export-import-api-scripts/blob/master/HOW_TO_GUIDANCE.md)
+- [Limitations and Caveats](https://github.com/mybasementcloud/R8x-export-import-api-scripts/blob/master/LIMITATIONS_and_CAVEATS.md)
+- [Supported Objects TSV](https://github.com/mybasementcloud/R8x-export-import-api-scripts/blob/master/supported_objects.v00.60.12.100.tsv)
+- [Explanation of the Supported Objects TSV](https://github.com/mybasementcloud/R8x-export-import-api-scripts/blob/master/supported_objects.version.tsv.md)
+- [File and Folder Purpose and Utilization](https://github.com/mybasementcloud/R8x-export-import-api-scripts/blob/master/File_and_Folder_Purpose_and_Utilization.v00.60.12.100.md)
+- [Check Point Software Technologies Management API Reference](https://sc1.checkpoint.com/documents/latest/APIs/index.html#introduction)
+- [Check Point Software Technologies APIs](https://sc1.checkpoint.com/documents/latest/api_reference/index.html)
+
+## Related Projects on GitHub
+
+- [Consolidated mgmt_cli bash Script solutions (Under Development)](https://github.com/mybasementcloud/R8X_mgmt_cli_API_bash_scripts)
+- [Limited Export of mgmt_cli based Policy and Layers export and import scripts](https://github.com/mybasementcloud/R8X-API-scripts-4-policy-import-export)
+- [Windows Scripts for Check Point Operations](https://github.com/mybasementcloud/check_point_windows_scripts)
 
 ## QUICK START
 

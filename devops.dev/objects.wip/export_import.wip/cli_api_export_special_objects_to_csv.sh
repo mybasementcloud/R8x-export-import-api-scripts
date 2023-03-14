@@ -18,8 +18,8 @@
 #
 ScriptVersion=00.60.12
 ScriptRevision=100
-ScriptSubRevision=500
-ScriptDate=2023-03-08
+ScriptSubRevision=750
+ScriptDate=2023-03-14
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
@@ -155,13 +155,15 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # GetScriptSourceFolder - Get the actual source folder for the running script
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 GetScriptSourceFolder () {
     #
-    # repeated procedure description
+    # Get the actual source folder for the running script
     #
+    
+    errorreturn=0
     
     echo `${dtzs}`${dtzsep} >> ${logfilepath}
     echo `${dtzs}`${dtzsep} 'GetScriptSourceFolder procedure Starting...' >> ${logfilepath}
@@ -202,7 +204,7 @@ GetScriptSourceFolder () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ - MODIFIED 2023-03-07:01
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ - MODIFIED 2023-03-14:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -11928,7 +11930,7 @@ DumpArrayOfSpecificObjects () {
 # CollectSpecificKeyValuesInObjectsFromMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-07:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:02 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -11990,20 +11992,20 @@ CollectSpecificKeyValuesInObjectsFromMgmtDB () {
         if [ x"${NUM_SPECIFIC_KEY_VALUES}" == x"" ] ; then
             # There are null objects, so skip
             
-            echo `${dtzs}`${dtzsep} ${APICLIobjecttype}' '"${objectnametoevaluate}"' number of specific key values = NULL (0 zero)' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'object:  '${APICLIobjecttype}' '"${objectnametoevaluate}"' number of specific key values = NULL (0 zero)' | tee -a -i ${logfilepath}
             
             #return 0
            
         elif [[ ${NUM_SPECIFIC_KEY_VALUES} -lt 1 ]] ; then
             # no objects of this type
             
-            echo `${dtzs}`${dtzsep} ${APICLIobjecttype}' '"${objectnametoevaluate}"' number of specific key values = 0 (0 zero)' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'object:  '${APICLIobjecttype}' '"${objectnametoevaluate}"' number of specific key values = 0 (0 zero)' | tee -a -i ${logfilepath}
             
             #return 0
            
         elif [[ ${NUM_SPECIFIC_KEY_VALUES} -gt 0 ]] ; then
             # More than zero (0) interfaces, something to process
-            echo `${dtzs}`${dtzsep} ${APICLIobjecttype}' '"${objectnametoevaluate}"' number of specific key values = '"${NUM_SPECIFIC_KEY_VALUES}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'object:  '${APICLIobjecttype}' '"${objectnametoevaluate}"' number of specific key values = '"${NUM_SPECIFIC_KEY_VALUES}" | tee -a -i ${logfilepath}
             
             #export CSVJQspecifickeyvaluesparms='"'${objectnametoevaluate}'", '${CSVJQspecifickeyvaluesparmsbase}
             
@@ -12016,19 +12018,21 @@ CollectSpecificKeyValuesInObjectsFromMgmtDB () {
             
             for j in `seq 0 $(expr ${NUM_SPECIFIC_KEY_VALUES} - 1 )`
             do
-                    GETSPECIFICKEYVALUE=$(mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '."'${APIobjectspecifickey}'"['${j}']')
-                    export SPECIFICKEYVALUE=${GETSPECIFICKEYVALUE}
-                    errorreturn=$?
-                    
-                    if [ ${errorreturn} != 0 ] ; then
-                        # Something went wrong, terminate
-                        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectSpecificKeyValuesInObjectsFromMgmtDB mgmt_cli execution reading '${APICLIobjecttype}' object '${objectnametoevaluate}' '"${APIobjectspecifickey}"' sequence number: '${j} | tee -a -i ${logfilepath}
-                        return ${errorreturn}
-                    fi
-                    
-                    echo '"'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} >> ${APICLICSVfiledata}
-                    sequencenumberformatted=`printf "%03d" ${j}`
-                    echo `${dtzs}`${dtzsep} 'Sequence Number [ '${sequencenumberformatted}' ] : "'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} | tee -a -i ${logfilepath}
+                sequencenumberformatted=`printf "%03d" ${j}`
+                
+                GETSPECIFICKEYVALUE=$(mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '."'${APIobjectspecifickey}'"['${j}']')
+                
+                export SPECIFICKEYVALUE=${GETSPECIFICKEYVALUE}
+                errorreturn=$?
+                
+                if [ ${errorreturn} != 0 ] ; then
+                    # Something went wrong, terminate
+                    echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectSpecificKeyValuesInObjectsFromMgmtDB mgmt_cli execution reading '${APICLIobjecttype}' object '${objectnametoevaluate}' '"${APIobjectspecifickey}"' sequence number: '${j} | tee -a -i ${logfilepath}
+                    return ${errorreturn}
+                fi
+                
+                echo '"'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} >> ${APICLICSVfiledata}
+                echo `${dtzs}`${dtzsep} 'Sequence Number [ '${sequencenumberformatted}' ] : "'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} | tee -a -i ${logfilepath}
             done
             
         else
@@ -12044,7 +12048,7 @@ CollectSpecificKeyValuesInObjectsFromMgmtDB () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-14:02
 
 
 # -------------------------------------------------------------------------------------------------
@@ -12055,7 +12059,7 @@ CollectSpecificKeyValuesInObjectsFromMgmtDB () {
 # CollectSpecificKeyValuesInObjectsFromJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-07:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:02 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -12099,38 +12103,38 @@ CollectSpecificKeyValuesInObjectsFromJSONRepository () {
         if [ x"${NUM_SPECIFIC_KEY_VALUES}" == x"" ] ; then
             # There are null objects, so skip
             
-            echo `${dtzs}`${dtzsep} 'host '"${objectnametoevaluate}"' number of specific key values = NULL (0 zero)' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'object:  '${APICLIobjecttype}' '"${objectnametoevaluate}"' number of specific key values = NULL (0 zero)' | tee -a -i ${logfilepath}
             
             #return 0
            
         elif [[ ${NUM_SPECIFIC_KEY_VALUES} -lt 1 ]] ; then
             # no objects of this type
             
-            echo `${dtzs}`${dtzsep} 'host '"${objectnametoevaluate}"' number of specific key values =  0 (0 zero)' | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'object:  '${APICLIobjecttype}' '"${objectnametoevaluate}"' number of specific key values =  0 (0 zero)' | tee -a -i ${logfilepath}
             
             #return 0
            
         elif [[ ${NUM_SPECIFIC_KEY_VALUES} -gt 0 ]] ; then
             # More than zero (0) interfaces, something to process
-            echo `${dtzs}`${dtzsep} 'host '"${objectnametoevaluate}"' number of specific key values = '"${NUM_SPECIFIC_KEY_VALUES}" | tee -a -i ${logfilepath}
+            echo `${dtzs}`${dtzsep} 'object:  '${APICLIobjecttype}' '"${objectnametoevaluate}"' number of specific key values = '"${NUM_SPECIFIC_KEY_VALUES}" | tee -a -i ${logfilepath}
             
             for j in `seq 0 $(expr ${NUM_SPECIFIC_KEY_VALUES} - 1 )`
             do
-                    sequencenumberformatted=`printf "%03d" ${j}`
-                    
-                    GETSPECIFICKEYVALUE=$(cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"${objectnametoevaluate}"'") | ."'${APIobjectspecifickey}'"['${j}']')
-                    
-                    export SPECIFICKEYVALUE=${GETSPECIFICKEYVALUE}
-                    errorreturn=$?
-                    
-                    if [ ${errorreturn} != 0 ] ; then
-                        # Something went wrong, terminate
-                        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectSpecificKeyValuesInObjectsFromJSONRepository JQ execution reading '${APICLIobjecttype}' object '${objectnametoevaluate}' "'"${APIobjectspecifickey}"'" sequence number: ['${j}']' | tee -a -i ${logfilepath}
-                        return ${errorreturn}
-                    fi
-                    
-                    echo '"'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} >> ${APICLICSVfiledata}
-                    echo `${dtzs}`${dtzsep} 'Sequence Number [ '${sequencenumberformatted}' ] : "'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} | tee -a -i ${logfilepath}
+                sequencenumberformatted=`printf "%03d" ${j}`
+                
+                GETSPECIFICKEYVALUE=$(cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"${objectnametoevaluate}"'") | ."'${APIobjectspecifickey}'"['${j}']')
+                
+                export SPECIFICKEYVALUE=${GETSPECIFICKEYVALUE}
+                errorreturn=$?
+                
+                if [ ${errorreturn} != 0 ] ; then
+                    # Something went wrong, terminate
+                    echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectSpecificKeyValuesInObjectsFromJSONRepository JQ execution reading '${APICLIobjecttype}' object '${objectnametoevaluate}' "'"${APIobjectspecifickey}"'" sequence number: ['${j}']' | tee -a -i ${logfilepath}
+                    return ${errorreturn}
+                fi
+                
+                echo '"'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} >> ${APICLICSVfiledata}
+                echo `${dtzs}`${dtzsep} 'Sequence Number [ '${sequencenumberformatted}' ] : "'${objectnametoevaluate}'",'${SPECIFICKEYVALUE}${CSVJQspecifickeyvalueserroraddon} | tee -a -i ${logfilepath}
             done
         else
             # ?? Whatever..., so skip
@@ -12145,7 +12149,7 @@ CollectSpecificKeyValuesInObjectsFromJSONRepository () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-07:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-14:02
 
 
 # -------------------------------------------------------------------------------------------------
@@ -12156,7 +12160,7 @@ CollectSpecificKeyValuesInObjectsFromJSONRepository () {
 # CollectSpecificKeyValuesInObjects proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-07:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -12187,6 +12191,7 @@ CollectSpecificKeyValuesInObjects () {
         
         CollectSpecificKeyValuesInObjectsFromMgmtDB
         errorreturn=$?
+        
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
             echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectSpecificKeyValuesInObjectsFromMgmtDB procedure' | tee -a -i ${logfilepath}
@@ -12198,6 +12203,7 @@ CollectSpecificKeyValuesInObjects () {
         
         CollectSpecificKeyValuesInObjectsFromJSONRepository
         errorreturn=$?
+        
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
             echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectSpecificKeyValuesInObjectsFromJSONRepository procedure' | tee -a -i ${logfilepath}
@@ -12212,7 +12218,7 @@ CollectSpecificKeyValuesInObjects () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-07:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2023-03-14:02
 
 
 # -------------------------------------------------------------------------------------------------
@@ -13698,7 +13704,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # CommonGenericObjectsHandlersInitialSetup01
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The CommonGenericObjectsHandlersInitialSetup01 is Common routine for Generic Objects Handlers for Initialization - 01.
@@ -13707,6 +13713,11 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 CommonGenericObjectsHandlersInitialSetup01 () {
     
     errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CommonGenericObjectsHandlersInitialSetup01 procedure Starting...' >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     
@@ -13736,7 +13747,7 @@ CommonGenericObjectsHandlersInitialSetup01 () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-14:01
 
 # -------------------------------------------------------------------------------------------------
 
@@ -13750,7 +13761,7 @@ CommonGenericObjectsHandlersInitialSetup01 () {
 # CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery is Common routine for Generic Objects Handlers for .
@@ -13759,6 +13770,11 @@ CommonGenericObjectsHandlersInitialSetup01 () {
 CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery () {
     
     errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery procedure Starting...' >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     
@@ -13822,7 +13838,7 @@ CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-14:01
 
 # -------------------------------------------------------------------------------------------------
 
@@ -13836,7 +13852,7 @@ CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery () {
 # CommonGenericObjectsSetupComplexObjectsTotalsPathsJSONRepoDoMgmtCLIQuery
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 # The CommonGenericObjectsSetupComplexObjectsTotalsPathsJSONRepoDoMgmtCLIQuery is Common routine for Generic Objects Handlers for .
@@ -13844,7 +13860,10 @@ CommonGenericObjectsSetupGenericObjectsTotalsPathsJSONRepoDoMgmtCLIQuery () {
 
 CommonGenericObjectsSetupComplexObjectsTotalsPathsJSONRepoDoMgmtCLIQuery () {
     
-    errorreturn=0
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CommonGenericObjectsSetupComplexObjectsTotalsPathsJSONRepoDoMgmtCLIQuery procedure Starting...' >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     
@@ -13918,7 +13937,7 @@ CommonGenericObjectsSetupComplexObjectsTotalsPathsJSONRepoDoMgmtCLIQuery () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-14:01
 
 # -------------------------------------------------------------------------------------------------
 
@@ -14087,7 +14106,7 @@ CommonGenericObjectsDetermineGenericaAndComplexObjectsDoMgmtCLIQuery () {
 # PopulateArrayOfGenericObjectsByClassFromMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -14096,6 +14115,13 @@ CommonGenericObjectsDetermineGenericaAndComplexObjectsDoMgmtCLIQuery () {
 PopulateArrayOfGenericObjectsByClassFromMgmtDB () {
     
     errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'PopulateArrayOfGenericObjectsByClassFromMgmtDB procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
     
     # MODIFIED 2023-03-04:01 - 
     # System Object selection operands
@@ -14169,7 +14195,7 @@ PopulateArrayOfGenericObjectsByClassFromMgmtDB () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-14:01
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -14179,7 +14205,7 @@ PopulateArrayOfGenericObjectsByClassFromMgmtDB () {
 # PopulateArrayOfGenericObjectsByClassFromJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -14188,6 +14214,13 @@ PopulateArrayOfGenericObjectsByClassFromMgmtDB () {
 PopulateArrayOfGenericObjectsByClassFromJSONRepository () {
     
     errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'PopulateArrayOfGenericObjectsByClassFromJSONRepository procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
     
     # MODIFIED 2023-03-04:01 - 
     # System Object selection operands
@@ -14239,7 +14272,7 @@ PopulateArrayOfGenericObjectsByClassFromJSONRepository () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-14:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -14250,7 +14283,7 @@ PopulateArrayOfGenericObjectsByClassFromJSONRepository () {
 # DumpArrayOfGenericObjectsKeyFieldValues proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-04:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -14259,6 +14292,13 @@ PopulateArrayOfGenericObjectsByClassFromJSONRepository () {
 DumpArrayOfGenericObjectsKeyFieldValues () {
     
     errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'DumpArrayOfGenericObjectsKeyFieldValues procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
     
     if ${APISCRIPTVERBOSE} ; then
         # Verbose mode ON
@@ -14288,7 +14328,7 @@ DumpArrayOfGenericObjectsKeyFieldValues () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-04:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-14:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -14299,7 +14339,7 @@ DumpArrayOfGenericObjectsKeyFieldValues () {
 # GetArrayOfComplexObjectsFromGenericObjectsFieldByKey proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -14315,6 +14355,13 @@ GetArrayOfComplexObjectsFromGenericObjectsFieldByKey () {
     
     export GENERICOBJECTSKEYFIELDARRAY=()
     export ObjectsOfTypeToProcess=false
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'GetArrayOfComplexObjectsFromGenericObjectsFieldByKey procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Generate array of '${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}" ${APIGenObjectField}' fields' | tee -a -i ${logfilepath}
@@ -14452,7 +14499,7 @@ GetArrayOfComplexObjectsFromGenericObjectsFieldByKey () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-14:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -14463,7 +14510,7 @@ GetArrayOfComplexObjectsFromGenericObjectsFieldByKey () {
 # CollectComplexObjectsFromGenericObjectsFieldWithMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-08:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -14472,11 +14519,14 @@ GetArrayOfComplexObjectsFromGenericObjectsFieldByKey () {
 
 CollectComplexObjectsFromGenericObjectsFieldWithMgmtDB () {
     
-    #
-    # using bash variables in a jq expression
-    #
-    
     errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CollectComplexObjectsFromGenericObjectsFieldWithMgmtDB procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
@@ -14550,7 +14600,7 @@ CollectComplexObjectsFromGenericObjectsFieldWithMgmtDB () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-08:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-14:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -14561,7 +14611,7 @@ CollectComplexObjectsFromGenericObjectsFieldWithMgmtDB () {
 # CollectComplexObjectsFromGenericObjectsFieldWithJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-08:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -14570,11 +14620,14 @@ CollectComplexObjectsFromGenericObjectsFieldWithMgmtDB () {
 
 CollectComplexObjectsFromGenericObjectsFieldWithJSONRepository () {
     
-    #
-    # using bash variables in a jq expression
-    #
-    
     errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CollectComplexObjectsFromGenericObjectsFieldWithJSONRepository procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
@@ -14624,7 +14677,7 @@ CollectComplexObjectsFromGenericObjectsFieldWithJSONRepository () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED - 2023-03-08:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED - 2023-03-14:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -14635,7 +14688,7 @@ CollectComplexObjectsFromGenericObjectsFieldWithJSONRepository () {
 # CollectComplexObjectsViaGenericObjectsFieldArrayToCSV proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-06:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -14643,9 +14696,12 @@ CollectComplexObjectsFromGenericObjectsFieldWithJSONRepository () {
 
 CollectComplexObjectsViaGenericObjectsFieldArrayToCSV () {
     
-    #
-    # using bash variables in a jq expression
-    #
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CollectComplexObjectsViaGenericObjectsFieldArrayToCSV procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Use array of ["'${APIGenObjectField}'"] to generate '${APICLIcomplexobjecttype}' objects CSV' | tee -a -i ${logfilepath}
@@ -14688,7 +14744,7 @@ CollectComplexObjectsViaGenericObjectsFieldArrayToCSV () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-06:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-14:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -15588,7 +15644,7 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 # PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-05:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -15597,6 +15653,13 @@ echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
 PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromMgmtDB () {
     
     errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromMgmtDB procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
     
     ConfigureObjectQuerySelector
     
@@ -15610,6 +15673,10 @@ PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromMgmtDB () {
     genericobjectslefttoshow=${objectstoshowgenericobject}
     
     currentobjectoffset=0
+    
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  - Results Key, last entry :  N = Null, 0 = Zero, -= Key Value Not Found, ! = Key Value Found, ? = Strange Data Value' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     while [ ${genericobjectslefttoshow} -ge 1 ] ; do
         # we have objects to process
@@ -15745,7 +15812,7 @@ PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromMgmtDB () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-05:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-14:02
 
 
 # -------------------------------------------------------------------------------------------------
@@ -15756,7 +15823,7 @@ PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromMgmtDB () {
 # PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-05:01 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -15765,6 +15832,13 @@ PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromMgmtDB () {
 PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromJSONRepository () {
     
     errorreturn=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromJSONRepository procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
     
     ConfigureObjectQuerySelector
     
@@ -15787,6 +15861,10 @@ PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromJSONRepository () {
     
     # break the string into an array - each element of the array is a line in the original string
     # there are simpler ways, but this way allows the names to contain spaces. Gaia's bash version is 3.x so readarray is not available
+    
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  - Results Key, last entry :  N = Null, 0 = Zero, -= Key Value Not Found, ! = Key Value Found, ? = Strange Data Value' | tee -a -i ${logfilepath}
+    echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
     echo -n `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     
@@ -15892,7 +15970,7 @@ PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromJSONRepository () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-05:01 -
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-14:02 -
 
 
 # -------------------------------------------------------------------------------------------------
@@ -15903,7 +15981,7 @@ PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromJSONRepository () {
 # GetArrayOfGenericObjectsByClassWithSpecificKeyValues proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-07:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:01 - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -15911,13 +15989,18 @@ PopulateArrayOfGenericObjectsByClassWithSpecificKeyValuesFromJSONRepository () {
 
 GetArrayOfGenericObjectsByClassWithSpecificKeyValues () {
     
-    # MODIFIED 2023-03-07:01 -
+    # MODIFIED 2023-03-14:01 -
     
     errorreturn=0
     
     GENERICOBJECTSKEYFIELDARRAY=()
     ALLGENERICOBJECTSKEYFIELDARRAY=()
     export MAXObjectsSpecificKeyValues=0
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'GetArrayOfGenericObjectsByClassWithSpecificKeyValues procedure Starting...' >> ${logfilepath}
     
     # -------------------------------------------------------------------------------------------------
     
@@ -16036,7 +16119,7 @@ GetArrayOfGenericObjectsByClassWithSpecificKeyValues () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-07:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-14:01
 
 
 # -------------------------------------------------------------------------------------------------
@@ -16047,7 +16130,7 @@ GetArrayOfGenericObjectsByClassWithSpecificKeyValues () {
 # CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromMgmtDB proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-05:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:03 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -16057,9 +16140,28 @@ CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromMgmtDB () {
     
     errorreturn=0
     
-    #
-    # using bash variables in a jq expression
-    #
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromMgmtDB procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    CheckAPIKeepAlive
+    errorreturn=$?
+    
+    if [ ${errorreturn} != 0 ] ; then
+        # Something went wrong, document
+        echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CheckAPIKeepAlive procedure' | tee -a -i ${logfilepath}
+    fi
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    export WorkingAPICLIdetaillvl=${APICLIdetaillvl}
+    
+    # -------------------------------------------------------------------------------------------------
+    
+    ConfigureMgmtCLIOperationalParametersExport
+    
+    # -------------------------------------------------------------------------------------------------
     
     export CSVJQspecifickeyvaluesparmsbase=${CSVJQparms}
     
@@ -16088,8 +16190,8 @@ CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromMgmtDB () {
         #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         #echo `${dtzs}`${dtzsep} Host with interfaces "${objectnametoevaluate}" | tee -a -i ${logfilepath}
         
-        #SPECIFICKEYVALUES_COUNT=$(mgmt_cli show ${APICLIobjecttype} ${APIGenObjectField} "$(eval echo ${line})" details-level full -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '."'${APIobjectspecifickey}'" | length' )
-        SPECIFICKEYVALUES_COUNT=$(mgmt_cli show ${APICLIobjecttype} ${APIGenObjectField} "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.'${APIobjectspecifickey}' | length')
+        #SPECIFICKEYVALUES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '."'${APIobjectspecifickey}'" | length')
+        SPECIFICKEYVALUES_COUNT=$(mgmt_cli show ${APICLIobjecttype} ${APIGenObjectField} "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '."'${APIobjectspecifickey}'" | length')
         
         NUM_SPECIFIC_KEY_VALUES=${SPECIFICKEYVALUES_COUNT}
         
@@ -16113,6 +16215,7 @@ CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromMgmtDB () {
             
             # If there is an issue with adding the index [0] keys during import which may be exported with the basic object, then more plumbing is required here
             # like changing the sequence to start from [1] versus [0] as it is currently done
+            
             for j in `seq 0 $(expr ${NUM_SPECIFIC_KEY_VALUES} - 1 )`
             do
                 sequencenumberformatted=`printf "%05d" ${j}`
@@ -16145,7 +16248,7 @@ CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromMgmtDB () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-05:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-14:03
 
 
 # -------------------------------------------------------------------------------------------------
@@ -16156,7 +16259,7 @@ CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromMgmtDB () {
 # CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-05:01 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:03 - /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -16166,9 +16269,10 @@ CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository () 
     
     errorreturn=0
     
-    #
-    # using bash variables in a jq expression
-    #
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
     
     export CSVJQspecifickeyvaluesparmsbase=${CSVJQparms}
     
@@ -16183,6 +16287,9 @@ CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository () 
     
     export CSVJQspecifickeyvaluesparmsbase=${CSVJQparms}${CSVJQspecifickeyvalueserroraddon}
     
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} '  -- JSON Repo File = "'${JSONRepoComplexObjectFile}'"' >> ${logfilepath}
+    
     for i in "${GENERICOBJECTSKEYFIELDARRAY[@]}"
     do
         export objecttoevaluate=${i}
@@ -16191,8 +16298,9 @@ CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository () 
         #echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
         #echo `${dtzs}`${dtzsep} Host with interfaces "${objectnametoevaluate}" | tee -a -i ${logfilepath}
         
-        #SPECIFICKEYVALUES_COUNT=$(mgmt_cli show ${APICLIobjecttype} name "${objectnametoevaluate}" -s ${APICLIsessionfile} --conn-timeout ${APICLIconntimeout} -f json | ${JQ} '.'${APIobjectspecifickey}' | length')
-            SPECIFICKEYVALUES_COUNT=$(cat ${JSONRepoComplexObjectFile} | ${JQ} '.objects[] | select(.'"${APIGenObjectField}"' == "'"$(eval echo ${line})"'") | ."'${APIobjectspecifickey}'" | length')
+        #SPECIFICKEYVALUES_COUNT=$(cat ${JSONRepoFile} | ${JQ} '.objects[] | select(.name == "'"${objectnametoevaluate}"'") | ."'${APIobjectspecifickey}'" | length')
+        #SPECIFICKEYVALUES_COUNT=$(cat ${JSONRepoComplexObjectFile} | ${JQ} '.objects[] | select(.'"${APIGenObjectField}"' == "'"$(eval echo ${line})"'") | ."'${APIobjectspecifickey}'" | length')
+        SPECIFICKEYVALUES_COUNT=$(cat ${JSONRepoComplexObjectFile} | ${JQ} '.objects[] | select(."'${APIGenObjectField}'" == "'"${objectnametoevaluate}"'") | ."'${APIobjectspecifickey}'" | length')
         
         NUM_SPECIFIC_KEY_VALUES=${SPECIFICKEYVALUES_COUNT}
         
@@ -16218,7 +16326,7 @@ CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository () 
             do
                 sequencenumberformatted=`printf "%03d" ${j}`
                 
-                GETSPECIFICKEYVALUE=$(cat ${JSONRepoComplexObjectFile} | ${JQ} '.objects[] | select(.'"${APIGenObjectField}"' == "'"${objectnametoevaluate}"'") | ."'${APIobjectspecifickey}'"['${j}']')
+                GETSPECIFICKEYVALUE=$(cat ${JSONRepoComplexObjectFile} | ${JQ} '.objects[] | select(."'${APIGenObjectField}'" == "'"${objectnametoevaluate}"'") | ."'${APIobjectspecifickey}'"['${j}']')
                 
                 export SPECIFICKEYVALUE=${GETSPECIFICKEYVALUE}
                 errorreturn=$?
@@ -16245,7 +16353,7 @@ CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository () 
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-05:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-14:03
 
 
 # -------------------------------------------------------------------------------------------------
@@ -16256,7 +16364,7 @@ CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository () 
 # CollectGenericObjectsByClassWithSpecificKeyValuesInObjects proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2023-03-05:01 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2023-03-14:03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
@@ -16266,9 +16374,10 @@ CollectGenericObjectsByClassWithSpecificKeyValuesInObjects () {
     
     errorreturn=0
     
-    #
-    # using bash variables in a jq expression
-    #
+    echo `${dtzs}`${dtzsep} >> ${logfilepath}
+    echo `${dtzs}`${dtzsep} 'CollectGenericObjectsByClassWithSpecificKeyValuesInObjects procedure Starting...' >> ${logfilepath}
+    
+    # -------------------------------------------------------------------------------------------------
     
     echo `${dtzs}`${dtzsep} | tee -a -i ${logfilepath}
     echo `${dtzs}`${dtzsep} 'Use Array of "'${APIGenObjectField}'" fields from '${APIGenObjectTypes} ${APIGenObjectClassField} "${APIGenObjectClass}"' objects to generate ."'${APIobjectspecifickey}'" CSV' | tee -a -i ${logfilepath}
@@ -16286,6 +16395,7 @@ CollectGenericObjectsByClassWithSpecificKeyValuesInObjects () {
         
         CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromMgmtDB
         errorreturn=$?
+        
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
             echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromMgmtDB procedure' | tee -a -i ${logfilepath}
@@ -16297,6 +16407,7 @@ CollectGenericObjectsByClassWithSpecificKeyValuesInObjects () {
         
         CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository
         errorreturn=$?
+        
         if [ ${errorreturn} != 0 ] ; then
             # Something went wrong, terminate
             echo `${dtzs}`${dtzsep} 'Error { '${errorreturn}' } in CollectGenericObjectsByClassWithSpecificKeyValuesInObjectsFromJSONRepository procedure' | tee -a -i ${logfilepath}
@@ -16311,7 +16422,7 @@ CollectGenericObjectsByClassWithSpecificKeyValuesInObjects () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-05:01
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ - MODIFIED 2023-03-14:03
 
 
 # -------------------------------------------------------------------------------------------------

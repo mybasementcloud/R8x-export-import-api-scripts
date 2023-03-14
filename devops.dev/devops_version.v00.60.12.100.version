@@ -18,8 +18,8 @@
 #
 ScriptVersion=00.60.12
 ScriptRevision=100
-ScriptSubRevision=500
-ScriptDate=2023-03-08
+ScriptSubRevision=750
+ScriptDate=2023-03-14
 TemplateVersion=00.60.12
 APISubscriptsLevel=010
 APISubscriptsVersion=00.60.12
@@ -31,8 +31,8 @@ APISubscriptsRevision=100
 	"filetype" : "solution_info.api_scripts",
 	"fileversion" : "07.00.00",
 	"filerevision" : "000",
-	"filesubrevision" : "500",
-	"filedate" : "2023-03-08",
+	"filesubrevision" : "750",
+	"filedate" : "2023-03-14",
 	"fileinformationlevel" : "000",
 	"MinCMDTemplateVersion" : "07.00.00"
 	}, 
@@ -45,7 +45,7 @@ APISubscriptsRevision=100
 		"Language" : "Windows_CMD",
 		"Extension" : "CMD"
 		},
-	"ScriptDate" : "2023-03-08",
+	"ScriptDate" : "2023-03-14",
 	"ScriptVersion" : "07.00.00",
 	"ScriptRevision" : "000",
 	"ScriptSubRevision" : "000",
@@ -57,10 +57,10 @@ APISubscriptsRevision=100
 		"Language" : "bash",
 		"Extension" : "sh"
 		},
-	"ScriptDate" : "2023-03-08",
+	"ScriptDate" : "2023-03-14",
 	"ScriptVersion" : "00.60.12",
 	"ScriptRevision" : "100",
-	"ScriptSubRevision" : "500",
+	"ScriptSubRevision" : "750",
 	"ScriptTweak" : "000",
 	"TemplateVersion" : "00.60.12",
 	"TemplateLevel" : "@NA",
@@ -72,10 +72,10 @@ APISubscriptsRevision=100
 		"Language" : "bash",
 		"Extension" : "sh"
 		},
-	"ScriptDate" : "2023-03-08",
+	"ScriptDate" : "2023-03-14",
 	"ScriptVersion" : "00.60.12",
 	"ScriptRevision" : "100",
-	"ScriptSubRevision" : "500",
+	"ScriptSubRevision" : "750",
 	"TemplateVersion" : "00.60.12",
 	"APISubScriptsLevel" : "010",
 	"APISubScriptsVersion" : "00.60.12",

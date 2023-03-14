@@ -1,6 +1,6 @@
 # LIMITATIONS and CAVEATS
 
-## UPDATED:  2023-03-08
+## UPDATED:  2023-03-14
 
 This document outlines limitations and caveats to the implementation of R8X API export, import, set-update, and delete scripts utilizing bash mgmt_cli commands.
 

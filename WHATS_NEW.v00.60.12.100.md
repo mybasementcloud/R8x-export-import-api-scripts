@@ -2,7 +2,7 @@
 
 What's NEW in Check Point R8x Export, Import, Set/Update, Rename to new-name, and Delete mgmt_cli API scripts for bash on Check Point Gaia OS management hosts, using CSV files (v00.60.xx.yyy)
 
-## UPDATED:  2023-03-08
+## UPDATED:  2023-03-14
 
 Interim update
 
