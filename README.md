@@ -4,7 +4,10 @@ Check Point R8x Export, Import, Set/Update, Rename to new-name, and Delete mgmt_
 
 Additional documentation and information will be provided in .md, .tsv, and potentially .xlsx files in the repository.
 
-## UPDATED:  2023-03-14
+## UPDATED:  2026-09-03
+
+This project is Archived and all future development is under the mybasementcloud/R8X_mgmt_cli_API_bash_scripts project here:
+<[https://sc1.checkpoint.com/documents/latest/APIs/index.html#introduction](https://github.com/mybasementcloud/R8X_mgmt_cli_API_bash_scripts)>
 
 Interim update, reorganize the README.MD and add a Quick Start
 
