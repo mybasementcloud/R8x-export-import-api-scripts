@@ -7,7 +7,7 @@ Additional documentation and information will be provided in .md, .tsv, and pote
 ## UPDATED:  2026-09-03
 
 This project is Archived and all future development is under the mybasementcloud/R8X_mgmt_cli_API_bash_scripts project here:
-<[https://sc1.checkpoint.com/documents/latest/APIs/index.html#introduction](https://github.com/mybasementcloud/R8X_mgmt_cli_API_bash_scripts)>
+<https://github.com/mybasementcloud/R8X_mgmt_cli_API_bash_scripts>
 
 Interim update, reorganize the README.MD and add a Quick Start
 
